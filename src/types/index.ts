@@ -40,6 +40,26 @@ export interface Supplier extends User {
   businessHours: string;
   acceptedPayments: PaymentMethod[];
   isAvailable: boolean;
+  communes: SupplierCommune[];
+}
+
+export interface SupplierCommune {
+  id: string;
+  supplierId: string;
+  communeName: string;
+  isActive: boolean;
+  maxDeliveryRadius: number;
+  minimumOrderAmount: number;
+  deliveryFee: number;
+  averageDeliveryTime: number;
+  totalOrders: number;
+  successRate: number;
+  lastOrderDate?: Date;
+  deactivatedAt?: Date;
+  deactivationReason?: string;
+  reactivatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type ProductBrand = 'Solibra' | 'Brassivoire';

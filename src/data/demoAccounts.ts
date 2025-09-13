@@ -100,7 +100,8 @@ export const demoAccounts: DemoAccount[] = [
       availableProducts: ['Solibra', 'Brassivoire'],
       deliveryCapacity: 'truck',
       acceptedPayments: ['orange', 'mtn', 'moov', 'card'],
-      isAvailable: true
+      isAvailable: true,
+      communes: []
     } as Supplier
   },
 
@@ -161,7 +162,8 @@ export const demoAccounts: DemoAccount[] = [
       availableProducts: ['Solibra', 'Brassivoire'],
       deliveryCapacity: 'tricycle',
       acceptedPayments: ['orange', 'mtn', 'wave'],
-      isAvailable: true
+      isAvailable: true,
+      communes: []
     } as Supplier
   }
 ];
