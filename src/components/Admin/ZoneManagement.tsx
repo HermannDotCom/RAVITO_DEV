@@ -21,7 +21,11 @@ import {
   Star,
   Navigation,
   Shield,
-  Settings
+  Settings,
+  Plus,
+  Trash2,
+  UserPlus,
+  UserMinus
 } from 'lucide-react';
 import { mockSuppliers, deliveryZones } from '../../data/mockSuppliers';
 import { SupplierCommune, DeliveryZone } from '../../types';
@@ -29,17 +33,24 @@ import { SupplierCommune, DeliveryZone } from '../../types';
 export const ZoneManagement: React.FC = () => {
   const [zones, setZones] = useState(deliveryZones);
   const [searchTerm, setSearchTerm] = useState('');
-  const [zoneFilter, setZoneFilter] = useState<string>('all');
-  const [supplierFilter, setSupplierFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [selectedZone, setSelectedZone] = useState<DeliveryZone | null>(null);
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierCommune | null>(null);
-  const [showZoneDetailsModal, setShowZoneDetailsModal] = useState(false);
-  const [showSupplierModal, setShowSupplierModal] = useState(false);
+  const [showZoneModal, setShowZoneModal] = useState(false);
+  const [showAddZoneModal, setShowAddZoneModal] = useState(false);
+  const [showAddSupplierModal, setShowAddSupplierModal] = useState(false);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [deactivationReason, setDeactivationReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [editingZone, setEditingZone] = useState<DeliveryZone | null>(null);
+
+  const [newZoneData, setNewZoneData] = useState({
+    communeName: '',
+    maxSuppliers: 5,
+    minimumCoverage: 2,
+    operatingHours: '18h00 - 06h00'
+  });
 
   const [editFormData, setEditFormData] = useState({
     maxDeliveryRadius: 10,
@@ -47,56 +58,14 @@ export const ZoneManagement: React.FC = () => {
     deliveryFee: 0
   });
 
-  // Obtenir tous les fournisseurs inscrits dans toutes les zones
-  const getAllSupplierRegistrations = () => {
-    const allRegistrations: (SupplierCommune & { zoneName: string })[] = [];
-    
-    zones.forEach(zone => {
-      // Récupérer les fournisseurs de cette zone depuis mockSuppliers
-      mockSuppliers.forEach(supplier => {
-        supplier.communes.forEach(commune => {
-          // Associer les communes aux zones par nom
-          if (zone.communeName === 'Plateau' && supplier.address.includes('Plateau')) {
-            allRegistrations.push({ ...commune, zoneName: zone.communeName });
-          } else if (zone.communeName === 'Cocody' && (supplier.address.includes('Cocody') || commune.supplierBusinessName.includes('Cocody'))) {
-            allRegistrations.push({ ...commune, zoneName: zone.communeName });
-          } else if (zone.communeName === 'Marcory' && (supplier.address.includes('Marcory') || commune.supplierBusinessName.includes('Marcory'))) {
-            allRegistrations.push({ ...commune, zoneName: zone.communeName });
-          } else if (zone.communeName === 'Treichville' && supplier.address.includes('Treichville')) {
-            allRegistrations.push({ ...commune, zoneName: zone.communeName });
-          } else if (zone.communeName === 'Adjamé' && supplier.address.includes('Adjamé')) {
-            allRegistrations.push({ ...commune, zoneName: zone.communeName });
-          } else if (zone.communeName === 'Yopougon Est' && supplier.address.includes('Yopougon')) {
-            allRegistrations.push({ ...commune, zoneName: zone.communeName });
-          } else if (zone.communeName === 'Koumassi' && supplier.address.includes('Koumassi')) {
-            allRegistrations.push({ ...commune, zoneName: zone.communeName });
-          } else if (zone.communeName === 'Port-Bouët' && supplier.address.includes('Port-Bouët')) {
-            allRegistrations.push({ ...commune, zoneName: zone.communeName });
-          }
-        });
-      });
-    });
-    
-    return allRegistrations;
-  };
-
-  const allSupplierRegistrations = getAllSupplierRegistrations();
-
-  // Obtenir les zones et fournisseurs uniques pour les filtres
-  const uniqueZones = zones.map(z => z.communeName);
-  const uniqueSuppliers = Array.from(new Set(allSupplierRegistrations.map(sr => sr.supplierBusinessName)));
-
-  // Filtrer les inscriptions de fournisseurs
-  const filteredRegistrations = allSupplierRegistrations.filter(sr => {
-    const matchesSearch = sr.supplierBusinessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         sr.zoneName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesZone = zoneFilter === 'all' || sr.zoneName === zoneFilter;
-    const matchesSupplier = supplierFilter === 'all' || sr.supplierBusinessName === supplierFilter;
+  // Filtrer les zones
+  const filteredZones = zones.filter(zone => {
+    const matchesSearch = zone.communeName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'active' && sr.isActive) ||
-                         (statusFilter === 'inactive' && !sr.isActive);
+                         (statusFilter === 'active' && zone.isActive) ||
+                         (statusFilter === 'inactive' && !zone.isActive);
     
-    return matchesSearch && matchesZone && matchesSupplier && matchesStatus;
+    return matchesSearch && matchesStatus;
   });
 
   const toggleZoneStatus = async (zone: DeliveryZone) => {
@@ -121,38 +90,150 @@ export const ZoneManagement: React.FC = () => {
     alert(`✅ Zone ${action} avec succès!\n\nLa zone "${zone.communeName}" est maintenant ${action}.`);
   };
 
-  const toggleSupplierInZone = async (supplierRegistration: SupplierCommune & { zoneName: string }) => {
-    if (supplierRegistration.isActive) {
-      // Show deactivation modal
-      setSelectedSupplier(supplierRegistration);
-      setShowDeactivateModal(true);
-    } else {
-      // Reactivate directly
-      await reactivateSupplierInZone(supplierRegistration);
-    }
+  const handleAddZone = async () => {
+    if (!newZoneData.communeName.trim()) return;
+
+    setIsProcessing(true);
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const newZone: DeliveryZone = {
+      id: `zone-${Date.now()}`,
+      communeName: newZoneData.communeName,
+      isActive: true,
+      suppliers: [],
+      zoneSettings: {
+        maxSuppliers: newZoneData.maxSuppliers,
+        minimumCoverage: newZoneData.minimumCoverage,
+        operatingHours: newZoneData.operatingHours
+      },
+      statistics: {
+        totalSuppliers: 0,
+        activeSuppliers: 0,
+        totalOrders: 0,
+        averageDeliveryTime: 0,
+        successRate: 0
+      },
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    setZones(prev => [...prev, newZone]);
+    setNewZoneData({
+      communeName: '',
+      maxSuppliers: 5,
+      minimumCoverage: 2,
+      operatingHours: '18h00 - 06h00'
+    });
+    setShowAddZoneModal(false);
+    setIsProcessing(false);
+
+    alert(`✅ Zone "${newZone.communeName}" créée avec succès!`);
   };
 
-  const deactivateSupplierInZone = async () => {
-    if (!selectedSupplier || !deactivationReason.trim()) return;
+  const handleEditZone = async () => {
+    if (!editingZone) return;
+
+    setIsProcessing(true);
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    setZones(prev => prev.map(z => 
+      z.id === editingZone.id
+        ? { 
+            ...z, 
+            communeName: newZoneData.communeName,
+            zoneSettings: {
+              maxSuppliers: newZoneData.maxSuppliers,
+              minimumCoverage: newZoneData.minimumCoverage,
+              operatingHours: newZoneData.operatingHours
+            },
+            updatedAt: new Date()
+          }
+        : z
+    ));
+
+    setEditingZone(null);
+    setShowAddZoneModal(false);
+    setIsProcessing(false);
+
+    alert(`✅ Zone "${newZoneData.communeName}" modifiée avec succès!`);
+  };
+
+  const handleDeleteZone = async (zone: DeliveryZone) => {
+    const confirmMessage = `Êtes-vous sûr de vouloir supprimer définitivement la zone "${zone.communeName}" ?\n\nCette action supprimera aussi toutes les inscriptions de fournisseurs dans cette zone.`;
+    
+    if (!confirm(confirmMessage)) return;
 
     setIsProcessing(true);
 
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Update in mockSuppliers data structure
-    // In a real app, this would be an API call
-    
+    setZones(prev => prev.filter(z => z.id !== zone.id));
     setIsProcessing(false);
-    setShowDeactivateModal(false);
-    setSelectedSupplier(null);
-    setDeactivationReason('');
 
-    alert(`✅ Fournisseur désactivé dans la zone!\n\n${selectedSupplier.supplierBusinessName} ne peut plus livrer dans ${selectedSupplier.zoneName}.\n\nRaison: ${deactivationReason}`);
+    alert(`✅ Zone "${zone.communeName}" supprimée avec succès!`);
   };
 
-  const reactivateSupplierInZone = async (supplierRegistration: SupplierCommune & { zoneName: string }) => {
-    const confirmMessage = `Êtes-vous sûr de vouloir réactiver "${supplierRegistration.supplierBusinessName}" dans la zone "${supplierRegistration.zoneName}" ?`;
+  const handleAddSupplierToZone = async (supplierId: string, supplierName: string) => {
+    if (!selectedZone) return;
+
+    setIsProcessing(true);
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const newSupplierCommune: SupplierCommune = {
+      id: `sc-${Date.now()}`,
+      supplierId,
+      supplierName,
+      supplierBusinessName: supplierName,
+      isActive: true,
+      registeredAt: new Date(),
+      approvedAt: new Date(),
+      performanceMetrics: {
+        totalOrders: 0,
+        successRate: 100,
+        averageDeliveryTime: 25,
+        lastOrderDate: undefined
+      },
+      deliverySettings: {
+        maxDeliveryRadius: 10,
+        minimumOrderAmount: 5000,
+        deliveryFee: 0
+      },
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    setZones(prev => prev.map(z => 
+      z.id === selectedZone.id
+        ? { 
+            ...z, 
+            suppliers: [...z.suppliers, newSupplierCommune],
+            statistics: {
+              ...z.statistics,
+              totalSuppliers: z.statistics.totalSuppliers + 1,
+              activeSuppliers: z.statistics.activeSuppliers + 1
+            },
+            updatedAt: new Date()
+          }
+        : z
+    ));
+
+    setShowAddSupplierModal(false);
+    setIsProcessing(false);
+
+    alert(`✅ Fournisseur "${supplierName}" ajouté à la zone "${selectedZone.communeName}" avec succès!`);
+  };
+
+  const handleRemoveSupplierFromZone = async (supplierId: string, supplierName: string) => {
+    if (!selectedZone) return;
+
+    const confirmMessage = `Êtes-vous sûr de vouloir retirer "${supplierName}" de la zone "${selectedZone.communeName}" ?`;
     
     if (!confirm(confirmMessage)) return;
 
@@ -161,45 +242,175 @@ export const ZoneManagement: React.FC = () => {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Update in mockSuppliers data structure
-    // In a real app, this would be an API call
+    setZones(prev => prev.map(z => 
+      z.id === selectedZone.id
+        ? { 
+            ...z, 
+            suppliers: z.suppliers.filter(s => s.supplierId !== supplierId),
+            statistics: {
+              ...z.statistics,
+              totalSuppliers: z.statistics.totalSuppliers - 1,
+              activeSuppliers: z.statistics.activeSuppliers - (z.suppliers.find(s => s.supplierId === supplierId)?.isActive ? 1 : 0)
+            },
+            updatedAt: new Date()
+          }
+        : z
+    ));
 
     setIsProcessing(false);
 
-    alert(`✅ Fournisseur réactivé dans la zone!\n\n${supplierRegistration.supplierBusinessName} peut maintenant livrer dans ${supplierRegistration.zoneName}.`);
+    alert(`✅ Fournisseur "${supplierName}" retiré de la zone "${selectedZone.communeName}" avec succès!`);
   };
 
-  const handleEditSupplierSettings = (supplierRegistration: SupplierCommune & { zoneName: string }) => {
-    setSelectedSupplier(supplierRegistration);
-    setEditFormData({
-      maxDeliveryRadius: supplierRegistration.deliverySettings.maxDeliveryRadius,
-      minimumOrderAmount: supplierRegistration.deliverySettings.minimumOrderAmount,
-      deliveryFee: supplierRegistration.deliverySettings.deliveryFee
-    });
-    setShowEditModal(true);
+  const toggleSupplierInZone = async (supplier: SupplierCommune) => {
+    if (supplier.isActive) {
+      // Show deactivation modal
+      setSelectedSupplier(supplier);
+      setShowDeactivateModal(true);
+    } else {
+      // Reactivate directly
+      await reactivateSupplierInZone(supplier);
+    }
   };
 
-  const handleUpdateSupplierSettings = async () => {
-    if (!selectedSupplier) return;
+  const deactivateSupplierInZone = async () => {
+    if (!selectedSupplier || !deactivationReason.trim() || !selectedZone) return;
 
     setIsProcessing(true);
 
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Update in mockSuppliers data structure
-    // In a real app, this would be an API call
+    setZones(prev => prev.map(z => 
+      z.id === selectedZone.id
+        ? {
+            ...z,
+            suppliers: z.suppliers.map(s => 
+              s.id === selectedSupplier.id
+                ? {
+                    ...s,
+                    isActive: false,
+                    deactivatedAt: new Date(),
+                    deactivationReason: deactivationReason,
+                    updatedAt: new Date()
+                  }
+                : s
+            ),
+            statistics: {
+              ...z.statistics,
+              activeSuppliers: z.statistics.activeSuppliers - 1
+            },
+            updatedAt: new Date()
+          }
+        : z
+    ));
+
+    setIsProcessing(false);
+    setShowDeactivateModal(false);
+    setSelectedSupplier(null);
+    setDeactivationReason('');
+
+    alert(`✅ Fournisseur désactivé dans la zone!\n\n${selectedSupplier.supplierBusinessName} ne peut plus livrer dans ${selectedZone.communeName}.\n\nRaison: ${deactivationReason}`);
+  };
+
+  const reactivateSupplierInZone = async (supplier: SupplierCommune) => {
+    if (!selectedZone) return;
+
+    const confirmMessage = `Êtes-vous sûr de vouloir réactiver "${supplier.supplierBusinessName}" dans la zone "${selectedZone.communeName}" ?`;
+    
+    if (!confirm(confirmMessage)) return;
+
+    setIsProcessing(true);
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    setZones(prev => prev.map(z => 
+      z.id === selectedZone.id
+        ? {
+            ...z,
+            suppliers: z.suppliers.map(s => 
+              s.id === supplier.id
+                ? {
+                    ...s,
+                    isActive: true,
+                    reactivatedAt: new Date(),
+                    deactivationReason: undefined,
+                    updatedAt: new Date()
+                  }
+                : s
+            ),
+            statistics: {
+              ...z.statistics,
+              activeSuppliers: z.statistics.activeSuppliers + 1
+            },
+            updatedAt: new Date()
+          }
+        : z
+    ));
+
+    setIsProcessing(false);
+
+    alert(`✅ Fournisseur réactivé dans la zone!\n\n${supplier.supplierBusinessName} peut maintenant livrer dans ${selectedZone.communeName}.`);
+  };
+
+  const handleEditSupplierSettings = (supplier: SupplierCommune) => {
+    setSelectedSupplier(supplier);
+    setEditFormData({
+      maxDeliveryRadius: supplier.deliverySettings.maxDeliveryRadius,
+      minimumOrderAmount: supplier.deliverySettings.minimumOrderAmount,
+      deliveryFee: supplier.deliverySettings.deliveryFee
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateSupplierSettings = async () => {
+    if (!selectedSupplier || !selectedZone) return;
+
+    setIsProcessing(true);
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    setZones(prev => prev.map(z => 
+      z.id === selectedZone.id
+        ? {
+            ...z,
+            suppliers: z.suppliers.map(s => 
+              s.id === selectedSupplier.id
+                ? {
+                    ...s,
+                    deliverySettings: editFormData,
+                    updatedAt: new Date()
+                  }
+                : s
+            ),
+            updatedAt: new Date()
+          }
+        : z
+    ));
 
     setIsProcessing(false);
     setShowEditModal(false);
     setSelectedSupplier(null);
 
-    alert(`✅ Paramètres mis à jour avec succès!\n\nParamètres de livraison mis à jour pour ${selectedSupplier.supplierBusinessName} dans ${selectedSupplier.zoneName}.`);
+    alert(`✅ Paramètres mis à jour avec succès!\n\nParamètres de livraison mis à jour pour ${selectedSupplier.supplierBusinessName} dans ${selectedZone.communeName}.`);
   };
 
   const handleViewZoneDetails = (zone: DeliveryZone) => {
     setSelectedZone(zone);
-    setShowZoneDetailsModal(true);
+    setShowZoneModal(true);
+  };
+
+  const handleEditZoneClick = (zone: DeliveryZone) => {
+    setEditingZone(zone);
+    setNewZoneData({
+      communeName: zone.communeName,
+      maxSuppliers: zone.zoneSettings.maxSuppliers,
+      minimumCoverage: zone.zoneSettings.minimumCoverage,
+      operatingHours: zone.zoneSettings.operatingHours
+    });
+    setShowAddZoneModal(true);
   };
 
   const formatPrice = (price: number) => {
@@ -231,18 +442,28 @@ export const ZoneManagement: React.FC = () => {
   // Calculate summary stats
   const totalActiveZones = zones.filter(z => z.isActive).length;
   const totalInactiveZones = zones.filter(z => !z.isActive).length;
-  const totalActiveSuppliers = allSupplierRegistrations.filter(sr => sr.isActive).length;
-  const totalInactiveSuppliers = allSupplierRegistrations.filter(sr => !sr.isActive).length;
+  const totalActiveSuppliers = zones.reduce((sum, zone) => sum + zone.statistics.activeSuppliers, 0);
+  const totalInactiveSuppliers = zones.reduce((sum, zone) => sum + (zone.statistics.totalSuppliers - zone.statistics.activeSuppliers), 0);
 
-  const ZoneDetailsModal = ({ zone, onClose }: { 
+  // Get available suppliers not in current zone
+  const getAvailableSuppliers = () => {
+    if (!selectedZone) return [];
+    
+    const suppliersInZone = selectedZone.suppliers.map(s => s.supplierId);
+    return mockSuppliers.filter(supplier => 
+      !suppliersInZone.includes(supplier.id) && supplier.isActive
+    );
+  };
+
+  const ZoneModal = ({ zone, onClose }: { 
     zone: DeliveryZone; 
     onClose: () => void 
   }) => {
-    const zoneSuppliers = allSupplierRegistrations.filter(sr => sr.zoneName === zone.communeName);
+    const availableSuppliers = getAvailableSuppliers();
     
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
           <div className="p-8">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
@@ -333,9 +554,19 @@ export const ZoneManagement: React.FC = () => {
               {/* Suppliers in Zone */}
               <div className="space-y-6">
                 <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Fournisseurs inscrits</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-gray-900">Fournisseurs inscrits</h3>
+                    <button
+                      onClick={() => setShowAddSupplierModal(true)}
+                      className="flex items-center space-x-2 bg-green-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      <span>Ajouter</span>
+                    </button>
+                  </div>
+                  
                   <div className="space-y-3">
-                    {zoneSuppliers.map((supplier) => (
+                    {zone.suppliers.map((supplier) => (
                       <div key={supplier.id} className="bg-white border border-gray-200 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-3">
@@ -349,11 +580,39 @@ export const ZoneManagement: React.FC = () => {
                               <p className="text-sm text-gray-600">{supplier.supplierName}</p>
                             </div>
                           </div>
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            supplier.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                          }`}>
-                            {supplier.isActive ? 'Actif' : 'Inactif'}
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              supplier.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                            }`}>
+                              {supplier.isActive ? 'Actif' : 'Inactif'}
+                            </span>
+                            <button
+                              onClick={() => handleEditSupplierSettings(supplier)}
+                              className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                            >
+                              <Edit3 className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => toggleSupplierInZone(supplier)}
+                              className={`p-1 rounded transition-colors ${
+                                supplier.isActive
+                                  ? 'text-red-600 hover:text-red-700 hover:bg-red-50'
+                                  : 'text-green-600 hover:text-green-700 hover:bg-green-50'
+                              }`}
+                            >
+                              {supplier.isActive ? (
+                                <ToggleLeft className="h-3 w-3" />
+                              ) : (
+                                <ToggleRight className="h-3 w-3" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleRemoveSupplierFromZone(supplier.supplierId, supplier.supplierBusinessName)}
+                              className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                            >
+                              <UserMinus className="h-3 w-3" />
+                            </button>
+                          </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
@@ -367,8 +626,20 @@ export const ZoneManagement: React.FC = () => {
                             </span>
                           </div>
                         </div>
+                        {!supplier.isActive && supplier.deactivationReason && (
+                          <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
+                            <strong>Raison:</strong> {supplier.deactivationReason}
+                          </div>
+                        )}
                       </div>
                     ))}
+                    
+                    {zone.suppliers.length === 0 && (
+                      <div className="text-center py-6">
+                        <Users className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                        <p className="text-gray-500">Aucun fournisseur inscrit dans cette zone</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -381,6 +652,13 @@ export const ZoneManagement: React.FC = () => {
                 className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
               >
                 Fermer
+              </button>
+              <button
+                onClick={() => handleEditZoneClick(zone)}
+                className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+              >
+                <Edit3 className="h-4 w-4" />
+                <span>Modifier la zone</span>
               </button>
               <button
                 onClick={() => toggleZoneStatus(zone)}
@@ -410,6 +688,176 @@ export const ZoneManagement: React.FC = () => {
     );
   };
 
+  const AddZoneModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
+        <div className="p-8">
+          <div className="text-center mb-6">
+            <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <MapPin className="h-8 w-8 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {editingZone ? 'Modifier la zone' : 'Nouvelle zone de livraison'}
+            </h2>
+            <p className="text-gray-600">
+              {editingZone ? 'Modifiez les paramètres de la zone' : 'Créez une nouvelle zone de livraison'}
+            </p>
+          </div>
+
+          <div className="space-y-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Nom de la commune *</label>
+              <input
+                type="text"
+                value={newZoneData.communeName}
+                onChange={(e) => setNewZoneData(prev => ({ ...prev, communeName: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Ex: Plateau, Cocody, Marcory..."
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Fournisseurs maximum</label>
+                <input
+                  type="number"
+                  value={newZoneData.maxSuppliers}
+                  onChange={(e) => setNewZoneData(prev => ({ ...prev, maxSuppliers: parseInt(e.target.value) || 5 }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  min="1"
+                  max="20"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Couverture minimum</label>
+                <input
+                  type="number"
+                  value={newZoneData.minimumCoverage}
+                  onChange={(e) => setNewZoneData(prev => ({ ...prev, minimumCoverage: parseInt(e.target.value) || 1 }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  min="1"
+                  max="10"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Horaires d'activité</label>
+              <input
+                type="text"
+                value={newZoneData.operatingHours}
+                onChange={(e) => setNewZoneData(prev => ({ ...prev, operatingHours: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Ex: 18h00 - 06h00"
+              />
+            </div>
+          </div>
+
+          <div className="flex space-x-4">
+            <button
+              onClick={() => {
+                setShowAddZoneModal(false);
+                setEditingZone(null);
+                setNewZoneData({
+                  communeName: '',
+                  maxSuppliers: 5,
+                  minimumCoverage: 2,
+                  operatingHours: '18h00 - 06h00'
+                });
+              }}
+              disabled={isProcessing}
+              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={editingZone ? handleEditZone : handleAddZone}
+              disabled={!newZoneData.communeName.trim() || isProcessing}
+              className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
+            >
+              {isProcessing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>{editingZone ? 'Modification...' : 'Création...'}</span>
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  <span>{editingZone ? 'Modifier' : 'Créer la zone'}</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const AddSupplierModal = () => {
+    const availableSuppliers = getAvailableSuppliers();
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
+          <div className="p-8">
+            <div className="text-center mb-6">
+              <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <UserPlus className="h-8 w-8 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Ajouter un fournisseur</h2>
+              <p className="text-gray-600">Sélectionnez un fournisseur à inscrire dans la zone "{selectedZone?.communeName}"</p>
+            </div>
+
+            {availableSuppliers.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">Aucun fournisseur disponible</p>
+                <p className="text-gray-400 text-sm">Tous les fournisseurs actifs sont déjà inscrits dans cette zone</p>
+              </div>
+            ) : (
+              <div className="space-y-3 mb-6">
+                {availableSuppliers.map((supplier) => (
+                  <button
+                    key={supplier.id}
+                    onClick={() => handleAddSupplierToZone(supplier.id, supplier.businessName)}
+                    className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all text-left"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="h-10 w-10 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold">
+                          {supplier.businessName.charAt(0)}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{supplier.businessName}</h4>
+                        <p className="text-sm text-gray-600">{supplier.name}</p>
+                        <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                          <span>📍 {supplier.address}</span>
+                          <span>⭐ {supplier.rating}</span>
+                          <span>📦 {supplier.totalOrders} livraisons</span>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setShowAddSupplierModal(false)}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const EditSupplierModal = () => {
     if (!selectedSupplier) return null;
 
@@ -422,7 +870,7 @@ export const ZoneManagement: React.FC = () => {
                 <Edit3 className="h-8 w-8 text-white" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Modifier les paramètres</h2>
-              <p className="text-gray-600">{selectedSupplier.supplierBusinessName} - {selectedSupplier.zoneName}</p>
+              <p className="text-gray-600">{selectedSupplier.supplierBusinessName} - {selectedZone?.communeName}</p>
             </div>
 
             <div className="space-y-4 mb-6">
@@ -520,7 +968,7 @@ export const ZoneManagement: React.FC = () => {
                 <AlertTriangle className="h-8 w-8 text-white" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Désactiver le fournisseur dans cette zone</h2>
-              <p className="text-gray-600">{selectedSupplier.supplierBusinessName} - Zone {selectedSupplier.zoneName}</p>
+              <p className="text-gray-600">{selectedSupplier.supplierBusinessName} - Zone {selectedZone?.communeName}</p>
             </div>
 
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -629,6 +1077,13 @@ export const ZoneManagement: React.FC = () => {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des Zones de Livraison</h1>
               <p className="text-gray-600">Administrez les zones par commune et gérez les fournisseurs inscrits</p>
             </div>
+            <button
+              onClick={() => setShowAddZoneModal(true)}
+              className="flex items-center space-x-2 bg-orange-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-700 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Nouvelle zone</span>
+            </button>
           </div>
         </div>
 
@@ -675,11 +1130,38 @@ export const ZoneManagement: React.FC = () => {
           </div>
         </div>
 
+        {/* Filters */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Rechercher une zone..."
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            >
+              <option value="all">Toutes les zones</option>
+              <option value="active">Zones actives</option>
+              <option value="inactive">Zones inactives</option>
+            </select>
+          </div>
+        </div>
+
         {/* Zones Overview */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-8">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Vue d'ensemble des zones</h3>
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-6">Vue d'ensemble des zones</h3>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {zones.map((zone) => (
+            {filteredZones.map((zone) => (
               <div 
                 key={zone.id} 
                 className="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-orange-300 hover:shadow-md transition-all"
@@ -687,11 +1169,33 @@ export const ZoneManagement: React.FC = () => {
               >
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-semibold text-gray-900">{zone.communeName}</h4>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    zone.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                  }`}>
-                    {zone.isActive ? 'Active' : 'Inactive'}
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      zone.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    }`}>
+                      {zone.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                    <div className="flex space-x-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditZoneClick(zone);
+                        }}
+                        className="p-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                      >
+                        <Edit3 className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteZone(zone);
+                        }}
+                        className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -710,234 +1214,38 @@ export const ZoneManagement: React.FC = () => {
                       {zone.statistics.successRate}%
                     </span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Temps moyen:</span>
+                    <span className={`font-medium ${
+                      zone.statistics.averageDeliveryTime <= 25 ? 'text-green-600' :
+                      zone.statistics.averageDeliveryTime <= 35 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {zone.statistics.averageDeliveryTime} min
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
-
-        {/* Filters */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Rechercher fournisseur ou zone..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              />
-            </div>
-            
-            <select
-              value={zoneFilter}
-              onChange={(e) => setZoneFilter(e.target.value)}
-              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            >
-              <option value="all">Toutes les zones</option>
-              {uniqueZones.map(zone => (
-                <option key={zone} value={zone}>{zone}</option>
-              ))}
-            </select>
-
-            <select
-              value={supplierFilter}
-              onChange={(e) => setSupplierFilter(e.target.value)}
-              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            >
-              <option value="all">Tous les fournisseurs</option>
-              {uniqueSuppliers.map(supplier => (
-                <option key={supplier} value={supplier}>{supplier}</option>
-              ))}
-            </select>
-
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            >
-              <option value="all">Tous les statuts</option>
-              <option value="active">Inscriptions actives</option>
-              <option value="inactive">Inscriptions inactives</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Supplier Registrations by Zone */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          {filteredRegistrations.length === 0 ? (
-            <div className="p-12 text-center">
-              <MapPin className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Aucune inscription trouvée</h3>
-              <p className="text-gray-500">Essayez de modifier vos critères de recherche</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zone</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fournisseur</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performance</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paramètres</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredRegistrations.map((sr) => (
-                    <tr key={sr.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="h-10 w-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center">
-                            <MapPin className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{sr.zoneName}</div>
-                            <div className="text-sm text-gray-500">Zone de livraison</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="h-10 w-10 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">
-                              {sr.supplierBusinessName.charAt(0)}
-                            </span>
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{sr.supplierBusinessName}</div>
-                            <div className="text-sm text-gray-500">{sr.supplierName}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center space-x-2">
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPerformanceBadge(sr.performanceMetrics.successRate)}`}>
-                              {sr.performanceMetrics.successRate}% réussite
-                            </span>
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {sr.performanceMetrics.totalOrders} commandes • {sr.performanceMetrics.averageDeliveryTime} min moy.
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-600 space-y-1">
-                          <div>Rayon: {sr.deliverySettings.maxDeliveryRadius} km</div>
-                          <div>Min: {formatPrice(sr.deliverySettings.minimumOrderAmount)}</div>
-                          <div>Frais: {sr.deliverySettings.deliveryFee === 0 ? 'Gratuit' : formatPrice(sr.deliverySettings.deliveryFee)}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            sr.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                          }`}>
-                            {sr.isActive ? 'Actif' : 'Inactif'}
-                          </span>
-                          {!sr.isActive && sr.deactivatedAt && (
-                            <span className="text-xs text-gray-500">
-                              depuis {formatDate(sr.deactivatedAt).split(' ')[0]}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEditSupplierSettings(sr)}
-                            className="p-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-full transition-colors"
-                            title="Modifier paramètres"
-                          >
-                            <Edit3 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => toggleSupplierInZone(sr)}
-                            disabled={isProcessing}
-                            className={`p-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                              sr.isActive
-                                ? 'text-red-600 hover:text-red-700 hover:bg-red-50'
-                                : 'text-green-600 hover:text-green-700 hover:bg-green-50'
-                            }`}
-                            title={sr.isActive ? 'Désactiver dans cette zone' : 'Réactiver dans cette zone'}
-                          >
-                            {sr.isActive ? (
-                              <ToggleLeft className="h-4 w-4" />
-                            ) : (
-                              <ToggleRight className="h-4 w-4" />
-                            )}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Performance Analysis by Zone */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Analyse des performances par zone</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {zones
-              .filter(zone => zone.isActive)
-              .sort((a, b) => b.statistics.successRate - a.statistics.successRate)
-              .slice(0, 6)
-              .map((zone, index) => (
-                <div key={zone.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="h-6 w-6 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">{index + 1}</span>
-                      </div>
-                      <h4 className="font-semibold text-gray-900">{zone.communeName}</h4>
-                    </div>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPerformanceBadge(zone.statistics.successRate)}`}>
-                      {zone.statistics.successRate}%
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Fournisseurs actifs:</span>
-                      <span className="font-medium text-gray-900">{zone.statistics.activeSuppliers}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Commandes:</span>
-                      <span className="font-medium text-gray-900">{zone.statistics.totalOrders}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Temps moyen:</span>
-                      <span className={`font-medium ${
-                        zone.statistics.averageDeliveryTime <= 25 ? 'text-green-600' :
-                        zone.statistics.averageDeliveryTime <= 35 ? 'text-yellow-600' : 'text-red-600'
-                      }`}>
-                        {zone.statistics.averageDeliveryTime} min
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-          </div>
-        </div>
       </div>
 
       {/* Zone Details Modal */}
-      {showZoneDetailsModal && selectedZone && (
-        <ZoneDetailsModal
+      {showZoneModal && selectedZone && (
+        <ZoneModal
           zone={selectedZone}
           onClose={() => {
-            setShowZoneDetailsModal(false);
+            setShowZoneModal(false);
             setSelectedZone(null);
           }}
         />
       )}
+
+      {/* Add/Edit Zone Modal */}
+      {showAddZoneModal && <AddZoneModal />}
+
+      {/* Add Supplier Modal */}
+      {showAddSupplierModal && <AddSupplierModal />}
 
       {/* Edit Supplier Modal */}
       {showEditModal && <EditSupplierModal />}
