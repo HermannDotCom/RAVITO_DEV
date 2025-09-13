@@ -275,7 +275,7 @@ export const pendingApprovalAccounts: DemoAccount[] = [
       availableProducts: ['Solibra', 'Brassivoire'],
       deliveryCapacity: 'tricycle',
       acceptedPayments: ['orange', 'mtn', 'wave'],
-      isAvailable: false
+      isAvailable: false,
       communes: [
         {
           id: 'sc-pending-yopougon',
