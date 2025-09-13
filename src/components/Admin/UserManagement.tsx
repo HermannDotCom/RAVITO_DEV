@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Search, Filter, Eye, CheckCircle, XCircle, Star, Phone, MapPin, X, Calendar, Building, Clock, CreditCard, AlertTriangle, Mail, FileText, Shield } from 'lucide-react';
 import { User, UserRole } from '../../types';
-import { pendingApprovalAccounts, demoAccounts, DemoAccount, getAllDemoAccounts } from '../../data/demoAccounts';
+import { pendingApprovalAccounts, demoAccounts } from '../../data/demoAccounts';
 
 interface PendingUser {
   id: string;
@@ -149,10 +149,10 @@ export const UserManagement: React.FC = () => {
       setPendingUsers(parsedPendingUsers);
     } else {
       // Initialize with demo pending accounts if no stored data
-      const demoPendingUsers: PendingUser[] = pendingApprovalAccounts.map((account: DemoAccount) => ({
+      const demoPendingUsers = pendingApprovalAccounts.map(account => ({
         id: account.id,
         email: account.email,
-        role: account.role as UserRole,
+        role: account.role,
         name: account.name,
         phone: account.userData.phone,
         address: account.userData.address,
@@ -166,8 +166,6 @@ export const UserManagement: React.FC = () => {
         }
       }));
       setPendingUsers(demoPendingUsers);
-      // Save to localStorage for persistence
-      localStorage.setItem('distri-night-pending-users', JSON.stringify(demoPendingUsers));
     }
   }, []);
 
@@ -219,17 +217,6 @@ export const UserManagement: React.FC = () => {
 
     setUsers(prev => [...prev, newApprovedUser]);
     setPendingUsers(prev => prev.filter(u => u.id !== userId));
-    
-    // Update the demo account status in localStorage if it's a demo account
-    const allDemoAccounts = getAllDemoAccounts();
-    const demoAccount = allDemoAccounts.find(account => account.id === userId);
-    if (demoAccount) {
-      // Update the demo account's approval status
-      demoAccount.userData.isApproved = true;
-      demoAccount.userData.approvalStatus = 'approved';
-      demoAccount.userData.approvedAt = new Date();
-    }
-    
     setExaminedUser(null);
     setIsProcessing(false);
 
@@ -246,18 +233,6 @@ export const UserManagement: React.FC = () => {
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     setPendingUsers(prev => prev.filter(u => u.id !== userId));
-    
-    // Update the demo account status in localStorage if it's a demo account
-    const allDemoAccounts = getAllDemoAccounts();
-    const demoAccount = allDemoAccounts.find(account => account.id === userId);
-    if (demoAccount) {
-      // Update the demo account's approval status
-      demoAccount.userData.isApproved = false;
-      demoAccount.userData.approvalStatus = 'rejected';
-      demoAccount.userData.rejectedAt = new Date();
-      demoAccount.userData.rejectionReason = reason;
-    }
-    
     setExaminedUser(null);
     setIsProcessing(false);
 
