@@ -96,7 +96,21 @@ export const demoAccounts: DemoAccount[] = [
       createdAt: new Date('2024-01-15'),
       businessName: 'Dépôt du Plateau',
       businessHours: '18h00 - 06h00',
-      coverageZone: 'Plateau, Marcory, Treichville, Cocody',
+      coverageCommunes: [
+        {
+          communeId: 'plateau',
+          communeName: 'Plateau',
+          isActive: true,
+          maxDeliveryRadius: 8,
+          minimumOrderAmount: 5000,
+          deliveryFee: 0,
+          averageDeliveryTime: 18,
+          totalOrders: 45,
+          successRate: 95,
+          lastDelivery: new Date('2024-12-15'),
+          activatedAt: new Date('2024-01-16')
+        }
+      ],
       availableProducts: ['Solibra', 'Brassivoire'],
       deliveryCapacity: 'truck',
       acceptedPayments: ['orange', 'mtn', 'moov', 'card'],
@@ -157,7 +171,21 @@ export const demoAccounts: DemoAccount[] = [
       createdAt: new Date('2024-02-20'),
       businessName: 'Cocody Express',
       businessHours: '19h00 - 05h00',
-      coverageZone: 'Cocody, Adjamé, Yopougon Est',
+      coverageCommunes: [
+        {
+          communeId: 'cocody',
+          communeName: 'Cocody',
+          isActive: true,
+          maxDeliveryRadius: 12,
+          minimumOrderAmount: 8000,
+          deliveryFee: 1000,
+          averageDeliveryTime: 22,
+          totalOrders: 38,
+          successRate: 92,
+          lastDelivery: new Date('2024-12-15'),
+          activatedAt: new Date('2024-02-21')
+        }
+      ],
       availableProducts: ['Solibra', 'Brassivoire'],
       deliveryCapacity: 'tricycle',
       acceptedPayments: ['orange', 'mtn', 'wave'],
@@ -223,7 +251,23 @@ export const pendingApprovalAccounts: DemoAccount[] = [
       createdAt: new Date('2024-12-15'),
       businessName: 'Dépôt Express Yop',
       businessHours: '18h00 - 06h00',
-      coverageZone: 'Yopougon, Abobo Sud',
+      coverageCommunes: [
+        {
+          communeId: 'yopougon',
+          communeName: 'Yopougon',
+          isActive: false,
+          maxDeliveryRadius: 15,
+          minimumOrderAmount: 10000,
+          deliveryFee: 1500,
+          averageDeliveryTime: 35,
+          totalOrders: 5,
+          successRate: 60,
+          lastDelivery: new Date('2024-12-10'),
+          activatedAt: new Date('2024-12-15'),
+          deactivatedAt: new Date('2024-12-16'),
+          deactivationReason: 'En attente d\'approbation - Zone de test'
+        }
+      ],
       availableProducts: ['Solibra', 'Brassivoire'],
       deliveryCapacity: 'tricycle',
       acceptedPayments: ['orange', 'mtn', 'wave'],

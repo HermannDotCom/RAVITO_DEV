@@ -34,12 +34,39 @@ export interface Client extends User {
 
 export interface Supplier extends User {
   businessName: string;
-  coverageZone: string;
+  coverageCommunes: SupplierCommune[];
   availableProducts: string[];
   deliveryCapacity: DeliveryMethod;
   businessHours: string;
   acceptedPayments: PaymentMethod[];
   isAvailable: boolean;
+}
+
+export interface SupplierCommune {
+  communeId: string;
+  communeName: string;
+  isActive: boolean;
+  maxDeliveryRadius: number;
+  minimumOrderAmount: number;
+  deliveryFee: number;
+  averageDeliveryTime: number;
+  totalOrders: number;
+  successRate: number;
+  lastDelivery?: Date;
+  activatedAt: Date;
+  deactivatedAt?: Date;
+  deactivationReason?: string;
+}
+
+export interface Commune {
+  id: string;
+  name: string;
+  coordinates: { lat: number; lng: number };
+  isActive: boolean;
+  totalSuppliers: number;
+  totalOrders: number;
+  averageDeliveryTime: number;
+  createdAt: Date;
 }
 
 export type ProductBrand = 'Solibra' | 'Brassivoire';
