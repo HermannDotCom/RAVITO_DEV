@@ -19,21 +19,25 @@ import {
   Edit3,
   Truck,
   Star,
-  Navigation
+  Navigation,
+  Shield,
+  Settings
 } from 'lucide-react';
-import { mockSuppliers } from '../../data/mockSuppliers';
-import { SupplierCommune } from '../../types';
+import { mockSuppliers, deliveryZones } from '../../data/mockSuppliers';
+import { SupplierCommune, DeliveryZone } from '../../types';
 
 export const ZoneManagement: React.FC = () => {
-  const [suppliers, setSuppliers] = useState(mockSuppliers);
+  const [zones, setZones] = useState(deliveryZones);
   const [searchTerm, setSearchTerm] = useState('');
-  const [communeFilter, setCommuneFilter] = useState<string>('all');
+  const [zoneFilter, setZoneFilter] = useState<string>('all');
   const [supplierFilter, setSupplierFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [selectedZone, setSelectedZone] = useState<SupplierCommune | null>(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedZone, setSelectedZone] = useState<DeliveryZone | null>(null);
+  const [selectedSupplier, setSelectedSupplier] = useState<SupplierCommune | null>(null);
+  const [showZoneDetailsModal, setShowZoneDetailsModal] = useState(false);
+  const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [deactivationReason, setDeactivationReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -43,86 +47,112 @@ export const ZoneManagement: React.FC = () => {
     deliveryFee: 0
   });
 
-  // Flatten all supplier communes for easier management
-  const getAllSupplierCommunes = () => {
-    const allCommunes: (SupplierCommune & { supplierName: string; supplierBusinessName: string })[] = [];
+  // Obtenir tous les fournisseurs inscrits dans toutes les zones
+  const getAllSupplierRegistrations = () => {
+    const allRegistrations: (SupplierCommune & { zoneName: string })[] = [];
     
-    suppliers.forEach(supplier => {
-      supplier.communes.forEach(commune => {
-        allCommunes.push({
-          ...commune,
-          supplierName: supplier.name,
-          supplierBusinessName: supplier.businessName
+    zones.forEach(zone => {
+      // Récupérer les fournisseurs de cette zone depuis mockSuppliers
+      mockSuppliers.forEach(supplier => {
+        supplier.communes.forEach(commune => {
+          // Associer les communes aux zones par nom
+          if (zone.communeName === 'Plateau' && supplier.address.includes('Plateau')) {
+            allRegistrations.push({ ...commune, zoneName: zone.communeName });
+          } else if (zone.communeName === 'Cocody' && (supplier.address.includes('Cocody') || commune.supplierBusinessName.includes('Cocody'))) {
+            allRegistrations.push({ ...commune, zoneName: zone.communeName });
+          } else if (zone.communeName === 'Marcory' && (supplier.address.includes('Marcory') || commune.supplierBusinessName.includes('Marcory'))) {
+            allRegistrations.push({ ...commune, zoneName: zone.communeName });
+          } else if (zone.communeName === 'Treichville' && supplier.address.includes('Treichville')) {
+            allRegistrations.push({ ...commune, zoneName: zone.communeName });
+          } else if (zone.communeName === 'Adjamé' && supplier.address.includes('Adjamé')) {
+            allRegistrations.push({ ...commune, zoneName: zone.communeName });
+          } else if (zone.communeName === 'Yopougon Est' && supplier.address.includes('Yopougon')) {
+            allRegistrations.push({ ...commune, zoneName: zone.communeName });
+          } else if (zone.communeName === 'Koumassi' && supplier.address.includes('Koumassi')) {
+            allRegistrations.push({ ...commune, zoneName: zone.communeName });
+          } else if (zone.communeName === 'Port-Bouët' && supplier.address.includes('Port-Bouët')) {
+            allRegistrations.push({ ...commune, zoneName: zone.communeName });
+          }
         });
       });
     });
     
-    return allCommunes;
+    return allRegistrations;
   };
 
-  const allSupplierCommunes = getAllSupplierCommunes();
+  const allSupplierRegistrations = getAllSupplierRegistrations();
 
-  // Get unique communes and suppliers for filters
-  const uniqueCommunes = Array.from(new Set(allSupplierCommunes.map(sc => sc.communeName))).sort();
-  const uniqueSuppliers = suppliers.map(s => ({ id: s.id, name: s.businessName }));
+  // Obtenir les zones et fournisseurs uniques pour les filtres
+  const uniqueZones = zones.map(z => z.communeName);
+  const uniqueSuppliers = Array.from(new Set(allSupplierRegistrations.map(sr => sr.supplierBusinessName)));
 
-  // Filter supplier communes
-  const filteredSupplierCommunes = allSupplierCommunes.filter(sc => {
-    const matchesSearch = sc.supplierBusinessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         sc.communeName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCommune = communeFilter === 'all' || sc.communeName === communeFilter;
-    const matchesSupplier = supplierFilter === 'all' || sc.supplierId === supplierFilter;
+  // Filtrer les inscriptions de fournisseurs
+  const filteredRegistrations = allSupplierRegistrations.filter(sr => {
+    const matchesSearch = sr.supplierBusinessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         sr.zoneName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesZone = zoneFilter === 'all' || sr.zoneName === zoneFilter;
+    const matchesSupplier = supplierFilter === 'all' || sr.supplierBusinessName === supplierFilter;
     const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'active' && sc.isActive) ||
-                         (statusFilter === 'inactive' && !sc.isActive);
+                         (statusFilter === 'active' && sr.isActive) ||
+                         (statusFilter === 'inactive' && !sr.isActive);
     
-    return matchesSearch && matchesCommune && matchesSupplier && matchesStatus;
+    return matchesSearch && matchesZone && matchesSupplier && matchesStatus;
   });
 
-  const toggleZoneStatus = async (supplierCommune: SupplierCommune & { supplierName: string; supplierBusinessName: string }) => {
-    if (supplierCommune.isActive) {
-      // Show deactivation modal
-      setSelectedZone(supplierCommune);
-      setShowDeactivateModal(true);
-    } else {
-      // Reactivate directly
-      await reactivateZone(supplierCommune);
-    }
-  };
-
-  const deactivateZone = async () => {
-    if (!selectedZone || !deactivationReason.trim()) return;
+  const toggleZoneStatus = async (zone: DeliveryZone) => {
+    const confirmMessage = `Êtes-vous sûr de vouloir ${zone.isActive ? 'désactiver' : 'activer'} la zone "${zone.communeName}" ?`;
+    
+    if (!confirm(confirmMessage)) return;
 
     setIsProcessing(true);
 
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    setSuppliers(prev => prev.map(supplier => ({
-      ...supplier,
-      communes: supplier.communes.map(commune => 
-        commune.id === selectedZone.id
-          ? {
-              ...commune,
-              isActive: false,
-              deactivatedAt: new Date(),
-              deactivationReason: deactivationReason.trim(),
-              updatedAt: new Date()
-            }
-          : commune
-      )
-    })));
+    setZones(prev => prev.map(z => 
+      z.id === zone.id
+        ? { ...z, isActive: !z.isActive, updatedAt: new Date() }
+        : z
+    ));
 
     setIsProcessing(false);
-    setShowDeactivateModal(false);
-    setSelectedZone(null);
-    setDeactivationReason('');
 
-    alert(`✅ Zone désactivée avec succès!\n\n${selectedZone.supplierBusinessName} ne peut plus livrer dans ${selectedZone.communeName}.\n\nRaison: ${deactivationReason}`);
+    const action = zone.isActive ? 'désactivée' : 'activée';
+    alert(`✅ Zone ${action} avec succès!\n\nLa zone "${zone.communeName}" est maintenant ${action}.`);
   };
 
-  const reactivateZone = async (supplierCommune: SupplierCommune & { supplierName: string; supplierBusinessName: string }) => {
-    const confirmMessage = `Êtes-vous sûr de vouloir réactiver la zone "${supplierCommune.communeName}" pour ${supplierCommune.supplierBusinessName} ?`;
+  const toggleSupplierInZone = async (supplierRegistration: SupplierCommune & { zoneName: string }) => {
+    if (supplierRegistration.isActive) {
+      // Show deactivation modal
+      setSelectedSupplier(supplierRegistration);
+      setShowDeactivateModal(true);
+    } else {
+      // Reactivate directly
+      await reactivateSupplierInZone(supplierRegistration);
+    }
+  };
+
+  const deactivateSupplierInZone = async () => {
+    if (!selectedSupplier || !deactivationReason.trim()) return;
+
+    setIsProcessing(true);
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Update in mockSuppliers data structure
+    // In a real app, this would be an API call
+    
+    setIsProcessing(false);
+    setShowDeactivateModal(false);
+    setSelectedSupplier(null);
+    setDeactivationReason('');
+
+    alert(`✅ Fournisseur désactivé dans la zone!\n\n${selectedSupplier.supplierBusinessName} ne peut plus livrer dans ${selectedSupplier.zoneName}.\n\nRaison: ${deactivationReason}`);
+  };
+
+  const reactivateSupplierInZone = async (supplierRegistration: SupplierCommune & { zoneName: string }) => {
+    const confirmMessage = `Êtes-vous sûr de vouloir réactiver "${supplierRegistration.supplierBusinessName}" dans la zone "${supplierRegistration.zoneName}" ?`;
     
     if (!confirm(confirmMessage)) return;
 
@@ -131,68 +161,45 @@ export const ZoneManagement: React.FC = () => {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    setSuppliers(prev => prev.map(supplier => ({
-      ...supplier,
-      communes: supplier.communes.map(commune => 
-        commune.id === supplierCommune.id
-          ? {
-              ...commune,
-              isActive: true,
-              reactivatedAt: new Date(),
-              updatedAt: new Date()
-            }
-          : commune
-      )
-    })));
+    // Update in mockSuppliers data structure
+    // In a real app, this would be an API call
 
     setIsProcessing(false);
 
-    alert(`✅ Zone réactivée avec succès!\n\n${supplierCommune.supplierBusinessName} peut maintenant livrer dans ${supplierCommune.communeName}.`);
+    alert(`✅ Fournisseur réactivé dans la zone!\n\n${supplierRegistration.supplierBusinessName} peut maintenant livrer dans ${supplierRegistration.zoneName}.`);
   };
 
-  const handleEditZone = (supplierCommune: SupplierCommune & { supplierName: string; supplierBusinessName: string }) => {
-    setSelectedZone(supplierCommune);
+  const handleEditSupplierSettings = (supplierRegistration: SupplierCommune & { zoneName: string }) => {
+    setSelectedSupplier(supplierRegistration);
     setEditFormData({
-      maxDeliveryRadius: supplierCommune.maxDeliveryRadius,
-      minimumOrderAmount: supplierCommune.minimumOrderAmount,
-      deliveryFee: supplierCommune.deliveryFee
+      maxDeliveryRadius: supplierRegistration.deliverySettings.maxDeliveryRadius,
+      minimumOrderAmount: supplierRegistration.deliverySettings.minimumOrderAmount,
+      deliveryFee: supplierRegistration.deliverySettings.deliveryFee
     });
     setShowEditModal(true);
   };
 
-  const handleUpdateZone = async () => {
-    if (!selectedZone) return;
+  const handleUpdateSupplierSettings = async () => {
+    if (!selectedSupplier) return;
 
     setIsProcessing(true);
 
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    setSuppliers(prev => prev.map(supplier => ({
-      ...supplier,
-      communes: supplier.communes.map(commune => 
-        commune.id === selectedZone.id
-          ? {
-              ...commune,
-              maxDeliveryRadius: editFormData.maxDeliveryRadius,
-              minimumOrderAmount: editFormData.minimumOrderAmount,
-              deliveryFee: editFormData.deliveryFee,
-              updatedAt: new Date()
-            }
-          : commune
-      )
-    })));
+    // Update in mockSuppliers data structure
+    // In a real app, this would be an API call
 
     setIsProcessing(false);
     setShowEditModal(false);
-    setSelectedZone(null);
+    setSelectedSupplier(null);
 
-    alert(`✅ Zone mise à jour avec succès!\n\nParamètres de livraison mis à jour pour ${selectedZone.supplierBusinessName} dans ${selectedZone.communeName}.`);
+    alert(`✅ Paramètres mis à jour avec succès!\n\nParamètres de livraison mis à jour pour ${selectedSupplier.supplierBusinessName} dans ${selectedSupplier.zoneName}.`);
   };
 
-  const handleViewDetails = (supplierCommune: SupplierCommune & { supplierName: string; supplierBusinessName: string }) => {
-    setSelectedZone(supplierCommune);
-    setShowDetailsModal(true);
+  const handleViewZoneDetails = (zone: DeliveryZone) => {
+    setSelectedZone(zone);
+    setShowZoneDetailsModal(true);
   };
 
   const formatPrice = (price: number) => {
@@ -222,245 +229,189 @@ export const ZoneManagement: React.FC = () => {
   };
 
   // Calculate summary stats
-  const totalActiveZones = allSupplierCommunes.filter(sc => sc.isActive).length;
-  const totalInactiveZones = allSupplierCommunes.filter(sc => !sc.isActive).length;
-  const totalOrders = allSupplierCommunes.reduce((sum, sc) => sum + sc.totalOrders, 0);
-  const averageSuccessRate = allSupplierCommunes.length > 0 
-    ? Math.round(allSupplierCommunes.reduce((sum, sc) => sum + sc.successRate, 0) / allSupplierCommunes.length)
-    : 0;
-
-  // Get commune coverage summary
-  const getCommuneCoverage = () => {
-    const communeCoverage: { [key: string]: { active: number; total: number } } = {};
-    
-    allSupplierCommunes.forEach(sc => {
-      if (!communeCoverage[sc.communeName]) {
-        communeCoverage[sc.communeName] = { active: 0, total: 0 };
-      }
-      communeCoverage[sc.communeName].total++;
-      if (sc.isActive) {
-        communeCoverage[sc.communeName].active++;
-      }
-    });
-    
-    return Object.entries(communeCoverage).map(([commune, data]) => ({
-      commune,
-      activeSuppliers: data.active,
-      totalSuppliers: data.total,
-      coverage: Math.round((data.active / data.total) * 100)
-    }));
-  };
-
-  const communeCoverage = getCommuneCoverage();
+  const totalActiveZones = zones.filter(z => z.isActive).length;
+  const totalInactiveZones = zones.filter(z => !z.isActive).length;
+  const totalActiveSuppliers = allSupplierRegistrations.filter(sr => sr.isActive).length;
+  const totalInactiveSuppliers = allSupplierRegistrations.filter(sr => !sr.isActive).length;
 
   const ZoneDetailsModal = ({ zone, onClose }: { 
-    zone: SupplierCommune & { supplierName: string; supplierBusinessName: string }; 
+    zone: DeliveryZone; 
     onClose: () => void 
-  }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-8">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-4">
-              <div className={`h-16 w-16 rounded-full flex items-center justify-center ${
-                zone.isActive ? 'bg-gradient-to-br from-green-400 to-green-500' : 'bg-gradient-to-br from-red-400 to-red-500'
-              }`}>
-                <MapPin className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">{zone.supplierBusinessName}</h2>
-                <p className="text-gray-600">Zone de livraison : {zone.communeName}</p>
-                <div className="flex items-center space-x-2 mt-1">
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    zone.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                  }`}>
-                    {zone.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    Créée le {formatDate(zone.createdAt)}
-                  </span>
+  }) => {
+    const zoneSuppliers = allSupplierRegistrations.filter(sr => sr.zoneName === zone.communeName);
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-8">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center space-x-4">
+                <div className={`h-16 w-16 rounded-full flex items-center justify-center ${
+                  zone.isActive ? 'bg-gradient-to-br from-green-400 to-green-500' : 'bg-gradient-to-br from-red-400 to-red-500'
+                }`}>
+                  <MapPin className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Zone {zone.communeName}</h2>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      zone.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    }`}>
+                      {zone.isActive ? 'Zone Active' : 'Zone Inactive'}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {zone.statistics.activeSuppliers}/{zone.statistics.totalSuppliers} fournisseurs actifs
+                    </span>
+                  </div>
                 </div>
               </div>
+              <button
+                onClick={onClose}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Zone Configuration */}
-            <div className="space-y-6">
-              <div className="bg-blue-50 rounded-xl p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                  <Building className="h-5 w-5 mr-2 text-blue-600" />
-                  Configuration de la zone
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Rayon de livraison max:</span>
-                    <span className="font-medium text-gray-900">{zone.maxDeliveryRadius} km</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Commande minimum:</span>
-                    <span className="font-medium text-gray-900">{formatPrice(zone.minimumOrderAmount)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Frais de livraison:</span>
-                    <span className="font-medium text-gray-900">
-                      {zone.deliveryFee === 0 ? 'Gratuit' : formatPrice(zone.deliveryFee)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Dernière mise à jour:</span>
-                    <span className="font-medium text-gray-900">{formatDate(zone.updatedAt)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-green-50 rounded-xl p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                  <Truck className="h-5 w-5 mr-2 text-green-600" />
-                  Informations fournisseur
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Responsable:</span>
-                    <span className="font-medium text-gray-900">{zone.supplierName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Dépôt:</span>
-                    <span className="font-medium text-gray-900">{zone.supplierBusinessName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Capacité:</span>
-                    <span className="font-medium text-gray-900">
-                      {suppliers.find(s => s.id === zone.supplierId)?.deliveryCapacity === 'truck' ? 'Camion' :
-                       suppliers.find(s => s.id === zone.supplierId)?.deliveryCapacity === 'tricycle' ? 'Tricycle' : 'Moto'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Deactivation Info */}
-              {!zone.isActive && zone.deactivatedAt && (
-                <div className="bg-red-50 rounded-xl p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Zone Configuration */}
+              <div className="space-y-6">
+                <div className="bg-blue-50 rounded-xl p-6">
                   <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                    <AlertTriangle className="h-5 w-5 mr-2 text-red-600" />
-                    Informations de désactivation
+                    <Settings className="h-5 w-5 mr-2 text-blue-600" />
+                    Configuration de la zone
                   </h3>
                   <div className="space-y-3">
-                    <div>
-                      <span className="text-gray-600 block mb-1">Date de désactivation:</span>
-                      <span className="font-medium text-gray-900">{formatDate(zone.deactivatedAt)}</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Fournisseurs max:</span>
+                      <span className="font-medium text-gray-900">{zone.zoneSettings.maxSuppliers}</span>
                     </div>
-                    <div>
-                      <span className="text-gray-600 block mb-1">Raison:</span>
-                      <span className="font-medium text-red-700">{zone.deactivationReason}</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Couverture minimum:</span>
+                      <span className="font-medium text-gray-900">{zone.zoneSettings.minimumCoverage} fournisseur(s)</span>
                     </div>
-                    {zone.reactivatedAt && (
-                      <div>
-                        <span className="text-gray-600 block mb-1">Dernière réactivation:</span>
-                        <span className="font-medium text-green-700">{formatDate(zone.reactivatedAt)}</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Horaires d'activité:</span>
+                      <span className="font-medium text-gray-900">{zone.zoneSettings.operatingHours}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Dernière mise à jour:</span>
+                      <span className="font-medium text-gray-900">{formatDate(zone.updatedAt)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-green-50 rounded-xl p-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
+                    Statistiques de la zone
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600 mb-1">{zone.statistics.totalOrders}</div>
+                      <div className="text-sm text-gray-600">Commandes totales</div>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <div className={`text-2xl font-bold mb-1 ${getPerformanceColor(zone.statistics.successRate)}`}>
+                        {zone.statistics.successRate}%
                       </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Performance Stats */}
-            <div className="space-y-6">
-              <div className="bg-gray-50 rounded-xl p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Statistiques de performance</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-white rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600 mb-1">{zone.totalOrders}</div>
-                    <div className="text-sm text-gray-600">Commandes totales</div>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded-lg">
-                    <div className={`text-2xl font-bold mb-1 ${getPerformanceColor(zone.successRate)}`}>
-                      {zone.successRate}%
+                      <div className="text-sm text-gray-600">Taux de réussite</div>
                     </div>
-                    <div className="text-sm text-gray-600">Taux de réussite</div>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600 mb-1">{zone.averageDeliveryTime}</div>
-                    <div className="text-sm text-gray-600">Temps moyen (min)</div>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600 mb-1">
-                      {zone.lastOrderDate ? Math.floor((Date.now() - zone.lastOrderDate.getTime()) / (1000 * 60 * 60 * 24)) : 'N/A'}
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600 mb-1">{zone.statistics.averageDeliveryTime}</div>
+                      <div className="text-sm text-gray-600">Temps moyen (min)</div>
                     </div>
-                    <div className="text-sm text-gray-600">Jours depuis dernière</div>
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600 mb-1">{zone.statistics.activeSuppliers}</div>
+                      <div className="text-sm text-gray-600">Fournisseurs actifs</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-yellow-50 rounded-xl p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Indicateurs de qualité</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-700">Performance globale:</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPerformanceBadge(zone.successRate)}`}>
-                      {zone.successRate >= 90 ? 'Excellente' : 
-                       zone.successRate >= 80 ? 'Correcte' : 'À améliorer'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-700">Délai de livraison:</span>
-                    <span className={`font-medium ${
-                      zone.averageDeliveryTime <= 25 ? 'text-green-600' :
-                      zone.averageDeliveryTime <= 35 ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
-                      {zone.averageDeliveryTime <= 25 ? 'Rapide' :
-                       zone.averageDeliveryTime <= 35 ? 'Correct' : 'Lent'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-700">Activité récente:</span>
-                    <span className={`font-medium ${
-                      zone.lastOrderDate && (Date.now() - zone.lastOrderDate.getTime()) < 7 * 24 * 60 * 60 * 1000
-                        ? 'text-green-600' : 'text-orange-600'
-                    }`}>
-                      {zone.lastOrderDate && (Date.now() - zone.lastOrderDate.getTime()) < 7 * 24 * 60 * 60 * 1000
-                        ? 'Active' : 'Peu active'}
-                    </span>
+              {/* Suppliers in Zone */}
+              <div className="space-y-6">
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Fournisseurs inscrits</h3>
+                  <div className="space-y-3">
+                    {zoneSuppliers.map((supplier) => (
+                      <div key={supplier.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-3">
+                            <div className="h-8 w-8 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
+                              <span className="text-white font-bold text-sm">
+                                {supplier.supplierBusinessName.charAt(0)}
+                              </span>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{supplier.supplierBusinessName}</h4>
+                              <p className="text-sm text-gray-600">{supplier.supplierName}</p>
+                            </div>
+                          </div>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            supplier.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {supplier.isActive ? 'Actif' : 'Inactif'}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-600">Commandes:</span>
+                            <span className="font-medium text-gray-900 ml-2">{supplier.performanceMetrics.totalOrders}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Réussite:</span>
+                            <span className={`font-medium ml-2 ${getPerformanceColor(supplier.performanceMetrics.successRate)}`}>
+                              {supplier.performanceMetrics.successRate}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="mt-8 flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={onClose}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-            >
-              Fermer
-            </button>
-            <button
-              onClick={() => {
-                onClose();
-                handleEditZone(zone);
-              }}
-              className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all flex items-center justify-center space-x-2"
-            >
-              <Edit3 className="h-4 w-4" />
-              <span>Modifier les paramètres</span>
-            </button>
+            {/* Action Buttons */}
+            <div className="mt-8 flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={onClose}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Fermer
+              </button>
+              <button
+                onClick={() => toggleZoneStatus(zone)}
+                disabled={isProcessing}
+                className={`flex-1 py-3 rounded-lg font-semibold transition-all flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  zone.isActive
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
+              >
+                {zone.isActive ? (
+                  <>
+                    <ToggleLeft className="h-4 w-4" />
+                    <span>Désactiver la zone</span>
+                  </>
+                ) : (
+                  <>
+                    <ToggleRight className="h-4 w-4" />
+                    <span>Activer la zone</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const EditZoneModal = () => {
-    if (!selectedZone) return null;
+  const EditSupplierModal = () => {
+    if (!selectedSupplier) return null;
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -471,7 +422,7 @@ export const ZoneManagement: React.FC = () => {
                 <Edit3 className="h-8 w-8 text-white" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Modifier les paramètres</h2>
-              <p className="text-gray-600">{selectedZone.supplierBusinessName} - {selectedZone.communeName}</p>
+              <p className="text-gray-600">{selectedSupplier.supplierBusinessName} - {selectedSupplier.zoneName}</p>
             </div>
 
             <div className="space-y-4 mb-6">
@@ -523,7 +474,7 @@ export const ZoneManagement: React.FC = () => {
                 Annuler
               </button>
               <button
-                onClick={handleUpdateZone}
+                onClick={handleUpdateSupplierSettings}
                 disabled={isProcessing}
                 className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
               >
@@ -546,8 +497,8 @@ export const ZoneManagement: React.FC = () => {
     );
   };
 
-  const DeactivateZoneModal = () => {
-    if (!selectedZone) return null;
+  const DeactivateSupplierModal = () => {
+    if (!selectedSupplier) return null;
 
     const deactivationReasons = [
       'Délais de livraison trop longs (>30 minutes)',
@@ -556,8 +507,8 @@ export const ZoneManagement: React.FC = () => {
       'Plaintes clients répétées',
       'Non-respect des horaires annoncés',
       'Problèmes de qualité de service',
-      'Zone temporairement non couverte',
-      'Maintenance ou réorganisation'
+      'Zone temporairement non couverte par ce fournisseur',
+      'Maintenance ou réorganisation du fournisseur'
     ];
 
     return (
@@ -568,8 +519,8 @@ export const ZoneManagement: React.FC = () => {
               <div className="h-16 w-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle className="h-8 w-8 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Désactiver la zone de livraison</h2>
-              <p className="text-gray-600">{selectedZone.supplierBusinessName} - {selectedZone.communeName}</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Désactiver le fournisseur dans cette zone</h2>
+              <p className="text-gray-600">{selectedSupplier.supplierBusinessName} - Zone {selectedSupplier.zoneName}</p>
             </div>
 
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -578,8 +529,8 @@ export const ZoneManagement: React.FC = () => {
                 <div className="text-sm text-red-800">
                   <p className="font-medium mb-2">Cette action va :</p>
                   <ul className="space-y-1 list-disc list-inside">
-                    <li>Empêcher ce fournisseur de recevoir de nouvelles commandes dans cette commune</li>
-                    <li>Rediriger les futures commandes vers d'autres fournisseurs disponibles</li>
+                    <li>Empêcher ce fournisseur de recevoir de nouvelles commandes dans cette zone</li>
+                    <li>Rediriger les futures commandes vers d'autres fournisseurs de la zone</li>
                     <li>Conserver l'historique des performances pour référence</li>
                     <li>Permettre une réactivation ultérieure si les performances s'améliorent</li>
                   </ul>
@@ -646,7 +597,7 @@ export const ZoneManagement: React.FC = () => {
                 Annuler
               </button>
               <button
-                onClick={deactivateZone}
+                onClick={deactivateSupplierInZone}
                 disabled={!deactivationReason.trim() || isProcessing}
                 className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white py-3 rounded-lg font-semibold hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
               >
@@ -676,7 +627,7 @@ export const ZoneManagement: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des Zones de Livraison</h1>
-              <p className="text-gray-600">Administrez les zones de couverture par fournisseur</p>
+              <p className="text-gray-600">Administrez les zones par commune et gérez les fournisseurs inscrits</p>
             </div>
           </div>
         </div>
@@ -706,42 +657,59 @@ export const ZoneManagement: React.FC = () => {
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Commandes totales</p>
-                <p className="text-2xl font-bold text-blue-600">{totalOrders}</p>
+                <p className="text-sm font-medium text-gray-600 mb-1">Fournisseurs actifs</p>
+                <p className="text-2xl font-bold text-blue-600">{totalActiveSuppliers}</p>
               </div>
-              <Package className="h-8 w-8 text-blue-600" />
+              <Users className="h-8 w-8 text-blue-600" />
             </div>
           </div>
 
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Taux de réussite moyen</p>
-                <p className="text-2xl font-bold text-purple-600">{averageSuccessRate}%</p>
+                <p className="text-sm font-medium text-gray-600 mb-1">Fournisseurs inactifs</p>
+                <p className="text-2xl font-bold text-orange-600">{totalInactiveSuppliers}</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-purple-600" />
+              <Package className="h-8 w-8 text-orange-600" />
             </div>
           </div>
         </div>
 
-        {/* Commune Coverage Overview */}
+        {/* Zones Overview */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-8">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Vue d'ensemble par commune</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Vue d'ensemble des zones</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {communeCoverage.map((commune) => (
-              <div key={commune.commune} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold text-gray-900">{commune.commune}</h4>
+            {zones.map((zone) => (
+              <div 
+                key={zone.id} 
+                className="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-orange-300 hover:shadow-md transition-all"
+                onClick={() => handleViewZoneDetails(zone)}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-gray-900">{zone.communeName}</h4>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    commune.coverage >= 80 ? 'bg-green-100 text-green-700' :
-                    commune.coverage >= 50 ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-red-100 text-red-700'
+                    zone.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                   }`}>
-                    {commune.coverage}%
+                    {zone.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
-                <div className="text-sm text-gray-600">
-                  <span>{commune.activeSuppliers}/{commune.totalSuppliers} fournisseur(s) actif(s)</span>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Fournisseurs:</span>
+                    <span className="font-medium text-gray-900">
+                      {zone.statistics.activeSuppliers}/{zone.statistics.totalSuppliers}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Commandes:</span>
+                    <span className="font-medium text-gray-900">{zone.statistics.totalOrders}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Performance:</span>
+                    <span className={`font-medium ${getPerformanceColor(zone.statistics.successRate)}`}>
+                      {zone.statistics.successRate}%
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -757,19 +725,19 @@ export const ZoneManagement: React.FC = () => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Rechercher fournisseur ou commune..."
+                placeholder="Rechercher fournisseur ou zone..."
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
             </div>
             
             <select
-              value={communeFilter}
-              onChange={(e) => setCommuneFilter(e.target.value)}
+              value={zoneFilter}
+              onChange={(e) => setZoneFilter(e.target.value)}
               className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             >
-              <option value="all">Toutes les communes</option>
-              {uniqueCommunes.map(commune => (
-                <option key={commune} value={commune}>{commune}</option>
+              <option value="all">Toutes les zones</option>
+              {uniqueZones.map(zone => (
+                <option key={zone} value={zone}>{zone}</option>
               ))}
             </select>
 
@@ -780,7 +748,7 @@ export const ZoneManagement: React.FC = () => {
             >
               <option value="all">Tous les fournisseurs</option>
               {uniqueSuppliers.map(supplier => (
-                <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
+                <option key={supplier} value={supplier}>{supplier}</option>
               ))}
             </select>
 
@@ -790,18 +758,18 @@ export const ZoneManagement: React.FC = () => {
               className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             >
               <option value="all">Tous les statuts</option>
-              <option value="active">Zones actives</option>
-              <option value="inactive">Zones inactives</option>
+              <option value="active">Inscriptions actives</option>
+              <option value="inactive">Inscriptions inactives</option>
             </select>
           </div>
         </div>
 
-        {/* Supplier Zones List */}
+        {/* Supplier Registrations by Zone */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          {filteredSupplierCommunes.length === 0 ? (
+          {filteredRegistrations.length === 0 ? (
             <div className="p-12 text-center">
               <MapPin className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Aucune zone trouvée</h3>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">Aucune inscription trouvée</h3>
               <p className="text-gray-500">Essayez de modifier vos critères de recherche</p>
             </div>
           ) : (
@@ -809,8 +777,8 @@ export const ZoneManagement: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zone</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fournisseur</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Commune</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performance</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paramètres</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
@@ -818,56 +786,61 @@ export const ZoneManagement: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredSupplierCommunes.map((sc) => (
-                    <tr key={sc.id} className="hover:bg-gray-50 transition-colors">
+                  {filteredRegistrations.map((sr) => (
+                    <tr key={sr.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-3">
-                          <div className="h-10 w-10 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">
-                              {sc.supplierBusinessName.charAt(0)}
-                            </span>
+                          <div className="h-10 w-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center">
+                            <MapPin className="h-5 w-5 text-white" />
                           </div>
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{sc.supplierBusinessName}</div>
-                            <div className="text-sm text-gray-500">{sc.supplierName}</div>
+                            <div className="text-sm font-medium text-gray-900">{sr.zoneName}</div>
+                            <div className="text-sm text-gray-500">Zone de livraison</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm font-medium text-gray-900">{sc.communeName}</span>
+                        <div className="flex items-center space-x-3">
+                          <div className="h-10 w-10 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              {sr.supplierBusinessName.charAt(0)}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{sr.supplierBusinessName}</div>
+                            <div className="text-sm text-gray-500">{sr.supplierName}</div>
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="space-y-1">
                           <div className="flex items-center space-x-2">
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPerformanceBadge(sc.successRate)}`}>
-                              {sc.successRate}% réussite
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPerformanceBadge(sr.performanceMetrics.successRate)}`}>
+                              {sr.performanceMetrics.successRate}% réussite
                             </span>
                           </div>
                           <div className="text-xs text-gray-500">
-                            {sc.totalOrders} commandes • {sc.averageDeliveryTime} min moy.
+                            {sr.performanceMetrics.totalOrders} commandes • {sr.performanceMetrics.averageDeliveryTime} min moy.
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-600 space-y-1">
-                          <div>Rayon: {sc.maxDeliveryRadius} km</div>
-                          <div>Min: {formatPrice(sc.minimumOrderAmount)}</div>
-                          <div>Frais: {sc.deliveryFee === 0 ? 'Gratuit' : formatPrice(sc.deliveryFee)}</div>
+                          <div>Rayon: {sr.deliverySettings.maxDeliveryRadius} km</div>
+                          <div>Min: {formatPrice(sr.deliverySettings.minimumOrderAmount)}</div>
+                          <div>Frais: {sr.deliverySettings.deliveryFee === 0 ? 'Gratuit' : formatPrice(sr.deliverySettings.deliveryFee)}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            sc.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                            sr.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                           }`}>
-                            {sc.isActive ? 'Active' : 'Inactive'}
+                            {sr.isActive ? 'Actif' : 'Inactif'}
                           </span>
-                          {!sc.isActive && sc.deactivatedAt && (
+                          {!sr.isActive && sr.deactivatedAt && (
                             <span className="text-xs text-gray-500">
-                              depuis {formatDate(sc.deactivatedAt).split(' ')[0]}
+                              depuis {formatDate(sr.deactivatedAt).split(' ')[0]}
                             </span>
                           )}
                         </div>
@@ -875,30 +848,23 @@ export const ZoneManagement: React.FC = () => {
                       <td className="px-6 py-4">
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => handleViewDetails(sc)}
-                            className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors"
-                            title="Voir détails"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleEditZone(sc)}
+                            onClick={() => handleEditSupplierSettings(sr)}
                             className="p-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-full transition-colors"
                             title="Modifier paramètres"
                           >
                             <Edit3 className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => toggleZoneStatus(sc)}
+                            onClick={() => toggleSupplierInZone(sr)}
                             disabled={isProcessing}
                             className={`p-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                              sc.isActive
+                              sr.isActive
                                 ? 'text-red-600 hover:text-red-700 hover:bg-red-50'
                                 : 'text-green-600 hover:text-green-700 hover:bg-green-50'
                             }`}
-                            title={sc.isActive ? 'Désactiver zone' : 'Réactiver zone'}
+                            title={sr.isActive ? 'Désactiver dans cette zone' : 'Réactiver dans cette zone'}
                           >
-                            {sc.isActive ? (
+                            {sr.isActive ? (
                               <ToggleLeft className="h-4 w-4" />
                             ) : (
                               <ToggleRight className="h-4 w-4" />
@@ -914,45 +880,45 @@ export const ZoneManagement: React.FC = () => {
           )}
         </div>
 
-        {/* Performance Analysis */}
+        {/* Performance Analysis by Zone */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-6">Analyse des performances par zone</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredSupplierCommunes
-              .filter(sc => sc.isActive)
-              .sort((a, b) => b.successRate - a.successRate)
+            {zones
+              .filter(zone => zone.isActive)
+              .sort((a, b) => b.statistics.successRate - a.statistics.successRate)
               .slice(0, 6)
-              .map((sc, index) => (
-                <div key={sc.id} className="border border-gray-200 rounded-lg p-4">
+              .map((zone, index) => (
+                <div key={zone.id} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       <div className="h-6 w-6 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs font-bold">{index + 1}</span>
                       </div>
-                      <h4 className="font-semibold text-gray-900">{sc.communeName}</h4>
+                      <h4 className="font-semibold text-gray-900">{zone.communeName}</h4>
                     </div>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPerformanceBadge(sc.successRate)}`}>
-                      {sc.successRate}%
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPerformanceBadge(zone.statistics.successRate)}`}>
+                      {zone.statistics.successRate}%
                     </span>
                   </div>
                   
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Fournisseur:</span>
-                      <span className="font-medium text-gray-900">{sc.supplierBusinessName}</span>
+                      <span className="text-gray-600">Fournisseurs actifs:</span>
+                      <span className="font-medium text-gray-900">{zone.statistics.activeSuppliers}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Commandes:</span>
-                      <span className="font-medium text-gray-900">{sc.totalOrders}</span>
+                      <span className="font-medium text-gray-900">{zone.statistics.totalOrders}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Temps moyen:</span>
                       <span className={`font-medium ${
-                        sc.averageDeliveryTime <= 25 ? 'text-green-600' :
-                        sc.averageDeliveryTime <= 35 ? 'text-yellow-600' : 'text-red-600'
+                        zone.statistics.averageDeliveryTime <= 25 ? 'text-green-600' :
+                        zone.statistics.averageDeliveryTime <= 35 ? 'text-yellow-600' : 'text-red-600'
                       }`}>
-                        {sc.averageDeliveryTime} min
+                        {zone.statistics.averageDeliveryTime} min
                       </span>
                     </div>
                   </div>
@@ -963,21 +929,21 @@ export const ZoneManagement: React.FC = () => {
       </div>
 
       {/* Zone Details Modal */}
-      {showDetailsModal && selectedZone && (
+      {showZoneDetailsModal && selectedZone && (
         <ZoneDetailsModal
           zone={selectedZone}
           onClose={() => {
-            setShowDetailsModal(false);
+            setShowZoneDetailsModal(false);
             setSelectedZone(null);
           }}
         />
       )}
 
-      {/* Edit Zone Modal */}
-      {showEditModal && <EditZoneModal />}
+      {/* Edit Supplier Modal */}
+      {showEditModal && <EditSupplierModal />}
 
-      {/* Deactivate Zone Modal */}
-      {showDeactivateModal && <DeactivateZoneModal />}
+      {/* Deactivate Supplier Modal */}
+      {showDeactivateModal && <DeactivateSupplierModal />}
     </>
   );
 };

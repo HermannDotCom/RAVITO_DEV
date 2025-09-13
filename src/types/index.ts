@@ -46,18 +46,46 @@ export interface Supplier extends User {
 export interface SupplierCommune {
   id: string;
   supplierId: string;
-  communeName: string;
+  supplierName: string;
+  supplierBusinessName: string;
   isActive: boolean;
-  maxDeliveryRadius: number;
-  minimumOrderAmount: number;
-  deliveryFee: number;
-  averageDeliveryTime: number;
-  totalOrders: number;
-  successRate: number;
-  lastOrderDate?: Date;
+  registeredAt: Date;
+  approvedAt?: Date;
   deactivatedAt?: Date;
   deactivationReason?: string;
   reactivatedAt?: Date;
+  performanceMetrics: {
+    totalOrders: number;
+    successRate: number;
+    averageDeliveryTime: number;
+    lastOrderDate?: Date;
+  };
+  deliverySettings: {
+    maxDeliveryRadius: number;
+    minimumOrderAmount: number;
+    deliveryFee: number;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DeliveryZone {
+  id: string;
+  communeName: string;
+  isActive: boolean;
+  suppliers: SupplierCommune[];
+  zoneSettings: {
+    maxSuppliers: number;
+    minimumCoverage: number;
+    operatingHours: string;
+  };
+  statistics: {
+    totalSuppliers: number;
+    activeSuppliers: number;
+    totalOrders: number;
+    averageDeliveryTime: number;
+    successRate: number;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

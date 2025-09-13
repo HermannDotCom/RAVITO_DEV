@@ -101,7 +101,30 @@ export const demoAccounts: DemoAccount[] = [
       deliveryCapacity: 'truck',
       acceptedPayments: ['orange', 'mtn', 'moov', 'card'],
       isAvailable: true,
-      communes: []
+      communes: [
+        {
+          id: 'sc-demo-plateau',
+          supplierId: 'supplier-amadou',
+          supplierName: 'Amadou Diallo',
+          supplierBusinessName: 'Dépôt du Plateau',
+          isActive: true,
+          registeredAt: new Date('2024-01-15'),
+          approvedAt: new Date('2024-01-16'),
+          performanceMetrics: {
+            totalOrders: 156,
+            successRate: 95,
+            averageDeliveryTime: 18,
+            lastOrderDate: new Date('2024-12-15')
+          },
+          deliverySettings: {
+            maxDeliveryRadius: 8,
+            minimumOrderAmount: 5000,
+            deliveryFee: 0
+          },
+          createdAt: new Date('2024-01-15'),
+          updatedAt: new Date('2024-12-15')
+        }
+      ]
     } as Supplier
   },
 
@@ -163,7 +186,30 @@ export const demoAccounts: DemoAccount[] = [
       deliveryCapacity: 'tricycle',
       acceptedPayments: ['orange', 'mtn', 'wave'],
       isAvailable: true,
-      communes: []
+      communes: [
+        {
+          id: 'sc-demo-cocody',
+          supplierId: 'supplier-marie',
+          supplierName: 'Marie Martin',
+          supplierBusinessName: 'Cocody Express',
+          isActive: true,
+          registeredAt: new Date('2024-02-20'),
+          approvedAt: new Date('2024-02-21'),
+          performanceMetrics: {
+            totalOrders: 89,
+            successRate: 92,
+            averageDeliveryTime: 22,
+            lastOrderDate: new Date('2024-12-15')
+          },
+          deliverySettings: {
+            maxDeliveryRadius: 12,
+            minimumOrderAmount: 8000,
+            deliveryFee: 1000
+          },
+          createdAt: new Date('2024-02-20'),
+          updatedAt: new Date('2024-12-15')
+        }
+      ]
     } as Supplier
   }
 ];
@@ -230,6 +276,28 @@ export const pendingApprovalAccounts: DemoAccount[] = [
       deliveryCapacity: 'tricycle',
       acceptedPayments: ['orange', 'mtn', 'wave'],
       isAvailable: false
+      communes: [
+        {
+          id: 'sc-pending-yopougon',
+          supplierId: 'pending-supplier-diabate',
+          supplierName: 'Diabaté Sekou',
+          supplierBusinessName: 'Dépôt Express Yop',
+          isActive: false,
+          registeredAt: new Date('2024-12-15'),
+          performanceMetrics: {
+            totalOrders: 0,
+            successRate: 0,
+            averageDeliveryTime: 0
+          },
+          deliverySettings: {
+            maxDeliveryRadius: 15,
+            minimumOrderAmount: 8000,
+            deliveryFee: 1200
+          },
+          createdAt: new Date('2024-12-15'),
+          updatedAt: new Date('2024-12-15')
+        }
+      ]
     } as Supplier
   }
 ];
