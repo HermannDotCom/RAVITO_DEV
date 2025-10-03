@@ -1,31 +1,30 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { User as AuthUser, Session } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import { User, UserRole } from '../types';
-import { getDemoAccountByCredentials, DemoAccount } from '../data/demoAccounts';
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   login: (email: string, password: string) => Promise<boolean>;
-  loginWithDemo: (demoAccount: DemoAccount) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   register: (userData: RegisterData) => Promise<boolean>;
   isLoading: boolean;
 }
 
-interface RegisterData {
+export interface RegisterData {
   email: string;
   password: string;
   role: UserRole;
   name: string;
   phone: string;
   address: string;
+  coordinates?: { lat: number; lng: number };
   businessName?: string;
   responsiblePerson?: string;
   businessHours?: string;
-  preferredPayments?: string[];
   coverageZone?: string;
-  availableProducts?: string[];
-  deliveryCapacity?: string;
-  acceptedPayments?: string[];
+  deliveryCapacity?: 'truck' | 'tricycle' | 'motorcycle';
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,99 +39,205 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored user data
-    const storedUser = localStorage.getItem('distri-night-user');
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      // Convert createdAt back to Date object if it exists
-      if (parsedUser.createdAt) {
-        parsedUser.createdAt = new Date(parsedUser.createdAt);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error('Error getting session:', error);
+          setIsLoading(false);
+          return;
+        }
+
+        setSession(currentSession);
+
+        if (currentSession?.user) {
+          await fetchUserProfile(currentSession.user.id);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        setIsLoading(false);
       }
-      setUser(parsedUser);
-    }
-    setIsLoading(false);
+    };
+
+    initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      setSession(newSession);
+
+      if (event === 'SIGNED_IN' && newSession?.user) {
+        await fetchUserProfile(newSession.user.id);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      } else if (event === 'USER_UPDATED' && newSession?.user) {
+        await fetchUserProfile(newSession.user.id);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    setIsLoading(true);
-    
-    // Check for demo accounts first
-    const demoAccount = getDemoAccountByCredentials(email, password);
-    if (demoAccount) {
-      setUser(demoAccount.userData);
-      localStorage.setItem('distri-night-user', JSON.stringify(demoAccount.userData));
-      setIsLoading(false);
-      return true;
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      if (profile) {
+        const { data: authUserData } = await supabase.auth.getUser();
+
+        const mappedUser: User = {
+          id: profile.id,
+          email: authUserData.user?.email || '',
+          role: profile.role as UserRole,
+          name: profile.name,
+          phone: profile.phone,
+          address: profile.address,
+          coordinates: profile.coordinates ? {
+            lat: (profile.coordinates as any).coordinates[1],
+            lng: (profile.coordinates as any).coordinates[0]
+          } : undefined,
+          rating: profile.rating || 5.0,
+          totalOrders: profile.total_orders || 0,
+          isActive: profile.is_active,
+          isApproved: profile.is_approved,
+          approvalStatus: profile.approval_status as 'pending' | 'approved' | 'rejected',
+          approvedAt: profile.approved_at ? new Date(profile.approved_at) : undefined,
+          rejectedAt: profile.rejected_at ? new Date(profile.rejected_at) : undefined,
+          rejectionReason: profile.rejection_reason || undefined,
+          createdAt: new Date(profile.created_at),
+          businessName: profile.business_name || undefined,
+          businessHours: profile.business_hours || undefined,
+          responsiblePerson: profile.responsible_person || undefined,
+          coverageZone: profile.coverage_zone || undefined,
+          deliveryCapacity: profile.delivery_capacity as any || undefined
+        };
+
+        setUser(mappedUser);
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
     }
-    
-    // Simulate API call for regular login
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // For demo purposes, any other email/password combination will create a basic client account
-    const basicUser: User = {
-      id: Date.now().toString(),
-      email,
-      role: 'client',
-      name: 'Utilisateur Test',
-      phone: '+225 XX XX XX XX XX',
-      address: 'Abidjan, Côte d\'Ivoire',
-      coordinates: { lat: 5.3364, lng: -4.0267 },
-      rating: 5.0,
-      totalOrders: 0,
-      isActive: true,
-      isApproved: false,
-      approvalStatus: 'pending',
-      createdAt: new Date()
-    };
-    
-    setUser(basicUser);
-    localStorage.setItem('distri-night-user', JSON.stringify(basicUser));
-    setIsLoading(false);
-    return true;
   };
 
-  const loginWithDemo = (demoAccount: DemoAccount) => {
-    setUser(demoAccount.userData);
-    localStorage.setItem('distri-night-user', JSON.stringify(demoAccount.userData));
-  };
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      setIsLoading(true);
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('distri-night-user');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        console.error('Login error:', error);
+        return false;
+      }
+
+      if (data.user) {
+        await fetchUserProfile(data.user.id);
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Login exception:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const register = async (userData: RegisterData): Promise<boolean> => {
-    setIsLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const newUser: User = {
-      id: Date.now().toString(),
-      email: userData.email,
-      role: userData.role,
-      name: userData.name,
-      phone: userData.phone,
-      address: userData.address,
-      rating: 5,
-      totalOrders: 0,
-      isActive: true,
-      isApproved: false,
-      approvalStatus: 'pending',
-      createdAt: new Date()
-    };
-    
-    setUser(newUser);
-    localStorage.setItem('distri-night-user', JSON.stringify(newUser));
-    setIsLoading(false);
-    return true;
+    try {
+      setIsLoading(true);
+
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            name: userData.name,
+            role: userData.role
+          }
+        }
+      });
+
+      if (authError) {
+        console.error('Registration error:', authError);
+        return false;
+      }
+
+      if (!authData.user) {
+        console.error('No user returned from signup');
+        return false;
+      }
+
+      const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
+
+      const profileData: any = {
+        id: authData.user.id,
+        role: userData.role,
+        name: userData.name,
+        phone: userData.phone,
+        address: userData.address,
+        coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
+        business_name: userData.businessName || null,
+        business_hours: userData.businessHours || null,
+        responsible_person: userData.responsiblePerson || null,
+        coverage_zone: userData.coverageZone || null,
+        delivery_capacity: userData.deliveryCapacity || null,
+        is_active: true,
+        is_approved: false,
+        approval_status: 'pending'
+      };
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([profileData]);
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        await supabase.auth.signOut();
+        return false;
+      }
+
+      await fetchUserProfile(authData.user.id);
+      return true;
+    } catch (error) {
+      console.error('Registration exception:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, loginWithDemo, logout, register, isLoading }}>
+    <AuthContext.Provider value={{ user, session, login, logout, register, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

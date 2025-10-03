@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Minus, ShoppingCart, Package } from 'lucide-react';
-import { mockProducts } from '../../data/mockData';
 import { useApp } from '../../context/AppContext';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { Product, ProductCategory } from '../../types';
+import { getProducts, getUniqueBrands } from '../../services/productService';
 
 export const ProductCatalog: React.FC = () => {
   const { user, getAccessRestrictions } = useProfileSecurity();
@@ -36,6 +36,36 @@ export const ProductCatalog: React.FC = () => {
   const [selectedProducts, setSelectedProducts] = useState<{ [key: string]: { quantity: number; withConsigne: boolean } }>({});
   const [categoryFilter, setCategoryFilter] = useState<ProductCategory | 'all'>('all');
   const [brandFilter, setBrandFilter] = useState<string>('all');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [brands, setBrands] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadProducts();
+    loadBrands();
+  }, [categoryFilter, brandFilter]);
+
+  const loadProducts = async () => {
+    setIsLoading(true);
+    const filters: any = { isActive: true };
+
+    if (categoryFilter !== 'all') {
+      filters.category = categoryFilter;
+    }
+
+    if (brandFilter !== 'all') {
+      filters.brand = brandFilter;
+    }
+
+    const fetchedProducts = await getProducts(filters);
+    setProducts(fetchedProducts);
+    setIsLoading(false);
+  };
+
+  const loadBrands = async () => {
+    const fetchedBrands = await getUniqueBrands();
+    setBrands(fetchedBrands);
+  };
 
   const categories = [
     { value: 'all' as const, label: 'Tous les produits' },
@@ -46,14 +76,15 @@ export const ProductCatalog: React.FC = () => {
     { value: 'spiritueux' as const, label: 'Spiritueux' }
   ];
 
-  const filteredProducts = mockProducts.filter(product => {
-    if (!product.isActive) return false;
-    const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-    const matchesBrand = brandFilter === 'all' || product.brand === brandFilter;
-    return matchesCategory && matchesBrand;
-  });
-
-  const uniqueBrands = Array.from(new Set(mockProducts.filter(p => p.isActive).map(p => p.brand))).sort();
+  if (isLoading) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+        </div>
+      </div>
+    );
+  }
 
   const updateQuantity = (productId: string, delta: number) => {
     setSelectedProducts(prev => ({
@@ -135,7 +166,7 @@ export const ProductCatalog: React.FC = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             >
               <option value="all">Toutes les marques</option>
-              {uniqueBrands.map(brand => (
+              {brands.map(brand => (
                 <option key={brand} value={brand}>{brand}</option>
               ))}
             </select>
@@ -144,7 +175,7 @@ export const ProductCatalog: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map((product) => {
+        {products.map((product) => {
           const selection = selectedProducts[product.id] || { quantity: 0, withConsigne: false };
           
           return (
