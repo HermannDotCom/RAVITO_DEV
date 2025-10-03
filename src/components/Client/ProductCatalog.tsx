@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Minus, ShoppingCart, Package } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { useCart } from '../../context/CartContext';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { Product, ProductCategory } from '../../types';
 import { getProducts, getUniqueBrands } from '../../services/productService';
 
 export const ProductCatalog: React.FC = () => {
   const { user, getAccessRestrictions } = useProfileSecurity();
-  const { addToCart } = useApp();
+  const { addToCart } = useCart();
 
   const accessRestrictions = getAccessRestrictions();
 

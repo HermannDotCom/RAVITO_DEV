@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { AppProvider, useApp } from './context/AppContext';
+import { CartProvider } from './context/CartContext';
+import { OrderProvider, useOrder } from './context/OrderContext';
+import { CommissionProvider } from './context/CommissionContext';
+import { RatingProvider } from './context/RatingContext';
 import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AuthScreen } from './components/Auth/AuthScreen';
@@ -33,7 +36,7 @@ import { ClientRatingForm } from './components/Client/ClientRatingForm';
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();
-  const { currentOrder, clientCurrentOrder, orderStep, supplierOffer, acceptSupplierOffer, rejectSupplierOffer, cancelOrder, confirmPayment, setOrderStep, updateDeliveryTime } = useApp();
+  const { currentOrder, clientCurrentOrder, orderStep, supplierOffer, acceptSupplierOffer, rejectSupplierOffer, cancelOrder, confirmPayment, setOrderStep, updateDeliveryTime } = useOrder();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showRating, setShowRating] = useState(false);
@@ -219,9 +222,15 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <AuthProvider>
-      <AppProvider>
-        <AppContent />
-      </AppProvider>
+      <CartProvider>
+        <CommissionProvider>
+          <OrderProvider>
+            <RatingProvider>
+              <AppContent />
+            </RatingProvider>
+          </OrderProvider>
+        </CommissionProvider>
+      </CartProvider>
     </AuthProvider>
   );
 }
