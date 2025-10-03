@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, MapPin, User, CheckCircle, Package, Archive, Edit3, Save, Clock } from 'lucide-react';
+import { Phone, MapPin, User, CheckCircle, Package, Archive, CreditCard as Edit3, Save, Clock } from 'lucide-react';
 import { Order, CrateType } from '../../types';
 import { useOrder } from '../../context/OrderContext';
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, MapPin, Clock, User, CheckCircle, MessageCircle, Edit3, Save } from 'lucide-react';
+import { Phone, MapPin, Clock, User, CheckCircle, MessageCircle, CreditCard as Edit3, Save } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
 import { getSupplierById } from '../../data/mockSuppliers';
 import { useAuth } from '../../context/AuthContext';
