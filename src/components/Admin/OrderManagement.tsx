@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Package, Search, Filter, Eye, MapPin, Clock, Star, AlertTriangle, CheckCircle, XCircle, Phone, User, CreditCard, Archive, Truck, X, MessageCircle } from 'lucide-react';
 import { Order, OrderStatus, CrateType } from '../../types';
-import { useApp } from '../../context/AppContext';
+import { useOrder } from '../../context/OrderContext';
+import { useCommission } from '../../context/CommissionContext';
 
 export const OrderManagement: React.FC = () => {
-  const { allOrders, updateOrderStatus, commissionSettings } = useApp();
+  const { allOrders, updateOrderStatus } = useOrder();
+  const { commissionSettings } = useCommission();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');

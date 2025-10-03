@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Navigation, Star, Archive, AlertCircle } from 'lucide-react';
 import { Order, OrderStatus, CrateType } from '../../types';
-import { useApp } from '../../context/AppContext';
+import { useOrder } from '../../context/OrderContext';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 
 interface ActiveDeliveriesProps {
@@ -10,7 +10,7 @@ interface ActiveDeliveriesProps {
 
 export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
-  const { supplierActiveDeliveries, updateOrderStatus, completeDelivery } = useApp();
+  const { supplierActiveDeliveries, updateOrderStatus, completeDelivery } = useOrder();
 
   const accessRestrictions = getAccessRestrictions();
 

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Package, Clock, Star, MapPin, Filter, Search, CheckCircle, XCircle, Truck, Calendar, Eye, Download, Phone, Archive, CreditCard } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useApp } from '../../context/AppContext';
+import { useCart } from '../../context/CartContext';
+import { useOrder } from '../../context/OrderContext';
+import { useRating } from '../../context/RatingContext';
 import { Order, OrderStatus, CrateType } from '../../types';
 import { ClientRatingForm } from './ClientRatingForm';
 
@@ -11,7 +13,9 @@ interface OrderHistoryProps {
 
 export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   const { user } = useAuth();
-  const { clientCurrentOrder, allOrders, updateOrderStatus, cart, getOrderRatings, needsRating, submitRating } = useApp();
+  const { cart } = useCart();
+  const { clientCurrentOrder, allOrders, updateOrderStatus } = useOrder();
+  const { getOrderRatings, needsRating, submitRating } = useRating();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');

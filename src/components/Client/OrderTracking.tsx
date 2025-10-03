@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Clock, Package, Truck, CheckCircle, MapPin, Phone, Archive } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { useOrder } from '../../context/OrderContext';
 import { OrderStatus, CrateType } from '../../types';
 
 interface OrderTrackingProps {
@@ -8,7 +8,7 @@ interface OrderTrackingProps {
 }
 
 export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
-  const { clientCurrentOrder, updateOrderStatus } = useApp();
+  const { clientCurrentOrder, updateOrderStatus } = useOrder();
   const [estimatedTime, setEstimatedTime] = useState(25);
 
   useEffect(() => {

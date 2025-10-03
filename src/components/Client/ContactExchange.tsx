@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Phone, MapPin, Clock, User, CheckCircle, MessageCircle, Edit3, Save } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { useOrder } from '../../context/OrderContext';
 import { getSupplierById } from '../../data/mockSuppliers';
 import { useAuth } from '../../context/AuthContext';
 import { Client } from '../../types';
@@ -11,7 +11,7 @@ interface ContactExchangeProps {
 
 export const ContactExchange: React.FC<ContactExchangeProps> = ({ onContinue }) => {
   const { user } = useAuth();
-  const { updateDeliveryTime, supplierOffer, clientCurrentOrder } = useApp();
+  const { updateDeliveryTime, supplierOffer, clientCurrentOrder } = useOrder();
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [newEstimatedTime, setNewEstimatedTime] = useState(supplierOffer?.estimatedTime || 25);
   

@@ -1,7 +1,8 @@
 import React from 'react';
 import { ShoppingCart, Package, Clock, TrendingUp, Star } from 'lucide-react';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
-import { useApp } from '../../context/AppContext';
+import { useCart } from '../../context/CartContext';
+import { useOrder } from '../../context/OrderContext';
 
 interface ClientDashboardProps {
   onNavigate: (section: string) => void;
@@ -9,7 +10,8 @@ interface ClientDashboardProps {
 
 export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
-  const { cart, clientCurrentOrder } = useApp();
+  const { cart } = useCart();
+  const { clientCurrentOrder } = useOrder();
 
   const accessRestrictions = getAccessRestrictions();
 

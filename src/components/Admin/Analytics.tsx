@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { BarChart3, TrendingUp, Users, Package, MapPin, Clock, Star, Calendar, DollarSign, Target, Activity, Zap, CreditCard, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { useOrder } from '../../context/OrderContext';
+import { useCommission } from '../../context/CommissionContext';
 
 export const Analytics: React.FC = () => {
-  const { allOrders, commissionSettings } = useApp();
+  const { allOrders } = useOrder();
+  const { commissionSettings } = useCommission();
   const [timeRange, setTimeRange] = useState('month');
   const [selectedMetric, setSelectedMetric] = useState('revenue');
   

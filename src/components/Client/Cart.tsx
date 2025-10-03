@@ -1,7 +1,8 @@
 import React from 'react';
 import { Trash2, Package, AlertCircle, Archive, ShoppingCart } from 'lucide-react';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
-import { useApp } from '../../context/AppContext';
+import { useCart } from '../../context/CartContext';
+import { useCommission } from '../../context/CommissionContext';
 import { CrateType } from '../../types';
 
 interface CartProps {
@@ -10,7 +11,8 @@ interface CartProps {
 
 export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
-  const { cart, removeFromCart, updateCartItem, getCartTotalWithCommission, commissionSettings } = useApp();
+  const { cart, removeFromCart, updateCartItem, getCartTotal } = useCart();
+  const { getCartTotalWithCommission, commissionSettings } = useCommission();
 
   const accessRestrictions = getAccessRestrictions();
 
@@ -30,7 +32,8 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
       </div>
     );
   }
-  const { subtotal, consigneTotal, clientCommission, total } = getCartTotalWithCommission();
+  const { subtotal, consigneTotal } = getCartTotal();
+  const { subtotal: _, consigneTotal: __, clientCommission, total } = getCartTotalWithCommission(cart, subtotal, consigneTotal);
 
   // Calculate crate summary
   const getCrateSummary = () => {

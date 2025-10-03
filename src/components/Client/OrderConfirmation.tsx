@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Clock, Package, MapPin, CreditCard, CheckCircle, X, AlertCircle, Archive, Smartphone } from 'lucide-react';
 import { Order, PaymentMethod, CrateType } from '../../types';
-import { useApp } from '../../context/AppContext';
+import { useOrder } from '../../context/OrderContext';
+import { useCommission } from '../../context/CommissionContext';
 
 interface OrderConfirmationProps {
   onAccept: () => void;
@@ -14,7 +15,8 @@ export const OrderConfirmation: React.FC<OrderConfirmationProps> = ({
   onReject,
   onCancel
 }) => {
-  const { clientCurrentOrder, supplierOffer, commissionSettings } = useApp();
+  const { clientCurrentOrder, supplierOffer } = useOrder();
+  const { commissionSettings } = useCommission();
   
   if (!clientCurrentOrder || !supplierOffer) {
     return null;

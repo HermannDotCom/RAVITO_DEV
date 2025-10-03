@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Phone, MapPin, User, CheckCircle, Package, Archive, Edit3, Save, Clock } from 'lucide-react';
 import { Order, CrateType } from '../../types';
-import { useApp } from '../../context/AppContext';
+import { useOrder } from '../../context/OrderContext';
 
 interface SupplierNotificationProps {
   order: Order;
@@ -20,7 +20,7 @@ export const SupplierNotification: React.FC<SupplierNotificationProps> = ({
   clientInfo,
   onContinue
 }) => {
-  const { updateDeliveryTime, supplierOffer } = useApp();
+  const { updateDeliveryTime, supplierOffer } = useOrder();
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [newEstimatedTime, setNewEstimatedTime] = useState(supplierOffer?.estimatedTime || 25);
 

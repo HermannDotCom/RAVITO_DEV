@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Package, Star, MapPin, Clock, Filter, Search } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { useOrder } from '../../context/OrderContext';
+import { useRating } from '../../context/RatingContext';
 import { useAuth } from '../../context/AuthContext';
 import { Order } from '../../types';
 import { SupplierRatingForm } from './SupplierRatingForm';
@@ -19,7 +20,8 @@ interface DeliveryRecord {
 }
 
 export const DeliveryHistory: React.FC = () => {
-  const { allOrders, getOrderRatings, canShowRatings, needsRating, submitRating } = useApp();
+  const { allOrders } = useOrder();
+  const { getOrderRatings, needsRating, submitRating } = useRating();
   const { user } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState('');

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { MapPin, CreditCard, Smartphone, Archive, AlertCircle } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { useCart } from '../../context/CartContext';
+import { useOrder } from '../../context/OrderContext';
+import { useCommission } from '../../context/CommissionContext';
 import { PaymentMethod, CrateType } from '../../types';
 
 interface CheckoutFormProps {
@@ -9,12 +11,16 @@ interface CheckoutFormProps {
 }
 
 export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack }) => {
-  const { getCartTotal, placeOrder, commissionSettings } = useApp();
+  const { cart, getCartTotal } = useCart();
+  const { placeOrder } = useOrder();
+  const { commissionSettings } = useCommission();
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('orange');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const { subtotal, consigneTotal, total, cart, clientCommission } = getCartTotal();
+  const { subtotal, consigneTotal } = getCartTotal();
+  const clientCommission = Math.round((subtotal + consigneTotal) * (commissionSettings.clientCommission / 100));
+  const total = subtotal + consigneTotal + clientCommission;
 
   // Calculate crate summary
   const getCrateSummary = () => {

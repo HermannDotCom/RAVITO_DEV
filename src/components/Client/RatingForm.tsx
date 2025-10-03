@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Star, Clock, Package, MessageCircle, Heart } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { useOrder } from '../../context/OrderContext';
+import { useRating } from '../../context/RatingContext';
 
 interface RatingFormProps {
   onSubmit: (rating: any) => void;
@@ -8,7 +9,8 @@ interface RatingFormProps {
 }
 
 export const RatingForm: React.FC<RatingFormProps> = ({ onSubmit, supplierName }) => {
-  const { clientCurrentOrder, submitRating } = useApp();
+  const { clientCurrentOrder } = useOrder();
+  const { submitRating } = useRating();
   const [ratings, setRatings] = useState({
     punctuality: 0,
     quality: 0,

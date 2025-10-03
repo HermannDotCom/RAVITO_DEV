@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Package, Truck, Clock, TrendingUp, Star, MapPin, Phone, Eye, CheckCircle, X, AlertCircle, Archive, CreditCard, User } from 'lucide-react';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
-import { useApp } from '../../context/AppContext';
+import { useOrder } from '../../context/OrderContext';
+import { useCommission } from '../../context/CommissionContext';
 import { CrateType } from '../../types';
 
 interface SupplierDashboardProps {
@@ -10,7 +11,8 @@ interface SupplierDashboardProps {
 
 export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
-  const { availableOrders, acceptOrderAsSupplier, commissionSettings, getSupplierNetAmount } = useApp();
+  const { availableOrders, acceptOrderAsSupplier } = useOrder();
+  const { commissionSettings, getSupplierNetAmount } = useCommission();
 
   const accessRestrictions = getAccessRestrictions();
 

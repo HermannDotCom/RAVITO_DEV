@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Clock, Package, MapPin, Star, Phone, AlertCircle, CheckCircle, Archive } from 'lucide-react';
 import { Order, OrderStatus, CrateType } from '../../types';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
-import { useApp } from '../../context/AppContext';
+import { useOrder } from '../../context/OrderContext';
+import { useCommission } from '../../context/CommissionContext';
 
 interface AvailableOrdersProps {
   onNavigate: (section: string) => void;
@@ -10,7 +11,8 @@ interface AvailableOrdersProps {
 
 export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
-  const { availableOrders, acceptOrderAsSupplier, commissionSettings, getSupplierNetAmount } = useApp();
+  const { availableOrders, acceptOrderAsSupplier } = useOrder();
+  const { commissionSettings, getSupplierNetAmount } = useCommission();
 
   const accessRestrictions = getAccessRestrictions();
 

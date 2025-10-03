@@ -14,11 +14,13 @@ import {
   AlertTriangle,
   X
 } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { useOrder } from '../../context/OrderContext';
+import { useCommission } from '../../context/CommissionContext';
 import { Order, SupplierPayment } from '../../types';
 
 export const Treasury: React.FC = () => {
-  const { allOrders, processSupplierPayment, commissionSettings } = useApp();
+  const { allOrders, processSupplierPayment } = useOrder();
+  const { commissionSettings } = useCommission();
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierPayment | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
