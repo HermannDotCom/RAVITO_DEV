@@ -1,17 +1,5 @@
 import React from 'react';
-import {
-  MapPin,
-  Users,
-  TrendingUp,
-  Clock,
-  X,
-  Settings,
-  Edit3,
-  ToggleLeft,
-  ToggleRight,
-  UserPlus,
-  UserMinus
-} from 'lucide-react';
+import { MapPin, Users, TrendingUp, Clock, X, Settings, CreditCard as Edit3, ToggleLeft, ToggleRight, UserPlus, UserMinus } from 'lucide-react';
 import { DeliveryZone, SupplierCommune } from '../../../types';
 
 interface ZoneDetailsModalProps {
