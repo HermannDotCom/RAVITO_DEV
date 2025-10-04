@@ -7,6 +7,7 @@ import { RatingProvider } from './context/RatingContext';
 import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AuthScreen } from './components/Auth/AuthScreen';
+import { SkipLink } from './components/Accessibility/SkipLink';
 import { ClientDashboard } from './components/Client/ClientDashboard';
 import { SupplierDashboard } from './components/Supplier/SupplierDashboard';
 import { ProductCatalog } from './components/Client/ProductCatalog';
@@ -198,11 +199,12 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SkipLink />
       <Header
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         title={showRating ? 'Évaluation' : undefined}
       />
-      
+
       <div className="flex">
         <Sidebar
           isOpen={sidebarOpen}
@@ -210,8 +212,8 @@ const AppContent: React.FC = () => {
           activeSection={activeSection}
           onSectionChange={setActiveSection}
         />
-        
-        <main className="flex-1 lg:ml-0">
+
+        <main id="main-content" className="flex-1 lg:ml-0">
           {renderMainContent()}
         </main>
       </div>
