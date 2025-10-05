@@ -1,9 +1,7 @@
-export type UserRole = 'admin' | 'client' | 'supplier';
-export type OrderStatus = 'pending' | 'awaiting-client-validation' | 'accepted' | 'preparing' | 'delivering' | 'delivered' | 'cancelled';
-export type PaymentStatus = 'pending' | 'paid' | 'transferred' | 'completed';
-export type PaymentMethod = 'orange' | 'mtn' | 'moov' | 'wave' | 'card';
-export type DeliveryMethod = 'truck' | 'tricycle' | 'motorcycle';
-export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+export type UserRole = 'client' | 'supplier' | 'admin';
+
+export type ProductCategory = 'biere' | 'soda' | 'vin' | 'eau' | 'spiritueux';
+export type CrateType = 'C24' | 'C12' | 'C12V' | 'C6';
 
 export interface User {
   id: string;
@@ -12,32 +10,108 @@ export interface User {
   name: string;
   phone: string;
   address: string;
-  coordinates?: { lat: number; lng: number };
-  rating: number;
-  totalOrders: number;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  rating?: number;
+  totalOrders?: number;
   isActive: boolean;
   isApproved: boolean;
-  approvalStatus: ApprovalStatus;
+  approvalStatus: 'pending' | 'approved' | 'rejected';
+  approvedAt?: Date;
+  rejectedAt?: Date;
+  rejectionReason?: string;
   createdAt: Date;
-  businessName?: string;
-  businessHours?: string;
-  responsiblePerson?: string;
-  coverageZone?: string;
-  deliveryCapacity?: DeliveryMethod;
 }
+
+export interface Client extends User {
+  businessName: string;
+  businessHours: string;
+  preferredPayments: PaymentMethod[];
+  responsiblePerson: string;
+}
+
+export interface Supplier extends User {
+  businessName: string;
+  coverageZone: string;
+  availableProducts: string[];
+  deliveryCapacity: DeliveryMethod;
+  businessHours: string;
+  acceptedPayments: PaymentMethod[];
+  isAvailable: boolean;
+  communes: SupplierCommune[];
+}
+
+export interface SupplierCommune {
+  id: string;
+  supplierId: string;
+  supplierName: string;
+  supplierBusinessName: string;
+  isActive: boolean;
+  registeredAt: Date;
+  approvedAt?: Date;
+  deactivatedAt?: Date;
+  deactivationReason?: string;
+  reactivatedAt?: Date;
+  performanceMetrics: {
+    totalOrders: number;
+    successRate: number;
+    averageDeliveryTime: number;
+    lastOrderDate?: Date;
+  };
+  deliverySettings: {
+    maxDeliveryRadius: number;
+    minimumOrderAmount: number;
+    deliveryFee: number;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DeliveryZone {
+  id: string;
+  communeName: string;
+  isActive: boolean;
+  suppliers: SupplierCommune[];
+  zoneSettings: {
+    maxSuppliers: number;
+    minimumCoverage: number;
+    operatingHours: string;
+  };
+  statistics: {
+    totalSuppliers: number;
+    activeSuppliers: number;
+    totalOrders: number;
+    averageDeliveryTime: number;
+    successRate: number;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type ProductBrand = 'Solibra' | 'Brassivoire';
+export type PackagingType = 'C24' | 'C12' | 'C12V';
+export type DeliveryMethod = 'truck' | 'tricycle' | 'motorcycle';
+export type PaymentMethod = 'orange' | 'mtn' | 'moov' | 'wave' | 'card';
 
 export interface Product {
   id: string;
   reference: string;
   name: string;
-  category: 'biere' | 'soda' | 'vin' | 'eau' | 'spiritueux';
+  category: ProductCategory;
   brand: string;
-  crateType: 'C24' | 'C12' | 'C12V' | 'C6';
+  crateType: CrateType;
   unitPrice: number;
   cratePrice: number;
   consignPrice: number;
+  description?: string;
+  alcoholContent?: number;
   volume: string;
   isActive: boolean;
+  imageUrl: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CartItem {
@@ -50,25 +124,55 @@ export interface Order {
   id: string;
   clientId: string;
   supplierId?: string;
-  status: OrderStatus;
-  items: any[];
+  items: CartItem[];
   totalAmount: number;
+  status: OrderStatus;
   consigneTotal: number;
-  clientCommission: number;
-  supplierCommission: number;
-  netSupplierAmount: number;
   deliveryAddress: string;
-  coordinates: { lat: number; lng: number };
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
   paymentMethod: PaymentMethod;
-  paymentStatus: PaymentStatus;
   estimatedDeliveryTime?: number;
+  paymentStatus?: PaymentStatus;
+  paidAt?: Date;
+  transferredAt?: Date;
   createdAt: Date;
-  updatedAt: Date;
+  acceptedAt?: Date;
+  deliveredAt?: Date;
 }
 
-export interface SupplierOffer {
+export type OrderStatus = 'pending' | 'awaiting-client-validation' | 'accepted' | 'preparing' | 'delivering' | 'delivered' | 'cancelled';
+
+export type PaymentStatus = 'pending' | 'paid' | 'transferred' | 'completed';
+
+export interface SupplierPayment {
   supplierId: string;
   supplierName: string;
-  estimatedTime: number;
+  totalAmount: number;
+  orderCount: number;
+  orders: Order[];
+  lastOrderDate: Date;
+}
+
+export interface Rating {
+  id: string;
+  orderId: string;
+  fromUserId: string;
+  toUserId: string;
+  fromUserRole: UserRole;
+  toUserRole: UserRole;
+  punctuality: number;
+  quality: number;
+  communication: number;
+  overall: number;
+  comment?: string;
+  createdAt: Date;
+}
+
+export interface MatchingSupplier {
+  supplier: Supplier;
   distance: number;
+  estimatedTime: number;
 }

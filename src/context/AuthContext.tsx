@@ -1,109 +1,243 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { User as AuthUser, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { User, UserRole } from '../types';
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  register: (userData: any) => Promise<boolean>;
+  register: (userData: RegisterData) => Promise<boolean>;
   isLoading: boolean;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  role: UserRole;
+  name: string;
+  phone: string;
+  address: string;
+  coordinates?: { lat: number; lng: number };
+  businessName?: string;
+  responsiblePerson?: string;
+  businessHours?: string;
+  coverageZone?: string;
+  deliveryCapacity?: 'truck' | 'tricycle' | 'motorcycle';
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
   return context;
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) fetchUserProfile(session.user.id);
-      setIsLoading(false);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error('Error getting session:', error);
+          setIsLoading(false);
+          return;
+        }
+
+        setSession(currentSession);
+
+        if (currentSession?.user) {
+          await fetchUserProfile(currentSession.user.id);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      setSession(newSession);
+
+      if (event === 'SIGNED_IN' && newSession?.user) {
+        await fetchUserProfile(newSession.user.id);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      } else if (event === 'USER_UPDATED' && newSession?.user) {
+        await fetchUserProfile(newSession.user.id);
+      }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) fetchUserProfile(session.user.id);
-      else setUser(null);
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
 
-    if (profile) {
-      const { data: authUser } = await supabase.auth.getUser();
-      setUser({
-        id: profile.id,
-        email: authUser.user?.email || '',
-        role: profile.role,
-        name: profile.name,
-        phone: profile.phone,
-        address: profile.address,
-        rating: profile.rating || 5.0,
-        totalOrders: profile.total_orders || 0,
-        isActive: profile.is_active,
-        isApproved: profile.is_approved,
-        approvalStatus: profile.approval_status,
-        createdAt: new Date(profile.created_at),
-        businessName: profile.business_name,
-        businessHours: profile.business_hours,
-        responsiblePerson: profile.responsible_person,
-        coverageZone: profile.coverage_zone,
-        deliveryCapacity: profile.delivery_capacity
-      });
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      if (profile) {
+        const { data: authUserData } = await supabase.auth.getUser();
+
+        const mappedUser: User = {
+          id: profile.id,
+          email: authUserData.user?.email || '',
+          role: profile.role as UserRole,
+          name: profile.name,
+          phone: profile.phone,
+          address: profile.address,
+          coordinates: profile.coordinates ? {
+            lat: (profile.coordinates as any).coordinates[1],
+            lng: (profile.coordinates as any).coordinates[0]
+          } : undefined,
+          rating: profile.rating || 5.0,
+          totalOrders: profile.total_orders || 0,
+          isActive: profile.is_active,
+          isApproved: profile.is_approved,
+          approvalStatus: profile.approval_status as 'pending' | 'approved' | 'rejected',
+          approvedAt: profile.approved_at ? new Date(profile.approved_at) : undefined,
+          rejectedAt: profile.rejected_at ? new Date(profile.rejected_at) : undefined,
+          rejectionReason: profile.rejection_reason || undefined,
+          createdAt: new Date(profile.created_at),
+          businessName: profile.business_name || undefined,
+          businessHours: profile.business_hours || undefined,
+          responsiblePerson: profile.responsible_person || undefined,
+          coverageZone: profile.coverage_zone || undefined,
+          deliveryCapacity: profile.delivery_capacity as any || undefined
+        };
+
+        setUser(mappedUser);
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
     }
   };
 
-  const login = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return false;
-    if (data.user) await fetchUserProfile(data.user.id);
-    return true;
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        console.error('Login error:', error);
+        return false;
+      }
+
+      if (data.user) {
+        await fetchUserProfile(data.user.id);
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Login exception:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const register = async (userData: any) => {
-    const { data, error } = await supabase.auth.signUp({
-      email: userData.email,
-      password: userData.password
-    });
-    if (error || !data.user) return false;
+  const register = async (userData: RegisterData): Promise<boolean> => {
+    try {
+      setIsLoading(true);
 
-    const { error: profileError } = await supabase.from('profiles').insert([{
-      id: data.user.id,
-      role: userData.role,
-      name: userData.name,
-      phone: userData.phone,
-      address: userData.address,
-      is_active: true,
-      is_approved: false,
-      approval_status: 'pending'
-    }]);
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            name: userData.name,
+            role: userData.role
+          }
+        }
+      });
 
-    if (profileError) return false;
-    await fetchUserProfile(data.user.id);
-    return true;
+      if (authError) {
+        console.error('Registration error:', authError);
+        return false;
+      }
+
+      if (!authData.user) {
+        console.error('No user returned from signup');
+        return false;
+      }
+
+      const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
+
+      const profileData: any = {
+        id: authData.user.id,
+        role: userData.role,
+        name: userData.name,
+        phone: userData.phone,
+        address: userData.address,
+        coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
+        business_name: userData.businessName || null,
+        business_hours: userData.businessHours || null,
+        responsible_person: userData.responsiblePerson || null,
+        coverage_zone: userData.coverageZone || null,
+        delivery_capacity: userData.deliveryCapacity || null,
+        is_active: true,
+        is_approved: false,
+        approval_status: 'pending'
+      };
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([profileData]);
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        await supabase.auth.signOut();
+        return false;
+      }
+
+      await fetchUserProfile(authData.user.id);
+      return true;
+    } catch (error) {
+      console.error('Registration exception:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register, isLoading }}>
+    <AuthContext.Provider value={{ user, session, login, logout, register, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
