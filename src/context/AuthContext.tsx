@@ -218,41 +218,111 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return false;
       }
 
-      console.log('Auth user created, creating profile...');
-      const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
+      console.log('Auth user created, waiting for profile to be available...');
 
-      const profileData: any = {
-        id: authData.user.id,
-        role: userData.role,
-        name: userData.name,
-        phone: userData.phone,
-        address: userData.address,
-        coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
-        business_name: userData.businessName || null,
-        business_hours: userData.businessHours || null,
-        responsible_person: userData.responsiblePerson || null,
-        coverage_zone: userData.coverageZone || null,
-        delivery_capacity: userData.deliveryCapacity || null,
-        is_active: true,
-        is_approved: false,
-        approval_status: 'pending'
-      };
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([profileData]);
+      let retries = 0;
+      const maxRetries = 8;
+      let profileFound = false;
 
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
+      while (retries < maxRetries && !profileFound) {
+        console.log(`Profile check attempt ${retries + 1}/${maxRetries}...`);
+
+        const { data: existingProfile, error: checkError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+
+        if (existingProfile) {
+          console.log('Profile exists, updating with full data...');
+          profileFound = true;
+
+          const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
+          const updateData: any = {
+            role: userData.role,
+            name: userData.name,
+            phone: userData.phone,
+            address: userData.address,
+            coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
+          };
+
+          if (userData.role === 'supplier') {
+            updateData.business_name = userData.businessName || null;
+            updateData.business_hours = userData.businessHours || null;
+            updateData.responsible_person = userData.responsiblePerson || null;
+            updateData.coverage_zone = userData.coverageZone || null;
+            updateData.delivery_capacity = userData.deliveryCapacity || null;
+          }
+
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update(updateData)
+            .eq('id', authData.user.id);
+
+          if (updateError) {
+            console.error('Profile update error:', updateError);
+          }
+
+          const profileSuccess = await fetchUserProfile(authData.user.id);
+          setIsLoading(false);
+          return profileSuccess;
+        } else if (checkError) {
+          console.error('Error checking profile:', checkError);
+        } else {
+          console.log('Profile not found yet, will try to create it...');
+
+          const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
+          const profileData: any = {
+            id: authData.user.id,
+            role: userData.role,
+            name: userData.name,
+            phone: userData.phone,
+            address: userData.address,
+            coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
+            business_name: userData.businessName || null,
+            business_hours: userData.businessHours || null,
+            responsible_person: userData.responsiblePerson || null,
+            coverage_zone: userData.coverageZone || null,
+            delivery_capacity: userData.deliveryCapacity || null,
+            is_active: true,
+            is_approved: false,
+            approval_status: 'pending'
+          };
+
+          const { data: createdProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert([profileData])
+            .select()
+            .maybeSingle();
+
+          if (createdProfile) {
+            console.log('Profile created successfully');
+            profileFound = true;
+            const profileSuccess = await fetchUserProfile(authData.user.id);
+            setIsLoading(false);
+            return profileSuccess;
+          } else if (createError) {
+            console.error('Profile creation error:', createError);
+          }
+        }
+
+        retries++;
+        if (retries < maxRetries && !profileFound) {
+          await new Promise(resolve => setTimeout(resolve, 800));
+        }
+      }
+
+      if (!profileFound) {
+        console.error('Failed to create or find profile after multiple attempts');
         await supabase.auth.signOut();
         setIsLoading(false);
         return false;
       }
 
-      console.log('Profile created, fetching profile...');
-      const profileSuccess = await fetchUserProfile(authData.user.id);
       setIsLoading(false);
-      return profileSuccess;
+      return false;
     } catch (error) {
       console.error('Registration exception:', error);
       setIsLoading(false);
