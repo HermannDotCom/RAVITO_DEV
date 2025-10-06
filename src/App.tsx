@@ -36,11 +36,24 @@ import { OrderHistory } from './components/Client/OrderHistory';
 import { ClientRatingForm } from './components/Client/ClientRatingForm';
 
 const AppContent: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isInitializing } = useAuth();
   const { currentOrder, clientCurrentOrder, orderStep, supplierOffer, acceptSupplierOffer, rejectSupplierOffer, cancelOrder, confirmPayment, setOrderStep, updateDeliveryTime } = useOrder();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showRating, setShowRating] = useState(false);
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="h-20 w-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg animate-pulse">
+            <span className="text-white font-bold text-2xl">DN</span>
+          </div>
+          <p className="text-gray-600 text-lg">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return <AuthScreen />;
