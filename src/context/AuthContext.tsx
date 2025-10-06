@@ -97,8 +97,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (userId: string): Promise<boolean> => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -107,49 +108,60 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) {
         console.error('Error fetching profile:', error);
-        return;
+        await supabase.auth.signOut();
+        return false;
       }
 
-      if (profile) {
-        const { data: authUserData } = await supabase.auth.getUser();
-
-        const mappedUser: User = {
-          id: profile.id,
-          email: authUserData.user?.email || '',
-          role: profile.role as UserRole,
-          name: profile.name,
-          phone: profile.phone,
-          address: profile.address,
-          coordinates: profile.coordinates ? {
-            lat: (profile.coordinates as any).coordinates[1],
-            lng: (profile.coordinates as any).coordinates[0]
-          } : undefined,
-          rating: profile.rating || 5.0,
-          totalOrders: profile.total_orders || 0,
-          isActive: profile.is_active,
-          isApproved: profile.is_approved,
-          approvalStatus: profile.approval_status as 'pending' | 'approved' | 'rejected',
-          approvedAt: profile.approved_at ? new Date(profile.approved_at) : undefined,
-          rejectedAt: profile.rejected_at ? new Date(profile.rejected_at) : undefined,
-          rejectionReason: profile.rejection_reason || undefined,
-          createdAt: new Date(profile.created_at),
-          businessName: profile.business_name || undefined,
-          businessHours: profile.business_hours || undefined,
-          responsiblePerson: profile.responsible_person || undefined,
-          coverageZone: profile.coverage_zone || undefined,
-          deliveryCapacity: profile.delivery_capacity as any || undefined
-        };
-
-        setUser(mappedUser);
+      if (!profile) {
+        console.error('Profile not found for user:', userId);
+        await supabase.auth.signOut();
+        return false;
       }
+
+      console.log('Profile found:', profile);
+      const { data: authUserData } = await supabase.auth.getUser();
+
+      const mappedUser: User = {
+        id: profile.id,
+        email: authUserData.user?.email || '',
+        role: profile.role as UserRole,
+        name: profile.name,
+        phone: profile.phone,
+        address: profile.address,
+        coordinates: profile.coordinates ? {
+          lat: (profile.coordinates as any).coordinates[1],
+          lng: (profile.coordinates as any).coordinates[0]
+        } : undefined,
+        rating: profile.rating || 5.0,
+        totalOrders: profile.total_orders || 0,
+        isActive: profile.is_active,
+        isApproved: profile.is_approved,
+        approvalStatus: profile.approval_status as 'pending' | 'approved' | 'rejected',
+        approvedAt: profile.approved_at ? new Date(profile.approved_at) : undefined,
+        rejectedAt: profile.rejected_at ? new Date(profile.rejected_at) : undefined,
+        rejectionReason: profile.rejection_reason || undefined,
+        createdAt: new Date(profile.created_at),
+        businessName: profile.business_name || undefined,
+        businessHours: profile.business_hours || undefined,
+        responsiblePerson: profile.responsible_person || undefined,
+        coverageZone: profile.coverage_zone || undefined,
+        deliveryCapacity: profile.delivery_capacity as any || undefined
+      };
+
+      setUser(mappedUser);
+      console.log('User set successfully:', mappedUser.email);
+      return true;
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
+      await supabase.auth.signOut();
+      return false;
     }
   };
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+      console.log('Attempting login for:', email);
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -158,26 +170,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) {
         console.error('Login error:', error);
+        setIsLoading(false);
         return false;
       }
 
       if (data.user) {
-        await fetchUserProfile(data.user.id);
-        return true;
+        console.log('Auth successful, fetching profile...');
+        const profileSuccess = await fetchUserProfile(data.user.id);
+        setIsLoading(false);
+        return profileSuccess;
       }
 
+      setIsLoading(false);
       return false;
     } catch (error) {
       console.error('Login exception:', error);
-      return false;
-    } finally {
       setIsLoading(false);
+      return false;
     }
   };
 
   const register = async (userData: RegisterData): Promise<boolean> => {
     try {
       setIsLoading(true);
+      console.log('Starting registration for:', userData.email);
 
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
@@ -192,14 +208,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (authError) {
         console.error('Registration error:', authError);
+        setIsLoading(false);
         return false;
       }
 
       if (!authData.user) {
         console.error('No user returned from signup');
+        setIsLoading(false);
         return false;
       }
 
+      console.log('Auth user created, creating profile...');
       const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
 
       const profileData: any = {
@@ -226,16 +245,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (profileError) {
         console.error('Profile creation error:', profileError);
         await supabase.auth.signOut();
+        setIsLoading(false);
         return false;
       }
 
-      await fetchUserProfile(authData.user.id);
-      return true;
+      console.log('Profile created, fetching profile...');
+      const profileSuccess = await fetchUserProfile(authData.user.id);
+      setIsLoading(false);
+      return profileSuccess;
     } catch (error) {
       console.error('Registration exception:', error);
-      return false;
-    } finally {
       setIsLoading(false);
+      return false;
     }
   };
 

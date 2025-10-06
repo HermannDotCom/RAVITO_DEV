@@ -18,9 +18,10 @@ export const LoginForm: React.FC = () => {
       return;
     }
 
+    console.log('Submitting login form...');
     const success = await login(email, password);
     if (!success) {
-      setError('Email ou mot de passe incorrect');
+      setError('Identifiants incorrects ou profil introuvable. Vérifiez vos informations ou contactez un administrateur.');
     }
   };
 
