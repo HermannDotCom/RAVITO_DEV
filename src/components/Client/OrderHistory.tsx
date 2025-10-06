@@ -40,12 +40,12 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.deliveryAddress.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    
+
     let matchesDate = true;
     if (dateFilter !== 'all') {
       const now = new Date();
-      const orderDate = order.createdAt;
-      
+      const orderDate = order.createdAt instanceof Date ? order.createdAt : new Date(order.createdAt);
+
       switch (dateFilter) {
         case 'today':
           matchesDate = orderDate.toDateString() === now.toDateString();
@@ -60,7 +60,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
           break;
       }
     }
-    
+
     return matchesSearch && matchesStatus && matchesDate;
   });
 
@@ -89,22 +89,24 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
     return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
+    const dateObj = date instanceof Date ? date : new Date(date);
     return new Intl.DateTimeFormat('fr-FR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
-    }).format(date);
+    }).format(dateObj);
   };
 
-  const formatDateShort = (date: Date) => {
+  const formatDateShort = (date: Date | string) => {
+    const dateObj = date instanceof Date ? date : new Date(date);
     return new Intl.DateTimeFormat('fr-FR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
-    }).format(date);
+    }).format(dateObj);
   };
 
   const getPaymentMethodLabel = (method: string) => {
@@ -137,7 +139,8 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   // Calculer les statistiques de la semaine
   const ordersThisWeek = filteredOrders.filter(order => {
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    return order.createdAt >= weekAgo;
+    const orderDate = order.createdAt instanceof Date ? order.createdAt : new Date(order.createdAt);
+    return orderDate >= weekAgo;
   }).length;
 
   // Trouver le fournisseur préféré (le plus utilisé)
@@ -159,17 +162,19 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
 
   // Calculer le temps moyen de livraison
   const getAverageDeliveryTime = () => {
-    const deliveredOrders = filteredOrders.filter(order => 
+    const deliveredOrders = filteredOrders.filter(order =>
       order.status === 'delivered' && order.acceptedAt && order.deliveredAt
     );
-    
+
     if (deliveredOrders.length === 0) return 0;
-    
+
     const totalMinutes = deliveredOrders.reduce((sum, order) => {
-      const deliveryTime = (order.deliveredAt!.getTime() - order.acceptedAt!.getTime()) / 60000;
+      const deliveredAt = order.deliveredAt instanceof Date ? order.deliveredAt : new Date(order.deliveredAt!);
+      const acceptedAt = order.acceptedAt instanceof Date ? order.acceptedAt : new Date(order.acceptedAt!);
+      const deliveryTime = (deliveredAt.getTime() - acceptedAt.getTime()) / 60000;
       return sum + deliveryTime;
     }, 0);
-    
+
     return Math.round(totalMinutes / deliveredOrders.length);
   };
 
