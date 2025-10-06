@@ -47,6 +47,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        console.log('Initializing auth...');
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
 
         if (error) {
@@ -55,6 +56,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           return;
         }
 
+        console.log('Session retrieved:', currentSession ? 'Active session' : 'No session');
         setSession(currentSession);
 
         if (currentSession?.user) {
@@ -63,13 +65,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
+        console.log('Auth initialization complete');
         setIsInitializing(false);
       }
     };
 
-    initializeAuth();
+    const timeoutId = setTimeout(() => {
+      console.warn('Auth initialization timeout - forcing completion');
+      setIsInitializing(false);
+    }, 5000);
+
+    initializeAuth().finally(() => {
+      clearTimeout(timeoutId);
+    });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log('Auth state changed:', event);
       setSession(newSession);
 
       if (event === 'SIGNED_IN' && newSession?.user) {
