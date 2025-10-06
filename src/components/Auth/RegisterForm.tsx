@@ -310,23 +310,26 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onBackToLogin }) => 
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              type="button"
-              onClick={onBackToLogin}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-            >
-              Retour
-            </button>
+          <div className="flex flex-col gap-3">
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 focus:ring-4 focus:ring-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3.5 rounded-lg font-semibold text-lg hover:from-orange-600 hover:to-orange-700 focus:ring-4 focus:ring-orange-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
             >
-              {isLoading ? 'Inscription...' : 'S\'inscrire'}
+              {isLoading ? 'Création du compte...' : 'Créer mon compte'}
             </button>
           </div>
         </form>
+
+        <div className="text-center mt-6">
+          <button
+            type="button"
+            onClick={onBackToLogin}
+            className="text-gray-600 hover:text-orange-600 font-medium transition-colors"
+          >
+            ← Retour à la connexion
+          </button>
+        </div>
       </div>
     </div>
   );
