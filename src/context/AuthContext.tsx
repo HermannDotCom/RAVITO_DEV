@@ -100,14 +100,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const fetchUserProfile = async (userId: string): Promise<boolean> => {
     try {
       console.log('Fetching profile for user:', userId);
-      const { data: profile, error } = await supabase
+
+      // Add timeout to the query to prevent infinite hangs
+      const fetchPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
 
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 3000)
+      );
+
+      const { data: profile, error } = await Promise.race([
+        fetchPromise,
+        timeoutPromise
+      ]).catch((err) => {
+        console.error('Profile fetch failed:', err);
+        return { data: null, error: err };
+      }) as any;
+
       if (error) {
         console.error('Error fetching profile:', error);
+        console.error('This might be due to RLS policies. Check Supabase dashboard.');
         await supabase.auth.signOut();
         return false;
       }
