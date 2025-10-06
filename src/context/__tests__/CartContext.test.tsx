@@ -28,8 +28,10 @@ describe('CartContext', () => {
     });
 
     expect(result.current.cart).toEqual([]);
-    expect(result.current.itemCount).toBe(0);
-    expect(result.current.totalAmount).toBe(0);
+    const totals = result.current.getCartTotal();
+    expect(totals.subtotal).toBe(0);
+    expect(totals.consigneTotal).toBe(0);
+    expect(totals.total).toBe(0);
   });
 
   it('should add item to cart', () => {
@@ -47,7 +49,6 @@ describe('CartContext', () => {
       quantity: 2,
       withConsigne: true,
     });
-    expect(result.current.itemCount).toBe(2);
   });
 
   it('should calculate total amount correctly without consigne', () => {
@@ -59,8 +60,11 @@ describe('CartContext', () => {
       result.current.addToCart(mockProduct, 2, false);
     });
 
-    const expectedTotal = mockProduct.cratePrice * 2;
-    expect(result.current.totalAmount).toBe(expectedTotal);
+    const totals = result.current.getCartTotal();
+    const expectedSubtotal = mockProduct.cratePrice * 2;
+    expect(totals.subtotal).toBe(expectedSubtotal);
+    expect(totals.consigneTotal).toBe(0);
+    expect(totals.total).toBe(expectedSubtotal);
   });
 
   it('should calculate total amount correctly with consigne', () => {
@@ -72,8 +76,12 @@ describe('CartContext', () => {
       result.current.addToCart(mockProduct, 2, true);
     });
 
-    const expectedTotal = (mockProduct.cratePrice + mockProduct.consignPrice) * 2;
-    expect(result.current.totalAmount).toBe(expectedTotal);
+    const totals = result.current.getCartTotal();
+    const expectedSubtotal = mockProduct.cratePrice * 2;
+    const expectedConsigne = mockProduct.consignPrice * 2;
+    expect(totals.subtotal).toBe(expectedSubtotal);
+    expect(totals.consigneTotal).toBe(expectedConsigne);
+    expect(totals.total).toBe(expectedSubtotal + expectedConsigne);
   });
 
   it('should update item quantity', () => {
@@ -85,14 +93,13 @@ describe('CartContext', () => {
       result.current.addToCart(mockProduct, 2, false);
     });
 
-    const itemId = result.current.cart[0].id;
+    const productId = result.current.cart[0].product.id;
 
     act(() => {
-      result.current.updateQuantity(itemId, 5);
+      result.current.updateCartItem(productId, 5);
     });
 
     expect(result.current.cart[0].quantity).toBe(5);
-    expect(result.current.itemCount).toBe(5);
   });
 
   it('should remove item from cart', () => {
@@ -104,14 +111,13 @@ describe('CartContext', () => {
       result.current.addToCart(mockProduct, 2, false);
     });
 
-    const itemId = result.current.cart[0].id;
+    const productId = result.current.cart[0].product.id;
 
     act(() => {
-      result.current.removeFromCart(itemId);
+      result.current.removeFromCart(productId);
     });
 
     expect(result.current.cart).toHaveLength(0);
-    expect(result.current.itemCount).toBe(0);
   });
 
   it('should toggle consigne for item', () => {
@@ -123,16 +129,16 @@ describe('CartContext', () => {
       result.current.addToCart(mockProduct, 2, false);
     });
 
-    const itemId = result.current.cart[0].id;
+    const productId = result.current.cart[0].product.id;
 
     act(() => {
-      result.current.toggleConsigne(itemId);
+      result.current.updateCartItem(productId, 2, true);
     });
 
     expect(result.current.cart[0].withConsigne).toBe(true);
 
     act(() => {
-      result.current.toggleConsigne(itemId);
+      result.current.updateCartItem(productId, 2, false);
     });
 
     expect(result.current.cart[0].withConsigne).toBe(false);
@@ -155,8 +161,8 @@ describe('CartContext', () => {
     });
 
     expect(result.current.cart).toHaveLength(0);
-    expect(result.current.itemCount).toBe(0);
-    expect(result.current.totalAmount).toBe(0);
+    const totals = result.current.getCartTotal();
+    expect(totals.total).toBe(0);
   });
 
   it('should accumulate quantities when adding same product', () => {
@@ -177,6 +183,5 @@ describe('CartContext', () => {
 
     expect(result.current.cart).toHaveLength(1);
     expect(result.current.cart[0].quantity).toBe(5);
-    expect(result.current.itemCount).toBe(5);
   });
 });

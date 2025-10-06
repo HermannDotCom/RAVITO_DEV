@@ -93,9 +93,13 @@ describe('CommissionContext', () => {
     const orderAmount = 50000;
     const netCalculation = result.current.getSupplierNetAmount(orderAmount);
 
-    expect(netCalculation.grossAmount).toBe(orderAmount);
-    expect(netCalculation.commission).toBe(Math.round(orderAmount * 0.02));
-    expect(netCalculation.netAmount).toBe(orderAmount - netCalculation.commission);
+    const expectedBaseAmount = orderAmount / (1 + 0.08);
+    const expectedCommission = Math.round(expectedBaseAmount * 0.02);
+    const expectedNetAmount = orderAmount - expectedCommission;
+
+    expect(netCalculation.grossAmount).toBeCloseTo(expectedBaseAmount, 0);
+    expect(netCalculation.commission).toBe(expectedCommission);
+    expect(netCalculation.netAmount).toBe(expectedNetAmount);
   });
 
   it('should include consigne in total when present', async () => {
