@@ -102,7 +102,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('Fetching profile for user:', userId);
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, coordinates:coordinates::text')
         .eq('id', userId)
         .maybeSingle();
 
@@ -121,6 +121,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('Profile found:', profile);
       const { data: authUserData } = await supabase.auth.getUser();
 
+      let coordinates = undefined;
+      if (profile.coordinates) {
+        try {
+          if (typeof profile.coordinates === 'string') {
+            const match = profile.coordinates.match(/POINT\(([^ ]+) ([^ ]+)\)/);
+            if (match) {
+              coordinates = { lng: parseFloat(match[1]), lat: parseFloat(match[2]) };
+            }
+          } else if ((profile.coordinates as any).coordinates) {
+            coordinates = {
+              lat: (profile.coordinates as any).coordinates[1],
+              lng: (profile.coordinates as any).coordinates[0]
+            };
+          } else if (typeof profile.coordinates === 'object') {
+            const coords = profile.coordinates as any;
+            if (coords.x !== undefined && coords.y !== undefined) {
+              coordinates = { lng: coords.x, lat: coords.y };
+            } else if (coords.lat !== undefined && coords.lng !== undefined) {
+              coordinates = { lat: coords.lat, lng: coords.lng };
+            }
+          }
+        } catch (error) {
+          console.error('Error parsing coordinates:', error, profile.coordinates);
+        }
+      }
+
       const mappedUser: User = {
         id: profile.id,
         email: authUserData.user?.email || '',
@@ -128,10 +154,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         name: profile.name,
         phone: profile.phone,
         address: profile.address,
-        coordinates: profile.coordinates ? {
-          lat: (profile.coordinates as any).coordinates[1],
-          lng: (profile.coordinates as any).coordinates[0]
-        } : undefined,
+        coordinates,
         rating: profile.rating || 5.0,
         totalOrders: profile.total_orders || 0,
         isActive: profile.is_active,
