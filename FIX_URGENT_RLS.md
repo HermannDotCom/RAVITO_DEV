@@ -24,7 +24,7 @@ RETURNS TABLE (
   name text,
   phone text,
   address text,
-  coordinates geometry(Point, 4326),
+  coordinates geography(Point, 4326),
   rating numeric,
   total_orders integer,
   is_active boolean,
