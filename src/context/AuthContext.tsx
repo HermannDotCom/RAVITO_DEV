@@ -52,6 +52,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         if (error) {
           console.error('Error getting session:', error);
+          // Clear corrupted session data
+          if (error.message?.includes('Refresh Token')) {
+            console.log('Clearing corrupted session from localStorage...');
+            await supabase.auth.signOut();
+          }
           setIsInitializing(false);
           return;
         }

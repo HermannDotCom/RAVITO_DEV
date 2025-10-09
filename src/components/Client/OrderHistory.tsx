@@ -304,9 +304,12 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                         <div>
                           <p className="font-medium text-gray-900">Livraison terminée</p>
                           <p className="text-sm text-gray-600">{formatDate(order.deliveredAt)}</p>
-                          {order.acceptedAt && (
+                          {order.acceptedAt && order.deliveredAt && (
                             <p className="text-xs text-green-600">
-                              Durée totale: {Math.round((order.deliveredAt.getTime() - order.acceptedAt.getTime()) / 60000)} minutes
+                              Durée totale: {Math.round((
+                                (order.deliveredAt instanceof Date ? order.deliveredAt.getTime() : new Date(order.deliveredAt).getTime()) -
+                                (order.acceptedAt instanceof Date ? order.acceptedAt.getTime() : new Date(order.acceptedAt).getTime())
+                              ) / 60000)} minutes
                             </p>
                           )}
                         </div>
