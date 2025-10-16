@@ -28,6 +28,7 @@ interface OrderContextType {
   supplierActiveDeliveries: Order[];
   supplierCompletedDeliveries: Order[];
   clientOrders: Order[];
+  allOrders: Order[];
   isLoading: boolean;
   placeOrder: (
     items: CartItem[],
@@ -306,6 +307,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       supplierActiveDeliveries,
       supplierCompletedDeliveries,
       clientOrders,
+      allOrders: clientOrders,
       isLoading,
       placeOrder,
       acceptOrderAsSupplier,
