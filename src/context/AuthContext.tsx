@@ -45,8 +45,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    let initializing = true;
-
     const initializeAuth = async () => {
       try {
         console.log('Initializing auth...');
@@ -62,26 +60,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setSession(currentSession);
 
         if (currentSession?.user) {
-          const success = await fetchUserProfile(currentSession.user.id);
-          if (!success) {
-            console.warn('Failed to fetch profile during initialization');
-          }
+          await fetchUserProfile(currentSession.user.id);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
         console.log('Auth initialization complete');
-        initializing = false;
         setIsInitializing(false);
       }
     };
 
     const timeoutId = setTimeout(() => {
-      if (initializing) {
-        console.warn('Auth initialization timeout - forcing completion');
-        initializing = false;
-        setIsInitializing(false);
-      }
+      console.warn('Auth initialization timeout - forcing completion');
+      setIsInitializing(false);
     }, 5000);
 
     initializeAuth().finally(() => {
@@ -89,11 +80,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      if (initializing) {
-        console.log('Ignoring auth state change during initialization:', event);
-        return;
-      }
-
       console.log('Auth state changed:', event);
       setSession(newSession);
 
@@ -115,20 +101,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       console.log('Fetching profile for user:', userId);
 
-      const { data: profile, error } = await supabase
+      // Add timeout to the query to prevent infinite hangs
+      const fetchPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
 
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 3000)
+      );
+
+      const { data: profile, error } = await Promise.race([
+        fetchPromise,
+        timeoutPromise
+      ]).catch((err) => {
+        console.error('Profile fetch failed:', err);
+        return { data: null, error: err };
+      }) as any;
+
       if (error) {
         console.error('Error fetching profile:', error);
         console.error('This might be due to RLS policies. Check Supabase dashboard.');
+        await supabase.auth.signOut();
         return false;
       }
 
       if (!profile) {
         console.error('Profile not found for user:', userId);
+        await supabase.auth.signOut();
         return false;
       }
 
