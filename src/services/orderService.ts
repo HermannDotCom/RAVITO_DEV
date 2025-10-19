@@ -7,7 +7,8 @@ export async function createOrder(
   deliveryAddress: string,
   coordinates: { lat: number; lng: number },
   paymentMethod: PaymentMethod,
-  commissionSettings: { clientCommission: number; supplierCommission: number }
+  commissionSettings: { clientCommission: number; supplierCommission: number },
+  zoneId?: string
 ): Promise<{ success: boolean; orderId?: string; error?: string }> {
   try {
     const subtotal = items.reduce((sum, item) => sum + (item.product.cratePrice * item.quantity), 0);
@@ -31,7 +32,8 @@ export async function createOrder(
       delivery_address: deliveryAddress,
       coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
       payment_method: paymentMethod,
-      payment_status: 'pending'
+      payment_status: 'pending',
+      zone_id: zoneId || null
     };
 
     const { data: order, error: orderError } = await supabase

@@ -150,7 +150,8 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       deliveryAddress,
       coordinates,
       paymentMethod,
-      commissionSettings
+      commissionSettings,
+      user.zoneId
     );
 
     if (result.success && result.orderId) {

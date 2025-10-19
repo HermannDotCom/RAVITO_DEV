@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Lock, Phone, MapPin, Building, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole, PaymentMethod, DeliveryMethod } from '../../types';
+import { ZoneSelector } from '../Client/ZoneSelector';
 
 interface RegisterFormProps {
   onBackToLogin: () => void;
@@ -16,6 +17,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onBackToLogin }) => 
     name: '',
     phone: '',
     address: '',
+    zoneId: '',
     businessName: '',
     responsiblePerson: '',
     businessHours: '',
@@ -216,6 +218,14 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onBackToLogin }) => 
               />
             </div>
           </div>
+
+          {formData.role === 'client' && (
+            <ZoneSelector
+              value={formData.zoneId}
+              onChange={(zoneId) => updateField('zoneId', zoneId)}
+              required={true}
+            />
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Horaires d'activité</label>

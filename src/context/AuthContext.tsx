@@ -21,6 +21,7 @@ export interface RegisterData {
   phone: string;
   address: string;
   coordinates?: { lat: number; lng: number };
+  zoneId?: string;
   businessName?: string;
   responsiblePerson?: string;
   businessHours?: string;
@@ -78,6 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         phone: profile.phone,
         address: profile.address,
         coordinates,
+        zoneId: profile.zone_id || undefined,
         rating: profile.rating || 5.0,
         totalOrders: profile.total_orders || 0,
         isActive: profile.is_active,
@@ -288,6 +290,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
           };
 
+          if (userData.role === 'client' && userData.zoneId) {
+            updateData.zone_id = userData.zoneId;
+          }
+
           if (userData.role === 'supplier') {
             updateData.business_name = userData.businessName || null;
             updateData.business_hours = userData.businessHours || null;
@@ -322,6 +328,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             phone: userData.phone,
             address: userData.address,
             coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
+            zone_id: (userData.role === 'client' && userData.zoneId) ? userData.zoneId : null,
             business_name: userData.businessName || null,
             business_hours: userData.businessHours || null,
             responsible_person: userData.responsiblePerson || null,

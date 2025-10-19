@@ -14,6 +14,7 @@ export interface User {
     lat: number;
     lng: number;
   };
+  zoneId?: string;
   rating?: number;
   totalOrders?: number;
   isActive: boolean;
@@ -67,6 +68,14 @@ export interface SupplierCommune {
   };
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface Zone {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: Date;
 }
 
 export interface DeliveryZone {
@@ -133,6 +142,7 @@ export interface Order {
     lat: number;
     lng: number;
   };
+  zoneId?: string;
   paymentMethod: PaymentMethod;
   estimatedDeliveryTime?: number;
   paymentStatus?: PaymentStatus;

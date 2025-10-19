@@ -3,6 +3,7 @@ import { User, Phone, MapPin, Clock, Package, Star, Edit3, Save, X, CreditCard, 
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { PaymentMethod } from '../../types';
+import { ZoneSelector } from './ZoneSelector';
 
 export const ClientProfile: React.FC = () => {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ export const ClientProfile: React.FC = () => {
     name: user?.name || '',
     phone: user?.phone || '',
     address: user?.address || '',
+    zoneId: user?.zoneId || '',
     businessName: '',
     businessHours: '',
     responsiblePerson: user?.name || '',
@@ -31,6 +33,7 @@ export const ClientProfile: React.FC = () => {
         name: user.name,
         phone: user.phone || '',
         address: user.address || '',
+        zoneId: user.zoneId || '',
         businessName: (user as any).businessName || user.name,
         businessHours: (user as any).businessHours || '',
         responsiblePerson: (user as any).responsiblePerson || user.name,
@@ -99,6 +102,7 @@ export const ClientProfile: React.FC = () => {
           name: formData.name,
           phone: formData.phone,
           address: formData.address,
+          zone_id: formData.zoneId || null,
           business_name: formData.businessName,
           business_hours: formData.businessHours,
           responsible_person: formData.responsiblePerson
@@ -312,13 +316,20 @@ export const ClientProfile: React.FC = () => {
             </h3>
 
             {isEditing ? (
-              <textarea
-                value={formData.address}
-                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                placeholder="Entrez votre adresse complète..."
-              />
+              <>
+                <textarea
+                  value={formData.address}
+                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 mb-4"
+                  placeholder="Entrez votre adresse complète..."
+                />
+                <ZoneSelector
+                  value={formData.zoneId}
+                  onChange={(zoneId) => setFormData(prev => ({ ...prev, zoneId }))}
+                  required={false}
+                />
+              </>
             ) : (
               <p className="text-gray-900">{formData.address || 'Non renseignée'}</p>
             )}
