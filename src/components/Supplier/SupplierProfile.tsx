@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Phone, MapPin, Clock, Package, Truck, CreditCard, Star, Edit3, Save, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PaymentMethod, DeliveryMethod } from '../../types';
+import { getSupplierStats, SupplierStats } from '../../services/ratingService';
 
 export const SupplierProfile: React.FC = () => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [stats, setStats] = useState<SupplierStats | null>(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [formData, setFormData] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
@@ -32,8 +35,27 @@ export const SupplierProfile: React.FC = () => {
     { value: 'truck' as DeliveryMethod, label: 'Camion', icon: '🚛' }
   ];
 
+  useEffect(() => {
+    if (user?.id) {
+      loadStats();
+    }
+  }, [user?.id]);
+
+  const loadStats = async () => {
+    if (!user?.id) return;
+
+    setIsLoadingStats(true);
+    try {
+      const supplierStats = await getSupplierStats(user.id);
+      setStats(supplierStats);
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
   const handleSave = () => {
-    // Here you would typically save to backend
     setIsEditing(false);
   };
 
@@ -107,8 +129,14 @@ export const SupplierProfile: React.FC = () => {
             
             <div className="flex items-center justify-center space-x-1 mb-4">
               <Star className="h-5 w-5 text-yellow-400 fill-current" />
-              <span className="text-lg font-bold">{user?.rating || 4.7}</span>
-              <span className="text-gray-600">({user?.totalOrders || 156} livraisons)</span>
+              {isLoadingStats ? (
+                <span className="text-lg text-gray-400">Chargement...</span>
+              ) : (
+                <>
+                  <span className="text-lg font-bold">{stats?.averageRating || 0}</span>
+                  <span className="text-gray-600">({stats?.totalDeliveries || 0} livraisons)</span>
+                </>
+              )}
             </div>
 
             <div className="space-y-2 text-sm">
@@ -346,49 +374,80 @@ export const SupplierProfile: React.FC = () => {
               Performances
             </h3>
             
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600 mb-1">156</div>
-                <div className="text-xs text-gray-600">Livraisons</div>
+            {isLoadingStats ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+                <p className="text-sm text-gray-500 mt-2">Chargement des statistiques...</p>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600 mb-1">4.7</div>
-                <div className="text-xs text-gray-600">Note moyenne</div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600 mb-1">{stats?.totalDeliveries || 0}</div>
+                  <div className="text-xs text-gray-600">Livraisons</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600 mb-1">{stats?.averageRating || 0}</div>
+                  <div className="text-xs text-gray-600">Note moyenne</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600 mb-1">{stats?.averageDeliveryTime || 0}</div>
+                  <div className="text-xs text-gray-600">Temps moyen (min)</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600 mb-1">{stats?.successRate || 0}%</div>
+                  <div className="text-xs text-gray-600">Taux de réussite</div>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600 mb-1">18</div>
-                <div className="text-xs text-gray-600">Temps moyen (min)</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600 mb-1">98%</div>
-                <div className="text-xs text-gray-600">Taux de réussite</div>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Recent Ratings */}
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Évaluations récentes</h3>
-            
-            <div className="space-y-3">
-              {[
-                { client: 'Maquis Belle Vue', rating: 5, comment: 'Livraison rapide et produits en parfait état', date: '15 Déc' },
-                { client: 'Bar Le Plateau', rating: 4, comment: 'Très professionnel, je recommande', date: '14 Déc' },
-                { client: 'Maquis des Lauriers', rating: 5, comment: 'Excellent service, ponctuel', date: '13 Déc' }
-              ].map((review, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-gray-900">{review.client}</span>
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-sm font-semibold">{review.rating}</span>
+
+            {isLoadingStats ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+              </div>
+            ) : stats?.recentRatings && stats.recentRatings.length > 0 ? (
+              <div className="space-y-3">
+                {stats.recentRatings.map((rating) => (
+                  <div key={rating.id} className="border border-gray-200 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-gray-900">
+                        {rating.from_user?.business_name || rating.from_user?.name || 'Client'}
+                      </span>
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="text-sm font-semibold">{rating.overall.toFixed(1)}</span>
+                      </div>
+                    </div>
+                    {rating.comment && (
+                      <p className="text-sm text-gray-600 mb-1">{rating.comment}</p>
+                    )}
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>
+                        {new Date(rating.created_at).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'short'
+                        })}
+                      </span>
+                      <div className="flex space-x-3 text-xs">
+                        <span>Ponctualité: {rating.punctuality}/5</span>
+                        <span>Qualité: {rating.quality}/5</span>
+                        <span>Communication: {rating.communication}/5</span>
+                      </div>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-1">{review.comment}</p>
-                  <span className="text-xs text-gray-500">{review.date}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Star className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">Aucune évaluation pour le moment</p>
+                <p className="text-xs mt-1">Les évaluations apparaîtront après vos premières livraisons</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

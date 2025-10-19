@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Star, Clock, Package, MessageCircle, User, CheckCircle, X } from 'lucide-react';
+import { Star, Clock, Package, MessageCircle, CheckCircle, X } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { useOrder } from '../../context/OrderContext';
+import { createRating } from '../../services/ratingService';
 
 interface SupplierRatingFormProps {
   onSubmit: (ratings: any) => void;
@@ -7,32 +10,58 @@ interface SupplierRatingFormProps {
 }
 
 export const SupplierRatingForm: React.FC<SupplierRatingFormProps> = ({ onSubmit, onCancel }) => {
+  const { user } = useAuth();
+  const { currentOrder } = useOrder();
   const [ratings, setRatings] = useState({
     punctuality: 0,
     quality: 0,
-    communication: 0,
-    overall: 0
+    communication: 0
   });
   const [comment, setComment] = useState('');
   const [hoveredCriteria, setHoveredCriteria] = useState<string | null>(null);
   const [hoveredStar, setHoveredStar] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const criteria = [
     { key: 'punctuality', label: 'Ponctualité', icon: Clock, description: 'Le client était-il prêt à l\'heure ?' },
     { key: 'quality', label: 'Préparation', icon: Package, description: 'Casiers vides prêts, paiement organisé' },
-    { key: 'communication', label: 'Communication', icon: MessageCircle, description: 'Réactivité et courtoisie du client' },
-    { key: 'overall', label: 'Expérience globale', icon: User, description: 'Satisfaction générale de la livraison' }
+    { key: 'communication', label: 'Communication', icon: MessageCircle, description: 'Réactivité et courtoisie du client' }
   ];
 
   const handleStarClick = (criteriaKey: string, star: number) => {
     setRatings(prev => ({ ...prev, [criteriaKey]: star }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const allRated = Object.values(ratings).every(rating => rating > 0);
-    if (!allRated) return;
+    if (!allRated || !user || !currentOrder) return;
 
-    onSubmit({ ratings, comment });
+    setIsSubmitting(true);
+
+    try {
+      const success = await createRating({
+        orderId: currentOrder.id,
+        fromUserId: user.id,
+        toUserId: currentOrder.clientId,
+        fromUserRole: 'supplier',
+        toUserRole: 'client',
+        punctuality: ratings.punctuality,
+        quality: ratings.quality,
+        communication: ratings.communication,
+        comment: comment || undefined
+      });
+
+      if (success) {
+        onSubmit({ ratings, comment });
+      } else {
+        alert('Erreur lors de l\'envoi de l\'évaluation');
+      }
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      alert('Erreur lors de l\'envoi de l\'évaluation');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isComplete = Object.values(ratings).every(rating => rating > 0);
@@ -106,11 +135,11 @@ export const SupplierRatingForm: React.FC<SupplierRatingFormProps> = ({ onSubmit
         </button>
         <button
           onClick={handleSubmit}
-          disabled={!isComplete}
+          disabled={!isComplete || isSubmitting}
           className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
         >
           <CheckCircle className="h-4 w-4" />
-          <span>Valider l'évaluation</span>
+          <span>{isSubmitting ? 'Envoi en cours...' : 'Valider l\'évaluation'}</span>
         </button>
       </div>
     </div>
