@@ -44,6 +44,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const initStartedRef = React.useRef(false);
 
   const fetchUserProfile = useCallback(async (userId: string): Promise<boolean> => {
     try {
@@ -107,6 +108,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
+    if (initStartedRef.current) return;
+    initStartedRef.current = true;
+
     let initializing = true;
 
     const initializeAuth = async () => {

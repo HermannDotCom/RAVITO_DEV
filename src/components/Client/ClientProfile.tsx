@@ -9,6 +9,7 @@ export const ClientProfile: React.FC = () => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoadedStats, setHasLoadedStats] = useState(false);
   const [stats, setStats] = useState({
     totalOrders: 0,
     completedOrders: 0,
@@ -27,7 +28,7 @@ export const ClientProfile: React.FC = () => {
   });
 
   useEffect(() => {
-    if (user) {
+    if (user && !hasLoadedStats) {
       loadUserStats();
       setFormData({
         name: user.name,
@@ -40,7 +41,7 @@ export const ClientProfile: React.FC = () => {
         preferredPayments: (user as any).preferredPayments || []
       });
     }
-  }, [user]);
+  }, [user, hasLoadedStats]);
 
   const loadUserStats = async () => {
     if (!user) {
@@ -75,6 +76,7 @@ export const ClientProfile: React.FC = () => {
         lastOrderDate: orders && orders.length > 0 ? orders[0].created_at : null
       });
 
+      setHasLoadedStats(true);
       console.log('Stats loaded successfully');
     } catch (error) {
       console.error('Error loading user stats:', error);
