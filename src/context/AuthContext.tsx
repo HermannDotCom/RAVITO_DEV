@@ -291,6 +291,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
           const profileData: any = {
             id: authData.user.id,
+            email: userData.email,
             role: userData.role,
             name: userData.name,
             phone: userData.phone,
