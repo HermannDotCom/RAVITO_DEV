@@ -40,17 +40,28 @@ export const ClientProfile: React.FC = () => {
   }, [user]);
 
   const loadUserStats = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user, skipping stats load');
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     try {
+      console.log('Loading stats for user:', user.id);
+
       const { data: orders, error } = await supabase
         .from('orders')
         .select('*')
         .eq('client_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading orders:', error);
+        throw error;
+      }
+
+      console.log('Orders loaded:', orders);
 
       const completedOrders = orders?.filter(o => o.status === 'delivered') || [];
 
@@ -60,8 +71,11 @@ export const ClientProfile: React.FC = () => {
         rating: 0,
         lastOrderDate: orders && orders.length > 0 ? orders[0].created_at : null
       });
+
+      console.log('Stats loaded successfully');
     } catch (error) {
       console.error('Error loading user stats:', error);
+      alert('Erreur lors du chargement des statistiques. Vérifiez la console.');
     } finally {
       setIsLoading(false);
     }

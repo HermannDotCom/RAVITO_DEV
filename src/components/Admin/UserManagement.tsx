@@ -36,13 +36,20 @@ export const UserManagement: React.FC = () => {
   const loadUsers = async () => {
     setIsLoading(true);
     try {
+      console.log('Loading users...');
+
       const { data: approvedData, error: approvedError } = await supabase
         .from('profiles')
         .select('*')
         .eq('approval_status', 'approved')
         .order('created_at', { ascending: false});
 
-      if (approvedError) throw approvedError;
+      if (approvedError) {
+        console.error('Error loading approved users:', approvedError);
+        throw approvedError;
+      }
+
+      console.log('Approved users:', approvedData);
 
       const mappedUsers: User[] = (approvedData || []).map(profile => {
         return {
@@ -67,7 +74,12 @@ export const UserManagement: React.FC = () => {
         .eq('approval_status', 'pending')
         .order('created_at', { ascending: false });
 
-      if (pendingError) throw pendingError;
+      if (pendingError) {
+        console.error('Error loading pending users:', pendingError);
+        throw pendingError;
+      }
+
+      console.log('Pending users:', pendingData);
 
       const mappedPending: PendingUser[] = (pendingData || []).map(profile => {
         return {
@@ -84,8 +96,10 @@ export const UserManagement: React.FC = () => {
       });
 
       setPendingUsers(mappedPending);
+      console.log('Users loaded successfully');
     } catch (error) {
       console.error('Error loading users:', error);
+      alert('Erreur lors du chargement des utilisateurs. Vérifiez la console pour plus de détails.');
     } finally {
       setIsLoading(false);
     }
