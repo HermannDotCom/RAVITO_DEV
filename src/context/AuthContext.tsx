@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { User as AuthUser, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { User, UserRole } from '../types';
@@ -43,6 +43,66 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+
+  const fetchUserProfile = useCallback(async (userId: string): Promise<boolean> => {
+    try {
+      console.log('Fetching profile for user:', userId);
+
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        console.error('This might be due to RLS policies. Check Supabase dashboard.');
+        return false;
+      }
+
+      if (!profile) {
+        console.error('Profile not found for user:', userId);
+        return false;
+      }
+
+      console.log('Profile found:', profile);
+      const { data: authUserData } = await supabase.auth.getUser();
+
+      let coordinates = undefined;
+
+      const mappedUser: User = {
+        id: profile.id,
+        email: authUserData.user?.email || '',
+        role: profile.role as UserRole,
+        name: profile.name,
+        phone: profile.phone,
+        address: profile.address,
+        coordinates,
+        rating: profile.rating || 5.0,
+        totalOrders: profile.total_orders || 0,
+        isActive: profile.is_active,
+        isApproved: profile.is_approved,
+        approvalStatus: profile.approval_status as 'pending' | 'approved' | 'rejected',
+        approvedAt: profile.approved_at ? new Date(profile.approved_at) : undefined,
+        rejectedAt: profile.rejected_at ? new Date(profile.rejected_at) : undefined,
+        rejectionReason: profile.rejection_reason || undefined,
+        createdAt: new Date(profile.created_at),
+        businessName: profile.business_name || undefined,
+        businessHours: profile.business_hours || undefined,
+        responsiblePerson: profile.responsible_person || undefined,
+        coverageZone: profile.coverage_zone || undefined,
+        deliveryCapacity: profile.delivery_capacity as any || undefined
+      };
+
+      setUser(mappedUser);
+      console.log('User set successfully:', mappedUser.email);
+      return true;
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+      await supabase.auth.signOut();
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
     let initializing = true;
@@ -109,19 +169,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchUserProfile]);
 
   useEffect(() => {
     if (!user || !session) return;
 
     if (user.isApproved || user.role === 'admin') return;
-
-    const checkApprovalStatus = async () => {
-      console.log('Checking approval status for pending user...');
-      await fetchUserProfile(user.id);
-    };
-
-    const intervalId = setInterval(checkApprovalStatus, 30000);
 
     const channel = supabase
       .channel(`profile-updates-${user.id}`)
@@ -141,72 +194,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .subscribe();
 
     return () => {
-      clearInterval(intervalId);
       supabase.removeChannel(channel);
     };
-  }, [user, session]);
-
-  const fetchUserProfile = async (userId: string): Promise<boolean> => {
-    try {
-      console.log('Fetching profile for user:', userId);
-
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        console.error('This might be due to RLS policies. Check Supabase dashboard.');
-        return false;
-      }
-
-      if (!profile) {
-        console.error('Profile not found for user:', userId);
-        return false;
-      }
-
-      console.log('Profile found:', profile);
-      const { data: authUserData } = await supabase.auth.getUser();
-
-      // For now, set coordinates to undefined to avoid parsing issues
-      // We'll fetch them separately if needed
-      let coordinates = undefined;
-
-      const mappedUser: User = {
-        id: profile.id,
-        email: authUserData.user?.email || '',
-        role: profile.role as UserRole,
-        name: profile.name,
-        phone: profile.phone,
-        address: profile.address,
-        coordinates,
-        rating: profile.rating || 5.0,
-        totalOrders: profile.total_orders || 0,
-        isActive: profile.is_active,
-        isApproved: profile.is_approved,
-        approvalStatus: profile.approval_status as 'pending' | 'approved' | 'rejected',
-        approvedAt: profile.approved_at ? new Date(profile.approved_at) : undefined,
-        rejectedAt: profile.rejected_at ? new Date(profile.rejected_at) : undefined,
-        rejectionReason: profile.rejection_reason || undefined,
-        createdAt: new Date(profile.created_at),
-        businessName: profile.business_name || undefined,
-        businessHours: profile.business_hours || undefined,
-        responsiblePerson: profile.responsible_person || undefined,
-        coverageZone: profile.coverage_zone || undefined,
-        deliveryCapacity: profile.delivery_capacity as any || undefined
-      };
-
-      setUser(mappedUser);
-      console.log('User set successfully:', mappedUser.email);
-      return true;
-    } catch (error) {
-      console.error('Error in fetchUserProfile:', error);
-      await supabase.auth.signOut();
-      return false;
-    }
-  };
+  }, [user?.id, user?.isApproved, user?.role, session, fetchUserProfile]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
