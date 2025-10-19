@@ -4,6 +4,7 @@ import { CartProvider } from './context/CartContext';
 import { OrderProvider, useOrder } from './context/OrderContext';
 import { CommissionProvider } from './context/CommissionContext';
 import { RatingProvider } from './context/RatingContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AuthScreen } from './components/Auth/AuthScreen';
@@ -240,15 +241,17 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <AuthProvider>
-      <CartProvider>
-        <CommissionProvider>
-          <OrderProvider>
-            <RatingProvider>
-              <AppContent />
-            </RatingProvider>
-          </OrderProvider>
-        </CommissionProvider>
-      </CartProvider>
+      <NotificationProvider>
+        <CartProvider>
+          <CommissionProvider>
+            <OrderProvider>
+              <RatingProvider>
+                <AppContent />
+              </RatingProvider>
+            </OrderProvider>
+          </CommissionProvider>
+        </CartProvider>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

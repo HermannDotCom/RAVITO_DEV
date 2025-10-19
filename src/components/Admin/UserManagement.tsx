@@ -127,6 +127,11 @@ export const UserManagement: React.FC = () => {
   const handleApproveUser = async (userId: string) => {
     setIsProcessing(true);
     try {
+      const userToApprove = pendingUsers.find(u => u.id === userId);
+      if (!userToApprove) {
+        throw new Error('Utilisateur non trouvé');
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -137,6 +142,9 @@ export const UserManagement: React.FC = () => {
         .eq('id', userId);
 
       if (error) throw error;
+
+      const { createAccountApprovedNotification } = await import('../../services/notificationService');
+      await createAccountApprovedNotification(userId, userToApprove.name, userToApprove.role);
 
       await loadUsers();
       setExaminedUser(null);
@@ -152,6 +160,11 @@ export const UserManagement: React.FC = () => {
   const handleRejectUser = async (userId: string, reason: string) => {
     setIsProcessing(true);
     try {
+      const userToReject = pendingUsers.find(u => u.id === userId);
+      if (!userToReject) {
+        throw new Error('Utilisateur non trouvé');
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -163,6 +176,9 @@ export const UserManagement: React.FC = () => {
         .eq('id', userId);
 
       if (error) throw error;
+
+      const { createAccountRejectedNotification } = await import('../../services/notificationService');
+      await createAccountRejectedNotification(userId, userToReject.name, reason);
 
       await loadUsers();
       setExaminedUser(null);

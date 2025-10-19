@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Menu, User, LogOut, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
+import { NotificationPanel } from '../Notifications/NotificationPanel';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -9,6 +11,8 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NIGHT' }) => {
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
+  const [showNotifications, setShowNotifications] = useState(false);
 
   return (
     <header className="bg-white shadow-lg border-b border-orange-100">
@@ -21,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NI
             >
               <Menu className="h-6 w-6" />
             </button>
-            
+
             <div className="flex items-center ml-2 lg:ml-0">
               <div className="flex-shrink-0">
                 <div className="h-8 w-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
@@ -34,9 +38,16 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NI
 
           {user && (
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-colors relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-colors relative"
+              >
                 <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs text-white font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                  </span>
+                )}
               </button>
               
               <div className="flex items-center space-x-3">
@@ -62,6 +73,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NI
           )}
         </div>
       </div>
+
+      <NotificationPanel isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
     </header>
   );
 };

@@ -101,6 +101,11 @@ export const ZoneManagement: React.FC = () => {
   const approveRequest = async (requestId: string) => {
     setIsProcessing(true);
     try {
+      const requestToApprove = requests.find(r => r.id === requestId);
+      if (!requestToApprove) {
+        throw new Error('Demande non trouvée');
+      }
+
       const { error } = await supabase
         .from('supplier_zones')
         .update({
@@ -110,6 +115,9 @@ export const ZoneManagement: React.FC = () => {
         .eq('id', requestId);
 
       if (error) throw error;
+
+      const { createZoneApprovedNotification } = await import('../../services/notificationService');
+      await createZoneApprovedNotification(requestToApprove.supplier_id, requestToApprove.zone.name);
 
       alert('✅ Demande approuvée avec succès!');
       await loadData();
@@ -126,6 +134,11 @@ export const ZoneManagement: React.FC = () => {
 
     setIsProcessing(true);
     try {
+      const requestToReject = requests.find(r => r.id === requestId);
+      if (!requestToReject) {
+        throw new Error('Demande non trouvée');
+      }
+
       const { error } = await supabase
         .from('supplier_zones')
         .update({
@@ -135,6 +148,9 @@ export const ZoneManagement: React.FC = () => {
         .eq('id', requestId);
 
       if (error) throw error;
+
+      const { createZoneRejectedNotification } = await import('../../services/notificationService');
+      await createZoneRejectedNotification(requestToReject.supplier_id, requestToReject.zone.name, reason || undefined);
 
       alert('✅ Demande rejetée');
       await loadData();
