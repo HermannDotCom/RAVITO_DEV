@@ -60,39 +60,6 @@ const AppContent: React.FC = () => {
     return <AuthScreen />;
   }
 
-  if (user.role !== 'admin' && user.approval_status !== 'approved') {
-    const statusMessages = {
-      pending: {
-        title: 'Compte en attente d\'approbation',
-        message: 'Votre compte a été créé avec succès et est actuellement en attente d\'approbation par un administrateur. Vous recevrez une notification par email dès que votre compte sera activé.',
-        icon: '⏳'
-      },
-      rejected: {
-        title: 'Compte refusé',
-        message: 'Malheureusement, votre demande de compte a été refusée. Pour plus d\'informations, veuillez contacter le support.',
-        icon: '❌'
-      }
-    };
-
-    const status = statusMessages[user.approval_status as 'pending' | 'rejected'] || statusMessages.pending;
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-          <div className="text-6xl mb-4">{status.icon}</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">{status.title}</h1>
-          <p className="text-gray-600 mb-6">{status.message}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-          >
-            Rafraîchir
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const renderMainContent = () => {
     if (showRating) {
       return (
