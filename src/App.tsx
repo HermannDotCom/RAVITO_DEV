@@ -23,6 +23,7 @@ import { AvailableOrders } from './components/Supplier/AvailableOrders';
 import { ActiveDeliveries } from './components/Supplier/ActiveDeliveries';
 import { DeliveryHistory } from './components/Supplier/DeliveryHistory';
 import { SupplierProfile } from './components/Supplier/SupplierProfile';
+import { ZoneRegistration } from './components/Supplier/ZoneRegistration';
 import { UserManagement } from './components/Admin/UserManagement';
 import { OrderManagement } from './components/Admin/OrderManagement';
 import { Analytics } from './components/Admin/Analytics';
@@ -161,6 +162,8 @@ const AppContent: React.FC = () => {
       
       case 'supplier':
         switch (activeSection) {
+          case 'zones':
+            return <ZoneRegistration />;
           case 'orders':
             return (
               <>
