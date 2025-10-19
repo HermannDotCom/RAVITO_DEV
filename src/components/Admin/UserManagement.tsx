@@ -129,7 +129,11 @@ export const UserManagement: React.FC = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ approval_status: 'approved' })
+        .update({
+          approval_status: 'approved',
+          is_approved: true,
+          approved_at: new Date().toISOString()
+        })
         .eq('id', userId);
 
       if (error) throw error;
@@ -150,7 +154,12 @@ export const UserManagement: React.FC = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ approval_status: 'rejected' })
+        .update({
+          approval_status: 'rejected',
+          is_approved: false,
+          rejected_at: new Date().toISOString(),
+          rejection_reason: reason
+        })
         .eq('id', userId);
 
       if (error) throw error;

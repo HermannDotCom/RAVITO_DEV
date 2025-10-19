@@ -111,6 +111,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
+  useEffect(() => {
+    if (!user || !session) return;
+
+    if (user.isApproved || user.role === 'admin') return;
+
+    const checkApprovalStatus = async () => {
+      console.log('Checking approval status for pending user...');
+      await fetchUserProfile(user.id);
+    };
+
+    const intervalId = setInterval(checkApprovalStatus, 30000);
+
+    const channel = supabase
+      .channel(`profile-updates-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Profile updated via realtime:', payload);
+          fetchUserProfile(user.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      clearInterval(intervalId);
+      supabase.removeChannel(channel);
+    };
+  }, [user, session]);
+
   const fetchUserProfile = async (userId: string): Promise<boolean> => {
     try {
       console.log('Fetching profile for user:', userId);
