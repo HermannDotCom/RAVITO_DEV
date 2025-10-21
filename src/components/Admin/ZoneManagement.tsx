@@ -9,6 +9,9 @@ interface Zone {
   description: string | null;
   is_active: boolean;
   created_at: string;
+  max_suppliers?: number;
+  min_coverage?: number;
+  operating_hours?: string;
 }
 
 interface ZoneStats {
@@ -245,7 +248,7 @@ export const ZoneManagement: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600 dark:text-gray-400">Fournisseurs:</span>
                         <span className="font-medium text-gray-900 dark:text-white">
-                          {stats.active_suppliers_count}/{stats.suppliers_count}
+                          {stats.suppliers_count}/{zone.max_suppliers || 10}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">

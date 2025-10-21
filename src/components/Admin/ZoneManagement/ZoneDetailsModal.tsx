@@ -8,6 +8,9 @@ interface Zone {
   description: string | null;
   is_active: boolean;
   created_at: string;
+  max_suppliers?: number;
+  min_coverage?: number;
+  operating_hours?: string;
 }
 
 interface ZoneSupplier {
@@ -40,9 +43,9 @@ export const ZoneDetailsModal: React.FC<Props> = ({ zone, onClose, onUpdate }) =
   const [editForm, setEditForm] = useState({
     name: zone.name,
     description: zone.description || '',
-    maxSuppliers: 10,
-    minCoverage: 2,
-    operatingHours: '18h00 - 06h00'
+    maxSuppliers: zone.max_suppliers || 10,
+    minCoverage: zone.min_coverage || 2,
+    operatingHours: zone.operating_hours || '18h00 - 06h00'
   });
   const [stats, setStats] = useState({
     totalOrders: 0,
@@ -146,12 +149,25 @@ export const ZoneDetailsModal: React.FC<Props> = ({ zone, onClose, onUpdate }) =
       return;
     }
 
+    if (editForm.maxSuppliers < 1) {
+      alert('Le nombre maximum de fournisseurs doit être supérieur à 0');
+      return;
+    }
+
+    if (editForm.minCoverage < 1) {
+      alert('La couverture minimum doit être supérieure à 0');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('zones')
         .update({
           name: editForm.name,
-          description: editForm.description || null
+          description: editForm.description || null,
+          max_suppliers: editForm.maxSuppliers,
+          min_coverage: editForm.minCoverage,
+          operating_hours: editForm.operatingHours
         })
         .eq('id', zone.id);
 
