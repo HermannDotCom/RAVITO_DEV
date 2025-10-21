@@ -317,7 +317,7 @@ export const ZoneRegistration: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                       <Clock className="h-3 w-3 mr-1" />
                       En attente
@@ -325,10 +325,11 @@ export const ZoneRegistration: React.FC = () => {
                     <button
                       onClick={() => handleCancelOldRequest(sz.id)}
                       disabled={isSubmitting}
-                      className="p-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Annuler la demande"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4 mr-1.5" />
+                      Annuler la demande
                     </button>
                   </div>
                 </div>
@@ -352,7 +353,7 @@ export const ZoneRegistration: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                       <Clock className="h-3 w-3 mr-1" />
                       En attente
@@ -360,10 +361,11 @@ export const ZoneRegistration: React.FC = () => {
                     <button
                       onClick={() => handleCancelRequest(request.id)}
                       disabled={isSubmitting}
-                      className="p-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Annuler la demande"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4 mr-1.5" />
+                      Annuler la demande
                     </button>
                   </div>
                 </div>
