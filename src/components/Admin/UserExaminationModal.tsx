@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { X, CheckCircle, XCircle, Phone, Shield, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, CheckCircle, XCircle, Phone, Shield, AlertTriangle, Activity, Clock } from 'lucide-react';
 import { UserRole } from '../../types';
+import { activityService, UserActivity } from '../../services/activityService';
 
 interface PendingUser {
   id: string;
@@ -32,6 +33,19 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [selectedRejectReasons, setSelectedRejectReasons] = useState<string[]>([]);
   const [customRejectReason, setCustomRejectReason] = useState('');
+  const [recentActivities, setRecentActivities] = useState<UserActivity[]>([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      setLoadingActivities(true);
+      const activities = await activityService.getUserRecentActivity(user.id, 4);
+      setRecentActivities(activities);
+      setLoadingActivities(false);
+    };
+
+    fetchActivities();
+  }, [user.id]);
 
   const rejectReasons = [
     'Informations de contact incomplètes ou incorrectes',
@@ -150,6 +164,49 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
                   <span className="font-medium text-gray-900">{user.address}</span>
                 </div>
               </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-xl p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <Activity className="h-5 w-5 mr-2 text-gray-700" />
+                Activités récentes
+              </h3>
+              {loadingActivities ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                </div>
+              ) : recentActivities.length > 0 ? (
+                <div className="space-y-3">
+                  {recentActivities.map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="bg-white rounded-lg p-4 border border-gray-200 hover:border-gray-300 transition-colors"
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 mt-1">
+                          <Clock className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900">
+                            {activityService.getActivityTypeLabel(activity.activity_type)}
+                          </p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {activity.activity_description}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-2">
+                            {formatDate(activity.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Activity className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">Aucune activité récente</p>
+                </div>
+              )}
             </div>
           </div>
 

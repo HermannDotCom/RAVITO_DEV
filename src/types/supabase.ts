@@ -438,6 +438,44 @@ export type Database = {
           updated_at?: string
         }
       }
+      user_activity_log: {
+        Row: {
+          id: string
+          user_id: string
+          activity_type: string
+          activity_description: string
+          related_entity_type: string | null
+          related_entity_id: string | null
+          metadata: Json
+          ip_address: string | null
+          user_agent: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          activity_type: string
+          activity_description: string
+          related_entity_type?: string | null
+          related_entity_id?: string | null
+          metadata?: Json
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          activity_type?: string
+          activity_description?: string
+          related_entity_type?: string | null
+          related_entity_id?: string | null
+          metadata?: Json
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
