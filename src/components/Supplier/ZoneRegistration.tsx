@@ -166,7 +166,9 @@ export const ZoneRegistration: React.FC = () => {
   };
 
   const isZoneRequested = (zoneId: string) => {
-    return myZones.some(sz => sz.zone_id === zoneId && sz.approval_status !== 'rejected');
+    const hasOldRequest = myZones.some(sz => sz.zone_id === zoneId && sz.approval_status !== 'rejected');
+    const hasNewRequest = pendingRequests.some(req => req.zone_id === zoneId);
+    return hasOldRequest || hasNewRequest;
   };
 
   const formatDate = (date: string) => {
@@ -192,6 +194,7 @@ export const ZoneRegistration: React.FC = () => {
 
   const approvedZones = myZones.filter(sz => sz.approval_status === 'approved');
   const pendingZones = myZones.filter(sz => sz.approval_status === 'pending');
+  const totalPendingCount = pendingZones.length + pendingRequests.length;
   const availableZones = zones.filter(z => !isZoneRequested(z.id));
 
   return (
@@ -221,7 +224,7 @@ export const ZoneRegistration: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-yellow-600 text-sm font-medium">En Attente</p>
-                <p className="text-3xl font-bold text-yellow-700 mt-1">{pendingZones.length}</p>
+                <p className="text-3xl font-bold text-yellow-700 mt-1">{totalPendingCount}</p>
               </div>
               <div className="h-12 w-12 bg-yellow-200 rounded-full flex items-center justify-center">
                 <Clock className="h-6 w-6 text-yellow-600" />
@@ -258,33 +261,6 @@ export const ZoneRegistration: React.FC = () => {
                     <div>
                       <h3 className="font-semibold text-gray-900">{sz.zone.name}</h3>
                       <p className="text-sm text-gray-600">{sz.zone.description}</p>
-                    </div>
-                  </div>
-                  {getStatusBadge(sz.approval_status)}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {pendingZones.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Demandes en Attente (Anciennes)</h2>
-            <div className="space-y-3">
-              {pendingZones.map((sz) => (
-                <div
-                  key={sz.id}
-                  className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="h-10 w-10 bg-yellow-200 rounded-full flex items-center justify-center">
-                      <MapPin className="h-5 w-5 text-yellow-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{sz.zone.name}</h3>
-                      <p className="text-sm text-gray-600">
-                        Demandée le {formatDate(sz.requested_at)}
-                      </p>
                     </div>
                   </div>
                   {getStatusBadge(sz.approval_status)}

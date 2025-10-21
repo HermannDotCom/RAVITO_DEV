@@ -323,9 +323,13 @@ export const ZoneManagement: React.FC = () => {
                       hover:border-orange-400 dark:hover:border-orange-500 cursor-pointer transition-all group relative"
                   >
                     {pendingCount > 0 && (
-                      <div className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
+                      <button
+                        onClick={(e) => handleViewRequests(zone, e)}
+                        className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center animate-pulse transition-colors z-10"
+                        title="Voir les demandes"
+                      >
                         <span className="text-white text-xs font-bold">{pendingCount}</span>
-                      </div>
+                      </button>
                     )}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
@@ -333,10 +337,14 @@ export const ZoneManagement: React.FC = () => {
                           {zone.name}
                         </h3>
                         {pendingCount > 0 && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 flex items-center space-x-1">
+                          <button
+                            onClick={(e) => handleViewRequests(zone, e)}
+                            className="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50 flex items-center space-x-1 transition-colors"
+                            title="Voir les demandes"
+                          >
                             <Bell className="h-3 w-3" />
                             <span>{pendingCount}</span>
-                          </span>
+                          </button>
                         )}
                       </div>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
