@@ -310,6 +310,179 @@ export const ZoneManagement: React.FC = () => {
           onUpdate={loadZones}
         />
       )}
+
+      {showCreateModal && (
+        <CreateZoneModal
+          onClose={() => setShowCreateModal(false)}
+          onCreated={loadZones}
+        />
+      )}
+    </div>
+  );
+};
+
+interface CreateZoneModalProps {
+  onClose: () => void;
+  onCreated: () => void;
+}
+
+const CreateZoneModal: React.FC<CreateZoneModalProps> = ({ onClose, onCreated }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    maxSuppliers: 5,
+    minCoverage: 2,
+    operatingHours: '18h00 - 06h00'
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const createZone = async () => {
+    if (!formData.name.trim()) {
+      alert('Le nom de la commune est requis');
+      return;
+    }
+
+    if (formData.maxSuppliers < 1) {
+      alert('Le nombre maximum de fournisseurs doit être supérieur à 0');
+      return;
+    }
+
+    if (formData.minCoverage < 1) {
+      alert('La couverture minimum doit être supérieure à 0');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('zones')
+        .insert({
+          name: formData.name,
+          description: null,
+          max_suppliers: formData.maxSuppliers,
+          min_coverage: formData.minCoverage,
+          operating_hours: formData.operatingHours,
+          is_active: true
+        });
+
+      if (error) throw error;
+
+      alert('Zone créée avec succès');
+      onCreated();
+      onClose();
+    } catch (error) {
+      console.error('Error creating zone:', error);
+      alert('Erreur lors de la création de la zone');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-lg w-full shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-center mb-6">
+          <div className="h-16 w-16 bg-blue-500 rounded-full flex items-center justify-center">
+            <MapPin className="h-8 w-8 text-white" />
+          </div>
+        </div>
+
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
+          Nouvelle zone de livraison
+        </h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
+          Créez une nouvelle zone de livraison
+        </p>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Nom de la commune *
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Ex: Plateau, Cocody, Marcory..."
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg
+                focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Fournisseurs maximum
+              </label>
+              <input
+                type="number"
+                value={formData.maxSuppliers}
+                onChange={(e) => setFormData({ ...formData, maxSuppliers: parseInt(e.target.value) || 0 })}
+                min="1"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg
+                  focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Couverture minimum
+              </label>
+              <input
+                type="number"
+                value={formData.minCoverage}
+                onChange={(e) => setFormData({ ...formData, minCoverage: parseInt(e.target.value) || 0 })}
+                min="1"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg
+                  focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Horaires d'activité
+            </label>
+            <input
+              type="text"
+              value={formData.operatingHours}
+              onChange={(e) => setFormData({ ...formData, operatingHours: e.target.value })}
+              placeholder="18h00 - 06h00"
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg
+                focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600
+                text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors border border-gray-300 dark:border-gray-600
+                disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={createZone}
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium
+                transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus className="h-4 w-4" />
+              {isSubmitting ? 'Création...' : 'Créer la zone'}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
