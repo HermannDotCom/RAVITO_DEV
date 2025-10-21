@@ -12,7 +12,7 @@ interface CheckoutFormProps {
 }
 
 export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack }) => {
-  const { cart, getCartTotal } = useCart();
+  const { cart, getCartTotal, clearCart } = useCart();
   const { placeOrder } = useOrder();
   const { commissionSettings } = useCommission();
   const [deliveryZone, setDeliveryZone] = useState('');
@@ -76,6 +76,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
     );
 
     if (result.success) {
+      clearCart();
       setTimeout(() => {
         setIsProcessing(false);
         onConfirm();

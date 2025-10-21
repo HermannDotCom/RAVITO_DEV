@@ -77,7 +77,7 @@ export async function createOrder(
 export async function getOrdersByClient(clientId: string): Promise<Order[]> {
   try {
     const { data, error } = await supabase
-      .from('orders')
+      .from('orders_with_coords')
       .select(`
         *,
         order_items (
@@ -103,7 +103,7 @@ export async function getOrdersByClient(clientId: string): Promise<Order[]> {
 export async function getOrdersBySupplier(supplierId: string): Promise<Order[]> {
   try {
     const { data, error } = await supabase
-      .from('orders')
+      .from('orders_with_coords')
       .select(`
         *,
         order_items (
@@ -129,7 +129,7 @@ export async function getOrdersBySupplier(supplierId: string): Promise<Order[]> 
 export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
   try {
     let query = supabase
-      .from('orders')
+      .from('orders_with_coords')
       .select(`
         *,
         order_items (
@@ -246,6 +246,9 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
     withConsigne: item.with_consigne
   }));
 
+  const lat = (dbOrder as any).lat;
+  const lng = (dbOrder as any).lng;
+
   return {
     id: dbOrder.id,
     clientId: dbOrder.client_id,
@@ -256,8 +259,8 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
     consigneTotal: dbOrder.consigne_total,
     deliveryAddress: dbOrder.delivery_address,
     coordinates: {
-      lat: (dbOrder.coordinates as any).coordinates[1],
-      lng: (dbOrder.coordinates as any).coordinates[0]
+      lat: typeof lat === 'number' ? lat : 5.3364,
+      lng: typeof lng === 'number' ? lng : -4.0267
     },
     paymentMethod: dbOrder.payment_method as PaymentMethod,
     estimatedDeliveryTime: dbOrder.estimated_delivery_time,
