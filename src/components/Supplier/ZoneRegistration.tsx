@@ -137,6 +137,30 @@ export const ZoneRegistration: React.FC = () => {
     }
   };
 
+  const handleCancelOldRequest = async (requestId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir annuler cette demande ?')) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('supplier_zones')
+        .delete()
+        .eq('id', requestId);
+
+      if (error) throw error;
+
+      alert('✅ Demande annulée avec succès');
+      await loadMyZones();
+    } catch (error) {
+      console.error('Error canceling old request:', error);
+      alert('❌ Erreur lors de l\'annulation de la demande');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
@@ -298,6 +322,14 @@ export const ZoneRegistration: React.FC = () => {
                       <Clock className="h-3 w-3 mr-1" />
                       En attente
                     </span>
+                    <button
+                      onClick={() => handleCancelOldRequest(sz.id)}
+                      disabled={isSubmitting}
+                      className="p-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Annuler la demande"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               ))}
