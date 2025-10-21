@@ -141,12 +141,17 @@ export const ZoneDetailsModal: React.FC<Props> = ({ zone, onClose, onUpdate }) =
   };
 
   const updateZone = async () => {
+    if (!editForm.name.trim()) {
+      alert('Le nom de la zone est requis');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('zones')
         .update({
           name: editForm.name,
-          description: editForm.description
+          description: editForm.description || null
         })
         .eq('id', zone.id);
 
@@ -284,9 +289,39 @@ export const ZoneDetailsModal: React.FC<Props> = ({ zone, onClose, onUpdate }) =
                     <p className="text-gray-500 dark:text-gray-400 text-sm">Aucun fournisseur inscrit dans cette zone</p>
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <Users className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">{suppliers.length} fournisseur(s) inscrit(s)</p>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {suppliers.map((supplier) => (
+                      <div
+                        key={supplier.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                            <span className="text-blue-600 dark:text-blue-400 font-bold text-sm">
+                              {(supplier.supplier.business_name || supplier.supplier.name).charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                              {supplier.supplier.business_name || supplier.supplier.name}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">{supplier.supplier.address}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1">
+                            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              {supplier.supplier.rating?.toFixed(1) || '5.0'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Package className="h-4 w-4 text-gray-400" />
+                            <span className="text-xs text-gray-600 dark:text-gray-400">{supplier.total_orders} livr.</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -398,44 +433,74 @@ export const ZoneDetailsModal: React.FC<Props> = ({ zone, onClose, onUpdate }) =
 
       {showEditModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4" onClick={() => setShowEditModal(false)}>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Modifier la zone</h3>
-              <button onClick={() => setShowEditModal(false)} className="text-gray-500 hover:text-gray-700">
-                <X className="h-5 w-5" />
-              </button>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-center mb-6">
+              <div className="h-16 w-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                <MapPin className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              </div>
             </div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">Modifier la zone</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">Modifiez les paramètres de la zone</p>
+
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom de la zone</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nom de la commune *</label>
                 <input
                   type="text"
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="Ex: Cocody"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fournisseurs maximum</label>
+                  <input
+                    type="number"
+                    value={editForm.maxSuppliers}
+                    onChange={(e) => setEditForm({ ...editForm, maxSuppliers: parseInt(e.target.value) || 0 })}
+                    min="1"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Couverture minimum</label>
+                  <input
+                    type="number"
+                    value={editForm.minCoverage}
+                    onChange={(e) => setEditForm({ ...editForm, minCoverage: parseInt(e.target.value) || 0 })}
+                    min="1"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
-                <textarea
-                  value={editForm.description}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Horaires d'activité</label>
+                <input
+                  type="text"
+                  value={editForm.operatingHours}
+                  onChange={(e) => setEditForm({ ...editForm, operatingHours: e.target.value })}
+                  placeholder="18h00 - 06h00"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
+
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => setShowEditModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
+                  className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   onClick={updateZone}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                 >
-                  Enregistrer
+                  <Edit2 className="h-4 w-4" />
+                  Modifier
                 </button>
               </div>
             </div>
