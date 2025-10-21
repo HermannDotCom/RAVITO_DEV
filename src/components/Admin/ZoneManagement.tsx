@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Plus, Search, Package, Users, TrendingUp, AlertTriangle, CreditCard as Edit, Trash2 } from 'lucide-react';
+import { MapPin, Plus, Search, Package, Users, TrendingUp, AlertTriangle, Edit, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { ZoneDetailsModal } from './ZoneManagement/ZoneDetailsModal';
 

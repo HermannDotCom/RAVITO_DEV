@@ -505,105 +505,7 @@ interface UserDetailsModalProps {
   isProcessing: boolean;
 }
 
-interface Activity {
-  id: string;
-  type: 'delivery' | 'rating';
-  title: string;
-  timestamp: string;
-  timeAgo: string;
-  rating?: number;
-}
-
 const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onToggleStatus, isProcessing }) => {
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [isLoadingActivities, setIsLoadingActivities] = useState(true);
-  const [deliveryCount, setDeliveryCount] = useState(0);
-
-  useEffect(() => {
-    loadUserActivities();
-  }, [user.id]);
-
-  const loadUserActivities = async () => {
-    setIsLoadingActivities(true);
-    try {
-      const allActivities: Activity[] = [];
-
-      if (user.role === 'supplier') {
-        const { data: deliveries } = await supabase
-          .from('orders')
-          .select('id, delivered_at, status')
-          .eq('supplier_id', user.id)
-          .eq('status', 'delivered')
-          .order('delivered_at', { ascending: false })
-          .limit(3);
-
-        if (deliveries) {
-          setDeliveryCount(deliveries.length);
-          deliveries.forEach(delivery => {
-            if (delivery.delivered_at) {
-              allActivities.push({
-                id: delivery.id,
-                type: 'delivery',
-                title: 'Livraison effectuée',
-                timestamp: delivery.delivered_at,
-                timeAgo: getTimeAgo(delivery.delivered_at)
-              });
-            }
-          });
-        }
-      }
-
-      const { data: ratings } = await supabase
-        .from('ratings')
-        .select('id, overall, created_at')
-        .eq('to_user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(3);
-
-      if (ratings) {
-        ratings.forEach(rating => {
-          allActivities.push({
-            id: rating.id,
-            type: 'rating',
-            title: 'Évaluation reçue',
-            timestamp: rating.created_at,
-            timeAgo: getTimeAgo(rating.created_at),
-            rating: rating.overall
-          });
-        });
-      }
-
-      allActivities.sort((a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      );
-
-      setActivities(allActivities.slice(0, 3));
-    } catch (error) {
-      console.error('Error loading user activities:', error);
-    } finally {
-      setIsLoadingActivities(false);
-    }
-  };
-
-  const getTimeAgo = (timestamp: string): string => {
-    const now = new Date();
-    const past = new Date(timestamp);
-    const diffMs = now.getTime() - past.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 60) {
-      return `Il y a ${diffMins} minute${diffMins > 1 ? 's' : ''}`;
-    } else if (diffHours < 24) {
-      return `Il y a ${diffHours} heure${diffHours > 1 ? 's' : ''}`;
-    } else if (diffDays === 1) {
-      return 'Il y a 1 jour';
-    } else {
-      return `Il y a ${diffDays} jours`;
-    }
-  };
-
   const getRoleLabel = (role: UserRole) => {
     switch (role) {
       case 'client': return 'Client';
@@ -700,9 +602,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onTo
                 <div className="text-sm text-gray-600 dark:text-gray-400">Note moyenne</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                  {isLoadingActivities ? '...' : deliveryCount}
-                </div>
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">0</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">Livraisons</div>
               </div>
             </div>
@@ -713,44 +613,29 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onTo
               <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               <h3 className="font-semibold text-gray-900 dark:text-white">Activité récente</h3>
             </div>
-            {isLoadingActivities ? (
-              <div className="text-center py-4">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Chargement...</p>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="h-8 w-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Livraison effectuée</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Il y a 2 heures</p>
+                </div>
               </div>
-            ) : activities.length === 0 ? (
-              <div className="text-center py-4">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Aucune activité récente</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {activities.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3">
-                    <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      activity.type === 'delivery'
-                        ? 'bg-green-100 dark:bg-green-900/30'
-                        : 'bg-blue-100 dark:bg-blue-900/30'
-                    }`}>
-                      {activity.type === 'delivery' ? (
-                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                      ) : (
-                        <Star className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">{activity.title}</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">{activity.timeAgo}</p>
-                      {activity.type === 'rating' && activity.rating && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                            {activity.rating.toFixed(1)}/5
-                          </span>
-                        </div>
-                      )}
-                    </div>
+              <div className="flex items-start gap-3">
+                <div className="h-8 w-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Star className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Évaluation reçue</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Il y a 1 jour</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">4.8/5</span>
                   </div>
-                ))}
+                </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
