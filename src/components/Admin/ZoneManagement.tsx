@@ -99,19 +99,71 @@ export const ZoneManagement: React.FC = () => {
   };
 
   const loadPendingRequests = async () => {
-    const zonesWithRequests = await zoneRequestService.getZonesWithPendingRequests();
     const requestsMap = new Map<string, number>();
+
+    const { data: oldRequests } = await supabase
+      .from('supplier_zones')
+      .select('zone_id')
+      .eq('approval_status', 'pending');
+
+    if (oldRequests) {
+      oldRequests.forEach((req: any) => {
+        const count = requestsMap.get(req.zone_id) || 0;
+        requestsMap.set(req.zone_id, count + 1);
+      });
+    }
+
+    const zonesWithRequests = await zoneRequestService.getZonesWithPendingRequests();
     zonesWithRequests.forEach(zone => {
-      requestsMap.set(zone.zone_id, zone.pending_requests_count);
+      const count = requestsMap.get(zone.zone_id) || 0;
+      requestsMap.set(zone.zone_id, count + zone.pending_requests_count);
     });
+
     setPendingRequestsMap(requestsMap);
   };
 
   const handleViewRequests = async (zone: Zone, e: React.MouseEvent) => {
     e.stopPropagation();
-    const requests = await zoneRequestService.getPendingRequestsForZone(zone.id);
+
+    const allRequests: ZoneRegistrationRequest[] = [];
+
+    const { data: oldRequests } = await supabase
+      .from('supplier_zones')
+      .select(`
+        id,
+        zone_id,
+        supplier_id,
+        approval_status,
+        requested_at,
+        profiles!supplier_zones_supplier_id_fkey(name, email)
+      `)
+      .eq('zone_id', zone.id)
+      .eq('approval_status', 'pending');
+
+    if (oldRequests) {
+      oldRequests.forEach((req: any) => {
+        allRequests.push({
+          id: req.id,
+          zone_id: req.zone_id,
+          supplier_id: req.supplier_id,
+          status: 'pending',
+          created_at: req.requested_at,
+          updated_at: req.requested_at,
+          supplier_name: req.profiles?.name || 'Nom inconnu',
+          supplier_email: req.profiles?.email || 'Email inconnu',
+          message: null,
+          admin_response: null,
+          reviewed_by: null,
+          reviewed_at: null
+        });
+      });
+    }
+
+    const newRequests = await zoneRequestService.getPendingRequestsForZone(zone.id);
+    allRequests.push(...newRequests);
+
     setSelectedZoneForRequests(zone);
-    setSelectedZoneRequests(requests);
+    setSelectedZoneRequests(allRequests);
     setShowRequestsModal(true);
   };
 
@@ -120,12 +172,28 @@ export const ZoneManagement: React.FC = () => {
     const adminId = (await supabase.auth.getUser()).data.user?.id;
     if (!adminId) return;
 
-    const success = await zoneRequestService.approveRequest(requestId, adminId);
+    let success = false;
+
+    const { data: oldRequest } = await supabase
+      .from('supplier_zones')
+      .select('*')
+      .eq('id', requestId)
+      .maybeSingle();
+
+    if (oldRequest) {
+      const { error } = await supabase
+        .from('supplier_zones')
+        .update({ approval_status: 'approved' })
+        .eq('id', requestId);
+      success = !error;
+    } else {
+      success = await zoneRequestService.approveRequest(requestId, adminId);
+    }
+
     if (success) {
       alert('Demande approuvée avec succès');
       if (selectedZoneForRequests) {
-        const requests = await zoneRequestService.getPendingRequestsForZone(selectedZoneForRequests.id);
-        setSelectedZoneRequests(requests);
+        handleViewRequests(selectedZoneForRequests, { stopPropagation: () => {} } as any);
       }
       loadPendingRequests();
     } else {
@@ -140,12 +208,31 @@ export const ZoneManagement: React.FC = () => {
     const adminId = (await supabase.auth.getUser()).data.user?.id;
     if (!adminId) return;
 
-    const success = await zoneRequestService.rejectRequest(requestId, adminId, reason || undefined);
+    let success = false;
+
+    const { data: oldRequest } = await supabase
+      .from('supplier_zones')
+      .select('*')
+      .eq('id', requestId)
+      .maybeSingle();
+
+    if (oldRequest) {
+      const { error } = await supabase
+        .from('supplier_zones')
+        .update({
+          approval_status: 'rejected',
+          rejection_reason: reason || null
+        })
+        .eq('id', requestId);
+      success = !error;
+    } else {
+      success = await zoneRequestService.rejectRequest(requestId, adminId, reason || undefined);
+    }
+
     if (success) {
       alert('Demande refusée');
       if (selectedZoneForRequests) {
-        const requests = await zoneRequestService.getPendingRequestsForZone(selectedZoneForRequests.id);
-        setSelectedZoneRequests(requests);
+        handleViewRequests(selectedZoneForRequests, { stopPropagation: () => {} } as any);
       }
       loadPendingRequests();
     } else {

@@ -270,13 +270,37 @@ export const ZoneRegistration: React.FC = () => {
           </div>
         )}
 
-        {pendingRequests.length > 0 && (
+        {(pendingZones.length > 0 || pendingRequests.length > 0) && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
               <Clock className="h-6 w-6 text-yellow-600" />
               <span>Mes Demandes en Attente</span>
             </h2>
             <div className="space-y-3">
+              {pendingZones.map((sz) => (
+                <div
+                  key={sz.id}
+                  className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
+                >
+                  <div className="flex items-center space-x-3 flex-1">
+                    <div className="h-10 w-10 bg-yellow-200 rounded-full flex items-center justify-center">
+                      <MapPin className="h-5 w-5 text-yellow-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{sz.zone.name}</h3>
+                      <p className="text-sm text-gray-600">
+                        Demandée le {formatDate(sz.requested_at)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                      <Clock className="h-3 w-3 mr-1" />
+                      En attente
+                    </span>
+                  </div>
+                </div>
+              ))}
               {pendingRequests.map((request) => (
                 <div
                   key={request.id}
