@@ -450,6 +450,12 @@ export const UserManagement: React.FC = () => {
                       </div>
                       <div className="flex items-center space-x-2">
                         <button
+                          onClick={() => setSelectedUser(user)}
+                          className="px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium transition-colors"
+                        >
+                          Détails
+                        </button>
+                        <button
                           onClick={() => toggleUserStatus(user.id)}
                           disabled={isProcessing}
                           className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${
@@ -479,6 +485,196 @@ export const UserManagement: React.FC = () => {
           isProcessing={isProcessing}
         />
       )}
+
+      {selectedUser && (
+        <UserDetailsModal
+          user={selectedUser}
+          onClose={() => setSelectedUser(null)}
+          onToggleStatus={toggleUserStatus}
+          isProcessing={isProcessing}
+        />
+      )}
+    </div>
+  );
+};
+
+interface UserDetailsModalProps {
+  user: User;
+  onClose: () => void;
+  onToggleStatus: (userId: string) => void;
+  isProcessing: boolean;
+}
+
+const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onToggleStatus, isProcessing }) => {
+  const getRoleLabel = (role: UserRole) => {
+    switch (role) {
+      case 'client': return 'Client';
+      case 'supplier': return 'Fournisseur';
+      case 'admin': return 'Administrateur';
+      default: return role;
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="h-16 w-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg">
+              {getInitials(user.name)}
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {user.name}
+              </h2>
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                  user.role === 'client' ? 'bg-blue-100 text-blue-700' :
+                  user.role === 'supplier' ? 'bg-orange-100 text-orange-700' :
+                  'bg-purple-100 text-purple-700'
+                }`}>
+                  {getRoleLabel(user.role)}
+                </span>
+                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                  user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                }`}>
+                  {user.isActive ? 'Actif' : 'Inactif'}
+                </span>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          <div className="col-span-2 md:col-span-1 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Phone className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <h3 className="font-semibold text-gray-900 dark:text-white">Informations personnelles</h3>
+            </div>
+            <div className="space-y-2 text-sm">
+              <div>
+                <span className="text-gray-600 dark:text-gray-400">Email:</span>
+                <p className="font-medium text-gray-900 dark:text-white">{user.email || 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-gray-600 dark:text-gray-400">Téléphone:</span>
+                <p className="font-medium text-gray-900 dark:text-white">{user.phone}</p>
+              </div>
+              <div>
+                <span className="text-gray-600 dark:text-gray-400">Adresse:</span>
+                <p className="font-medium text-gray-900 dark:text-white">{user.address}</p>
+              </div>
+              <div>
+                <span className="text-gray-600 dark:text-gray-400">Membre depuis:</span>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-span-2 md:col-span-1 bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Star className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <h3 className="font-semibold text-gray-900 dark:text-white">Performances</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                  {user.rating?.toFixed(1) || '0.0'}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Note moyenne</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">0</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Livraisons</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-span-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <h3 className="font-semibold text-gray-900 dark:text-white">Activité récente</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="h-8 w-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Livraison effectuée</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Il y a 2 heures</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="h-8 w-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Star className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Évaluation reçue</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Il y a 1 jour</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">4.8/5</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Shield className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            <h3 className="font-semibold text-gray-900 dark:text-white">Actions administratives</h3>
+          </div>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => {
+                onToggleStatus(user.id);
+                onClose();
+              }}
+              disabled={isProcessing}
+              className={`w-full px-4 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2 ${
+                user.isActive
+                  ? 'bg-red-500 text-white hover:bg-red-600'
+                  : 'bg-green-500 text-white hover:bg-green-600'
+              }`}
+            >
+              <XCircle className="h-5 w-5" />
+              {user.isActive ? 'Désactiver le compte' : 'Activer le compte'}
+            </button>
+            <button
+              className="w-full px-4 py-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors border border-gray-300 dark:border-gray-600 flex items-center justify-center gap-2"
+            >
+              <Mail className="h-5 w-5" />
+              Envoyer un message
+            </button>
+            <button
+              className="w-full px-4 py-3 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-blue-600 dark:text-blue-400 rounded-lg font-medium transition-colors border border-gray-300 dark:border-gray-600 flex items-center justify-center gap-2"
+            >
+              <Eye className="h-5 w-5" />
+              Voir l'historique complet
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
