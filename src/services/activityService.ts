@@ -123,6 +123,8 @@ export const activityService = {
       zone_approved: 'Zone approuvée',
       account_approved: 'Compte approuvé',
       account_rejected: 'Compte rejeté',
+      account_deactivated: 'Compte désactivé',
+      message_received: 'Message reçu',
     };
 
     return labels[activityType] || activityType;

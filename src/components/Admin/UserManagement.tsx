@@ -3,6 +3,7 @@ import { Users, Search, Filter, Eye, CheckCircle, XCircle, Star, Phone, MapPin, 
 import { User, UserRole } from '../../types';
 import { supabase } from '../../lib/supabase';
 import { UserExaminationModal } from './UserExaminationModal';
+import { UserDetailsModal } from './UserDetailsModal';
 
 interface PendingUser {
   id: string;
@@ -451,20 +452,10 @@ export const UserManagement: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => setSelectedUser(user)}
-                          className="px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg font-medium transition-colors"
+                          className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-medium transition-colors flex items-center space-x-2"
                         >
-                          Détails
-                        </button>
-                        <button
-                          onClick={() => toggleUserStatus(user.id)}
-                          disabled={isProcessing}
-                          className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 ${
-                            user.isActive
-                              ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                              : 'bg-green-100 text-green-700 hover:bg-green-200'
-                          }`}
-                        >
-                          {user.isActive ? 'Désactiver' : 'Activer'}
+                          <Eye className="h-4 w-4" />
+                          <span>Détails</span>
                         </button>
                       </div>
                     </div>
@@ -488,10 +479,9 @@ export const UserManagement: React.FC = () => {
 
       {selectedUser && (
         <UserDetailsModal
-          user={selectedUser}
+          userId={selectedUser.id}
           onClose={() => setSelectedUser(null)}
-          onToggleStatus={toggleUserStatus}
-          isProcessing={isProcessing}
+          onUserUpdated={loadUsers}
         />
       )}
     </div>
