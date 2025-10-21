@@ -256,6 +256,46 @@ export const zoneRequestService = {
     }
   },
 
+  async cancelRequest(requestId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('zone_registration_requests')
+        .delete()
+        .eq('id', requestId)
+        .eq('status', 'pending');
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error canceling request:', error);
+      return false;
+    }
+  },
+
+  async getSupplierPendingRequests(supplierId: string): Promise<ZoneRegistrationRequest[]> {
+    try {
+      const { data, error } = await supabase
+        .from('zone_registration_requests')
+        .select(`
+          *,
+          zones(name)
+        `)
+        .eq('supplier_id', supplierId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return (data || []).map((req: any) => ({
+        ...req,
+        zone_name: req.zones?.name
+      }));
+    } catch (error) {
+      console.error('Error fetching supplier pending requests:', error);
+      return [];
+    }
+  },
+
   getStatusLabel(status: ZoneRequestStatus): string {
     const labels = {
       pending: 'En attente',

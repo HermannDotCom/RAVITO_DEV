@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, CheckCircle, Clock, XCircle, AlertTriangle } from 'lucide-react';
+import { MapPin, CheckCircle, Clock, XCircle, AlertTriangle, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { zoneRequestService, ZoneRegistrationRequest } from '../../services/zoneRequestService';
 
 interface Zone {
   id: string;
@@ -23,12 +24,14 @@ export const ZoneRegistration: React.FC = () => {
   const { user } = useAuth();
   const [zones, setZones] = useState<Zone[]>([]);
   const [myZones, setMyZones] = useState<SupplierZone[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<ZoneRegistrationRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     loadZones();
     loadMyZones();
+    loadPendingRequests();
   }, []);
 
   const loadZones = async () => {
@@ -86,6 +89,27 @@ export const ZoneRegistration: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loadPendingRequests = async () => {
+    if (!user) return;
+    const requests = await zoneRequestService.getSupplierPendingRequests(user.id);
+    setPendingRequests(requests);
+  };
+
+  const handleCancelRequest = async (requestId: string) => {
+    const confirmed = window.confirm('Voulez-vous vraiment annuler cette demande d\'inscription ?');
+    if (!confirmed) return;
+
+    setIsSubmitting(true);
+    const success = await zoneRequestService.cancelRequest(requestId);
+    if (success) {
+      alert('Demande annulée avec succès');
+      loadPendingRequests();
+    } else {
+      alert('Erreur lors de l\'annulation de la demande');
+    }
+    setIsSubmitting(false);
   };
 
   const requestZoneAccess = async (zoneId: string) => {
@@ -245,7 +269,7 @@ export const ZoneRegistration: React.FC = () => {
 
         {pendingZones.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Demandes en Attente</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Demandes en Attente (Anciennes)</h2>
             <div className="space-y-3">
               {pendingZones.map((sz) => (
                 <div
@@ -264,6 +288,52 @@ export const ZoneRegistration: React.FC = () => {
                     </div>
                   </div>
                   {getStatusBadge(sz.approval_status)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {pendingRequests.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center space-x-2">
+              <Clock className="h-6 w-6 text-yellow-600" />
+              <span>Mes Demandes en Attente</span>
+            </h2>
+            <div className="space-y-3">
+              {pendingRequests.map((request) => (
+                <div
+                  key={request.id}
+                  className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
+                >
+                  <div className="flex items-center space-x-3 flex-1">
+                    <div className="h-10 w-10 bg-yellow-200 rounded-full flex items-center justify-center">
+                      <MapPin className="h-5 w-5 text-yellow-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{request.zone_name}</h3>
+                      <p className="text-sm text-gray-600">
+                        Demandée le {formatDate(request.created_at)}
+                      </p>
+                      {request.message && (
+                        <p className="text-sm text-gray-500 mt-1 italic">"{request.message}"</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                      <Clock className="h-3 w-3 mr-1" />
+                      En attente
+                    </span>
+                    <button
+                      onClick={() => handleCancelRequest(request.id)}
+                      disabled={isSubmitting}
+                      className="p-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Annuler la demande"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
