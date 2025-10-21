@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Plus, Search, Package, Users, TrendingUp, AlertTriangle, Edit, Trash2 } from 'lucide-react';
+import { MapPin, Plus, Search, Package, Users, TrendingUp, AlertTriangle, Edit, Trash2, Bell, UserPlus, X, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { ZoneDetailsModal } from './ZoneManagement/ZoneDetailsModal';
+import { zoneRequestService, ZoneRegistrationRequest } from '../../services/zoneRequestService';
 
 interface Zone {
   id: string;
@@ -30,9 +31,15 @@ export const ZoneManagement: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [zoneStats, setZoneStats] = useState<Map<string, ZoneStats>>(new Map());
+  const [pendingRequestsMap, setPendingRequestsMap] = useState<Map<string, number>>(new Map());
+  const [showRequestsModal, setShowRequestsModal] = useState(false);
+  const [selectedZoneRequests, setSelectedZoneRequests] = useState<ZoneRegistrationRequest[]>([]);
+  const [selectedZoneForRequests, setSelectedZoneForRequests] = useState<Zone | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     loadZones();
+    loadPendingRequests();
   }, []);
 
   const loadZones = async () => {
@@ -89,6 +96,62 @@ export const ZoneManagement: React.FC = () => {
     }
 
     setZoneStats(statsMap);
+  };
+
+  const loadPendingRequests = async () => {
+    const zonesWithRequests = await zoneRequestService.getZonesWithPendingRequests();
+    const requestsMap = new Map<string, number>();
+    zonesWithRequests.forEach(zone => {
+      requestsMap.set(zone.zone_id, zone.pending_requests_count);
+    });
+    setPendingRequestsMap(requestsMap);
+  };
+
+  const handleViewRequests = async (zone: Zone, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const requests = await zoneRequestService.getPendingRequestsForZone(zone.id);
+    setSelectedZoneForRequests(zone);
+    setSelectedZoneRequests(requests);
+    setShowRequestsModal(true);
+  };
+
+  const handleApproveRequest = async (requestId: string) => {
+    setIsProcessing(true);
+    const adminId = (await supabase.auth.getUser()).data.user?.id;
+    if (!adminId) return;
+
+    const success = await zoneRequestService.approveRequest(requestId, adminId);
+    if (success) {
+      alert('Demande approuvée avec succès');
+      if (selectedZoneForRequests) {
+        const requests = await zoneRequestService.getPendingRequestsForZone(selectedZoneForRequests.id);
+        setSelectedZoneRequests(requests);
+      }
+      loadPendingRequests();
+    } else {
+      alert('Erreur lors de l\'approbation de la demande');
+    }
+    setIsProcessing(false);
+  };
+
+  const handleRejectRequest = async (requestId: string) => {
+    const reason = prompt('Raison du refus (optionnel):');
+    setIsProcessing(true);
+    const adminId = (await supabase.auth.getUser()).data.user?.id;
+    if (!adminId) return;
+
+    const success = await zoneRequestService.rejectRequest(requestId, adminId, reason || undefined);
+    if (success) {
+      alert('Demande refusée');
+      if (selectedZoneForRequests) {
+        const requests = await zoneRequestService.getPendingRequestsForZone(selectedZoneForRequests.id);
+        setSelectedZoneRequests(requests);
+      }
+      loadPendingRequests();
+    } else {
+      alert('Erreur lors du refus de la demande');
+    }
+    setIsProcessing(false);
   };
 
   const deleteZone = async (zoneId: string, zoneName: string) => {
@@ -250,17 +313,32 @@ export const ZoneManagement: React.FC = () => {
                   success_rate: 100
                 };
 
+                const pendingCount = pendingRequestsMap.get(zone.id) || 0;
+
                 return (
                   <div
                     key={zone.id}
                     onClick={() => setSelectedZone(zone)}
                     className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700
-                      hover:border-orange-400 dark:hover:border-orange-500 cursor-pointer transition-all group"
+                      hover:border-orange-400 dark:hover:border-orange-500 cursor-pointer transition-all group relative"
                   >
+                    {pendingCount > 0 && (
+                      <div className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
+                        <span className="text-white text-xs font-bold">{pendingCount}</span>
+                      </div>
+                    )}
                     <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-bold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400">
-                        {zone.name}
-                      </h3>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="font-bold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400">
+                          {zone.name}
+                        </h3>
+                        {pendingCount > 0 && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 flex items-center space-x-1">
+                            <Bell className="h-3 w-3" />
+                            <span>{pendingCount}</span>
+                          </span>
+                        )}
+                      </div>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         zone.is_active
                           ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
@@ -291,29 +369,41 @@ export const ZoneManagement: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedZone(zone);
-                        }}
-                        className="flex-1 px-3 py-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600
-                          text-gray-700 dark:text-gray-300 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1"
-                      >
-                        <Edit className="h-3 w-3" />
-                        Modifier
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteZone(zone.id, zone.name);
-                        }}
-                        className="flex-1 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50
-                          text-red-700 dark:text-red-400 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        Supprimer
-                      </button>
+                    <div className="flex flex-col gap-2 mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+                      {pendingCount > 0 && (
+                        <button
+                          onClick={(e) => handleViewRequests(zone, e)}
+                          className="w-full px-3 py-2 bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50
+                            text-orange-700 dark:text-orange-400 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1"
+                        >
+                          <UserPlus className="h-3 w-3" />
+                          Voir les demandes ({pendingCount})
+                        </button>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedZone(zone);
+                          }}
+                          className="flex-1 px-3 py-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600
+                            text-gray-700 dark:text-gray-300 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Edit className="h-3 w-3" />
+                          Modifier
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteZone(zone.id, zone.name);
+                          }}
+                          className="flex-1 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50
+                            text-red-700 dark:text-red-400 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Supprimer
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -343,6 +433,95 @@ export const ZoneManagement: React.FC = () => {
           onClose={() => setShowCreateModal(false)}
           onCreated={loadZones}
         />
+      )}
+
+      {showRequestsModal && selectedZoneForRequests && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Demandes d'inscription - {selectedZoneForRequests.name}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowRequestsModal(false);
+                    setSelectedZoneForRequests(null);
+                    setSelectedZoneRequests([]);
+                  }}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {selectedZoneRequests.length === 0 ? (
+                <div className="text-center py-12">
+                  <UserPlus className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">Aucune demande en attente</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {selectedZoneRequests.map((request) => (
+                    <div
+                      key={request.id}
+                      className="bg-gray-50 dark:bg-gray-900 rounded-lg p-5 border border-gray-200 dark:border-gray-700"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
+                            {request.supplier_name}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{request.supplier_email}</p>
+                        </div>
+                        <span className="px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                          En attente
+                        </span>
+                      </div>
+
+                      {request.message && (
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-4">
+                          <p className="text-sm text-gray-700 dark:text-gray-300">{request.message}</p>
+                        </div>
+                      )}
+
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                        Demandé le {new Date(request.created_at).toLocaleDateString('fr-FR', {
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={() => handleApproveRequest(request.id)}
+                          disabled={isProcessing}
+                          className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                          <span>Approuver</span>
+                        </button>
+                        <button
+                          onClick={() => handleRejectRequest(request.id)}
+                          disabled={isProcessing}
+                          className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+                        >
+                          <XCircle className="h-4 w-4" />
+                          <span>Refuser</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
