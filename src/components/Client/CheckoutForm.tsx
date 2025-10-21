@@ -4,6 +4,7 @@ import { useCart } from '../../context/CartContext';
 import { useOrder } from '../../context/OrderContext';
 import { useCommission } from '../../context/CommissionContext';
 import { PaymentMethod, CrateType } from '../../types';
+import { ZoneSelector } from './ZoneSelector';
 
 interface CheckoutFormProps {
   onConfirm: () => void;
@@ -14,9 +15,11 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
   const { cart, getCartTotal } = useCart();
   const { placeOrder } = useOrder();
   const { commissionSettings } = useCommission();
+  const [deliveryZone, setDeliveryZone] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('orange');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [zoneError, setZoneError] = useState('');
 
   const { subtotal, consigneTotal } = getCartTotal();
   const clientCommission = Math.round((subtotal + consigneTotal) * (commissionSettings.clientCommission / 100));
@@ -52,19 +55,35 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
   ];
 
   const handleConfirmOrder = async () => {
+    if (!deliveryZone) {
+      setZoneError('Veuillez sélectionner votre zone de livraison');
+      return;
+    }
     if (!deliveryAddress.trim()) return;
-    
+
     setIsProcessing(true);
-    
-    // Mock coordinates for demo
+    setZoneError('');
+
     const coordinates = { lat: 5.3364, lng: -4.0267 };
-    
-    await placeOrder(deliveryAddress, coordinates, paymentMethod);
-    
-    setTimeout(() => {
+
+    const result = await placeOrder(
+      cart,
+      deliveryAddress,
+      coordinates,
+      paymentMethod,
+      commissionSettings,
+      deliveryZone
+    );
+
+    if (result.success) {
+      setTimeout(() => {
+        setIsProcessing(false);
+        onConfirm();
+      }, 1000);
+    } else {
+      alert('Erreur lors de la création de la commande: ' + (result.error || 'Erreur inconnue'));
       setIsProcessing(false);
-      onConfirm();
-    }, 2000);
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -81,6 +100,25 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Order Details */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Delivery Zone */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+              <MapPin className="h-5 w-5 mr-2 text-orange-600" />
+              Zone de livraison
+            </h3>
+            <ZoneSelector
+              value={deliveryZone}
+              onChange={setDeliveryZone}
+              required={true}
+              error={zoneError}
+            />
+            <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                💡 <strong>Important :</strong> Seuls les fournisseurs inscrits dans votre zone pourront voir et accepter votre commande.
+              </p>
+            </div>
+          </div>
+
           {/* Delivery Address */}
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
@@ -208,7 +246,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
             <div className="space-y-3">
               <button
                 onClick={handleConfirmOrder}
-                disabled={!deliveryAddress.trim() || isProcessing}
+                disabled={!deliveryZone || !deliveryAddress.trim() || isProcessing}
                 className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {isProcessing ? 'Traitement...' : 'Confirmer la commande'}

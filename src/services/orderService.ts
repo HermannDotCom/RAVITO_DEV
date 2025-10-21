@@ -126,9 +126,9 @@ export async function getOrdersBySupplier(supplierId: string): Promise<Order[]> 
   }
 }
 
-export async function getPendingOrders(): Promise<Order[]> {
+export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('orders')
       .select(`
         *,
@@ -137,8 +137,30 @@ export async function getPendingOrders(): Promise<Order[]> {
           product:products (*)
         )
       `)
-      .in('status', ['pending', 'awaiting-client-validation'])
-      .order('created_at', { ascending: false });
+      .in('status', ['pending', 'awaiting-client-validation']);
+
+    if (supplierId) {
+      const { data: supplierZones, error: zonesError } = await supabase
+        .from('supplier_zones')
+        .select('zone_id')
+        .eq('supplier_id', supplierId)
+        .eq('approval_status', 'approved');
+
+      if (zonesError) {
+        console.error('Error fetching supplier zones:', zonesError);
+        return [];
+      }
+
+      const zoneIds = supplierZones.map(sz => sz.zone_id);
+
+      if (zoneIds.length === 0) {
+        return [];
+      }
+
+      query = query.in('zone_id', zoneIds);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching pending orders:', error);

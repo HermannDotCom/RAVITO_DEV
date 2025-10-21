@@ -35,7 +35,8 @@ interface OrderContextType {
     deliveryAddress: string,
     coordinates: { lat: number; lng: number },
     paymentMethod: PaymentMethod,
-    commissionSettings: { clientCommission: number; supplierCommission: number }
+    commissionSettings: { clientCommission: number; supplierCommission: number },
+    zoneId?: string
   ) => Promise<{ success: boolean; orderId?: string; error?: string }>;
   acceptOrderAsSupplier: (orderId: string, estimatedTime: number) => Promise<boolean>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<boolean>;
@@ -82,7 +83,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setClientOrders(orders);
       } else if (user.role === 'supplier') {
         const [pending, active, completed] = await Promise.all([
-          getPendingOrders(),
+          getPendingOrders(user.id),
           getOrdersBySupplier(user.id),
           getOrdersBySupplier(user.id)
         ]);
@@ -138,7 +139,8 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     deliveryAddress: string,
     coordinates: { lat: number; lng: number },
     paymentMethod: PaymentMethod,
-    commissionSettings: { clientCommission: number; supplierCommission: number }
+    commissionSettings: { clientCommission: number; supplierCommission: number },
+    zoneId?: string
   ) => {
     if (!user || user.role !== 'client') {
       return { success: false, error: 'Unauthorized' };
@@ -151,7 +153,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       coordinates,
       paymentMethod,
       commissionSettings,
-      user.zoneId
+      zoneId
     );
 
     if (result.success && result.orderId) {
