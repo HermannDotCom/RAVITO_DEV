@@ -91,6 +91,32 @@ export const ZoneManagement: React.FC = () => {
     setZoneStats(statsMap);
   };
 
+  const deleteZone = async (zoneId: string, zoneName: string) => {
+    const confirmDelete = window.confirm(
+      `Êtes-vous sûr de vouloir supprimer la zone "${zoneName}" ?\n\n` +
+      `Cette action est irréversible et supprimera également :\n` +
+      `- Toutes les inscriptions de fournisseurs dans cette zone\n` +
+      `- L'historique des commandes liées à cette zone`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('zones')
+        .delete()
+        .eq('id', zoneId);
+
+      if (error) throw error;
+
+      alert('Zone supprimée avec succès');
+      loadZones();
+    } catch (error) {
+      console.error('Error deleting zone:', error);
+      alert('Erreur lors de la suppression de la zone');
+    }
+  };
+
   const filteredZones = zones.filter(zone => {
     const matchesSearch = zone.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (zone.description?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
@@ -280,6 +306,7 @@ export const ZoneManagement: React.FC = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          deleteZone(zone.id, zone.name);
                         }}
                         className="flex-1 px-3 py-1.5 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50
                           text-red-700 dark:text-red-400 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1"
