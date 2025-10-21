@@ -1,16 +1,17 @@
 import React from 'react';
-import { 
-  Home, 
-  ShoppingCart, 
-  Package, 
-  Truck, 
-  BarChart3, 
-  Settings, 
+import {
+  Home,
+  ShoppingCart,
+  Package,
+  Truck,
+  BarChart3,
+  Settings,
   Users,
   MapPin,
   CreditCard,
   Clock,
-  ShoppingBag
+  ShoppingBag,
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -33,6 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'orders', label: 'Mes Commandes', icon: Package },
           { id: 'catalog', label: 'Catalogue', icon: Package },
           { id: 'cart', label: 'Panier', icon: ShoppingCart },
+          { id: 'support', label: 'Nous contacter', icon: MessageSquare },
           { id: 'profile', label: 'Mon Profil', icon: Settings }
         ];
       case 'supplier':
@@ -42,6 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'orders', label: 'Commandes Disponibles', icon: Package },
           { id: 'deliveries', label: 'Livraisons en cours', icon: Truck },
           { id: 'history', label: 'Historique', icon: Clock },
+          { id: 'support', label: 'Nous contacter', icon: MessageSquare },
           { id: 'profile', label: 'Mon Profil', icon: Settings }
         ];
       case 'admin':
@@ -52,6 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag },
           { id: 'treasury', label: 'Trésorerie', icon: CreditCard },
           { id: 'zones', label: 'Zones de Livraison', icon: MapPin },
+          { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare },
           { id: 'data', label: 'Gestion des Données', icon: Settings },
           { id: 'settings', label: 'Paramètres', icon: Settings }
         ];

@@ -36,6 +36,9 @@ import { DataManagement } from './components/Admin/DataManagement';
 import { ClientProfile } from './components/Client/ClientProfile';
 import { OrderHistory } from './components/Client/OrderHistory';
 import { ClientRatingForm } from './components/Client/ClientRatingForm';
+import { ContactSupport } from './components/Client/ContactSupport';
+import { SupplierContactSupport } from './components/Supplier/ContactSupport';
+import { TicketManagement } from './components/Admin/TicketManagement';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing } = useAuth();
@@ -157,6 +160,8 @@ const AppContent: React.FC = () => {
             return <ClientProfile />;
           case 'orders':
             return <OrderHistory onNavigate={setActiveSection} />;
+          case 'support':
+            return <ContactSupport />;
           default:
             return <OrderHistory onNavigate={setActiveSection} />;
         }
@@ -183,6 +188,8 @@ const AppContent: React.FC = () => {
             return <DeliveryHistory />;
           case 'profile':
             return <SupplierProfile />;
+          case 'support':
+            return <SupplierContactSupport />;
           default:
             return <SupplierDashboard onNavigate={setActiveSection} />;
         }
@@ -205,6 +212,8 @@ const AppContent: React.FC = () => {
             return <DataManagement />;
           case 'settings':
             return <SystemSettings />;
+          case 'tickets':
+            return <TicketManagement />;
           default:
             return <Analytics />;
         }
