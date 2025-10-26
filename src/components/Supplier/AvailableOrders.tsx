@@ -1,15 +1,25 @@
 import React, { useState } from 'react';
-import { Clock, Package, MapPin, Star, Phone, AlertCircle, CheckCircle, Archive } from 'lucide-react';
-import { Order, OrderStatus, CrateType } from '../../types';
+import { Clock, Package, MapPin, X, Plus, Minus, AlertCircle, CheckCircle } from 'lucide-react';
+import { Order, CrateType } from '../../types';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { useOrder } from '../../context/OrderContext';
 import { useCommission } from '../../context/CommissionContext';
-import { CreateOfferModal } from './CreateOfferModal';
 import { usePendingRatings } from '../../hooks/usePendingRatings';
 import { PendingRatingModal } from '../Shared/PendingRatingModal';
+import { supabase } from '../../lib/supabase';
 
 interface AvailableOrdersProps {
   onNavigate: (section: string) => void;
+}
+
+interface OfferItem {
+  productId: string;
+  productName: string;
+  requestedQuantity: number;
+  offeredQuantity: number;
+  pricePerUnit: number;
+  withConsigne: boolean;
+  consigneAmount: number;
 }
 
 export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) => {
@@ -20,7 +30,6 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
 
   const accessRestrictions = getAccessRestrictions();
 
-  // Restriction d'accès sécurisée
   if (!accessRestrictions.canAcceptOrders) {
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -33,7 +42,7 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
             {accessRestrictions.restrictionReason}
           </p>
           <p className="text-sm text-orange-700">
-            {user?.role === 'supplier' 
+            {user?.role === 'supplier'
               ? 'Notre équipe examine votre dossier. Vous serez notifié dès l\'approbation.'
               : 'Accès non autorisé aux commandes.'
             }
@@ -44,22 +53,118 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
   }
 
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [showOfferModal, setShowOfferModal] = useState(false);
-  const [showRatingModal, setShowRatingModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [offerItems, setOfferItems] = useState<OfferItem[]>([]);
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCreateOffer = (order: Order) => {
+  const handleViewDetails = (order: Order) => {
     if (hasPendingRatings) {
       setShowRatingModal(true);
       return;
     }
+
+    const items: OfferItem[] = order.items.map(item => ({
+      productId: item.product.id,
+      productName: item.product.name,
+      requestedQuantity: item.quantity,
+      offeredQuantity: item.quantity,
+      pricePerUnit: item.product.pricePerUnit,
+      withConsigne: item.withConsigne,
+      consigneAmount: item.product.consigneAmount || 0
+    }));
+
+    setOfferItems(items);
     setSelectedOrder(order);
-    setShowOfferModal(true);
+    setMessage('');
+    setShowDetailsModal(true);
   };
 
-  const handleViewDetails = (order: Order) => {
-    setSelectedOrder(order);
-    setShowDetailsModal(true);
+  const updateQuantity = (productId: string, newQuantity: number) => {
+    setOfferItems(prev => prev.map(item =>
+      item.productId === productId
+        ? { ...item, offeredQuantity: Math.max(0, newQuantity) }
+        : item
+    ));
+  };
+
+  const calculateTotals = () => {
+    const subtotal = offerItems.reduce((sum, item) => {
+      return sum + (item.offeredQuantity * item.pricePerUnit);
+    }, 0);
+
+    const consigneTotal = offerItems.reduce((sum, item) => {
+      return sum + (item.withConsigne ? item.offeredQuantity * item.consigneAmount : 0);
+    }, 0);
+
+    const total = subtotal + consigneTotal;
+    const clientCommission = total * (commissionSettings.clientCommission / 100);
+    const supplierCommission = total * (commissionSettings.supplierCommission / 100);
+    const supplierNet = total - supplierCommission;
+    const clientTotal = total + clientCommission;
+
+    return {
+      subtotal,
+      consigneTotal,
+      total,
+      clientCommission,
+      supplierCommission,
+      supplierNet,
+      clientTotal
+    };
+  };
+
+  const handleSubmitOffer = async () => {
+    if (!selectedOrder || !user) return;
+
+    const activeItems = offerItems.filter(item => item.offeredQuantity > 0);
+    if (activeItems.length === 0) {
+      alert('Veuillez proposer au moins un produit avec une quantité supérieure à 0.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const totals = calculateTotals();
+
+      const { error } = await supabase.from('supplier_offers').insert({
+        order_id: selectedOrder.id,
+        supplier_id: user.id,
+        offered_items: activeItems.map(item => ({
+          product_id: item.productId,
+          requested_quantity: item.requestedQuantity,
+          offered_quantity: item.offeredQuantity,
+          price_per_unit: item.pricePerUnit,
+          with_consigne: item.withConsigne
+        })),
+        total_amount: totals.total,
+        supplier_net_amount: totals.supplierNet,
+        client_total_amount: totals.clientTotal,
+        message: message || null,
+        status: 'pending'
+      });
+
+      if (error) throw error;
+
+      await supabase.from('orders').update({
+        status: 'offers-received'
+      }).eq('id', selectedOrder.id);
+
+      alert('✅ Offre envoyée avec succès!\n\nLe client va recevoir votre proposition.');
+
+      setShowDetailsModal(false);
+      setSelectedOrder(null);
+      setOfferItems([]);
+      setMessage('');
+      refreshOrders();
+    } catch (error: any) {
+      console.error('Error submitting offer:', error);
+      alert('Erreur lors de l\'envoi de l\'offre: ' + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -67,44 +172,14 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
   };
 
   const getDistanceFromCoordinates = (coords: { lat: number; lng: number }) => {
-    // Mock distance calculation
     return (Math.random() * 5 + 0.5).toFixed(1) + ' km';
   };
 
   const getEstimatedTime = (coords: { lat: number; lng: number }) => {
-    // Mock time calculation
     return Math.floor(Math.random() * 20 + 10);
   };
 
-  const getPaymentMethodLabel = (method: string) => {
-    const methods = {
-      orange: 'Orange Money',
-      mtn: 'MTN Mobile Money',
-      moov: 'Moov Money',
-      wave: 'Wave',
-      card: 'Carte bancaire'
-    };
-    return methods[method as keyof typeof methods] || method;
-  };
-
-  const getCrateSummary = (order: Order) => {
-    const crateSummary: { [key in CrateType]: { withConsigne: number; toReturn: number } } = {
-      C24: { withConsigne: 0, toReturn: 0 },
-      C12: { withConsigne: 0, toReturn: 0 },
-      C12V: { withConsigne: 0, toReturn: 0 },
-      C6: { withConsigne: 0, toReturn: 0 }
-    };
-
-    order.items.forEach(item => {
-      if (item.withConsigne) {
-        crateSummary[item.product.crateType].withConsigne += item.quantity;
-      } else {
-        crateSummary[item.product.crateType].toReturn += item.quantity;
-      }
-    });
-
-    return crateSummary;
-  };
+  const totals = selectedOrder ? calculateTotals() : null;
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -115,8 +190,8 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
 
       {availableOrders.length === 0 ? (
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-12 text-center">
-          <Clock className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">Aucune commande disponible</h3>
+          <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Aucune commande disponible</h3>
           <p className="text-gray-500">Les nouvelles commandes apparaîtront ici automatiquement</p>
         </div>
       ) : (
@@ -124,30 +199,23 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
           {availableOrders.map((order) => {
             const distance = getDistanceFromCoordinates(order.coordinates);
             const estimatedTime = getEstimatedTime(order.coordinates);
-            const crateSummary = getCrateSummary(order);
-            const totalCratesToReturn = Object.values(crateSummary).reduce((sum, crate) => sum + crate.toReturn, 0);
-            const totalConsigneAmount = Object.entries(crateSummary).reduce((sum, [crateType, counts]) => {
-              const consignePrice = crateType === 'C12V' ? 4000 : crateType === 'C6' ? 2000 : 3000;
-              return sum + (counts.withConsigne * consignePrice);
-            }, 0);
 
             return (
               <div key={order.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow">
                 <div className="p-6">
-                  {/* Order Header */}
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
-                    <div className="flex items-center space-x-4 mb-4 lg:mb-0">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-4">
                       <div className="h-12 w-12 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
                         <Package className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900">Commande #{order.id}</h3>
+                        <h3 className="text-xl font-bold text-gray-900">Commande #{order.id.slice(0, 8)}</h3>
                         <p className="text-sm text-gray-600">
                           Créée il y a {Math.floor((Date.now() - order.createdAt.getTime()) / 60000)} minutes
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-6 text-sm">
                       <div className="flex items-center space-x-2">
                         <MapPin className="h-4 w-4 text-gray-400" />
@@ -160,162 +228,34 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                     </div>
                   </div>
 
-                  {/* Delivery Address */}
-                  <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                    <div className="flex items-start space-x-3">
-                      <MapPin className="h-5 w-5 text-orange-600 mt-0.5" />
+                  <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-semibold text-gray-900 mb-1">Adresse de livraison</h4>
-                        <p className="text-gray-700">{order.deliveryAddress}</p>
+                        <p className="text-sm text-gray-600 mb-1">Zone de livraison</p>
+                        <p className="font-semibold text-gray-900">{order.deliveryZone || 'Zone non spécifiée'}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600 mb-1">Montant total</p>
+                        <p className="text-xl font-bold text-blue-600">{formatPrice(order.totalAmount)}</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Order Items */}
-                  <div className="mb-6">
-                    <h4 className="font-semibold text-gray-900 mb-4">Articles commandés</h4>
-                    <div className="space-y-3">
-                      {order.items.map((item, index) => (
-                        <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                          <img
-                            src={item.product.imageUrl}
-                            alt={item.product.name}
-                            className="h-12 w-12 rounded-lg object-cover"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <span className="font-medium text-gray-900">{item.product.name}</span>
-                              <span className={`px-2 py-1 text-xs font-medium rounded ${
-                                item.product.brand === 'Solibra' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
-                              }`}>
-                                {item.product.brand}
-                              </span>
-                              <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
-                                {item.product.packaging}
-                              </span>
-                            </div>
-                            <div className="flex items-center space-x-4 text-sm text-gray-600">
-                              <span>Quantité: {item.quantity}</span>
-                              <span>Prix: {formatPrice(item.product.pricePerUnit * item.quantity)}</span>
-                              {item.withConsigne && (
-                                <span className="flex items-center space-x-1 text-orange-600">
-                                  <AlertCircle className="h-3 w-3" />
-                                  <span>Avec consigne (+{formatPrice(item.product.consigneAmount * item.quantity)})</span>
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <p className="text-sm font-semibold text-gray-900 mb-2">
+                      {order.items.length} produit{order.items.length > 1 ? 's' : ''} commandé{order.items.length > 1 ? 's' : ''}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      Cliquez sur "Voir détails" pour consulter la commande complète et envoyer votre offre
+                    </p>
                   </div>
 
-                  {/* Order Summary */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    <div className="bg-green-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3">Répartition financière</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Montant total commande :</span>
-                          <span className="font-bold text-gray-900">{formatPrice(order.totalAmount)}</span>
-                        </div>
-                        <div className="flex justify-between text-red-600">
-                          <span>Commission DISTRI-NIGHT ({commissionSettings.supplierCommission}%) :</span>
-                          <span className="font-medium">-{formatPrice(getSupplierNetAmount(order.totalAmount).commission)}</span>
-                        </div>
-                        <div className="border-t border-green-200 pt-2">
-                          <div className="flex justify-between text-lg font-bold text-green-600">
-                            <span>Montant reversé (24h) :</span>
-                            <span>{formatPrice(getSupplierNetAmount(order.totalAmount).netAmount)}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-2 bg-white border border-green-300 rounded p-2">
-                        <p className="text-xs text-green-700">
-                          💰 Reversement automatique sous 24h après livraison confirmée
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3">Informations paiement</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Mode de paiement</span>
-                          <span className="font-medium">{getPaymentMethodLabel(order.paymentMethod)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Statut</span>
-                          <span className="flex items-center space-x-1 text-orange-600">
-                            <Clock className="h-3 w-3" />
-                            <span className="font-medium">En attente de paiement</span>
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Crate Information */}
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                        <Archive className="h-4 w-4 mr-2 text-blue-600" />
-                        Casiers (interchangeables par type)
-                      </h4>
-                      
-                      {totalCratesToReturn > 0 && (
-                        <div className="mb-3">
-                          <p className="text-sm font-medium text-blue-800 mb-2">Casiers vides à récupérer :</p>
-                          <div className="grid grid-cols-2 gap-2">
-                            {Object.entries(crateSummary).map(([crateType, counts]) => (
-                              counts.toReturn > 0 && (
-                                <div key={crateType} className="bg-white rounded p-2 text-center">
-                                  <div className="font-bold text-blue-700">{counts.toReturn}</div>
-                                  <div className="text-blue-600 text-xs">{crateType}</div>
-                                  <div className="text-blue-500 text-xs">
-                                    {crateType === 'C24' ? '24×33cl' : 
-                                     crateType === 'C12' ? '12×66cl' : 
-                                     crateType === 'C12V' ? '12×75cl' : '6×1.5L'}
-                                  </div>
-                                </div>
-                              )
-                            ))}
-                          </div>
-                          <p className="text-xs text-blue-600 mt-2 bg-white rounded p-2">
-                            💡 <strong>Casiers interchangeables :</strong> Acceptez n'importe quel casier vide du même type
-                          </p>
-                        </div>
-                      )}
-                      
-                      {totalConsigneAmount > 0 && (
-                        <div className="border-t border-blue-200 pt-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-blue-700">Consignes incluses</span>
-                            <span className="font-bold text-blue-800">{formatPrice(totalConsigneAmount)}</span>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {totalCratesToReturn === 0 && totalConsigneAmount === 0 && (
-                        <p className="text-sm text-blue-700">Aucun casier à gérer</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button
-                      onClick={() => handleViewDetails(order)}
-                      className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
-                      Voir détails
-                    </button>
-                    <button
-                      onClick={() => handleCreateOffer(order)}
-                      disabled={order.status !== 'pending-offers'}
-                      className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
-                    >
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Envoyer une offre</span>
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => handleViewDetails(order)}
+                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all"
+                  >
+                    Voir détails
+                  </button>
                 </div>
               </div>
             );
@@ -323,19 +263,191 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
         </div>
       )}
 
-      {showOfferModal && selectedOrder && (
-        <CreateOfferModal
-          order={selectedOrder}
-          onClose={() => {
-            setShowOfferModal(false);
-            setSelectedOrder(null);
-          }}
-          onSuccess={() => {
-            setShowOfferModal(false);
-            setSelectedOrder(null);
-            refreshOrders();
-          }}
-        />
+      {showDetailsModal && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Détails de la commande</h2>
+                  <p className="text-gray-600">Commande #{selectedOrder.id.slice(0, 8)}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDetailsModal(false);
+                    setSelectedOrder(null);
+                  }}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                <h3 className="font-semibold text-gray-900 mb-3">Informations de livraison</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-600">Zone de livraison</p>
+                    <p className="font-semibold text-gray-900">{selectedOrder.deliveryZone || 'Non spécifiée'}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Distance estimée</p>
+                    <p className="font-semibold text-gray-900">{getDistanceFromCoordinates(selectedOrder.coordinates)}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600 mt-3">
+                  <AlertCircle className="h-3 w-3 inline mr-1" />
+                  L'adresse exacte et les coordonnées du client vous seront communiquées après acceptation de votre offre
+                </p>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="font-semibold text-gray-900 mb-4">Produits demandés</h3>
+                <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> Vous pouvez modifier les quantités selon vos disponibilités. Les produits avec une quantité de 0 seront retirés de l'offre.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {offerItems.map((item) => (
+                    <div key={item.productId} className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-900">{item.productName}</p>
+                          <p className="text-sm text-gray-600">
+                            Prix unitaire: {formatPrice(item.pricePerUnit)}
+                            {item.withConsigne && ` (+ ${formatPrice(item.consigneAmount)} consigne)`}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          <p className="text-gray-600">
+                            Demandé: <span className="font-semibold">{item.requestedQuantity} caisses</span>
+                          </p>
+                          {item.offeredQuantity !== item.requestedQuantity && (
+                            <p className="text-orange-600 font-medium">
+                              Vous proposez: {item.offeredQuantity} caisses
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center space-x-3">
+                          <button
+                            onClick={() => updateQuantity(item.productId, item.offeredQuantity - 1)}
+                            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+                            disabled={item.offeredQuantity === 0}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                          <input
+                            type="number"
+                            value={item.offeredQuantity}
+                            onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 0)}
+                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center font-semibold"
+                            min="0"
+                          />
+                          <button
+                            onClick={() => updateQuantity(item.productId, item.offeredQuantity + 1)}
+                            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 text-right">
+                        <p className="text-sm text-gray-600">Sous-total:</p>
+                        <p className="font-bold text-gray-900">
+                          {formatPrice(item.offeredQuantity * (item.pricePerUnit + (item.withConsigne ? item.consigneAmount : 0)))}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="font-semibold text-gray-900 mb-2">Message au client (optionnel)</h3>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Ex: Certains produits sont en stock limité..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={3}
+                />
+              </div>
+
+              {totals && (
+                <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-6 mb-6">
+                  <h3 className="font-semibold text-gray-900 mb-4">Récapitulatif financier</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Sous-total</span>
+                      <span className="font-semibold">{formatPrice(totals.subtotal)}</span>
+                    </div>
+                    {totals.consigneTotal > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Consignes</span>
+                        <span className="font-semibold">{formatPrice(totals.consigneTotal)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-blue-600">
+                      <span>Commission client (+{commissionSettings.clientCommission}%)</span>
+                      <span className="font-semibold">+{formatPrice(totals.clientCommission)}</span>
+                    </div>
+                    <div className="flex justify-between text-red-600">
+                      <span>Commission fournisseur (-{commissionSettings.supplierCommission}%)</span>
+                      <span className="font-semibold">-{formatPrice(totals.supplierCommission)}</span>
+                    </div>
+                    <div className="border-t border-gray-300 pt-2 mt-2">
+                      <div className="flex justify-between text-lg font-bold text-green-600">
+                        <span>Vous recevrez (24h)</span>
+                        <span>{formatPrice(totals.supplierNet)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-600 mt-1">
+                        <span>Total client</span>
+                        <span className="font-semibold">{formatPrice(totals.clientTotal)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => {
+                    setShowDetailsModal(false);
+                    setSelectedOrder(null);
+                  }}
+                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50"
+                  disabled={isSubmitting}
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleSubmitOffer}
+                  disabled={isSubmitting || offerItems.every(item => item.offeredQuantity === 0)}
+                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span>Envoi en cours...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-5 w-5" />
+                      <span>Envoyer l'offre</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {showRatingModal && (
@@ -347,83 +459,6 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
             onNavigate('history');
           }}
         />
-      )}
-
-      {showDetailsModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Détails de la commande
-                </h2>
-                <button
-                  onClick={() => {
-                    setShowDetailsModal(false);
-                    setSelectedOrder(null);
-                  }}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Adresse de livraison</h3>
-                  <p className="text-gray-700 dark:text-gray-300">{selectedOrder.deliveryAddress}</p>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Produits demandés</h3>
-                  {selectedOrder.items.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-2">
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{item.product.name}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {item.quantity} caisses {item.withConsigne && '(avec consigne)'}
-                        </p>
-                      </div>
-                      <p className="font-semibold text-gray-900 dark:text-white">
-                        {formatPrice(item.product.cratePrice * item.quantity)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <div className="flex justify-between text-lg font-bold">
-                    <span className="text-gray-900 dark:text-white">Total</span>
-                    <span className="text-blue-600 dark:text-blue-400">
-                      {formatPrice(selectedOrder.totalAmount)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 flex space-x-3">
-                <button
-                  onClick={() => {
-                    setShowDetailsModal(false);
-                    setSelectedOrder(null);
-                  }}
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  Fermer
-                </button>
-                <button
-                  onClick={() => {
-                    setShowDetailsModal(false);
-                    handleCreateOffer(selectedOrder);
-                  }}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                >
-                  Créer une offre
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
