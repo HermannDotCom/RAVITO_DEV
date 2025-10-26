@@ -23,7 +23,7 @@ export async function createOrder(
 
     const orderData: any = {
       client_id: clientId,
-      status: 'pending',
+      status: 'pending-offers',
       total_amount: totalAmount,
       consigne_total: consigneTotal,
       client_commission: clientCommission,

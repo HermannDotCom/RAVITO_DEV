@@ -153,7 +153,19 @@ export interface Order {
   deliveredAt?: Date;
 }
 
-export type OrderStatus = 'pending' | 'awaiting-client-validation' | 'accepted' | 'preparing' | 'delivering' | 'delivered' | 'cancelled';
+export type OrderStatus =
+  | 'pending'
+  | 'pending-offers'
+  | 'offers-received'
+  | 'awaiting-payment'
+  | 'paid'
+  | 'awaiting-client-validation'
+  | 'accepted'
+  | 'preparing'
+  | 'delivering'
+  | 'delivered'
+  | 'awaiting-rating'
+  | 'cancelled';
 
 export type PaymentStatus = 'pending' | 'paid' | 'transferred' | 'completed';
 
