@@ -137,7 +137,7 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
           product:products (*)
         )
       `)
-      .in('status', ['pending', 'awaiting-client-validation']);
+      .in('status', ['pending', 'pending-offers', 'awaiting-client-validation']);
 
     if (supplierId) {
       const { data: supplierZones, error: zonesError } = await supabase
