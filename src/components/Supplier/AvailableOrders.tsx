@@ -124,7 +124,6 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
           {availableOrders.map((order) => {
             const distance = getDistanceFromCoordinates(order.coordinates);
             const estimatedTime = getEstimatedTime(order.coordinates);
-            const isAccepting = acceptingOrder === order.id;
             const crateSummary = getCrateSummary(order);
             const totalCratesToReturn = Object.values(crateSummary).reduce((sum, crate) => sum + crate.toReturn, 0);
             const totalConsigneAmount = Object.entries(crateSummary).reduce((sum, [crateType, counts]) => {
@@ -313,22 +312,8 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                       disabled={order.status !== 'pending-offers'}
                       className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
                     >
-                      {order.status === 'awaiting-client-validation' ? (
-                        <>
-                          <Clock className="h-4 w-4" />
-                          <span>En attente validation client</span>
-                        </>
-                      ) : isAccepting ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          <span>Acceptation...</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="h-4 w-4" />
-                          <span>Envoyer une offre</span>
-                        </>
-                      )}
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Envoyer une offre</span>
                     </button>
                   </div>
                 </div>
