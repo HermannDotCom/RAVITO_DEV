@@ -6,6 +6,8 @@ import { useOrder } from '../../context/OrderContext';
 import { useRating } from '../../context/RatingContext';
 import { Order, OrderStatus, CrateType } from '../../types';
 import { ClientRatingForm } from './ClientRatingForm';
+import { OrderDetailsWithOffers } from './OrderDetailsWithOffers';
+import { PaymentInterface } from './PaymentInterface';
 
 interface OrderHistoryProps {
   onNavigate: (section: string) => void;
@@ -24,6 +26,9 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedOrderForRating, setSelectedOrderForRating] = useState<Order | null>(null);
+  const [showOffersModal, setShowOffersModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [orderForPayment, setOrderForPayment] = useState<Order | null>(null);
 
   // Filtrer les commandes de l'utilisateur connecté
   const userOrders = allOrders.filter(order => 
@@ -954,6 +959,34 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {showOffersModal && selectedOrder && (
+        <OrderDetailsWithOffers
+          order={selectedOrder}
+          onOfferAccepted={() => {
+            setShowOffersModal(false);
+            setSelectedOrder(null);
+          }}
+          onClose={() => {
+            setShowOffersModal(false);
+            setSelectedOrder(null);
+          }}
+        />
+      )}
+
+      {showPaymentModal && orderForPayment && (
+        <PaymentInterface
+          order={orderForPayment}
+          onPaymentSuccess={() => {
+            setShowPaymentModal(false);
+            setOrderForPayment(null);
+          }}
+          onCancel={() => {
+            setShowPaymentModal(false);
+            setOrderForPayment(null);
+          }}
+        />
       )}
     </>
   );

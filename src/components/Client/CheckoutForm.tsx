@@ -3,6 +3,9 @@ import { MapPin, CreditCard, Smartphone, Archive, AlertCircle } from 'lucide-rea
 import { useCart } from '../../context/CartContext';
 import { useOrder } from '../../context/OrderContext';
 import { useCommission } from '../../context/CommissionContext';
+import { useAuth } from '../../context/AuthContext';
+import { usePendingRatings } from '../../hooks/usePendingRatings';
+import { PendingRatingModal } from '../Shared/PendingRatingModal';
 import { PaymentMethod, CrateType } from '../../types';
 import { ZoneSelector } from './ZoneSelector';
 
@@ -12,14 +15,17 @@ interface CheckoutFormProps {
 }
 
 export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack }) => {
+  const { user } = useAuth();
   const { cart, getCartTotal, clearCart } = useCart();
   const { placeOrder } = useOrder();
   const { commissionSettings } = useCommission();
+  const { hasPendingRatings, loading: ratingsLoading } = usePendingRatings(user?.id || null);
   const [deliveryZone, setDeliveryZone] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('orange');
   const [isProcessing, setIsProcessing] = useState(false);
   const [zoneError, setZoneError] = useState('');
+  const [showRatingModal, setShowRatingModal] = useState(false);
 
   const { subtotal, consigneTotal } = getCartTotal();
   const clientCommission = Math.round((subtotal + consigneTotal) * (commissionSettings.clientCommission / 100));
@@ -55,6 +61,11 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
   ];
 
   const handleConfirmOrder = async () => {
+    if (hasPendingRatings) {
+      setShowRatingModal(true);
+      return;
+    }
+
     if (!deliveryZone) {
       setZoneError('Veuillez sélectionner votre zone de livraison');
       return;
@@ -92,6 +103,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
   };
 
   return (
+    <>
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Finaliser la commande</h1>
@@ -264,5 +276,16 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
         </div>
       </div>
     </div>
+
+    {showRatingModal && (
+      <PendingRatingModal
+        userRole="client"
+        onClose={() => setShowRatingModal(false)}
+        onGoToRating={() => {
+          setShowRatingModal(false);
+        }}
+      />
+    )}
+    </>
   );
 };
