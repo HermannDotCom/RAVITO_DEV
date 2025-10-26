@@ -83,7 +83,8 @@ export async function getOrdersByClient(clientId: string): Promise<Order[]> {
         order_items (
           *,
           product:products (*)
-        )
+        ),
+        zone:zones (name)
       `)
       .eq('client_id', clientId)
       .order('created_at', { ascending: false });
@@ -109,7 +110,8 @@ export async function getOrdersBySupplier(supplierId: string): Promise<Order[]> 
         order_items (
           *,
           product:products (*)
-        )
+        ),
+        zone:zones (name)
       `)
       .eq('supplier_id', supplierId)
       .order('created_at', { ascending: false });
@@ -135,7 +137,8 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
         order_items (
           *,
           product:products (*)
-        )
+        ),
+        zone:zones (name)
       `)
       .in('status', ['pending', 'pending-offers', 'awaiting-client-validation']);
 
@@ -221,7 +224,9 @@ export async function updateOrderStatus(
 }
 
 function mapDatabaseOrderToApp(dbOrder: any): Order {
-  const items: CartItem[] = dbOrder.order_items.map((item: any) => ({
+  console.log('Mapping order:', dbOrder.id, 'order_items:', dbOrder.order_items);
+
+  const items: CartItem[] = (dbOrder.order_items || []).map((item: any) => ({
     product: {
       id: item.product.id,
       reference: item.product.reference,
@@ -258,10 +263,12 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
     status: dbOrder.status as OrderStatus,
     consigneTotal: dbOrder.consigne_total,
     deliveryAddress: dbOrder.delivery_address,
+    deliveryZone: dbOrder.zone?.name || 'Zone non spécifiée',
     coordinates: {
       lat: typeof lat === 'number' ? lat : 5.3364,
       lng: typeof lng === 'number' ? lng : -4.0267
     },
+    zoneId: dbOrder.zone_id,
     paymentMethod: dbOrder.payment_method as PaymentMethod,
     estimatedDeliveryTime: dbOrder.estimated_delivery_time,
     paymentStatus: dbOrder.payment_status,

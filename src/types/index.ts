@@ -138,6 +138,7 @@ export interface Order {
   status: OrderStatus;
   consigneTotal: number;
   deliveryAddress: string;
+  deliveryZone?: string;
   coordinates: {
     lat: number;
     lng: number;
