@@ -16,10 +16,6 @@ import { Cart } from './components/Client/Cart';
 import { CheckoutForm } from './components/Client/CheckoutForm';
 import { OrderTracking } from './components/Client/OrderTracking';
 import { RatingForm } from './components/Client/RatingForm';
-import { OrderConfirmation } from './components/Client/OrderConfirmation';
-import { PaymentModal } from './components/Client/PaymentModal';
-import { ContactExchange } from './components/Client/ContactExchange';
-import { SupplierNotification } from './components/Supplier/SupplierNotification';
 import { AvailableOrders } from './components/Supplier/AvailableOrders';
 import { ActiveDeliveries } from './components/Supplier/ActiveDeliveries';
 import { DeliveryHistory } from './components/Supplier/DeliveryHistory';
@@ -42,7 +38,7 @@ import { TicketManagement } from './components/Admin/TicketManagement';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing } = useAuth();
-  const { currentOrder, clientCurrentOrder, orderStep, supplierOffer, acceptSupplierOffer, rejectSupplierOffer, cancelOrder, confirmPayment, setOrderStep, updateDeliveryTime } = useOrder();
+  const { currentOrder } = useOrder();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showRating, setShowRating] = useState(false);
@@ -74,63 +70,6 @@ const AppContent: React.FC = () => {
             setActiveSection('dashboard');
           }}
         />
-      );
-    }
-
-    // Handle order flow overlays
-    if (user?.role === 'client' && clientCurrentOrder && orderStep === 'offer-received' && supplierOffer) {
-      return (
-        <>
-          {activeSection === 'dashboard' ? (
-            user.role === 'client' ? <ClientDashboard onNavigate={setActiveSection} /> :
-            user.role === 'supplier' ? <SupplierDashboard onNavigate={setActiveSection} /> :
-            <AdminDashboard />
-          ) : (
-            renderSectionContent()
-          )}
-          <OrderConfirmation
-            onAccept={acceptSupplierOffer}
-            onReject={rejectSupplierOffer}
-            onCancel={cancelOrder}
-          />
-        </>
-      );
-    }
-
-    if (user?.role === 'client' && clientCurrentOrder && orderStep === 'payment') {
-      return (
-        <>
-          {activeSection === 'dashboard' ? (
-            user.role === 'client' ? <ClientDashboard onNavigate={setActiveSection} /> :
-            user.role === 'supplier' ? <SupplierDashboard onNavigate={setActiveSection} /> :
-            <AdminDashboard />
-          ) : (
-            renderSectionContent()
-          )}
-          <PaymentModal
-            amount={clientCurrentOrder.totalAmount}
-            paymentMethod={clientCurrentOrder.paymentMethod}
-            onSuccess={confirmPayment}
-            onCancel={() => setOrderStep('offer-received')}
-          />
-        </>
-      );
-    }
-
-    if (user?.role === 'client' && clientCurrentOrder && orderStep === 'contact-exchange') {
-      return (
-        <>
-          {activeSection === 'dashboard' ? (
-            user.role === 'client' ? <ClientDashboard onNavigate={setActiveSection} /> :
-            user.role === 'supplier' ? <SupplierDashboard onNavigate={setActiveSection} /> :
-            <AdminDashboard />
-          ) : (
-            renderSectionContent()
-          )}
-          <ContactExchange
-            onContinue={() => setOrderStep('tracking')}
-          />
-        </>
       );
     }
 
@@ -172,15 +111,7 @@ const AppContent: React.FC = () => {
             return <ZoneRegistration />;
           case 'orders':
             return (
-              <>
-                <AvailableOrders onNavigate={setActiveSection} />
-                {currentOrder && orderStep === 'contact-exchange' && (
-                  <SupplierNotification
-                    order={currentOrder}
-                    onContinue={() => setOrderStep('tracking')}
-                  />
-                )}
-              </>
+              <AvailableOrders onNavigate={setActiveSection} />
             );
           case 'deliveries':
             return <ActiveDeliveries onNavigate={setActiveSection} />;
