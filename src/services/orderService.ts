@@ -170,6 +170,12 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
       return [];
     }
 
+    console.log('📦 getPendingOrders - Raw data from DB:', JSON.stringify(data, null, 2));
+    console.log('📦 Number of orders:', data?.length);
+    if (data && data.length > 0) {
+      console.log('📦 First order order_items:', data[0].order_items);
+    }
+
     return data.map(mapDatabaseOrderToApp);
   } catch (error) {
     console.error('Exception fetching pending orders:', error);
@@ -224,9 +230,13 @@ export async function updateOrderStatus(
 }
 
 function mapDatabaseOrderToApp(dbOrder: any): Order {
-  console.log('Mapping order:', dbOrder.id, 'order_items:', dbOrder.order_items);
+  console.log('🔄 Mapping order:', dbOrder.id);
+  console.log('🔄 order_items count:', dbOrder.order_items?.length || 0);
+  console.log('🔄 order_items:', JSON.stringify(dbOrder.order_items, null, 2));
 
-  const items: CartItem[] = (dbOrder.order_items || []).map((item: any) => ({
+  const items: CartItem[] = (dbOrder.order_items || []).map((item: any) => {
+    console.log('🔄 Mapping item:', item.id, 'product:', item.product?.name);
+    return {
     product: {
       id: item.product.id,
       reference: item.product.reference,
@@ -249,12 +259,13 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
     },
     quantity: item.quantity,
     withConsigne: item.with_consigne
-  }));
+    };
+  });
 
   const lat = (dbOrder as any).lat;
   const lng = (dbOrder as any).lng;
 
-  return {
+  const mappedOrder = {
     id: dbOrder.id,
     clientId: dbOrder.client_id,
     supplierId: dbOrder.supplier_id,
@@ -278,4 +289,8 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
     paidAt: dbOrder.paid_at ? new Date(dbOrder.paid_at) : undefined,
     transferredAt: dbOrder.transferred_at ? new Date(dbOrder.transferred_at) : undefined
   };
+
+  console.log('✅ Mapped order:', mappedOrder.id, 'items:', mappedOrder.items.length);
+
+  return mappedOrder;
 }
