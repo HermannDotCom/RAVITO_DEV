@@ -132,17 +132,16 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
       const { error } = await supabase.from('supplier_offers').insert({
         order_id: selectedOrder.id,
         supplier_id: user.id,
-        offered_items: activeItems.map(item => ({
-          product_id: item.productId,
-          requested_quantity: item.requestedQuantity,
-          offered_quantity: item.offeredQuantity,
-          price_per_unit: item.pricePerUnit,
-          with_consigne: item.withConsigne
+        modified_items: activeItems.map(item => ({
+          productId: item.productId,
+          quantity: item.offeredQuantity,
+          withConsigne: item.withConsigne
         })),
         total_amount: totals.total,
-        supplier_net_amount: totals.supplierNet,
-        client_total_amount: totals.clientTotal,
-        message: message || null,
+        consigne_total: totals.consigneTotal,
+        supplier_commission: totals.supplierCommission,
+        net_supplier_amount: totals.supplierNet,
+        supplier_message: message || null,
         status: 'pending'
       });
 
@@ -394,10 +393,6 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                         <span className="font-semibold">{formatPrice(totals.consigneTotal)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-blue-600">
-                      <span>Commission client (+{commissionSettings.clientCommission}%)</span>
-                      <span className="font-semibold">+{formatPrice(totals.clientCommission)}</span>
-                    </div>
                     <div className="flex justify-between text-red-600">
                       <span>Commission fournisseur (-{commissionSettings.supplierCommission}%)</span>
                       <span className="font-semibold">-{formatPrice(totals.supplierCommission)}</span>

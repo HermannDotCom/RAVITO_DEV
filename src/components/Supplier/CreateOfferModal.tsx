@@ -246,12 +246,6 @@ export const CreateOfferModal: React.FC<CreateOfferModalProps> = ({ order, onClo
                 </span>
               </div>
             )}
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Commission client ({commissionSettings.clientCommission}%)</span>
-              <span className="font-medium text-gray-900 dark:text-white">
-                {formatPrice(totals.clientCommission)}
-              </span>
-            </div>
             <div className="flex justify-between text-sm border-t border-gray-300 dark:border-gray-600 pt-2">
               <span className="text-gray-600 dark:text-gray-400">Commission fournisseur ({commissionSettings.supplierCommission}%)</span>
               <span className="font-medium text-red-600 dark:text-red-400">
