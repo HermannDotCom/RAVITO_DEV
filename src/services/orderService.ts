@@ -143,6 +143,8 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
       .in('status', ['pending', 'pending-offers', 'awaiting-client-validation']);
 
     if (supplierId) {
+      console.log('🔍 Fetching zones for supplier:', supplierId);
+
       const { data: supplierZones, error: zonesError } = await supabase
         .from('supplier_zones')
         .select('zone_id')
@@ -150,13 +152,16 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
         .eq('approval_status', 'approved');
 
       if (zonesError) {
-        console.error('Error fetching supplier zones:', zonesError);
+        console.error('❌ Error fetching supplier zones:', zonesError);
         return [];
       }
 
+      console.log('✅ Supplier zones found:', supplierZones);
       const zoneIds = supplierZones.map(sz => sz.zone_id);
+      console.log('📍 Zone IDs to filter by:', zoneIds);
 
       if (zoneIds.length === 0) {
+        console.warn('⚠️ No approved zones found for this supplier');
         return [];
       }
 
@@ -166,14 +171,21 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
     const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching pending orders:', error);
+      console.error('❌ Error fetching pending orders:', error);
       return [];
     }
 
     console.log('📦 getPendingOrders - Raw data from DB:', JSON.stringify(data, null, 2));
     console.log('📦 Number of orders:', data?.length);
     if (data && data.length > 0) {
-      console.log('📦 First order order_items:', data[0].order_items);
+      console.log('📦 First order details:');
+      console.log('  - ID:', data[0].id);
+      console.log('  - zone_id:', data[0].zone_id);
+      console.log('  - status:', data[0].status);
+      console.log('  - order_items:', data[0].order_items);
+      console.log('  - order_items count:', data[0].order_items?.length);
+    } else {
+      console.warn('⚠️ No orders returned from query');
     }
 
     return data.map(mapDatabaseOrderToApp);

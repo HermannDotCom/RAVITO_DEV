@@ -275,6 +275,17 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Order Information */}
               <div className="space-y-6">
+                {/* Order Status */}
+                <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">Statut de la commande</h3>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-700 font-medium">Statut actuel:</span>
+                    <span className={`px-4 py-2 text-sm font-semibold rounded-full ${statusInfo.color}`}>
+                      {statusInfo.label}
+                    </span>
+                  </div>
+                </div>
+
                 {/* Timeline */}
                 <div className="bg-gray-50 rounded-xl p-6">
                   <h3 className="text-lg font-bold text-gray-900 mb-4">Chronologie</h3>
@@ -373,8 +384,14 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                     )}
                     <div className="flex justify-between">
                       <span className="text-gray-600">Statut paiement:</span>
-                      <span className={`font-medium ${order.status === 'cancelled' ? 'text-red-600' : 'text-green-600'}`}>
-                        {order.status === 'cancelled' ? 'Annulé' : 'Payé'}
+                      <span className={`font-medium ${
+                        order.status === 'cancelled' ? 'text-red-600' :
+                        order.paymentStatus === 'paid' ? 'text-green-600' :
+                        'text-orange-600'
+                      }`}>
+                        {order.status === 'cancelled' ? 'Annulé' :
+                         order.paymentStatus === 'paid' ? 'Payé' :
+                         'En attente'}
                       </span>
                     </div>
                   </div>

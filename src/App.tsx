@@ -87,7 +87,7 @@ const AppContent: React.FC = () => {
           case 'checkout':
             return (
               <CheckoutForm
-                onConfirm={() => setActiveSection('tracking')}
+                onConfirm={() => setActiveSection('orders')}
                 onBack={() => setActiveSection('cart')}
               />
             );
@@ -160,6 +160,7 @@ const AppContent: React.FC = () => {
       <Header
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         title={showRating ? 'Évaluation' : undefined}
+        onCartClick={() => setActiveSection('cart')}
       />
 
       <div className="flex">

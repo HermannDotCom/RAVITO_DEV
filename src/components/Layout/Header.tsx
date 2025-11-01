@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
-import { Menu, User, LogOut, Bell } from 'lucide-react';
+import { Menu, User, LogOut, Bell, ShoppingCart } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { NotificationPanel } from '../Notifications/NotificationPanel';
 
 interface HeaderProps {
   onMenuToggle: () => void;
   title?: string;
+  onCartClick?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NIGHT' }) => {
+export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NIGHT', onCartClick }) => {
   const { user, logout } = useAuth();
+  const { cart } = useCart();
   const { unreadCount } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
+
+  const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <header className="bg-white shadow-lg border-b border-orange-100">
@@ -38,6 +43,21 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NI
 
           {user && (
             <div className="flex items-center space-x-4">
+              {user.role === 'client' && (
+                <button
+                  onClick={onCartClick}
+                  className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-colors relative"
+                  aria-label="Panier"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {cartItemsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 bg-orange-500 rounded-full flex items-center justify-center">
+                      <span className="text-xs text-white font-bold">{cartItemsCount > 9 ? '9+' : cartItemsCount}</span>
+                    </span>
+                  )}
+                </button>
+              )}
+
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-colors relative"
