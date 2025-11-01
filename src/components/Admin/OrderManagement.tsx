@@ -13,9 +13,11 @@ export const OrderManagement: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [showInterventionModal, setShowInterventionModal] = useState(false);
-  const [interventionType, setInterventionType] = useState<'cancel' | 'reassign' | 'contact' | 'refund'>('cancel');
+  const [interventionType, setInterventionType] = useState<'cancel' | 'reassign' | 'contact' | 'refund' | 'changeZone'>('cancel');
   const [interventionReason, setInterventionReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showZoneModal, setShowZoneModal] = useState(false);
+  const [selectedZoneId, setSelectedZoneId] = useState<string>('');
 
   const filteredOrders = allOrders.filter(order => {
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -29,16 +31,26 @@ export const OrderManagement: React.FC = () => {
     switch (status) {
       case 'pending':
         return { label: 'En attente', color: 'bg-yellow-100 text-yellow-700', icon: Clock, textColor: 'text-yellow-600' };
+      case 'pending-offers':
+        return { label: 'En attente d\'offres', color: 'bg-yellow-100 text-yellow-700', icon: Clock, textColor: 'text-yellow-600' };
+      case 'offers-received':
+        return { label: 'Offres reçues', color: 'bg-blue-100 text-blue-700', icon: Package, textColor: 'text-blue-600' };
+      case 'awaiting-payment':
+        return { label: 'En attente de paiement', color: 'bg-orange-100 text-orange-700', icon: CreditCard, textColor: 'text-orange-600' };
+      case 'paid':
+        return { label: 'Payée', color: 'bg-green-100 text-green-700', icon: CheckCircle, textColor: 'text-green-600' };
       case 'awaiting-client-validation':
-        return { label: 'Offre envoyée', color: 'bg-orange-100 text-orange-700', icon: Clock, textColor: 'text-orange-600' };
+        return { label: 'Validation client', color: 'bg-orange-100 text-orange-700', icon: Clock, textColor: 'text-orange-600' };
       case 'accepted':
         return { label: 'Acceptée', color: 'bg-blue-100 text-blue-700', icon: Package, textColor: 'text-blue-600' };
       case 'preparing':
-        return { label: 'Préparation', color: 'bg-purple-100 text-purple-700', icon: Package, textColor: 'text-purple-600' };
+        return { label: 'En préparation', color: 'bg-purple-100 text-purple-700', icon: Package, textColor: 'text-purple-600' };
       case 'delivering':
         return { label: 'En livraison', color: 'bg-orange-100 text-orange-700', icon: Truck, textColor: 'text-orange-600' };
       case 'delivered':
         return { label: 'Livrée', color: 'bg-green-100 text-green-700', icon: CheckCircle, textColor: 'text-green-600' };
+      case 'awaiting-rating':
+        return { label: 'En attente d\'évaluation', color: 'bg-yellow-100 text-yellow-700', icon: Star, textColor: 'text-yellow-600' };
       case 'cancelled':
         return { label: 'Annulée', color: 'bg-red-100 text-red-700', icon: XCircle, textColor: 'text-red-600' };
       default:
@@ -93,10 +105,14 @@ export const OrderManagement: React.FC = () => {
     setShowOrderDetails(true);
   };
 
-  const handleIntervention = (order: Order, type: 'cancel' | 'reassign' | 'contact' | 'refund') => {
+  const handleIntervention = (order: Order, type: 'cancel' | 'reassign' | 'contact' | 'refund' | 'changeZone') => {
     setSelectedOrder(order);
     setInterventionType(type);
-    setShowInterventionModal(true);
+    if (type === 'changeZone') {
+      setShowZoneModal(true);
+    } else {
+      setShowInterventionModal(true);
+    }
   };
 
   const executeIntervention = async () => {
@@ -426,7 +442,17 @@ export const OrderManagement: React.FC = () => {
                         <span>Réassigner</span>
                       </button>
                     )}
-                    
+
+                    {(order.status === 'pending-offers' || order.status === 'offers-received') && (
+                      <button
+                        onClick={() => handleIntervention(order, 'changeZone')}
+                        className="px-4 py-2 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors flex items-center justify-center space-x-2"
+                      >
+                        <MapPin className="h-4 w-4" />
+                        <span>Modifier la zone</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => handleIntervention(order, 'contact')}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
@@ -434,7 +460,7 @@ export const OrderManagement: React.FC = () => {
                       <MessageCircle className="h-4 w-4" />
                       <span>Contacter</span>
                     </button>
-                    
+
                     {order.status === 'delivered' && (
                       <button
                         onClick={() => handleIntervention(order, 'refund')}

@@ -34,17 +34,19 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   React.useEffect(() => {
     if (selectedOrder) {
       const updatedOrder = allOrders.find(o => o.id === selectedOrder.id);
-      if (updatedOrder && JSON.stringify(updatedOrder) !== JSON.stringify(selectedOrder)) {
+      if (updatedOrder && updatedOrder.status !== selectedOrder.status) {
+        console.log('🔄 Updating selectedOrder status:', selectedOrder.status, '->', updatedOrder.status);
         setSelectedOrder(updatedOrder);
       }
     }
     if (orderForPayment) {
       const updatedOrder = allOrders.find(o => o.id === orderForPayment.id);
-      if (updatedOrder && JSON.stringify(updatedOrder) !== JSON.stringify(orderForPayment)) {
+      if (updatedOrder && updatedOrder.status !== orderForPayment.status) {
+        console.log('🔄 Updating orderForPayment status:', orderForPayment.status, '->', updatedOrder.status);
         setOrderForPayment(updatedOrder);
       }
     }
-  }, [allOrders]);
+  }, [allOrders, selectedOrder, orderForPayment]);
 
   // Filtrer les commandes de l'utilisateur connecté
   const userOrders = allOrders.filter(order => 
@@ -1042,10 +1044,10 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
         <PaymentInterface
           order={orderForPayment}
           onPaymentSuccess={async () => {
-            setShowPaymentModal(false);
-            setOrderForPayment(null);
             setShowOffersModal(false);
             setSelectedOrder(null);
+            setShowPaymentModal(false);
+            setOrderForPayment(null);
             await refreshOrders();
           }}
           onCancel={() => {

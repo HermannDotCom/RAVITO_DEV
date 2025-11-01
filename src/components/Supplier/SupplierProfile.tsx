@@ -13,13 +13,26 @@ export const SupplierProfile: React.FC = () => {
     name: user?.name || '',
     phone: user?.phone || '',
     address: user?.address || '',
-    businessName: 'Dépôt du Plateau',
+    businessName: user?.businessName || user?.name || '',
     businessHours: '18h00 - 06h00',
     coverageZone: 'Plateau, Marcory, Treichville',
     availableProducts: ['Solibra', 'Brassivoire'],
     deliveryCapacity: 'truck' as DeliveryMethod,
     acceptedPayments: ['orange', 'mtn', 'moov', 'card'] as PaymentMethod[]
   });
+
+  // Mettre à jour formData quand user change
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || '',
+        phone: user.phone || '',
+        address: user.address || '',
+        businessName: user.businessName || user.name || ''
+      }));
+    }
+  }, [user]);
 
   const paymentMethods = [
     { value: 'orange' as PaymentMethod, label: 'Orange Money' },

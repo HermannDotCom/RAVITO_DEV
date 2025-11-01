@@ -6,6 +6,7 @@ import { useOrder } from '../../context/OrderContext';
 import { useCommission } from '../../context/CommissionContext';
 import { usePendingRatings } from '../../hooks/usePendingRatings';
 import { PendingRatingModal } from '../Shared/PendingRatingModal';
+import { SupplierOrderSections } from './SupplierOrderSections';
 import { supabase } from '../../lib/supabase';
 
 interface AvailableOrdersProps {
@@ -186,86 +187,16 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
   const totals = selectedOrder ? calculateTotals() : null;
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Commandes Disponibles</h1>
-        <p className="text-gray-600">Acceptez les commandes dans votre zone de couverture</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Mes Commandes</h1>
+        <p className="text-gray-600">Gérez vos commandes disponibles, en attente et en cours</p>
       </div>
 
-      {availableOrders.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-12 text-center">
-          <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Aucune commande disponible</h3>
-          <p className="text-gray-500">Les nouvelles commandes apparaîtront ici automatiquement</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {availableOrders.map((order) => {
-            const distance = getDistanceFromCoordinates(order.coordinates);
-            const estimatedTime = getEstimatedTime(order.coordinates);
-
-            return (
-              <div key={order.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow">
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="h-12 w-12 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                        <Package className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900">Commande #{order.id.slice(0, 8)}</h3>
-                        <p className="text-sm text-gray-600">
-                          Créée il y a {Math.floor((Date.now() - order.createdAt.getTime()) / 60000)} minutes
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-6 text-sm">
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-gray-400" />
-                        <span className="font-medium">{distance}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4 text-gray-400" />
-                        <span className="font-medium">~{estimatedTime} min</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Zone de livraison</p>
-                        <p className="font-semibold text-gray-900">{order.deliveryZone || 'Zone non spécifiée'}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600 mb-1">Montant total</p>
-                        <p className="text-xl font-bold text-blue-600">{formatPrice(order.totalAmount)}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                    <p className="text-sm font-semibold text-gray-900 mb-2">
-                      {order.items.length} produit{order.items.length > 1 ? 's' : ''} commandé{order.items.length > 1 ? 's' : ''}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      Cliquez sur "Voir détails" pour consulter la commande complète et envoyer votre offre
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => handleViewDetails(order)}
-                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all"
-                  >
-                    Voir détails
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <SupplierOrderSections
+        availableOrders={availableOrders}
+        onSelectOrder={handleViewDetails}
+      />
 
       {showDetailsModal && selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
