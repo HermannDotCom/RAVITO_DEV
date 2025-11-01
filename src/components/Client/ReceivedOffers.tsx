@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Package, CheckCircle, XCircle, MessageSquare, AlertCircle } from 'lucide-react';
+import { Package, CheckCircle, XCircle, MessageSquare, AlertCircle, CreditCard } from 'lucide-react';
 import { Order } from '../../types';
 import { SupplierOffer, getOffersByOrder, acceptOffer, rejectOffer } from '../../services/supplierOfferService';
 
 interface ReceivedOffersProps {
   order: Order;
   onOfferAccepted: () => void;
+  onPaymentRequest?: () => void;
 }
 
-export const ReceivedOffers: React.FC<ReceivedOffersProps> = ({ order, onOfferAccepted }) => {
+export const ReceivedOffers: React.FC<ReceivedOffersProps> = ({ order, onOfferAccepted, onPaymentRequest }) => {
   const [offers, setOffers] = useState<SupplierOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingOfferId, setProcessingOfferId] = useState<string | null>(null);
@@ -250,10 +251,21 @@ export const ReceivedOffers: React.FC<ReceivedOffersProps> = ({ order, onOfferAc
             )}
 
             {offer.status === 'accepted' && (
-              <div className="mt-4 p-4 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                <p className="text-sm text-green-800 dark:text-green-300 font-medium">
-                  Offre acceptée ! Procédez au paiement pour finaliser votre commande.
-                </p>
+              <div className="mt-4">
+                <div className="p-4 bg-green-100 dark:bg-green-900/30 rounded-lg mb-3">
+                  <p className="text-sm text-green-800 dark:text-green-300 font-medium">
+                    ✅ Offre acceptée ! Procédez au paiement pour finaliser votre commande.
+                  </p>
+                </div>
+                {onPaymentRequest && (
+                  <button
+                    onClick={onPaymentRequest}
+                    className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center"
+                  >
+                    <CreditCard className="h-5 w-5 mr-2" />
+                    Procéder au paiement
+                  </button>
+                )}
               </div>
             )}
           </div>

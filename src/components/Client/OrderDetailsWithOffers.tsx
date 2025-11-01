@@ -7,12 +7,14 @@ interface OrderDetailsWithOffersProps {
   order: Order;
   onOfferAccepted: () => void;
   onClose: () => void;
+  onPaymentRequest?: () => void;
 }
 
 export const OrderDetailsWithOffers: React.FC<OrderDetailsWithOffersProps> = ({
   order,
   onOfferAccepted,
-  onClose
+  onClose,
+  onPaymentRequest
 }) => {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
@@ -184,7 +186,11 @@ export const OrderDetailsWithOffers: React.FC<OrderDetailsWithOffersProps> = ({
 
           {showOffers && (
             <div>
-              <ReceivedOffers order={order} onOfferAccepted={onOfferAccepted} />
+              <ReceivedOffers
+                order={order}
+                onOfferAccepted={onOfferAccepted}
+                onPaymentRequest={onPaymentRequest}
+              />
             </div>
           )}
         </div>

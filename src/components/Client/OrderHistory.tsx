@@ -875,14 +875,27 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                       </div>
 
                       <div className="flex space-x-2">
-                        <button 
+                        <button
                           onClick={() => handleViewDetails(order)}
                           className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center space-x-2"
                         >
                           <Eye className="h-4 w-4" />
                           <span>Détails</span>
                         </button>
-                        
+
+                        {order.status === 'awaiting-payment' && (
+                          <button
+                            onClick={() => {
+                              setOrderForPayment(order);
+                              setShowPaymentModal(true);
+                            }}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                          >
+                            <CreditCard className="h-4 w-4" />
+                            <span>Payer maintenant</span>
+                          </button>
+                        )}
+
                         {order === clientCurrentOrder && (
                           <button 
                             onClick={() => onNavigate('tracking')}
@@ -1003,6 +1016,11 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
           onClose={() => {
             setShowOffersModal(false);
             setSelectedOrder(null);
+          }}
+          onPaymentRequest={() => {
+            setOrderForPayment(selectedOrder);
+            setShowOffersModal(false);
+            setShowPaymentModal(true);
           }}
         />
       )}
