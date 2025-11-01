@@ -48,6 +48,31 @@ export async function createSupplierOffer(
       };
     }
 
+    // Vérifier d'abord les conditions RLS manuellement pour un meilleur diagnostic
+    const { data: orderCheck } = await supabase
+      .from('orders')
+      .select('id, status, zone_id')
+      .eq('id', orderId)
+      .single();
+
+    console.log('📋 Order check:', orderCheck);
+
+    const { data: profileCheck } = await supabase
+      .from('profiles')
+      .select('id, role, is_approved')
+      .eq('id', userData.user.id)
+      .single();
+
+    console.log('👤 Profile check:', profileCheck);
+
+    const { data: zoneCheck } = await supabase
+      .from('supplier_zones')
+      .select('zone_id')
+      .eq('supplier_id', userData.user.id)
+      .eq('zone_id', orderCheck?.zone_id || '');
+
+    console.log('📍 Zone check:', zoneCheck);
+
     const { data, error } = await supabase
       .from('supplier_offers')
       .insert({
@@ -64,7 +89,16 @@ export async function createSupplierOffer(
       .single();
 
     if (error) {
-      console.error('Error creating supplier offer:', error);
+      console.error('❌ Error creating supplier offer:', error);
+      console.error('📊 Diagnostic:', {
+        orderId,
+        orderStatus: orderCheck?.status,
+        orderZone: orderCheck?.zone_id,
+        supplierId: userData.user.id,
+        supplierRole: profileCheck?.role,
+        supplierApproved: profileCheck?.is_approved,
+        supplierInZone: zoneCheck && zoneCheck.length > 0
+      });
       return { success: false, error: error.message };
     }
 

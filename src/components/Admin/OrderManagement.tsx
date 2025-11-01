@@ -21,11 +21,43 @@ export const OrderManagement: React.FC = () => {
   const [selectedZoneId, setSelectedZoneId] = useState<string>('');
   const [availableZones, setAvailableZones] = useState<Array<{ id: string; name: string; description: string }>>([]);
   const [isLoadingZones, setIsLoadingZones] = useState(false);
+  const [userProfiles, setUserProfiles] = useState<Record<string, { name: string; businessName?: string }>>({});
 
-  // Charger les zones disponibles
+  // Charger les zones et profils disponibles
   useEffect(() => {
     loadZones();
-  }, []);
+    loadUserProfiles();
+  }, [allOrders]);
+
+  const loadUserProfiles = async () => {
+    try {
+      const userIds = new Set<string>();
+      allOrders.forEach(order => {
+        if (order.clientId) userIds.add(order.clientId);
+        if (order.supplierId) userIds.add(order.supplierId);
+      });
+
+      if (userIds.size === 0) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, business_name')
+        .in('id', Array.from(userIds));
+
+      if (error) throw error;
+
+      const profilesMap: Record<string, { name: string; businessName?: string }> = {};
+      data?.forEach(profile => {
+        profilesMap[profile.id] = {
+          name: profile.name,
+          businessName: profile.business_name
+        };
+      });
+      setUserProfiles(profilesMap);
+    } catch (error) {
+      console.error('Error loading user profiles:', error);
+    }
+  };
 
   const loadZones = async () => {
     setIsLoadingZones(true);
@@ -149,21 +181,14 @@ export const OrderManagement: React.FC = () => {
   };
 
   const getSupplierName = (supplierId?: string) => {
-    const suppliers = {
-      'supplier-1': 'Dépôt du Plateau',
-      'supplier-2': 'Dépôt Cocody Express',
-      'supplier-3': 'Dépôt Marcory Sud'
-    };
-    return suppliers[supplierId as keyof typeof suppliers] || 'Non assigné';
+    if (!supplierId) return 'Non assigné';
+    const profile = userProfiles[supplierId];
+    return profile?.businessName || profile?.name || 'Fournisseur inconnu';
   };
 
   const getClientName = (clientId: string) => {
-    const clients = {
-      '1': 'Maquis Belle Vue',
-      'client-jean': 'Maquis Belle Vue',
-      'user-1': 'Maquis Belle Vue'
-    };
-    return clients[clientId as keyof typeof clients] || 'Client inconnu';
+    const profile = userProfiles[clientId];
+    return profile?.businessName || profile?.name || 'Client inconnu';
   };
 
   const handleViewDetails = (order: Order) => {
