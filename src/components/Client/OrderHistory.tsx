@@ -16,7 +16,7 @@ interface OrderHistoryProps {
 export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const { cart } = useCart();
-  const { clientCurrentOrder, allOrders, updateOrderStatus } = useOrder();
+  const { currentOrder: clientCurrentOrder, allOrders, updateOrderStatus, refreshOrders } = useOrder();
   const { getOrderRatings, needsRating, submitRating } = useRating();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,6 +29,22 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   const [showOffersModal, setShowOffersModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [orderForPayment, setOrderForPayment] = useState<Order | null>(null);
+
+  // Synchroniser les commandes sélectionnées avec les mises à jour du contexte
+  React.useEffect(() => {
+    if (selectedOrder) {
+      const updatedOrder = allOrders.find(o => o.id === selectedOrder.id);
+      if (updatedOrder && JSON.stringify(updatedOrder) !== JSON.stringify(selectedOrder)) {
+        setSelectedOrder(updatedOrder);
+      }
+    }
+    if (orderForPayment) {
+      const updatedOrder = allOrders.find(o => o.id === orderForPayment.id);
+      if (updatedOrder && JSON.stringify(updatedOrder) !== JSON.stringify(orderForPayment)) {
+        setOrderForPayment(updatedOrder);
+      }
+    }
+  }, [allOrders]);
 
   // Filtrer les commandes de l'utilisateur connecté
   const userOrders = allOrders.filter(order => 
@@ -1010,8 +1026,6 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
           order={selectedOrder}
           onOfferAccepted={async () => {
             await refreshOrders();
-            setShowOffersModal(false);
-            setSelectedOrder(null);
           }}
           onClose={() => {
             setShowOffersModal(false);
