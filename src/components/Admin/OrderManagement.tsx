@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package, Search, Filter, Eye, MapPin, Clock, Star, AlertTriangle, CheckCircle, XCircle, Phone, User, CreditCard, Archive, Truck, X, MessageCircle } from 'lucide-react';
 import { Order, OrderStatus, CrateType } from '../../types';
 import { useOrder } from '../../context/OrderContext';
 import { useCommission } from '../../context/CommissionContext';
+import { supabase } from '../../lib/supabase';
 
 export const OrderManagement: React.FC = () => {
-  const { allOrders, updateOrderStatus } = useOrder();
+  const { allOrders, updateOrderStatus, refreshOrders } = useOrder();
   const { commissionSettings } = useCommission();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,6 +19,71 @@ export const OrderManagement: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showZoneModal, setShowZoneModal] = useState(false);
   const [selectedZoneId, setSelectedZoneId] = useState<string>('');
+  const [availableZones, setAvailableZones] = useState<Array<{ id: string; name: string; description: string }>>([]);
+  const [isLoadingZones, setIsLoadingZones] = useState(false);
+
+  // Charger les zones disponibles
+  useEffect(() => {
+    loadZones();
+  }, []);
+
+  const loadZones = async () => {
+    setIsLoadingZones(true);
+    try {
+      const { data, error } = await supabase
+        .from('zones')
+        .select('id, name, description')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setAvailableZones(data || []);
+    } catch (error) {
+      console.error('Error loading zones:', error);
+    } finally {
+      setIsLoadingZones(false);
+    }
+  };
+
+  const handleChangeZone = async () => {
+    if (!selectedOrder || !selectedZoneId) return;
+
+    setIsProcessing(true);
+    try {
+      // 1. Supprimer les offres existantes
+      const { error: deleteOffersError } = await supabase
+        .from('supplier_offers')
+        .delete()
+        .eq('order_id', selectedOrder.id);
+
+      if (deleteOffersError) throw deleteOffersError;
+
+      // 2. Mettre à jour la zone et réinitialiser le statut
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({
+          zone_id: selectedZoneId,
+          status: 'pending-offers',
+          supplier_id: null
+        })
+        .eq('id', selectedOrder.id);
+
+      if (updateError) throw updateError;
+
+      // 3. Rafraîchir les commandes
+      await refreshOrders();
+
+      alert(`✅ Zone modifiée avec succès!\n\nLa commande #${selectedOrder.id.slice(0, 8)} a été déplacée vers la nouvelle zone.\n\nStatut : En attente d'offres\nLes fournisseurs de cette zone peuvent maintenant voir la commande.`);
+    } catch (error) {
+      console.error('Error changing zone:', error);
+      alert('❌ Erreur lors du changement de zone. Veuillez réessayer.');
+    } finally {
+      setIsProcessing(false);
+      setShowZoneModal(false);
+      setSelectedOrder(null);
+      setSelectedZoneId('');
+    }
+  };
 
   const filteredOrders = allOrders.filter(order => {
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -480,6 +546,101 @@ export const OrderManagement: React.FC = () => {
     );
   };
 
+  const ZoneChangeModal = () => {
+    if (!selectedOrder) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
+          <div className="p-8">
+            <div className="text-center mb-6">
+              <div className="h-16 w-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="h-8 w-8 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Modifier la zone de livraison</h2>
+              <p className="text-gray-600">Commande #{selectedOrder.id.slice(0, 8)}</p>
+              <p className="text-sm text-gray-500 mt-2">
+                Zone actuelle : <span className="font-semibold">{selectedOrder.deliveryZone || 'Non spécifiée'}</span>
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Sélectionnez la nouvelle zone :
+              </label>
+
+              {isLoadingZones ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto"></div>
+                  <p className="text-sm text-gray-500 mt-2">Chargement des zones...</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {availableZones.map((zone) => (
+                    <button
+                      key={zone.id}
+                      onClick={() => setSelectedZoneId(zone.id)}
+                      className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                        selectedZoneId === zone.id
+                          ? 'border-teal-600 bg-teal-50'
+                          : 'border-gray-200 hover:border-teal-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-gray-900">{zone.name}</p>
+                          <p className="text-sm text-gray-600">{zone.description}</p>
+                        </div>
+                        {selectedZoneId === zone.id && (
+                          <CheckCircle className="h-6 w-6 text-teal-600" />
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start space-x-3">
+                <AlertTriangle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-semibold mb-1">Important :</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Les offres existantes seront supprimées</li>
+                    <li>Seuls les fournisseurs de la nouvelle zone verront cette commande</li>
+                    <li>Le statut repassera à "En attente d'offres"</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowZoneModal(false);
+                  setSelectedOrder(null);
+                  setSelectedZoneId('');
+                }}
+                disabled={isProcessing}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleChangeZone}
+                disabled={isProcessing || !selectedZoneId}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg font-semibold hover:from-teal-600 hover:to-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {isProcessing ? 'Modification...' : 'Confirmer le changement'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const InterventionModal = () => {
     if (!selectedOrder) return null;
 
@@ -879,6 +1040,9 @@ export const OrderManagement: React.FC = () => {
 
       {/* Intervention Modal */}
       {showInterventionModal && <InterventionModal />}
+
+      {/* Zone Change Modal */}
+      {showZoneModal && <ZoneChangeModal />}
     </>
   );
 };
