@@ -35,6 +35,7 @@ export const ReceivedOffers: React.FC<ReceivedOffersProps> = ({ order, onOfferAc
     setProcessingOfferId(null);
 
     if (result.success) {
+      await loadOffers();
       onOfferAccepted();
     } else {
       setError(result.error || 'Erreur lors de l\'acceptation de l\'offre');

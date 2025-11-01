@@ -1005,7 +1005,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
         </div>
       )}
 
-      {showOffersModal && selectedOrder && (
+      {showOffersModal && selectedOrder && !showPaymentModal && (
         <OrderDetailsWithOffers
           order={selectedOrder}
           onOfferAccepted={async () => {
@@ -1019,7 +1019,6 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
           }}
           onPaymentRequest={() => {
             setOrderForPayment(selectedOrder);
-            setShowOffersModal(false);
             setShowPaymentModal(true);
           }}
         />
@@ -1028,9 +1027,12 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
       {showPaymentModal && orderForPayment && (
         <PaymentInterface
           order={orderForPayment}
-          onPaymentSuccess={() => {
+          onPaymentSuccess={async () => {
             setShowPaymentModal(false);
             setOrderForPayment(null);
+            setShowOffersModal(false);
+            setSelectedOrder(null);
+            await refreshOrders();
           }}
           onCancel={() => {
             setShowPaymentModal(false);
