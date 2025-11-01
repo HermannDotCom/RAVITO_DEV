@@ -147,9 +147,14 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
 
       if (error) throw error;
 
-      await supabase.from('orders').update({
+      const { error: orderUpdateError } = await supabase.from('orders').update({
         status: 'offers-received'
       }).eq('id', selectedOrder.id);
+
+      if (orderUpdateError) {
+        console.error('Error updating order status:', orderUpdateError);
+        throw orderUpdateError;
+      }
 
       alert('✅ Offre envoyée avec succès!\n\nLe client va recevoir votre proposition.');
 
@@ -157,7 +162,7 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
       setSelectedOrder(null);
       setOfferItems([]);
       setMessage('');
-      refreshOrders();
+      await refreshOrders();
     } catch (error: any) {
       console.error('Error submitting offer:', error);
       alert('Erreur lors de l\'envoi de l\'offre: ' + error.message);

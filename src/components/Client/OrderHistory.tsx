@@ -73,16 +73,26 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
     switch (status) {
       case 'pending':
         return { label: 'En attente', color: 'bg-yellow-100 text-yellow-700', icon: Clock, textColor: 'text-yellow-600' };
+      case 'pending-offers':
+        return { label: 'En attente d\'offres', color: 'bg-yellow-100 text-yellow-700', icon: Clock, textColor: 'text-yellow-600' };
+      case 'offers-received':
+        return { label: 'Offres reçues', color: 'bg-blue-100 text-blue-700', icon: Package, textColor: 'text-blue-600' };
+      case 'awaiting-payment':
+        return { label: 'En attente de paiement', color: 'bg-orange-100 text-orange-700', icon: CreditCard, textColor: 'text-orange-600' };
+      case 'paid':
+        return { label: 'Payée', color: 'bg-green-100 text-green-700', icon: CheckCircle, textColor: 'text-green-600' };
       case 'awaiting-client-validation':
-        return { label: 'Offre reçue', color: 'bg-orange-100 text-orange-700', icon: Clock, textColor: 'text-orange-600' };
+        return { label: 'En attente de validation', color: 'bg-orange-100 text-orange-700', icon: Clock, textColor: 'text-orange-600' };
       case 'accepted':
         return { label: 'Acceptée', color: 'bg-blue-100 text-blue-700', icon: CheckCircle, textColor: 'text-blue-600' };
       case 'preparing':
-        return { label: 'Préparation', color: 'bg-purple-100 text-purple-700', icon: Package, textColor: 'text-purple-600' };
+        return { label: 'En préparation', color: 'bg-purple-100 text-purple-700', icon: Package, textColor: 'text-purple-600' };
       case 'delivering':
         return { label: 'En livraison', color: 'bg-orange-100 text-orange-700', icon: Truck, textColor: 'text-orange-600' };
       case 'delivered':
         return { label: 'Livrée', color: 'bg-green-100 text-green-700', icon: CheckCircle, textColor: 'text-green-600' };
+      case 'awaiting-rating':
+        return { label: 'En attente d\'évaluation', color: 'bg-yellow-100 text-yellow-700', icon: Star, textColor: 'text-yellow-600' };
       case 'cancelled':
         return { label: 'Annulée', color: 'bg-red-100 text-red-700', icon: XCircle, textColor: 'text-red-600' };
       default:
@@ -191,7 +201,11 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
 
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
-    setShowOrderDetails(true);
+    if (order.status === 'offers-received' || order.status === 'awaiting-payment') {
+      setShowOffersModal(true);
+    } else {
+      setShowOrderDetails(true);
+    }
   };
 
   const handleRateSupplier = (order: Order) => {
@@ -981,7 +995,8 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
       {showOffersModal && selectedOrder && (
         <OrderDetailsWithOffers
           order={selectedOrder}
-          onOfferAccepted={() => {
+          onOfferAccepted={async () => {
+            await refreshOrders();
             setShowOffersModal(false);
             setSelectedOrder(null);
           }}
