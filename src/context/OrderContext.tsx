@@ -12,6 +12,7 @@ import {
 
 interface OrderContextType {
   currentOrder: Order | null;
+  clientCurrentOrder: Order | null;
   availableOrders: Order[];
   supplierActiveDeliveries: Order[];
   supplierCompletedDeliveries: Order[];
@@ -27,6 +28,9 @@ interface OrderContextType {
     zoneId?: string
   ) => Promise<{ success: boolean; orderId?: string; error?: string }>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<boolean>;
+  acceptSupplierOffer: (orderId: string) => Promise<boolean>;
+  rejectSupplierOffer: (orderId: string) => Promise<boolean>;
+  processPayment: (orderId: string, paymentMethod: PaymentMethod, transactionId: string) => Promise<boolean>;
   refreshOrders: () => Promise<void>;
 }
 
@@ -156,16 +160,70 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return success;
   };
 
+  const acceptSupplierOffer = async (orderId: string): Promise<boolean> => {
+    try {
+      const success = await updateOrderStatusService(orderId, 'accepted', { acceptedAt: new Date() });
+      if (success) {
+        await loadOrders();
+      }
+      return success;
+    } catch (error) {
+      console.error('Error accepting offer:', error);
+      return false;
+    }
+  };
+
+  const rejectSupplierOffer = async (orderId: string): Promise<boolean> => {
+    try {
+      const success = await updateOrderStatusService(orderId, 'pending', {});
+      if (success) {
+        await loadOrders();
+      }
+      return success;
+    } catch (error) {
+      console.error('Error rejecting offer:', error);
+      return false;
+    }
+  };
+
+  const processPayment = async (orderId: string, paymentMethod: PaymentMethod, transactionId: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          status: 'preparing',
+          payment_status: 'completed',
+          paid_at: new Date().toISOString(),
+          payment_method: paymentMethod,
+          transaction_id: transactionId
+        })
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      await loadOrders();
+      return true;
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      return false;
+    }
+  };
+
   const refreshOrders = async () => {
     await loadOrders();
   };
 
   const allOrders = [...clientOrders, ...availableOrders, ...supplierActiveDeliveries, ...supplierCompletedDeliveries];
+  
+  const clientCurrentOrder = clientOrders.find(order => 
+    ['pending', 'awaiting-client-validation', 'accepted', 'preparing', 'delivering'].includes(order.status)
+  ) || null;
 
   return (
     <OrderContext.Provider
       value={{
         currentOrder,
+        clientCurrentOrder,
         availableOrders,
         supplierActiveDeliveries,
         supplierCompletedDeliveries,
@@ -174,6 +232,9 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         isLoading,
         placeOrder,
         updateOrderStatus,
+        acceptSupplierOffer,
+        rejectSupplierOffer,
+        processPayment,
         refreshOrders
       }}
     >
