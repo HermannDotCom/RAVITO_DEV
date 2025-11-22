@@ -35,6 +35,7 @@ import { ClientRatingForm } from './components/Client/ClientRatingForm';
 import { ContactSupport } from './components/Client/ContactSupport';
 import { SupplierContactSupport } from './components/Supplier/ContactSupport';
 import { TicketManagement } from './components/Admin/TicketManagement';
+import { OrderMomentumDashboard } from './components/Client/OrderMomentumDashboard';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing } = useAuth();
@@ -80,6 +81,8 @@ const AppContent: React.FC = () => {
     switch (user.role) {
       case 'client':
         switch (activeSection) {
+          case 'momentum':
+            return <OrderMomentumDashboard onNavigate={setActiveSection} zoneId={user.zoneId} />;
           case 'catalog':
             return <ProductCatalog />;
           case 'cart':
@@ -102,7 +105,7 @@ const AppContent: React.FC = () => {
           case 'support':
             return <ContactSupport />;
           default:
-            return <OrderHistory onNavigate={setActiveSection} />;
+            return <OrderMomentumDashboard onNavigate={setActiveSection} zoneId={user.zoneId} />;
         }
       
       case 'supplier':

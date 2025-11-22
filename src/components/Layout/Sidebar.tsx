@@ -11,7 +11,8 @@ import {
   CreditCard,
   Clock,
   ShoppingBag,
-  MessageSquare
+  MessageSquare,
+  Zap
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -31,6 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
     switch (user.role) {
       case 'client':
         return [
+          { id: 'momentum', label: '⚡ OrderMomentum', icon: Zap },
           { id: 'orders', label: 'Mes Commandes', icon: Package },
           { id: 'catalog', label: 'Catalogue', icon: Package },
           { id: 'cart', label: 'Panier', icon: ShoppingCart },
