@@ -12,6 +12,12 @@
  * 
  * Add keys here only if they are confirmed to be obsolete and no longer needed.
  * DO NOT add keys that are still in use!
+ * 
+ * TODO: When deprecating a key, add it here with a comment explaining:
+ * - What the key was used for
+ * - When it was deprecated (version/date)
+ * - Why it's no longer needed
+ * Example: 'old-cart-data', // Deprecated v2.0.0 - replaced by distri-night-orders
  */
 const OBSOLETE_KEYS: string[] = [
   // Example: 'old-app-data', 'deprecated-user-settings'
@@ -38,7 +44,9 @@ const PROTECTED_KEYS: string[] = [
  * Only removes keys that are explicitly listed in OBSOLETE_KEYS.
  * Logs all cleanup operations for debugging and audit purposes.
  * 
- * @param enableLogging - Whether to log cleanup operations (default: true in development)
+ * @param enableLogging - Whether to log cleanup operations. 
+ *                        Defaults to true in development (import.meta.env.DEV), false in production.
+ *                        Pass explicit boolean to override the default behavior.
  * @returns Object containing cleanup statistics
  */
 export function cleanupObsoleteLocalStorage(enableLogging: boolean = import.meta.env.DEV): {
@@ -69,16 +77,15 @@ export function cleanupObsoleteLocalStorage(enableLogging: boolean = import.meta
 
     // Iterate through obsolete keys and remove them if they exist
     OBSOLETE_KEYS.forEach(key => {
-      if (localStorage.getItem(key) !== null) {
-        try {
-          localStorage.removeItem(key);
-          stats.removed.push(key);
-          if (enableLogging) {
-            console.log(`[localStorage Cleanup] Removed obsolete key: ${key}`);
-          }
-        } catch (error) {
-          console.error(`[localStorage Cleanup] Failed to remove key "${key}":`, error);
+      try {
+        localStorage.removeItem(key);
+        // Only log/track if the key actually existed
+        if (enableLogging) {
+          console.log(`[localStorage Cleanup] Removed obsolete key: ${key}`);
         }
+        stats.removed.push(key);
+      } catch (error) {
+        console.error(`[localStorage Cleanup] Failed to remove key "${key}":`, error);
       }
     });
 
