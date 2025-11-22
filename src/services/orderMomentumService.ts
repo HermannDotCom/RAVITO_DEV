@@ -341,7 +341,7 @@ function mapProductFromDb(dbProduct: any): Product {
     imageUrl: dbProduct.image_url,
     createdAt: new Date(dbProduct.created_at),
     updatedAt: new Date(dbProduct.updated_at),
-    pricePerUnit: dbProduct.crate_price,
+    pricePerUnit: dbProduct.unit_price,
     consigneAmount: dbProduct.consign_price
   };
 }

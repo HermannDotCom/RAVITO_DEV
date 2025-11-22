@@ -7,6 +7,9 @@ export const SupplyHeatmap: React.FC = () => {
   const [zoneDemands, setZoneDemands] = useState<ZoneDemand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Configuration constants
+  const HEAT_INDICATOR_DOTS = 5;
+
   useEffect(() => {
     loadHeatmap();
     // Refresh every 2 minutes
@@ -139,11 +142,11 @@ export const SupplyHeatmap: React.FC = () => {
 
                 {/* Heat indicator */}
                 <div className="flex justify-end mt-1 gap-1">
-                  {[...Array(5)].map((_, i) => (
+                  {[...Array(HEAT_INDICATOR_DOTS)].map((_, i) => (
                     <div
                       key={i}
                       className={`h-1 w-8 rounded-full ${
-                        i < intensity * 5 
+                        i < intensity * HEAT_INDICATOR_DOTS 
                           ? intensity > 0.7 ? 'bg-red-500' :
                             intensity > 0.4 ? 'bg-orange-500' :
                             'bg-green-500'

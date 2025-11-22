@@ -23,17 +23,17 @@ export const OrderMomentumDashboard: React.FC<OrderMomentumDashboardProps> = ({
   const [unlockedAchievements, setUnlockedAchievements] = useState<Achievement[]>([]);
   const [activeTab, setActiveTab] = useState<'suggestions' | 'heatmap' | 'achievements'>('suggestions');
 
+  const loadUserAchievements = React.useCallback(async () => {
+    if (!user) return;
+    const achievements = await getUserAchievements(user.id);
+    setUnlockedAchievements(achievements);
+  }, [user]);
+
   useEffect(() => {
     if (user) {
       loadUserAchievements();
     }
-  }, [user]); // loadUserAchievements is defined below and won't change
-
-  const loadUserAchievements = async () => {
-    if (!user) return;
-    const achievements = await getUserAchievements(user.id);
-    setUnlockedAchievements(achievements);
-  };
+  }, [user, loadUserAchievements]);
 
   const tabs = [
     { id: 'suggestions' as const, label: 'Suggestions', icon: Zap },
