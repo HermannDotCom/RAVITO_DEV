@@ -4,11 +4,8 @@ import {
   Users, 
   Package, 
   TrendingUp, 
-  Eye, 
   CheckCircle, 
-  Clock, 
   ArrowRight,
-  Download,
   Calendar,
   DollarSign,
   AlertTriangle,
@@ -16,34 +13,40 @@ import {
 } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
 import { useCommission } from '../../context/CommissionContext';
-import { Order, SupplierPayment } from '../../types';
+import { useAuth } from '../../context/AuthContext';
+import { SupplierPayment, Transfer } from '../../types';
+import { 
+  createTransfer, 
+  getRecentTransfers,
+  completeTransfer 
+} from '../../services/transferService';
 
 export const Treasury: React.FC = () => {
-  const { allOrders, processSupplierPayment } = useOrder();
+  const { allOrders } = useOrder();
   const { commissionSettings } = useCommission();
+  const { user } = useAuth();
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierPayment | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
-  const [recentTransfers, setRecentTransfers] = useState<any[]>([]);
+  const [recentTransfers, setRecentTransfers] = useState<Transfer[]>([]);
+  const [isLoadingTransfers, setIsLoadingTransfers] = useState(true);
 
-  // Load recent transfers from localStorage on mount
+  // Load recent transfers from Supabase on mount
   useEffect(() => {
-    const storedTransfers = localStorage.getItem('distri-night-transfers');
-    if (storedTransfers) {
-      const transfers = JSON.parse(storedTransfers).map((transfer: any) => ({
-        ...transfer,
-        date: new Date(transfer.date)
-      }));
-      setRecentTransfers(transfers);
-    }
+    loadRecentTransfers();
   }, []);
 
-  // Save transfers to localStorage whenever recentTransfers changes
-  useEffect(() => {
-    if (recentTransfers.length > 0) {
-      localStorage.setItem('distri-night-transfers', JSON.stringify(recentTransfers));
+  const loadRecentTransfers = async () => {
+    setIsLoadingTransfers(true);
+    try {
+      const transfers = await getRecentTransfers(10);
+      setRecentTransfers(transfers);
+    } catch (error) {
+      console.error('Error loading transfers:', error);
+    } finally {
+      setIsLoadingTransfers(false);
     }
-  }, [recentTransfers]);
+  };
 
   // Calculer les commissions dynamiquement depuis les paramètres
   const PLATFORM_COMMISSION = commissionSettings.supplierCommission / 100;
@@ -109,35 +112,61 @@ export const Treasury: React.FC = () => {
   };
 
   const handleProcessPayment = async (supplier: SupplierPayment) => {
+    if (!user) {
+      alert('❌ Erreur: Utilisateur non connecté');
+      return;
+    }
+
     setProcessingPayment(supplier.supplierId);
     
-    // Simuler le traitement du virement
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Traiter le paiement pour tous les ordres du fournisseur
-    supplier.orders.forEach(order => {
-      processSupplierPayment(order.id);
-    });
-    
-    // Ajouter le virement à l'historique
-    const newTransfer = {
-      id: `transfer-${Date.now()}`,
-      supplier: supplier.supplierName,
-      supplierId: supplier.supplierId,
-      amount: supplier.totalAmount,
-      orders: supplier.orderCount,
-      date: new Date(),
-      status: 'completed'
-    };
-    
-    setRecentTransfers(prev => [newTransfer, ...prev.slice(0, 9)]); // Garder les 10 derniers
-    
-    setProcessingPayment(null);
-    setShowDetailsModal(false);
-    setSelectedSupplier(null);
-    
-    // Notification de succès
-    alert(`✅ Virement effectué avec succès!\n\n${supplier.supplierName}\nMontant: ${formatPrice(supplier.totalAmount)}\n${supplier.orderCount} commande(s) réglée(s)\n\n📧 Le fournisseur a reçu une notification de virement par SMS et email.\n💰 Le montant sera disponible dans son compte sous 24h.`);
+    try {
+      // Create transfer record in database
+      const orderIds = supplier.orders.map(order => order.id);
+      
+      const result = await createTransfer(
+        {
+          supplierId: supplier.supplierId,
+          supplierName: supplier.supplierName,
+          amount: supplier.totalAmount,
+          orderIds: orderIds,
+          transferMethod: 'bank_transfer',
+          notes: `Transfer for ${supplier.orderCount} order(s)`,
+          metadata: {
+            orderCount: supplier.orderCount,
+            processedBy: user.id,
+            processedAt: new Date().toISOString()
+          }
+        },
+        user.id
+      );
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create transfer');
+      }
+
+      // Complete the transfer immediately (in production, this would be a separate approval step)
+      if (result.transferId) {
+        const completeResult = await completeTransfer(result.transferId, user.id);
+        
+        if (!completeResult.success) {
+          throw new Error(completeResult.error || 'Failed to complete transfer');
+        }
+      }
+
+      // Reload transfers to show the new one
+      await loadRecentTransfers();
+      
+      setProcessingPayment(null);
+      setShowDetailsModal(false);
+      setSelectedSupplier(null);
+      
+      // Success notification
+      alert(`✅ Virement effectué avec succès!\n\n${supplier.supplierName}\nMontant: ${formatPrice(supplier.totalAmount)}\n${supplier.orderCount} commande(s) réglée(s)\n\n📧 Le fournisseur a reçu une notification de virement par SMS et email.\n💰 Le montant sera disponible dans son compte sous 24h.`);
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      setProcessingPayment(null);
+      alert(`❌ Erreur lors du virement: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const handleShowDetails = (supplier: SupplierPayment) => {
@@ -287,7 +316,12 @@ export const Treasury: React.FC = () => {
         {/* Recent Transfers */}
         <div className="mt-8 bg-white rounded-xl shadow-lg border border-gray-200 p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Virements récents</h3>
-          {recentTransfers.length === 0 ? (
+          {isLoadingTransfers ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+              <p className="text-gray-500">Chargement des virements...</p>
+            </div>
+          ) : recentTransfers.length === 0 ? (
             <div className="text-center py-8">
               <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">Aucun virement récent</p>
@@ -300,13 +334,15 @@ export const Treasury: React.FC = () => {
                   <div className="flex items-center space-x-3">
                     <CheckCircle className="h-5 w-5 text-green-600" />
                     <div>
-                      <p className="font-medium text-gray-900">{transfer.supplier}</p>
-                      <p className="text-sm text-gray-600">{transfer.orders} commande(s) • {formatDate(transfer.date)}</p>
+                      <p className="font-medium text-gray-900">{transfer.supplierName}</p>
+                      <p className="text-sm text-gray-600">
+                        {transfer.orderCount} commande(s) • {formatDate(transfer.createdAt)}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-green-600">{formatPrice(transfer.amount)}</p>
-                    <p className="text-xs text-green-500">Transféré</p>
+                    <p className="text-xs text-green-500 capitalize">{transfer.status === 'completed' ? 'Transféré' : transfer.status}</p>
                   </div>
                 </div>
               ))}
