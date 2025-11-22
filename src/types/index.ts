@@ -199,3 +199,56 @@ export interface MatchingSupplier {
   distance: number;
   estimatedTime: number;
 }
+
+export type TierName = 'basic' | 'silver' | 'gold';
+export type SubscriptionStatus = 'active' | 'inactive' | 'pending' | 'cancelled' | 'expired';
+
+export interface PremiumTier {
+  id: string;
+  name: TierName;
+  displayName: string;
+  priceMonthly: number;
+  features: {
+    description: string;
+    features: string[];
+  };
+  maxZones: number | null;
+  hasPriorityPlacement: boolean;
+  hasAdvancedAnalytics: boolean;
+  hasPrioritySupport: boolean;
+  hasUnlimitedZones: boolean;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SupplierSubscription {
+  id: string;
+  supplierId: string;
+  tierId: string;
+  status: SubscriptionStatus;
+  startsAt: Date;
+  endsAt?: Date;
+  autoRenew: boolean;
+  paymentMethod?: PaymentMethod;
+  lastPaymentDate?: Date;
+  nextPaymentDate?: Date;
+  totalPaid: number;
+  createdAt: Date;
+  updatedAt: Date;
+  activatedAt?: Date;
+  cancelledAt?: Date;
+  cancellationReason?: string;
+}
+
+export interface ActiveSubscription {
+  subscriptionId: string;
+  tierName: TierName;
+  tierDisplayName: string;
+  hasPriorityPlacement: boolean;
+  hasAdvancedAnalytics: boolean;
+  hasPrioritySupport: boolean;
+  hasUnlimitedZones: boolean;
+  maxZones: number | null;
+}

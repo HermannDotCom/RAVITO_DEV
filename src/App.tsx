@@ -35,6 +35,8 @@ import { ClientRatingForm } from './components/Client/ClientRatingForm';
 import { ContactSupport } from './components/Client/ContactSupport';
 import { SupplierContactSupport } from './components/Supplier/ContactSupport';
 import { TicketManagement } from './components/Admin/TicketManagement';
+import { PremiumTierDashboard } from './components/Supplier/PremiumTierDashboard';
+import { PremiumTierManagement } from './components/Admin/PremiumTierManagement';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing } = useAuth();
@@ -119,6 +121,8 @@ const AppContent: React.FC = () => {
             return <DeliveryHistory />;
           case 'profile':
             return <SupplierProfile />;
+          case 'premium':
+            return <PremiumTierDashboard />;
           case 'support':
             return <SupplierContactSupport />;
           default:
@@ -139,6 +143,8 @@ const AppContent: React.FC = () => {
             return <Treasury />;
           case 'zones':
             return <ZoneManagement />;
+          case 'premium':
+            return <PremiumTierManagement />;
           case 'data':
             return <DataManagement />;
           case 'settings':
