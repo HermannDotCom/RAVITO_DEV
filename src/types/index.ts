@@ -199,3 +199,36 @@ export interface MatchingSupplier {
   distance: number;
   estimatedTime: number;
 }
+
+export type TransferMethod = 'bank_transfer' | 'mobile_money' | 'cash';
+export type TransferStatus = 'pending' | 'approved' | 'completed' | 'rejected';
+
+export interface Transfer {
+  id: string;
+  supplierId: string;
+  supplierName: string;
+  amount: number;
+  orderCount: number;
+  transferMethod: TransferMethod;
+  status: TransferStatus;
+  createdBy?: string;
+  approvedBy?: string;
+  approvedAt?: Date;
+  completedAt?: Date;
+  completedBy?: string;
+  rejectedAt?: Date;
+  rejectedBy?: string;
+  rejectionReason?: string;
+  metadata?: Record<string, any>;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TransferOrder {
+  id: string;
+  transferId: string;
+  orderId: string;
+  orderAmount: number;
+  createdAt: Date;
+}
