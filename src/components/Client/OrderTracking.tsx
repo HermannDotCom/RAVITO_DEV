@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Clock, Package, Truck, CheckCircle, MapPin, Phone, Archive } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
 import { OrderStatus, CrateType } from '../../types';
+import { DeliveryTracking } from './DeliveryTracking';
 
 interface OrderTrackingProps {
   onComplete: () => void;
@@ -10,6 +11,30 @@ interface OrderTrackingProps {
 export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
   const { clientCurrentOrder, updateOrderStatus } = useOrder();
   const [estimatedTime, setEstimatedTime] = useState(25);
+  const [notifications, setNotifications] = useState<Array<{ type: string; message: string; id: number }>>([]);
+  const timeoutsRef = useRef<Set<NodeJS.Timeout>>(new Set());
+
+  // Cleanup all timeouts on unmount
+  useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+      timeoutsRef.current.clear();
+    };
+  }, []);
+
+  // Handle notifications from DeliveryTracking component
+  const handleNotification = (type: string, message: string) => {
+    const newNotification = { type, message, id: Date.now() };
+    setNotifications(prev => [...prev, newNotification]);
+    
+    // Auto-remove notification after 5 seconds
+    const timeoutId = setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== newNotification.id));
+      timeoutsRef.current.delete(timeoutId);
+    }, 5000);
+    
+    timeoutsRef.current.add(timeoutId);
+  };
 
   useEffect(() => {
     if (!clientCurrentOrder) return;
@@ -108,10 +133,41 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Notification Toast */}
+      {notifications.length > 0 && (
+        <div className="fixed top-4 right-4 z-50 space-y-2">
+          {notifications.map(notification => (
+            <div
+              key={notification.id}
+              className={`
+                p-4 rounded-lg shadow-lg border max-w-md animate-slide-in
+                ${notification.type === 'success' ? 'bg-green-50 border-green-200' : ''}
+                ${notification.type === 'warning' ? 'bg-orange-50 border-orange-200' : ''}
+                ${notification.type === 'info' ? 'bg-blue-50 border-blue-200' : ''}
+              `}
+            >
+              <p className={`
+                text-sm font-medium
+                ${notification.type === 'success' ? 'text-green-800' : ''}
+                ${notification.type === 'warning' ? 'text-orange-800' : ''}
+                ${notification.type === 'info' ? 'text-blue-800' : ''}
+              `}>
+                {notification.message}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Suivi de commande</h1>
         <p className="text-gray-600">Commande #{clientCurrentOrder.id}</p>
       </div>
+
+      {/* GPS Delivery Tracking - Show when delivering */}
+      {clientCurrentOrder.status === 'delivering' && (
+        <DeliveryTracking order={clientCurrentOrder} onNotification={handleNotification} />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Order Status */}
