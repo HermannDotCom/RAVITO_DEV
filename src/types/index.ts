@@ -199,3 +199,246 @@ export interface MatchingSupplier {
   distance: number;
   estimatedTime: number;
 }
+
+// ==================== VIRAL GROWTH ENGINE TYPES ====================
+
+// Referral System
+export interface ReferralCode {
+  id: string;
+  userId: string;
+  code: string;
+  role: UserRole;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface Referral {
+  id: string;
+  referrerId: string;
+  referredId: string;
+  referralCode: string;
+  referrerRole: UserRole;
+  referredRole: UserRole;
+  status: 'pending' | 'converted' | 'completed';
+  convertedAt?: Date;
+  referrerRewardAmount: number;
+  referredRewardAmount: number;
+  rewardsDistributedAt?: Date;
+  createdAt: Date;
+}
+
+export interface ReferralCredit {
+  id: string;
+  userId: string;
+  balance: number;
+  totalEarned: number;
+  totalSpent: number;
+  expiresAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreditTransaction {
+  id: string;
+  userId: string;
+  transactionType: 'earned' | 'spent' | 'expired';
+  amount: number;
+  balanceAfter: number;
+  sourceType?: 'referral' | 'bonus' | 'order' | 'vip_upgrade';
+  sourceId?: string;
+  description?: string;
+  createdAt: Date;
+}
+
+export interface VIPTier {
+  id: string;
+  tierName: string;
+  tierLevel: number;
+  minReferrals: number;
+  commissionDiscountPercentage: number;
+  priorityMatching: boolean;
+  customPricing: boolean;
+  boardMembership: boolean;
+  description?: string;
+  badgeEmoji?: string;
+  createdAt: Date;
+}
+
+export interface UserVIPStatus {
+  id: string;
+  userId: string;
+  currentTierId?: string;
+  tierLevel: number;
+  successfulReferrals: number;
+  upgradedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Gamification System
+export interface UserLevel {
+  id: string;
+  levelName: string;
+  levelNumber: number;
+  role: UserRole;
+  minOrders: number;
+  minCompletedOffers: number;
+  perks: string[];
+  description?: string;
+  badgeEmoji?: string;
+  createdAt: Date;
+}
+
+export interface UserProgression {
+  id: string;
+  userId: string;
+  role: UserRole;
+  currentLevel: number;
+  totalOrders: number;
+  totalCompletedOffers: number;
+  levelUpgradedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Achievement {
+  id: string;
+  achievementKey: string;
+  name: string;
+  description: string;
+  badgeEmoji?: string;
+  role?: UserRole;
+  unlockCriteria: Record<string, any>;
+  shareMessage?: string;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface UserAchievement {
+  id: string;
+  userId: string;
+  achievementId: string;
+  unlockedAt: Date;
+  sharedCount: number;
+  lastSharedAt?: Date;
+}
+
+export interface Leaderboard {
+  id: string;
+  category: string;
+  role?: UserRole;
+  periodStart: Date;
+  periodEnd: Date;
+  rankings: Array<{
+    userId: string;
+    name: string;
+    score: number;
+    rank: number;
+  }>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Network Effects & Analytics
+export interface ZoneNetworkBonus {
+  id: string;
+  zoneId: string;
+  bonusType: 'zone_activation' | 'supplier_density';
+  thresholdMet: number;
+  bonusPercentage: number;
+  activeFrom: Date;
+  activeUntil?: Date;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SupplierCompetitionPool {
+  id: string;
+  zoneId: string;
+  periodStart: Date;
+  periodEnd: Date;
+  prizePool: {
+    rank_1: number;
+    rank_2: number;
+    rank_3: number;
+  };
+  winners?: Array<{
+    userId: string;
+    rank: number;
+    prize: number;
+    volume: number;
+  }>;
+  status: 'active' | 'completed' | 'distributed';
+  distributedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface MarketplaceHealthMetrics {
+  id: string;
+  calculatedAt: Date;
+  healthScore: number;
+  avgResponseTime: number;
+  deliveryReliability: number;
+  customerSatisfaction: number;
+  activeSuppliers: number;
+  activeClients: number;
+  totalOrders24h: number;
+  bonusTriggered: boolean;
+  bonusPercentage: number;
+  createdAt: Date;
+}
+
+export interface ViralMetrics {
+  id: string;
+  periodStart: Date;
+  periodEnd: Date;
+  totalNewUsers: number;
+  organicSignups: number;
+  referredSignups: number;
+  viralCoefficient: number;
+  conversionRate: number;
+  avgReferralsPerUser: number;
+  topReferralChannel?: string;
+  channelBreakdown?: Record<string, number>;
+  createdAt: Date;
+}
+
+export interface GrowthCohort {
+  id: string;
+  cohortName: string;
+  cohortStart: Date;
+  cohortEnd: Date;
+  initialUsers: number;
+  retentionWeek1?: number;
+  retentionWeek4?: number;
+  retentionWeek12?: number;
+  avgOrdersPerUser?: number;
+  totalRevenue: number;
+  churnRiskUsers?: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SocialShare {
+  id: string;
+  userId: string;
+  shareType: 'order_completion' | 'achievement' | 'referral';
+  shareChannel: 'whatsapp' | 'instagram' | 'sms';
+  contentType?: string;
+  contentId?: string;
+  clicksReceived: number;
+  conversions: number;
+  createdAt: Date;
+}
+
+export interface LiveActivityFeed {
+  id: string;
+  activityType: 'order_placed' | 'order_completed' | 'user_joined';
+  zoneName?: string;
+  anonymizedMessage: string;
+  metadata?: Record<string, any>;
+  displayUntil: Date;
+  createdAt: Date;
+}
