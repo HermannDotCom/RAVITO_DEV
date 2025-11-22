@@ -4,8 +4,13 @@ import { MapPin, Navigation, Clock, Package, AlertCircle } from 'lucide-react';
 import { Order } from '../../types';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-// Use a demo token for this implementation - in production, use environment variable
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiZGVtbyIsImEiOiJjbGV4YW1wbGUifQ.demo';
+// Mapbox configuration - Use environment variable in production
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiZGVtbyIsImEiOiJjbGV4YW1wbGUifQ.demo';
+
+// Update intervals and constants
+const UPDATE_INTERVAL_MS = 3000; // Update driver location every 3 seconds
+const PROGRESS_MULTIPLIER = 20; // Used to calculate progress percentage from distance
+const DRIVER_MARKER_ICON = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxOCIgZmlsbD0iIzM4NjZGRiIvPjxwYXRoIGQ9Ik0yMCAxMkwyNiAyOEgxNEwyMCAxMloiIGZpbGw9IndoaXRlIi8+PC9zdmc+';
 
 interface DeliveryTrackingProps {
   order: Order;
@@ -105,7 +110,7 @@ export const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({
       } else {
         clearInterval(updateInterval);
       }
-    }, 3000); // Update every 3 seconds
+    }, UPDATE_INTERVAL_MS);
 
     return () => clearInterval(updateInterval);
   }, [order, onNotification, notificationsSent]);
@@ -157,7 +162,7 @@ export const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({
       el.className = 'driver-marker';
       el.style.width = '40px';
       el.style.height = '40px';
-      el.style.backgroundImage = 'url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxOCIgZmlsbD0iIzM4NjZGRiIvPjxwYXRoIGQ9Ik0yMCAxMkwyNiAyOEgxNEwyMCAxMloiIGZpbGw9IndoaXRlIi8+PC9zdmc+)';
+      el.style.backgroundImage = `url(${DRIVER_MARKER_ICON})`;
       el.style.backgroundSize = 'contain';
       el.style.transform = `rotate(${driverLocation.heading}deg)`;
 
@@ -284,12 +289,12 @@ export const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({
             <div className="mt-4">
               <div className="flex justify-between text-sm text-gray-600 mb-2">
                 <span>Progression</span>
-                <span>{Math.round(Math.max(0, 100 - (distance * 20)))}%</span>
+                <span>{Math.round(Math.max(0, 100 - (distance * PROGRESS_MULTIPLIER)))}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
                   className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.round(Math.max(0, 100 - (distance * 20)))}%` }}
+                  style={{ width: `${Math.round(Math.max(0, 100 - (distance * PROGRESS_MULTIPLIER)))}%` }}
                 />
               </div>
             </div>
