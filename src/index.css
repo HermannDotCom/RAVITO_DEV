@@ -31,6 +31,17 @@
     }
   }
 
+  @keyframes slide-in {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
   @keyframes scale-in {
     from {
       transform: scale(0.9);
@@ -44,6 +55,10 @@
 
   .animate-slide-in-right {
     animation: slide-in-right 0.3s ease-out;
+  }
+
+  .animate-slide-in {
+    animation: slide-in 0.3s ease-out;
   }
 
   .animate-scale-in {
