@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
+import { browserNotificationService } from '../services/browserNotificationService';
 
 export interface Notification {
   id: string;
@@ -20,6 +21,8 @@ interface NotificationContextType {
   markAllAsRead: () => Promise<void>;
   deleteNotification: (notificationId: string) => Promise<void>;
   isLoading: boolean;
+  requestNotificationPermission: () => Promise<boolean>;
+  hasNotificationPermission: boolean;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -36,6 +39,15 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasNotificationPermission, setHasNotificationPermission] = useState(false);
+
+  // Check notification permission on mount
+  useEffect(() => {
+    if (browserNotificationService.isSupported()) {
+      const permission = browserNotificationService.getPermission();
+      setHasNotificationPermission(permission === 'granted');
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -58,7 +70,13 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         },
         (payload) => {
           console.log('New notification received:', payload);
-          setNotifications(prev => [payload.new as Notification, ...prev]);
+          const notification = payload.new as Notification;
+          setNotifications(prev => [notification, ...prev]);
+          
+          // Show browser notification for important events
+          if (hasNotificationPermission) {
+            showBrowserNotification(notification);
+          }
         }
       )
       .on(
@@ -94,7 +112,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, hasNotificationPermission]);
 
   const loadNotifications = async () => {
     if (!user) return;
@@ -116,6 +134,87 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const showBrowserNotification = async (notification: Notification) => {
+    try {
+      // Show browser notification based on type
+      switch (notification.type) {
+        case 'new_order':
+          if (notification.data?.orderNumber && notification.data?.clientName && notification.data?.amount) {
+            await browserNotificationService.showNewOrderNotification(
+              notification.data.orderNumber,
+              notification.data.clientName,
+              notification.data.amount
+            );
+          }
+          break;
+        case 'new_offer':
+          if (notification.data?.supplierName && notification.data?.orderNumber) {
+            await browserNotificationService.showNewOfferNotification(
+              notification.data.supplierName,
+              notification.data.orderNumber
+            );
+          }
+          break;
+        case 'order_status':
+          if (notification.data?.orderNumber && notification.data?.status) {
+            await browserNotificationService.showOrderStatusNotification(
+              notification.data.orderNumber,
+              notification.data.status,
+              notification.title
+            );
+          }
+          break;
+        case 'delivery_update':
+          if (notification.data?.orderNumber) {
+            await browserNotificationService.showDeliveryNotification(
+              notification.data.orderNumber,
+              notification.message
+            );
+          }
+          break;
+        case 'order_accepted':
+          if (notification.data?.orderNumber && notification.data?.supplierName) {
+            await browserNotificationService.showOrderAcceptedNotification(
+              notification.data.orderNumber,
+              notification.data.supplierName
+            );
+          }
+          break;
+        case 'order_rejected':
+          if (notification.data?.orderNumber) {
+            await browserNotificationService.showOrderRejectedNotification(
+              notification.data.orderNumber,
+              notification.data?.reason
+            );
+          }
+          break;
+        default:
+          // Generic notification
+          await browserNotificationService.show({
+            title: notification.title,
+            body: notification.message,
+            tag: notification.id,
+            data: notification.data
+          });
+      }
+    } catch (error) {
+      console.error('Error showing browser notification:', error);
+    }
+  };
+
+  const requestNotificationPermission = async (): Promise<boolean> => {
+    const permission = await browserNotificationService.requestPermission();
+    const granted = permission === 'granted';
+    setHasNotificationPermission(granted);
+    
+    if (granted) {
+      // Show test notification
+      await browserNotificationService.testNotification();
+    }
+    
+    return granted;
   };
 
   const markAsRead = async (notificationId: string) => {
@@ -178,7 +277,9 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         markAsRead,
         markAllAsRead,
         deleteNotification,
-        isLoading
+        isLoading,
+        requestNotificationPermission,
+        hasNotificationPermission
       }}
     >
       {children}

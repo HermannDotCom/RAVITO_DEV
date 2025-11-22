@@ -5,6 +5,7 @@ import { OrderProvider, useOrder } from './context/OrderContext';
 import { CommissionProvider } from './context/CommissionContext';
 import { RatingProvider } from './context/RatingContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { ToastProvider } from './context/ToastContext';
 import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AuthScreen } from './components/Auth/AuthScreen';
@@ -35,13 +36,18 @@ import { ClientRatingForm } from './components/Client/ClientRatingForm';
 import { ContactSupport } from './components/Client/ContactSupport';
 import { SupplierContactSupport } from './components/Supplier/ContactSupport';
 import { TicketManagement } from './components/Admin/TicketManagement';
+import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusIndicator';
+import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
+import { useRealtimeOrders } from './hooks/useRealtimeOrders';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing } = useAuth();
-  const { currentOrder } = useOrder();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showRating, setShowRating] = useState(false);
+
+  // Enable realtime order notifications
+  useRealtimeOrders();
 
   if (isInitializing) {
     return (
@@ -175,6 +181,12 @@ const AppContent: React.FC = () => {
           {renderMainContent()}
         </main>
       </div>
+      
+      {/* Connection Status Indicator */}
+      <ConnectionStatusIndicator />
+      
+      {/* Notification Permission Prompt */}
+      <NotificationPermissionPrompt />
     </div>
   );
 };
@@ -183,15 +195,17 @@ function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <CartProvider>
-          <CommissionProvider>
-            <OrderProvider>
-              <RatingProvider>
-                <AppContent />
-              </RatingProvider>
-            </OrderProvider>
-          </CommissionProvider>
-        </CartProvider>
+        <ToastProvider>
+          <CartProvider>
+            <CommissionProvider>
+              <OrderProvider>
+                <RatingProvider>
+                  <AppContent />
+                </RatingProvider>
+              </OrderProvider>
+            </CommissionProvider>
+          </CartProvider>
+        </ToastProvider>
       </NotificationProvider>
     </AuthProvider>
   );

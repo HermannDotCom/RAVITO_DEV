@@ -5,12 +5,21 @@ import { Order } from '../../types';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 // Mapbox configuration - Use environment variable in production
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoiZGVtbyIsImEiOiJjbGV4YW1wbGUifQ.demo';
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || (import.meta.env.MODE === 'test' ? 'test-token' : '');
+if (!MAPBOX_TOKEN && import.meta.env.MODE !== 'test') {
+  console.warn('VITE_MAPBOX_TOKEN not set. GPS tracking map will not be available.');
+}
 
 // Update intervals and constants
 const UPDATE_INTERVAL_MS = 3000; // Update driver location every 3 seconds
 const PROGRESS_MULTIPLIER = 20; // Used to calculate progress percentage from distance
 const DRIVER_MARKER_ICON = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxOCIgZmlsbD0iIzM4NjZGRiIvPjxwYXRoIGQ9Ik0yMCAxMkwyNiAyOEgxNEwyMCAxMloiIGZpbGw9IndoaXRlIi8+PC9zdmc+';
+
+// Driver simulation constants
+const START_DISTANCE_OFFSET_LAT = 0.045; // ~5km north
+const START_DISTANCE_OFFSET_LNG = 0.045; // ~5km east
+const MOVEMENT_STEP_SIZE = 0.005; // ~500m per update
+const MIN_DISTANCE_THRESHOLD = 0.001; // Minimum distance to keep updating
 
 interface DeliveryTrackingProps {
   order: Order;
@@ -65,8 +74,8 @@ export const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({
     if (!order.coordinates || order.status !== 'delivering') return;
 
     // Start with a location 5km away from the destination
-    const startLat = order.coordinates.lat + 0.045; // ~5km north
-    const startLng = order.coordinates.lng + 0.045; // ~5km east
+    const startLat = order.coordinates.lat + START_DISTANCE_OFFSET_LAT;
+    const startLng = order.coordinates.lng + START_DISTANCE_OFFSET_LNG;
 
     let currentLat = startLat;
     let currentLng = startLng;
@@ -75,11 +84,10 @@ export const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({
       // Move towards destination
       const latDiff = order.coordinates.lat - currentLat;
       const lngDiff = order.coordinates.lng - currentLng;
-      const step = 0.005; // ~500m per update
 
-      if (Math.abs(latDiff) > 0.001 || Math.abs(lngDiff) > 0.001) {
-        currentLat += latDiff > 0 ? Math.min(step, latDiff) : Math.max(-step, latDiff);
-        currentLng += lngDiff > 0 ? Math.min(step, lngDiff) : Math.max(-step, lngDiff);
+      if (Math.abs(latDiff) > MIN_DISTANCE_THRESHOLD || Math.abs(lngDiff) > MIN_DISTANCE_THRESHOLD) {
+        currentLat += latDiff > 0 ? Math.min(MOVEMENT_STEP_SIZE, latDiff) : Math.max(-MOVEMENT_STEP_SIZE, latDiff);
+        currentLng += lngDiff > 0 ? Math.min(MOVEMENT_STEP_SIZE, lngDiff) : Math.max(-MOVEMENT_STEP_SIZE, lngDiff);
 
         const dist = calculateDistance(currentLat, currentLng, order.coordinates.lat, order.coordinates.lng);
         const estimatedTime = calculateETA(dist);
@@ -117,7 +125,12 @@ export const DeliveryTracking: React.FC<DeliveryTrackingProps> = ({
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainer.current || map.current || !order.coordinates) return;
+    if (!mapContainer.current || map.current || !order.coordinates || !MAPBOX_TOKEN) {
+      if (!MAPBOX_TOKEN) {
+        setMapError(true);
+      }
+      return;
+    }
 
     try {
       mapboxgl.accessToken = MAPBOX_TOKEN;

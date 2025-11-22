@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Clock, Package, Truck, CheckCircle, MapPin, Phone, Archive } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
 import { OrderStatus, CrateType } from '../../types';
@@ -12,6 +12,15 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
   const { clientCurrentOrder, updateOrderStatus } = useOrder();
   const [estimatedTime, setEstimatedTime] = useState(25);
   const [notifications, setNotifications] = useState<Array<{ type: string; message: string; id: number }>>([]);
+  const timeoutsRef = useRef<Set<NodeJS.Timeout>>(new Set());
+
+  // Cleanup all timeouts on unmount
+  useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+      timeoutsRef.current.clear();
+    };
+  }, []);
 
   // Handle notifications from DeliveryTracking component
   const handleNotification = (type: string, message: string) => {
@@ -19,9 +28,12 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
     setNotifications(prev => [...prev, newNotification]);
     
     // Auto-remove notification after 5 seconds
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== newNotification.id));
+      timeoutsRef.current.delete(timeoutId);
     }, 5000);
+    
+    timeoutsRef.current.add(timeoutId);
   };
 
   useEffect(() => {
