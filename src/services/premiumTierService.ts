@@ -311,10 +311,13 @@ export async function getSubscriptionStats(): Promise<{
     }
   };
 
-  data?.forEach((sub: Record<string, unknown>) => {
-    const tier = sub.tier as Record<string, unknown> | undefined;
-    const tierName = tier?.name as string || 'basic';
-    const tierPrice = tier?.price_monthly as number || 0;
+  interface SubscriptionData extends Record<string, unknown> {
+    tier?: { name?: string; price_monthly?: number };
+  }
+
+  data?.forEach((sub: SubscriptionData) => {
+    const tierName = sub.tier?.name || 'basic';
+    const tierPrice = sub.tier?.price_monthly || 0;
     stats.monthlyRecurringRevenue += tierPrice;
     stats.byTier[tierName] = (stats.byTier[tierName] || 0) + 1;
   });

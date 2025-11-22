@@ -83,11 +83,21 @@ export const PremiumTierManagement: React.FC = () => {
     }
   };
 
-  const filteredSubscriptions = subscriptions.filter(sub => {
+  interface SubscriptionWithSupplier extends Record<string, unknown> {
+    supplier?: { name?: string; business_name?: string; email?: string };
+    tier?: { name?: string; display_name?: string };
+    status?: string;
+  }
+
+  const filteredSubscriptions = subscriptions.filter((sub: SubscriptionWithSupplier) => {
+    const supplierName = sub.supplier?.name || '';
+    const businessName = sub.supplier?.business_name || '';
+    const email = sub.supplier?.email || '';
+    
     const matchesSearch = searchTerm === '' || 
-      (sub.supplier?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (sub.supplier?.business_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (sub.supplier?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+      supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      businessName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      email.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || sub.status === statusFilter;
     
@@ -238,26 +248,33 @@ export const PremiumTierManagement: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredSubscriptions.map((sub) => (
-                <tr key={sub.id} className="hover:bg-gray-50">
+              {filteredSubscriptions.map((sub: SubscriptionWithSupplier) => {
+                const supplierName = sub.supplier?.business_name || sub.supplier?.name || 'N/A';
+                const supplierEmail = sub.supplier?.email || '';
+                const tierName = sub.tier?.name as string || 'basic';
+                const tierDisplayName = sub.tier?.display_name || 'N/A';
+                const totalPaid = typeof sub.total_paid === 'number' ? sub.total_paid : 0;
+                
+                return (
+                <tr key={sub.id as string} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
-                        {sub.supplier?.business_name || sub.supplier?.name || 'N/A'}
+                        {supplierName}
                       </div>
-                      <div className="text-sm text-gray-500">{sub.supplier?.email || ''}</div>
+                      <div className="text-sm text-gray-500">{supplierEmail}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      sub.tier?.name === 'gold' 
+                      tierName === 'gold' 
                         ? 'bg-yellow-100 text-yellow-800' 
-                        : sub.tier?.name === 'silver'
+                        : tierName === 'silver'
                         ? 'bg-gray-100 text-gray-800'
                         : 'bg-blue-100 text-blue-800'
                     }`}>
-                      {sub.tier?.name === 'gold' && <Crown className="h-3 w-3 mr-1" />}
-                      {sub.tier?.display_name || 'N/A'}
+                      {tierName === 'gold' && <Crown className="h-3 w-3 mr-1" />}
+                      {tierDisplayName}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -277,30 +294,30 @@ export const PremiumTierManagement: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(sub.starts_at).toLocaleDateString('fr-FR')}
+                    {sub.starts_at ? new Date(sub.starts_at as string).toLocaleDateString('fr-FR') : '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {sub.next_payment_date 
-                      ? new Date(sub.next_payment_date).toLocaleDateString('fr-FR')
+                      ? new Date(sub.next_payment_date as string).toLocaleDateString('fr-FR')
                       : '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {sub.total_paid.toLocaleString()} FCFA
+                    {totalPaid.toLocaleString()} FCFA
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                     {sub.status === 'pending' && (
                       <button
-                        onClick={() => handleActivate(sub.id)}
-                        disabled={processing === sub.id}
+                        onClick={() => handleActivate(sub.id as string)}
+                        disabled={processing === (sub.id as string)}
                         className="text-green-600 hover:text-green-900 disabled:opacity-50"
                       >
                         Activer
                       </button>
                     )}
-                    {sub.status === 'active' && sub.tier?.name !== 'basic' && (
+                    {sub.status === 'active' && tierName !== 'basic' && (
                       <button
-                        onClick={() => handleCancel(sub.id)}
-                        disabled={processing === sub.id}
+                        onClick={() => handleCancel(sub.id as string)}
+                        disabled={processing === (sub.id as string)}
                         className="text-red-600 hover:text-red-900 disabled:opacity-50"
                       >
                         Annuler
@@ -308,7 +325,7 @@ export const PremiumTierManagement: React.FC = () => {
                     )}
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>

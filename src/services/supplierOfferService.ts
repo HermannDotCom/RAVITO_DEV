@@ -141,7 +141,9 @@ export async function getOffersByOrder(orderId: string): Promise<SupplierOffer[]
     }
 
     // Get active subscriptions for all suppliers to determine tier priority
-    const supplierIds = data.map((offer: Record<string, unknown>) => offer.supplier_id as string);
+    const supplierIds = data
+      .map((offer: Record<string, unknown>) => offer.supplier_id)
+      .filter((id): id is string => typeof id === 'string');
     const { data: subscriptions } = await supabase
       .from('supplier_subscriptions')
       .select(`
@@ -162,7 +164,12 @@ export async function getOffersByOrder(orderId: string): Promise<SupplierOffer[]
     });
 
     // Map and sort offers: Gold tier first (highest display_order), then by creation date
-    const mappedOffers = data.map((offer: Record<string, unknown>) => {
+    interface OfferWithTier extends SupplierOffer {
+      _tierDisplayOrder: number;
+      _tierName: string;
+    }
+
+    const mappedOffers: OfferWithTier[] = data.map((offer: Record<string, unknown>) => {
       const tier = supplierTiers.get(offer.supplier_id as string) || { tierName: 'basic', displayOrder: 1 };
       return {
         ...mapDatabaseOfferToApp(offer),
@@ -181,7 +188,7 @@ export async function getOffersByOrder(orderId: string): Promise<SupplierOffer[]
     });
 
     // Remove temporary sorting fields
-    return mappedOffers.map(({ _tierDisplayOrder, _tierName, ...offer }) => offer);
+    return mappedOffers.map(({ _tierDisplayOrder, _tierName, ...offer }) => offer as SupplierOffer);
   } catch (error) {
     console.error('Exception fetching offers:', error);
     return [];

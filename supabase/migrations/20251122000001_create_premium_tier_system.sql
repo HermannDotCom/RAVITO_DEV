@@ -98,7 +98,7 @@ VALUES
     'silver',
     'Silver (5000 FCFA/mois)',
     5000,
-    '{"description": "Tier intermédiaire avec avantages", "features": ["Placement prioritaire dans les offres", "Jusqu''à 10 zones", "Statistiques avancées", "Support prioritaire par email"]}'::jsonb,
+    '{"description": "Tier intermédiaire avec avantages", "features": ["Placement prioritaire dans les offres", "Jusqu'à 10 zones", "Statistiques avancées", "Support prioritaire par email"]}'::jsonb,
     10, -- Up to 10 zones
     true,
     false,
