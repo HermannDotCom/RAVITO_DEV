@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CreditCard, Smartphone, AlertCircle, CheckCircle } from 'lucide-react';
 import { Order, PaymentMethod } from '../../types';
 import { supabase } from '../../lib/supabase';
+import { PaymentProcessorFactory, WebhookSimulator } from '../../services/payment';
 
 interface PaymentInterfaceProps {
   order: Order;
@@ -42,20 +43,31 @@ export const PaymentInterface: React.FC<PaymentInterfaceProps> = ({
     setError('');
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Get the appropriate payment processor
+      const processor = PaymentProcessorFactory.getProcessor(selectedMethod);
+      
+      // Process payment through the payment gateway
+      const paymentResponse = await processor.processPayment({
+        orderId: order.id,
+        amount: order.totalAmount,
+        paymentMethod: selectedMethod,
+        phoneNumber: phoneNumber,
+        customerName: order.clientId,
+      });
 
-      const { error: updateError } = await supabase
-        .from('orders')
-        .update({
-          status: 'paid',
-          payment_status: 'paid',
-          paid_at: new Date().toISOString()
-        })
-        .eq('id', order.id);
-
-      if (updateError) {
-        throw new Error(updateError.message);
+      if (!paymentResponse.success) {
+        throw new Error(paymentResponse.message || 'Échec du paiement');
       }
+
+      // Simulate webhook callback (in production, this would be triggered by the payment provider)
+      await WebhookSimulator.simulateWebhook(
+        order.id,
+        paymentResponse.transactionId,
+        paymentResponse.reference,
+        paymentResponse.status === 'success' ? 'success' : 'failed',
+        order.totalAmount,
+        selectedMethod
+      );
 
       setSuccess(true);
       setTimeout(() => {
@@ -63,7 +75,7 @@ export const PaymentInterface: React.FC<PaymentInterfaceProps> = ({
       }, 2000);
     } catch (err) {
       console.error('Payment error:', err);
-      setError('Erreur lors du paiement. Veuillez réessayer.');
+      setError(err instanceof Error ? err.message : 'Erreur lors du paiement. Veuillez réessayer.');
       setIsProcessing(false);
     }
   };
