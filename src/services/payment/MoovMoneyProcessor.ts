@@ -1,6 +1,6 @@
 import { BasePaymentProcessor } from './BasePaymentProcessor';
 import { PaymentRequest, PaymentResponse, PaymentVerification } from './types';
-import { normalizePhoneNumber, shouldSimulateFailure } from './utils';
+import { validateProviderPhone, shouldSimulateFailure } from './utils';
 
 /**
  * Moov Money Payment Processor Mock
@@ -31,16 +31,15 @@ export class MoovMoneyProcessor extends BasePaymentProcessor {
     }
 
     // Validate phone number for Moov (must start with 01 in local format, or 1 after +225)
-    const normalizedPhone = normalizePhoneNumber(request.phoneNumber!);
-    const phoneDigits = normalizedPhone.replace('+225', '');
-    if (!phoneDigits.startsWith('1')) {
-      this.log('error', 'Invalid Moov Money phone number', { phone: phoneDigits });
+    const phoneValidation = validateProviderPhone(request.phoneNumber!, ['1'], 'Moov Money');
+    if (!phoneValidation.valid) {
+      this.log('error', 'Invalid Moov Money phone number', { phone: request.phoneNumber });
       return {
         success: false,
         transactionId: '',
         reference: '',
         status: 'failed',
-        message: 'Numéro Moov Money invalide. Doit commencer par 01.',
+        message: phoneValidation.error!,
         errorCode: 'INVALID_PHONE'
       };
     }

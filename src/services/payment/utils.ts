@@ -18,9 +18,9 @@ export const validatePhoneNumber = (phoneNumber: string): boolean => {
   
   // Check for valid patterns
   const patterns = [
-    /^0[01457]\d{8}$/, // Local format: 0X + 8 digits = 10 digits total (e.g., 0712345678)
-    /^\+2250[01457]\d{8}$/, // International format with +: +225 + 0X + 8 digits (e.g., +2250712345678)
-    /^002250[01457]\d{8}$/, // International format with 00: 00225 + 0X + 8 digits (e.g., 002250712345678)
+    /^0[01457]\d{8}$/, // Local format: 01/04/05/07 + 8 digits = 10 digits total (e.g., 0712345678)
+    /^\+2250[01457]\d{8}$/, // International format with +: +225 + 01/04/05/07 + 8 digits (e.g., +2250712345678)
+    /^002250[01457]\d{8}$/, // International format with 00: 00225 + 01/04/05/07 + 8 digits (e.g., 002250712345678)
   ];
   
   return patterns.some(pattern => pattern.test(cleaned));
@@ -50,6 +50,9 @@ export const normalizePhoneNumber = (phoneNumber: string): string => {
 
 /**
  * Simulate network delay (for realistic API behavior)
+ * @param min - Minimum delay in milliseconds (default: 1000ms)
+ * @param max - Maximum delay in milliseconds (default: 3000ms)
+ * @returns Promise that resolves after the delay
  */
 export const simulateNetworkDelay = (min = 1000, max = 3000): Promise<void> => {
   const delay = Math.random() * (max - min) + min;
@@ -58,7 +61,35 @@ export const simulateNetworkDelay = (min = 1000, max = 3000): Promise<void> => {
 
 /**
  * Simulate random payment failure for testing (5% failure rate)
+ * @param failureRate - Probability of failure (0-1), default 0.05 (5%)
  */
 export const shouldSimulateFailure = (failureRate = 0.05): boolean => {
   return Math.random() < failureRate;
+};
+
+/**
+ * Validate phone number for specific provider
+ * @param phoneNumber - The phone number to validate
+ * @param allowedPrefixes - Array of allowed prefixes after country code (e.g., ['7', '5'] for Orange)
+ * @returns Object with validation result and error message if invalid
+ */
+export const validateProviderPhone = (
+  phoneNumber: string,
+  allowedPrefixes: string[],
+  providerName: string
+): { valid: boolean; error?: string } => {
+  const normalizedPhone = normalizePhoneNumber(phoneNumber);
+  const phoneDigits = normalizedPhone.replace('+225', '');
+  
+  const isValid = allowedPrefixes.some(prefix => phoneDigits.startsWith(prefix));
+  
+  if (!isValid) {
+    const prefixList = allowedPrefixes.map(p => `0${p}`).join(' ou ');
+    return {
+      valid: false,
+      error: `Numéro ${providerName} invalide. Doit commencer par ${prefixList}.`
+    };
+  }
+  
+  return { valid: true };
 };

@@ -1,6 +1,6 @@
 import { BasePaymentProcessor } from './BasePaymentProcessor';
 import { PaymentRequest, PaymentResponse, PaymentVerification } from './types';
-import { normalizePhoneNumber, shouldSimulateFailure } from './utils';
+import { validateProviderPhone, shouldSimulateFailure } from './utils';
 
 /**
  * MTN Mobile Money Payment Processor Mock
@@ -31,16 +31,15 @@ export class MTNMoneyProcessor extends BasePaymentProcessor {
     }
 
     // Validate phone number for MTN (must start with 05 or 04 in local format, or 5/4 after +225)
-    const normalizedPhone = normalizePhoneNumber(request.phoneNumber!);
-    const phoneDigits = normalizedPhone.replace('+225', '');
-    if (!phoneDigits.startsWith('5') && !phoneDigits.startsWith('4')) {
-      this.log('error', 'Invalid MTN Mobile Money phone number', { phone: phoneDigits });
+    const phoneValidation = validateProviderPhone(request.phoneNumber!, ['5', '4'], 'MTN Mobile Money');
+    if (!phoneValidation.valid) {
+      this.log('error', 'Invalid MTN Mobile Money phone number', { phone: request.phoneNumber });
       return {
         success: false,
         transactionId: '',
         reference: '',
         status: 'failed',
-        message: 'Numéro MTN Mobile Money invalide. Doit commencer par 05 ou 04.',
+        message: phoneValidation.error!,
         errorCode: 'INVALID_PHONE'
       };
     }

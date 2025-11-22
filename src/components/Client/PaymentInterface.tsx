@@ -52,7 +52,6 @@ export const PaymentInterface: React.FC<PaymentInterfaceProps> = ({
         amount: order.totalAmount,
         paymentMethod: selectedMethod,
         phoneNumber: phoneNumber,
-        customerName: order.clientId,
       });
 
       if (!paymentResponse.success) {

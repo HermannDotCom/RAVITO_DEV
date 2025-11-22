@@ -1,6 +1,6 @@
 import { BasePaymentProcessor } from './BasePaymentProcessor';
 import { PaymentRequest, PaymentResponse, PaymentVerification } from './types';
-import { normalizePhoneNumber, shouldSimulateFailure } from './utils';
+import { validateProviderPhone, shouldSimulateFailure } from './utils';
 
 /**
  * Orange Money Payment Processor Mock
@@ -31,16 +31,15 @@ export class OrangeMoneyProcessor extends BasePaymentProcessor {
     }
 
     // Validate phone number for Orange (must start with 07 or 05 in local format, or 7/5 after +225)
-    const normalizedPhone = normalizePhoneNumber(request.phoneNumber!);
-    const phoneDigits = normalizedPhone.replace('+225', '');
-    if (!phoneDigits.startsWith('7') && !phoneDigits.startsWith('5')) {
-      this.log('error', 'Invalid Orange Money phone number', { phone: phoneDigits });
+    const phoneValidation = validateProviderPhone(request.phoneNumber!, ['7', '5'], 'Orange Money');
+    if (!phoneValidation.valid) {
+      this.log('error', 'Invalid Orange Money phone number', { phone: request.phoneNumber });
       return {
         success: false,
         transactionId: '',
         reference: '',
         status: 'failed',
-        message: 'Numéro Orange Money invalide. Doit commencer par 07 ou 05.',
+        message: phoneValidation.error!,
         errorCode: 'INVALID_PHONE'
       };
     }
