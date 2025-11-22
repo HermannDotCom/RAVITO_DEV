@@ -308,6 +308,7 @@ class ReferralService {
   }
 
   // Mapping functions
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToReferralCode(data: any): ReferralCode {
     return {
       id: data.id,
@@ -319,6 +320,7 @@ class ReferralService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToReferral(data: any): Referral {
     return {
       id: data.id,
@@ -336,6 +338,7 @@ class ReferralService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToReferralCredit(data: any): ReferralCredit {
     return {
       id: data.id,
@@ -349,6 +352,7 @@ class ReferralService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToCreditTransaction(data: any): CreditTransaction {
     return {
       id: data.id,

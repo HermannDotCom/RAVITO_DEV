@@ -321,6 +321,7 @@ class GamificationService {
   }
 
   // Mapping functions
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToUserProgression(data: any): UserProgression {
     return {
       id: data.id,
@@ -335,6 +336,7 @@ class GamificationService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToUserLevel(data: any): UserLevel {
     return {
       id: data.id,
@@ -350,6 +352,7 @@ class GamificationService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToVIPTier(data: any): VIPTier {
     return {
       id: data.id,
@@ -366,6 +369,7 @@ class GamificationService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToUserVIPStatus(data: any): UserVIPStatus {
     return {
       id: data.id,
@@ -379,6 +383,7 @@ class GamificationService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToAchievement(data: any): Achievement {
     return {
       id: data.id,
@@ -394,6 +399,7 @@ class GamificationService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToUserAchievement(data: any): UserAchievement {
     return {
       id: data.id,
@@ -405,6 +411,7 @@ class GamificationService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToLeaderboard(data: any): Leaderboard {
     return {
       id: data.id,

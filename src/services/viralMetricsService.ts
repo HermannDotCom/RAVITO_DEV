@@ -3,7 +3,6 @@ import type {
   ViralMetrics,
   MarketplaceHealthMetrics,
   LiveActivityFeed,
-  SocialShare,
   ZoneNetworkBonus,
   SupplierCompetitionPool
 } from '../types';
@@ -304,6 +303,7 @@ class ViralMetricsService {
   }
 
   // Mapping functions
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToLiveActivityFeed(data: any): LiveActivityFeed {
     return {
       id: data.id,
@@ -316,6 +316,7 @@ class ViralMetricsService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToMarketplaceHealth(data: any): MarketplaceHealthMetrics {
     return {
       id: data.id,
@@ -333,6 +334,7 @@ class ViralMetricsService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToViralMetrics(data: any): ViralMetrics {
     return {
       id: data.id,
@@ -350,6 +352,7 @@ class ViralMetricsService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToZoneNetworkBonus(data: any): ZoneNetworkBonus {
     return {
       id: data.id,
@@ -365,6 +368,7 @@ class ViralMetricsService {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private mapToSupplierCompetitionPool(data: any): SupplierCompetitionPool {
     return {
       id: data.id,
