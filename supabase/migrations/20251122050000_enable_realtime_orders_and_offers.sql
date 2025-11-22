@@ -22,7 +22,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE supplier_offers;
 -- Add index for faster filtering by zone and status (used by supplier notifications)
 CREATE INDEX IF NOT EXISTS idx_orders_zone_status 
 ON orders(zone_id, status) 
-WHERE status IN ('pending', 'awaiting-offers');
+WHERE status IN ('pending', 'pending-offers');
 
 -- Add index for faster filtering by supplier (used for order updates)
 CREATE INDEX IF NOT EXISTS idx_orders_supplier_id 
