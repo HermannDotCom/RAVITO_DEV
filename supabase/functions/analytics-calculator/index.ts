@@ -66,7 +66,9 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const body: AnalyticsCalculationRequest = req.method === 'POST' ? await req.json() : {};
+    const body: AnalyticsCalculationRequest = req.method === 'POST' 
+      ? await req.json() 
+      : { supplierId: undefined, date: undefined };
     
     // Calculate date range (default to yesterday)
     const targetDate = body.date ? new Date(body.date) : new Date(Date.now() - 86400000);

@@ -267,7 +267,7 @@ export class SupplierAnalyticsService {
       if (kpis.acceptanceRate < 90) {
         actionItems.push(`Improve acceptance rate to 90%+ (current: ${kpis.acceptanceRate}%)`);
       }
-      if (kpis.avgDeliveryTime > benchmark.avg_delivery_time!) {
+      if (benchmark.avg_delivery_time && kpis.avgDeliveryTime > benchmark.avg_delivery_time) {
         actionItems.push(`Reduce delivery time to ${benchmark.avg_delivery_time} min (current: ${kpis.avgDeliveryTime} min)`);
       }
       if (kpis.customerRating < 4.5) {

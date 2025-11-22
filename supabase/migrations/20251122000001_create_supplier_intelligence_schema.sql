@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS supplier_subscriptions (
   next_billing_date TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(supplier_id) -- One active subscription per supplier
+  UNIQUE(supplier_id, status) WHERE status = 'active' -- Only one active subscription per supplier
 );
 
 -- =============================================

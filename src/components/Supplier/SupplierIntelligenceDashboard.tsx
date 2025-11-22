@@ -86,12 +86,26 @@ export const SupplierIntelligenceDashboard: React.FC<SupplierIntelligenceDashboa
     );
   }
 
-  const tierColor = {
-    FREE: 'gray',
-    SILVER: 'slate',
-    GOLD: 'yellow',
-    PLATINUM: 'purple'
-  }[tier?.tierName || 'FREE'];
+  const tierColor: Record<string, string> = {
+    FREE: 'bg-gray-100 border-gray-300 text-gray-600',
+    SILVER: 'bg-slate-100 border-slate-300 text-slate-600',
+    GOLD: 'bg-yellow-100 border-yellow-300 text-yellow-600',
+    PLATINUM: 'bg-purple-100 border-purple-300 text-purple-600'
+  };
+
+  const tierIconColor: Record<string, string> = {
+    FREE: 'text-gray-600',
+    SILVER: 'text-slate-600',
+    GOLD: 'text-yellow-600',
+    PLATINUM: 'text-purple-600'
+  };
+
+  const tierTextColor: Record<string, string> = {
+    FREE: 'text-gray-900',
+    SILVER: 'text-slate-900',
+    GOLD: 'text-yellow-900',
+    PLATINUM: 'text-purple-900'
+  };
 
   const tierIcon = {
     FREE: Target,
@@ -110,9 +124,9 @@ export const SupplierIntelligenceDashboard: React.FC<SupplierIntelligenceDashboa
           <h1 className="text-3xl font-bold text-gray-900">Intelligence Dashboard</h1>
           <p className="text-gray-600 mt-1">Advanced analytics and market insights</p>
         </div>
-        <div className={`flex items-center gap-2 px-4 py-2 bg-${tierColor}-100 border border-${tierColor}-300 rounded-lg`}>
-          <TierIcon className={`h-5 w-5 text-${tierColor}-600`} />
-          <span className={`font-semibold text-${tierColor}-900`}>
+        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${tierColor[tier?.tierName || 'FREE']}`}>
+          <TierIcon className={tierIconColor[tier?.tierName || 'FREE']} />
+          <span className={`font-semibold ${tierTextColor[tier?.tierName || 'FREE']}`}>
             {tier?.tierName || 'FREE'} Tier
           </span>
         </div>

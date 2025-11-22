@@ -122,10 +122,14 @@ CREATE POLICY "Admins can view all analytics"
   );
 
 -- System (service role) can insert/update analytics
+-- This policy is used by edge functions and scheduled jobs
 CREATE POLICY "Service role can manage analytics"
   ON supplier_analytics
   FOR ALL
-  USING (true);
+  USING (
+    -- Allow if called from service role context
+    current_setting('request.jwt.claims', true)::json->>'role' = 'service_role'
+  );
 
 -- =============================================
 -- DEMAND FORECASTS POLICIES
@@ -161,7 +165,9 @@ CREATE POLICY "Admins can view all forecasts"
 CREATE POLICY "Service role can manage forecasts"
   ON demand_forecasts
   FOR ALL
-  USING (true);
+  USING (
+    current_setting('request.jwt.claims', true)::json->>'role' = 'service_role'
+  );
 
 -- =============================================
 -- MARKET INTELLIGENCE POLICIES
@@ -240,7 +246,9 @@ CREATE POLICY "Admins can view all benchmarks"
 CREATE POLICY "Service role can manage benchmarks"
   ON competitor_benchmarks
   FOR ALL
-  USING (true);
+  USING (
+    current_setting('request.jwt.claims', true)::json->>'role' = 'service_role'
+  );
 
 -- =============================================
 -- PRICE OPTIMIZATION POLICIES
@@ -283,7 +291,9 @@ CREATE POLICY "Admins can view all price suggestions"
 CREATE POLICY "Service role can manage price suggestions"
   ON price_optimization_suggestions
   FOR ALL
-  USING (true);
+  USING (
+    current_setting('request.jwt.claims', true)::json->>'role' = 'service_role'
+  );
 
 -- =============================================
 -- CHURN RISK PREDICTIONS POLICIES
@@ -320,7 +330,9 @@ CREATE POLICY "Admins can view all churn predictions"
 CREATE POLICY "Service role can manage churn predictions"
   ON churn_risk_predictions
   FOR ALL
-  USING (true);
+  USING (
+    current_setting('request.jwt.claims', true)::json->>'role' = 'service_role'
+  );
 
 -- =============================================
 -- WHITE LABEL API KEYS POLICIES
@@ -370,7 +382,9 @@ CREATE POLICY "Only admins can view revenue tracking"
 CREATE POLICY "Service role can manage revenue tracking"
   ON revenue_share_tracking
   FOR ALL
-  USING (true);
+  USING (
+    current_setting('request.jwt.claims', true)::json->>'role' = 'service_role'
+  );
 
 -- =============================================
 -- HELPER FUNCTION: CHECK SUBSCRIPTION TIER
