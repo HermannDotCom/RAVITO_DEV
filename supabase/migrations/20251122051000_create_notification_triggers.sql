@@ -206,9 +206,9 @@ CREATE TRIGGER trigger_notify_order_status_change
 -- Index for fetching user notifications efficiently
 CREATE INDEX IF NOT EXISTS idx_notifications_user_created 
 ON notifications(user_id, created_at DESC) 
-WHERE read = false;
+WHERE is_read = false;
 
 -- Index for notification cleanup queries
 CREATE INDEX IF NOT EXISTS idx_notifications_created_at 
 ON notifications(created_at) 
-WHERE read = true;
+WHERE is_read = true;
