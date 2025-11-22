@@ -1,26 +1,5 @@
 import { supabase } from '../lib/supabase';
-
-export interface Transfer {
-  id: string;
-  supplierId: string;
-  supplierName: string;
-  amount: number;
-  orderCount: number;
-  transferMethod: 'bank_transfer' | 'mobile_money' | 'cash';
-  status: 'pending' | 'approved' | 'completed' | 'rejected';
-  createdBy?: string;
-  approvedBy?: string;
-  approvedAt?: Date;
-  completedAt?: Date;
-  completedBy?: string;
-  rejectedAt?: Date;
-  rejectedBy?: string;
-  rejectionReason?: string;
-  metadata?: Record<string, any>;
-  notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { Transfer, TransferMethod } from '../types';
 
 export interface TransferOrder {
   id: string;
@@ -35,7 +14,7 @@ export interface CreateTransferInput {
   supplierName: string;
   amount: number;
   orderIds: string[];
-  transferMethod?: 'bank_transfer' | 'mobile_money' | 'cash';
+  transferMethod?: TransferMethod;
   notes?: string;
   metadata?: Record<string, any>;
 }
@@ -48,10 +27,29 @@ export async function createTransfer(
   userId: string
 ): Promise<{ success: boolean; transferId?: string; error?: string }> {
   try {
-    // First, get the orders to calculate the order count and amounts
+    // First, check if any orders are already in another transfer
+    const { data: existingTransferOrders, error: checkError } = await supabase
+      .from('transfer_orders')
+      .select('order_id')
+      .in('order_id', input.orderIds);
+
+    if (checkError) {
+      console.error('Error checking existing transfers:', checkError);
+      return { success: false, error: checkError.message };
+    }
+
+    if (existingTransferOrders && existingTransferOrders.length > 0) {
+      const alreadyTransferred = existingTransferOrders.map(to => to.order_id);
+      return { 
+        success: false, 
+        error: `Orders already in transfer: ${alreadyTransferred.join(', ')}` 
+      };
+    }
+
+    // Get the orders to validate and calculate amounts
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
-      .select('id, total_amount, supplier_id')
+      .select('id, total_amount, supplier_id, status')
       .in('id', input.orderIds)
       .eq('supplier_id', input.supplierId)
       .eq('status', 'delivered');
@@ -63,6 +61,14 @@ export async function createTransfer(
 
     if (!orders || orders.length === 0) {
       return { success: false, error: 'No valid orders found for transfer' };
+    }
+
+    // Verify all requested orders were found and are valid
+    if (orders.length !== input.orderIds.length) {
+      return { 
+        success: false, 
+        error: 'Some orders are not valid or already transferred' 
+      };
     }
 
     // Create the transfer record

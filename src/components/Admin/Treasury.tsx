@@ -111,6 +111,16 @@ export const Treasury: React.FC = () => {
     }).format(date);
   };
 
+  const getTransferStatusLabel = (status: string): string => {
+    const statusLabels: Record<string, string> = {
+      'pending': 'En attente',
+      'approved': 'Approuvé',
+      'completed': 'Transféré',
+      'rejected': 'Rejeté'
+    };
+    return statusLabels[status] || status;
+  };
+
   const handleProcessPayment = async (supplier: SupplierPayment) => {
     if (!user) {
       alert('❌ Erreur: Utilisateur non connecté');
@@ -342,7 +352,7 @@ export const Treasury: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-green-600">{formatPrice(transfer.amount)}</p>
-                    <p className="text-xs text-green-500 capitalize">{transfer.status === 'completed' ? 'Transféré' : transfer.status}</p>
+                    <p className="text-xs text-green-500 capitalize">{getTransferStatusLabel(transfer.status)}</p>
                   </div>
                 </div>
               ))}
