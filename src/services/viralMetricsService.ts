@@ -195,33 +195,14 @@ class ViralMetricsService {
 
   /**
    * Get trending product in a zone
+   * Note: This would require a database view or edge function for efficient implementation
    */
   async getTrendingProduct(zoneId?: string): Promise<{ name: string; count: number } | null> {
     try {
-      let query = `
-        SELECT 
-          p.name,
-          COUNT(*) as order_count
-        FROM order_items oi
-        JOIN orders o ON oi.order_id = o.id
-        JOIN products p ON oi.product_id = p.id
-        WHERE o.created_at > NOW() - INTERVAL '24 hours'
-      `;
-
-      if (zoneId) {
-        query += ` AND o.zone_id = '${zoneId}'`;
-      }
-
-      query += `
-        GROUP BY p.name
-        ORDER BY order_count DESC
-        LIMIT 1
-      `;
-
-      const { data, error } = await supabase.rpc('execute_sql', { sql: query });
-
-      if (error) throw error;
-      return data && data.length > 0 ? { name: data[0].name, count: data[0].order_count } : null;
+      // For now, return null - would need proper implementation with Supabase query builder
+      // TODO: Implement with proper Supabase query builder or edge function
+      console.log('getTrendingProduct not yet implemented for zone:', zoneId);
+      return null;
     } catch (error) {
       console.error('Error fetching trending product:', error);
       return null;

@@ -314,7 +314,12 @@ CREATE POLICY "Users can create referrals"
 
 CREATE POLICY "Admins can view all referrals"
   ON referrals FOR SELECT
-  USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
 
 -- RLS Policies: referral_credits
 CREATE POLICY "Users can view their own credits"
@@ -333,7 +338,12 @@ CREATE POLICY "Users can view their own transactions"
 
 CREATE POLICY "Admins can view all transactions"
   ON credit_transactions FOR SELECT
-  USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
 
 -- RLS Policies: vip_tiers
 CREATE POLICY "Anyone can view VIP tiers"

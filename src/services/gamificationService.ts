@@ -229,14 +229,24 @@ class GamificationService {
    */
   async recordAchievementShare(userId: string, achievementId: string): Promise<void> {
     try {
-      await supabase
+      // First get current count
+      const { data: current } = await supabase
         .from('user_achievements')
-        .update({
-          shared_count: supabase.raw('shared_count + 1'),
-          last_shared_at: new Date().toISOString()
-        })
+        .select('shared_count')
         .eq('user_id', userId)
-        .eq('achievement_id', achievementId);
+        .eq('achievement_id', achievementId)
+        .single();
+
+      if (current) {
+        await supabase
+          .from('user_achievements')
+          .update({
+            shared_count: current.shared_count + 1,
+            last_shared_at: new Date().toISOString()
+          })
+          .eq('user_id', userId)
+          .eq('achievement_id', achievementId);
+      }
     } catch (error) {
       console.error('Error recording achievement share:', error);
     }

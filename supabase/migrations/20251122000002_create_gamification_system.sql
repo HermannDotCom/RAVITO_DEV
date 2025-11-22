@@ -108,8 +108,9 @@ CREATE OR REPLACE FUNCTION update_user_progression()
 RETURNS TRIGGER AS $$
 DECLARE
   user_role user_role;
-  current_orders integer;
+  current_count integer;
   new_level integer;
+  level_record RECORD;
 BEGIN
   -- Update client progression on order delivery
   IF NEW.status = 'delivered' THEN
@@ -120,21 +121,22 @@ BEGIN
     SET total_orders = user_progression.total_orders + 1,
         updated_at = now();
     
-    -- Check for level upgrade (client)
-    current_orders := (SELECT total_orders FROM user_progression WHERE user_id = NEW.client_id);
-    new_level := CASE
-      WHEN current_orders >= 100 THEN 5 -- Legend
-      WHEN current_orders >= 30 THEN 4  -- Platinum
-      WHEN current_orders >= 15 THEN 3  -- VIP
-      WHEN current_orders >= 5 THEN 2   -- Regular
-      ELSE 1                             -- Newcomer
-    END;
+    -- Check for level upgrade (client) - dynamically from user_levels table
+    current_count := (SELECT total_orders FROM user_progression WHERE user_id = NEW.client_id);
     
-    UPDATE user_progression
-    SET current_level = new_level,
-        level_upgraded_at = CASE WHEN current_level < new_level THEN now() ELSE level_upgraded_at END,
-        updated_at = now()
-    WHERE user_id = NEW.client_id AND current_level < new_level;
+    SELECT level_number INTO new_level
+    FROM user_levels
+    WHERE role = 'client' AND min_orders <= current_count
+    ORDER BY level_number DESC
+    LIMIT 1;
+    
+    IF new_level IS NOT NULL THEN
+      UPDATE user_progression
+      SET current_level = new_level,
+          level_upgraded_at = CASE WHEN current_level < new_level THEN now() ELSE level_upgraded_at END,
+          updated_at = now()
+      WHERE user_id = NEW.client_id AND current_level < new_level;
+    END IF;
     
     -- Update supplier progression if supplier exists
     IF NEW.supplier_id IS NOT NULL THEN
@@ -144,21 +146,22 @@ BEGIN
       SET total_completed_offers = user_progression.total_completed_offers + 1,
           updated_at = now();
       
-      -- Check for level upgrade (supplier)
-      current_orders := (SELECT total_completed_offers FROM user_progression WHERE user_id = NEW.supplier_id);
-      new_level := CASE
-        WHEN current_orders >= 500 THEN 5 -- Partner
-        WHEN current_orders >= 300 THEN 4 -- Elite
-        WHEN current_orders >= 150 THEN 3 -- Master
-        WHEN current_orders >= 50 THEN 2  -- Trusted
-        ELSE 1                             -- New
-      END;
+      -- Check for level upgrade (supplier) - dynamically from user_levels table
+      current_count := (SELECT total_completed_offers FROM user_progression WHERE user_id = NEW.supplier_id);
       
-      UPDATE user_progression
-      SET current_level = new_level,
-          level_upgraded_at = CASE WHEN current_level < new_level THEN now() ELSE level_upgraded_at END,
-          updated_at = now()
-      WHERE user_id = NEW.supplier_id AND current_level < new_level;
+      SELECT level_number INTO new_level
+      FROM user_levels
+      WHERE role = 'supplier' AND min_completed_offers <= current_count
+      ORDER BY level_number DESC
+      LIMIT 1;
+      
+      IF new_level IS NOT NULL THEN
+        UPDATE user_progression
+        SET current_level = new_level,
+            level_upgraded_at = CASE WHEN current_level < new_level THEN now() ELSE level_upgraded_at END,
+            updated_at = now()
+        WHERE user_id = NEW.supplier_id AND current_level < new_level;
+      END IF;
     END IF;
   END IF;
   
@@ -293,5 +296,15 @@ CREATE POLICY "Anyone can view leaderboards"
 
 CREATE POLICY "Admins can manage leaderboards"
   ON leaderboards FOR ALL
-  USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin')
-  WITH CHECK ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );

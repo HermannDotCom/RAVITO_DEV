@@ -23,6 +23,25 @@ CREATE TABLE IF NOT EXISTS zone_network_bonuses (
   updated_at timestamptz DEFAULT now()
 );
 
+-- Table: supplier_competition_config
+-- Configuration for competition prize pools
+CREATE TABLE IF NOT EXISTS supplier_competition_config (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  rank integer UNIQUE NOT NULL,
+  prize_amount integer NOT NULL,
+  is_active boolean DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- Insert default prize configuration
+INSERT INTO supplier_competition_config (rank, prize_amount, is_active)
+VALUES
+  (1, 200000, true),
+  (2, 100000, true),
+  (3, 50000, true)
+ON CONFLICT (rank) DO NOTHING;
+
 -- Table: supplier_competition_pools
 -- Monthly competition prize pools for suppliers in same zone
 CREATE TABLE IF NOT EXISTS supplier_competition_pools (
@@ -194,7 +213,7 @@ BEGIN
     INSERT INTO zone_network_bonuses (zone_id, bonus_type, threshold_met, bonus_percentage, active_from)
     VALUES (NEW.id, 'supplier_density', supplier_count, 5.0, now());
     
-    -- Create competition pool for this zone
+    -- Create competition pool for this zone with dynamic prize configuration
     INSERT INTO supplier_competition_pools (
       zone_id, 
       period_start, 
@@ -206,7 +225,11 @@ BEGIN
       NEW.id,
       date_trunc('month', now()),
       date_trunc('month', now() + interval '1 month'),
-      '{"rank_1": 200000, "rank_2": 100000, "rank_3": 50000}'::jsonb,
+      (
+        SELECT jsonb_object_agg('rank_' || rank, prize_amount)
+        FROM supplier_competition_config
+        WHERE is_active = true
+      ),
       'active'
     )
     ON CONFLICT DO NOTHING;
@@ -398,6 +421,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Enable RLS
+ALTER TABLE supplier_competition_config ENABLE ROW LEVEL SECURITY;
 ALTER TABLE zone_network_bonuses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE supplier_competition_pools ENABLE ROW LEVEL SECURITY;
 ALTER TABLE marketplace_health_metrics ENABLE ROW LEVEL SECURITY;
@@ -407,6 +431,25 @@ ALTER TABLE social_shares ENABLE ROW LEVEL SECURITY;
 ALTER TABLE live_activity_feed ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
+CREATE POLICY "Anyone can view competition config"
+  ON supplier_competition_config FOR SELECT
+  USING (is_active = true);
+
+CREATE POLICY "Admins can manage competition config"
+  ON supplier_competition_config FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
 CREATE POLICY "Anyone can view zone bonuses"
   ON zone_network_bonuses FOR SELECT
   USING (is_active = true);
@@ -421,11 +464,21 @@ CREATE POLICY "Anyone can view marketplace health"
 
 CREATE POLICY "Admins can view viral metrics"
   ON viral_metrics FOR SELECT
-  USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
 
 CREATE POLICY "Admins can view growth cohorts"
   ON growth_cohorts FOR SELECT
-  USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
 
 CREATE POLICY "Users can view their own shares"
   ON social_shares FOR SELECT
