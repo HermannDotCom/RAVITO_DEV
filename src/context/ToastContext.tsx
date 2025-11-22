@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react';
 import { X, CheckCircle, AlertCircle, Info, XCircle } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
@@ -33,6 +33,7 @@ export const useToast = () => {
 
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const timersRef = useRef<Map<string, number>>(new Map());
 
   const showToast = useCallback((toast: Omit<Toast, 'id'>) => {
     const id = `toast-${Date.now()}-${Math.random()}`;
@@ -43,18 +44,37 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Auto-dismiss after duration (default 5 seconds)
     const duration = toast.duration ?? 5000;
     if (duration > 0) {
-      setTimeout(() => {
+      const timer = window.setTimeout(() => {
         setToasts(prev => prev.filter(t => t.id !== id));
+        timersRef.current.delete(id);
       }, duration);
+      timersRef.current.set(id, timer);
     }
   }, []);
 
   const hideToast = useCallback((id: string) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
+    // Clear associated timer if exists
+    const timer = timersRef.current.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      timersRef.current.delete(id);
+    }
   }, []);
 
   const clearAllToasts = useCallback(() => {
     setToasts([]);
+    // Clear all timers
+    timersRef.current.forEach(timer => clearTimeout(timer));
+    timersRef.current.clear();
+  }, []);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach(timer => clearTimeout(timer));
+      timersRef.current.clear();
+    };
   }, []);
 
   return (

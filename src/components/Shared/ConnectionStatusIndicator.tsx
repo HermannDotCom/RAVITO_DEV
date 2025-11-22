@@ -24,8 +24,11 @@ export const ConnectionStatusIndicator: React.FC = () => {
   const handleManualReconnect = () => {
     realtimeService.resetReconnection();
     setIsReconnecting(true);
-    // Trigger reconnection by reloading the page or refreshing subscriptions
-    window.location.reload();
+    // Trigger a graceful reconnection by notifying the service
+    // The actual reconnection will be handled by active subscriptions
+    setTimeout(() => {
+      setIsReconnecting(false);
+    }, 2000);
   };
 
   // Don't show anything if connected

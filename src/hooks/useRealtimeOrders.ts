@@ -22,7 +22,7 @@ export const useRealtimeOrders = () => {
           
           // Show toast notification
           toastNotifications.newOrder(
-            (order.order_number as string) || (order.id as string).substring(0, 8),
+            (order.order_number as string) || (order.id as string)?.substring(0, 8) || 'N/A',
             (order.client as any)?.name || 'Client',
             (order.total_amount as number) || 0,
             () => {
@@ -46,7 +46,7 @@ export const useRealtimeOrders = () => {
           const status = order.status as string;
           const statusLabel = statusLabels[status] || status;
           toastNotifications.orderStatusUpdate(
-            (order.order_number as string) || (order.id as string).substring(0, 8),
+            (order.order_number as string) || (order.id as string)?.substring(0, 8) || 'N/A',
             statusLabel
           );
         }
@@ -65,7 +65,7 @@ export const useRealtimeOrders = () => {
           const order = offer.order as any;
           toastNotifications.newOffer(
             supplier?.business_name || supplier?.name || 'Fournisseur',
-            order?.id.substring(0, 8) || 'N/A',
+            order?.id?.substring(0, 8) || 'N/A',
             () => {
               // Navigate to orders
               window.location.hash = '#orders';
@@ -112,7 +112,7 @@ export const useRealtimeDeliveryStatus = (orderId: string | null) => {
         const status = order.status as string;
         const message = statusLabels[status] || status;
         toastNotifications.deliveryUpdate(
-          (order.order_number as string) || (order.id as string).substring(0, 8),
+          (order.order_number as string) || (order.id as string)?.substring(0, 8) || 'N/A',
           message
         );
       }

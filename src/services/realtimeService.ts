@@ -16,17 +16,10 @@ class RealtimeService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000; // Start with 1 second
-  private reconnectTimer: NodeJS.Timeout | null = null;
+  private reconnectTimer: number | null = null;
 
   constructor() {
-    this.initializeConnectionMonitoring();
-  }
-
-  private initializeConnectionMonitoring() {
-    // Monitor Supabase connection status
-    supabase.channel('system').on('system', { event: '*' }, (payload) => {
-      console.log('Supabase system event:', payload);
-    });
+    // Connection monitoring will be set up when subscriptions are created
   }
 
   public getConnectionStatus(): RealtimeConnectionStatus {
@@ -76,10 +69,10 @@ class RealtimeService {
     
     this.setConnectionStatus('connecting');
     
-    this.reconnectTimer = setTimeout(() => {
+    this.reconnectTimer = window.setTimeout(() => {
       this.reconnectAttempts++;
-      // Reconnection is handled automatically by Supabase client
-      this.setConnectionStatus('connected');
+      // Connection status will be updated by subscription callbacks
+      // when reconnection succeeds
     }, delay);
   }
 
