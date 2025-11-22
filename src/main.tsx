@@ -2,13 +2,11 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import { cleanupObsoleteLocalStorage } from './utils/localStorageCleanup';
 
-const allowedKeys = ['theme', 'sb-byuwnxrfnfkxtmegyazj-auth-token'];
-Object.keys(localStorage).forEach(key => {
-  if (!allowedKeys.includes(key)) {
-    localStorage.removeItem(key);
-  }
-});
+// Perform targeted cleanup of obsolete localStorage keys on app startup
+// This only removes known obsolete keys, preserving all legitimate user data
+cleanupObsoleteLocalStorage();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
