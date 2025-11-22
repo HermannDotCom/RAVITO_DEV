@@ -21,6 +21,8 @@ import { ActiveDeliveries } from './components/Supplier/ActiveDeliveries';
 import { DeliveryHistory } from './components/Supplier/DeliveryHistory';
 import { SupplierProfile } from './components/Supplier/SupplierProfile';
 import { ZoneRegistration } from './components/Supplier/ZoneRegistration';
+import { SupplierIntelligenceDashboard } from './components/Supplier/SupplierIntelligenceDashboard';
+import { SubscriptionManagement } from './components/Supplier/SubscriptionManagement';
 import { UserManagement } from './components/Admin/UserManagement';
 import { OrderManagement } from './components/Admin/OrderManagement';
 import { Analytics } from './components/Admin/Analytics';
@@ -121,6 +123,10 @@ const AppContent: React.FC = () => {
             return <SupplierProfile />;
           case 'support':
             return <SupplierContactSupport />;
+          case 'intelligence':
+            return <SupplierIntelligenceDashboard supplierId={user.id} onNavigate={setActiveSection} />;
+          case 'subscription':
+            return <SubscriptionManagement supplierId={user.id} onClose={() => setActiveSection('intelligence')} />;
           default:
             return <SupplierDashboard onNavigate={setActiveSection} />;
         }

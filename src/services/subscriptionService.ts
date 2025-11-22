@@ -332,39 +332,39 @@ export class SubscriptionService {
   /**
    * Helper: Map database row to TypeScript type
    */
-  private static mapTierFromDb(data: any): SubscriptionTier {
+  private static mapTierFromDb(data: Record<string, unknown>): SubscriptionTier {
     return {
-      id: data.id,
-      tierName: data.tier_name,
-      monthlyPrice: data.monthly_price,
-      features: data.features || [],
-      limits: data.limits || {},
-      isActive: data.is_active,
-      displayOrder: data.display_order,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at)
+      id: data.id as string,
+      tierName: data.tier_name as SubscriptionTierName,
+      monthlyPrice: data.monthly_price as number,
+      features: (data.features as string[]) || [],
+      limits: (data.limits as Record<string, unknown>) || {},
+      isActive: data.is_active as boolean,
+      displayOrder: data.display_order as number,
+      createdAt: new Date(data.created_at as string),
+      updatedAt: new Date(data.updated_at as string)
     };
   }
 
   /**
    * Helper: Map subscription from database
    */
-  private static mapSubscriptionFromDb(data: any): SupplierSubscription {
+  private static mapSubscriptionFromDb(data: Record<string, unknown>): SupplierSubscription {
     return {
-      id: data.id,
-      supplierId: data.supplier_id,
-      tierId: data.tier_id,
-      status: data.status,
-      startedAt: new Date(data.started_at),
-      expiresAt: data.expires_at ? new Date(data.expires_at) : undefined,
-      cancelledAt: data.cancelled_at ? new Date(data.cancelled_at) : undefined,
-      cancellationReason: data.cancellation_reason,
-      autoRenew: data.auto_renew,
-      paymentMethod: data.payment_method,
-      lastPaymentAt: data.last_payment_at ? new Date(data.last_payment_at) : undefined,
-      nextBillingDate: data.next_billing_date ? new Date(data.next_billing_date) : undefined,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at)
+      id: data.id as string,
+      supplierId: data.supplier_id as string,
+      tierId: data.tier_id as string,
+      status: data.status as SupplierSubscription['status'],
+      startedAt: new Date(data.started_at as string),
+      expiresAt: data.expires_at ? new Date(data.expires_at as string) : undefined,
+      cancelledAt: data.cancelled_at ? new Date(data.cancelled_at as string) : undefined,
+      cancellationReason: data.cancellation_reason as string | undefined,
+      autoRenew: data.auto_renew as boolean,
+      paymentMethod: data.payment_method as string | undefined,
+      lastPaymentAt: data.last_payment_at ? new Date(data.last_payment_at as string) : undefined,
+      nextBillingDate: data.next_billing_date ? new Date(data.next_billing_date as string) : undefined,
+      createdAt: new Date(data.created_at as string),
+      updatedAt: new Date(data.updated_at as string)
     };
   }
 }
