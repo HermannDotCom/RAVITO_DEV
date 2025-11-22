@@ -224,3 +224,11 @@ export interface Transfer {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface TransferOrder {
+  id: string;
+  transferId: string;
+  orderId: string;
+  orderAmount: number;
+  createdAt: Date;
+}

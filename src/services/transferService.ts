@@ -1,13 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { Transfer, TransferMethod } from '../types';
-
-export interface TransferOrder {
-  id: string;
-  transferId: string;
-  orderId: string;
-  orderAmount: number;
-  createdAt: Date;
-}
+import { Transfer, TransferMethod, TransferOrder } from '../types';
 
 export interface CreateTransferInput {
   supplierId: string;

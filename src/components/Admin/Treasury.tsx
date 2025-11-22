@@ -154,7 +154,11 @@ export const Treasury: React.FC = () => {
         throw new Error(result.error || 'Failed to create transfer');
       }
 
-      // Complete the transfer immediately (in production, this would be a separate approval step)
+      // TODO: In production, implement multi-step approval workflow:
+      // 1. Create transfer with status 'pending'
+      // 2. Require admin approval (approveTransfer)
+      // 3. Then complete transfer (completeTransfer)
+      // For MVP, we auto-complete immediately for demonstration purposes
       if (result.transferId) {
         const completeResult = await completeTransfer(result.transferId, user.id);
         

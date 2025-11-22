@@ -108,7 +108,7 @@ CREATE TRIGGER update_transfers_updated_at
 CREATE OR REPLACE FUNCTION update_orders_on_transfer_completion()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.status = 'completed' AND (OLD.status IS NULL OR OLD.status != 'completed') THEN
+  IF NEW.status = 'completed' AND (OLD.status IS DISTINCT FROM 'completed') THEN
     -- Update all orders in this transfer to have transferred_at timestamp
     UPDATE orders
     SET 
