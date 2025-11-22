@@ -90,8 +90,7 @@ BEGIN
       'orderNumber', v_order_number,
       'orderId', NEW.order_id,
       'supplierName', v_supplier_name,
-      'offerId', NEW.id,
-      'estimatedDelivery', NEW.estimated_delivery_time
+      'offerId', NEW.id
     )
   );
   
