@@ -7,7 +7,7 @@ import { useRating } from '../../context/RatingContext';
 import { Order, OrderStatus, CrateType } from '../../types';
 import { ClientRatingForm } from './ClientRatingForm';
 import { OrderDetailsWithOffers } from './OrderDetailsWithOffers';
-import { PaymentInterface } from './PaymentInterface';
+import { EnhancedPaymentInterface } from './EnhancedPaymentInterface';
 
 interface OrderHistoryProps {
   onNavigate: (section: string) => void;
@@ -1041,7 +1041,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
       )}
 
       {showPaymentModal && orderForPayment && (
-        <PaymentInterface
+        <EnhancedPaymentInterface
           order={orderForPayment}
           onPaymentSuccess={async () => {
             setShowOffersModal(false);
