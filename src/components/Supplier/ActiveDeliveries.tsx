@@ -3,6 +3,7 @@ import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Navigation, Star, Ar
 import { Order, OrderStatus, CrateType } from '../../types';
 import { useOrder } from '../../context/OrderContext';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
+import { supabase } from '../../lib/supabase';
 
 interface ActiveDeliveriesProps {
   onNavigate: (section: string) => void;
@@ -11,8 +12,36 @@ interface ActiveDeliveriesProps {
 export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
   const { supplierActiveDeliveries, updateOrderStatus, completeDelivery } = useOrder();
+  const [clientPhones, setClientPhones] = useState<Record<string, string>>({});
 
   const accessRestrictions = getAccessRestrictions();
+
+  useEffect(() => {
+    const loadClientPhones = async () => {
+      const clientIds = Array.from(new Set(supplierActiveDeliveries.map(order => order.clientId)));
+      if (clientIds.length === 0) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, phone')
+        .in('id', clientIds);
+
+      if (error) {
+        console.error('Error loading client phones:', error);
+        return;
+      }
+
+      const phonesMap: Record<string, string> = {};
+      data?.forEach(profile => {
+        if (profile.phone) {
+          phonesMap[profile.id] = profile.phone;
+        }
+      });
+      setClientPhones(phonesMap);
+    };
+
+    loadClientPhones();
+  }, [supplierActiveDeliveries]);
 
   // Restriction d'accès sécurisée
   if (!accessRestrictions.canAcceptOrders) {
@@ -41,6 +70,28 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
+  };
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleOpenMaps = (address: string) => {
+    const encodedAddress = encodeURIComponent(address);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank');
+  };
+
+  const handleContactClient = (phone: string) => {
+    if (phone) {
+      window.location.href = `tel:${phone}`;
+    }
   };
 
   const getStatusInfo = (status: OrderStatus) => {
@@ -84,6 +135,25 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
       card: 'Carte bancaire'
     };
     return methods[method as keyof typeof methods] || method;
+  };
+
+  const getPaymentStatusInfo = (order: Order) => {
+    if (order.status === 'paid' || order.paymentStatus === 'paid') {
+      return {
+        color: 'green',
+        icon: CheckCircle,
+        label: 'Paiement confirmé',
+        method: getPaymentMethodLabel(order.paymentMethod),
+        date: order.paidAt ? formatDate(order.paidAt.toString()) : 'N/A'
+      };
+    }
+    return {
+      color: 'yellow',
+      icon: AlertCircle,
+      label: 'À collecter',
+      method: getPaymentMethodLabel(order.paymentMethod),
+      date: null
+    };
   };
 
   const getCrateSummary = (order: Order) => {
@@ -174,7 +244,7 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Contact</span>
-                            <span className="font-medium">+225 07 12 34 56 78</span>
+                            <span className="font-medium">{clientPhones[order.clientId] || 'Non disponible'}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-600">Note client</span>
@@ -189,7 +259,10 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
                       <div className="bg-blue-50 rounded-lg p-4">
                         <h4 className="font-semibold text-gray-900 mb-2">Adresse de livraison</h4>
                         <p className="text-gray-700 text-sm mb-3">{order.deliveryAddress}</p>
-                        <button className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors">
+                        <button
+                          onClick={() => handleOpenMaps(order.deliveryAddress)}
+                          className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"
+                        >
                           <Navigation className="h-4 w-4" />
                           <span className="text-sm font-medium">Ouvrir dans Maps</span>
                         </button>
@@ -263,27 +336,48 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
                         )}
                       </div>
 
-                      <div className="bg-green-50 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-900 mb-2">Paiement</h4>
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <AlertCircle className="h-4 w-4 text-yellow-600" />
-                            <span className="text-sm text-yellow-700 font-medium">
-                              À collecter : {getPaymentMethodLabel(order.paymentMethod)}
-                            </span>
+                      {(() => {
+                        const paymentInfo = getPaymentStatusInfo(order);
+                        const PaymentIcon = paymentInfo.icon;
+                        const bgColor = paymentInfo.color === 'green' ? 'bg-green-50' : 'bg-yellow-50';
+                        const iconColor = paymentInfo.color === 'green' ? 'text-green-600' : 'text-yellow-600';
+                        const textColor = paymentInfo.color === 'green' ? 'text-green-700' : 'text-yellow-700';
+                        const subTextColor = paymentInfo.color === 'green' ? 'text-green-600' : 'text-yellow-600';
+
+                        return (
+                          <div className={`${bgColor} rounded-lg p-4`}>
+                            <h4 className="font-semibold text-gray-900 mb-2">Paiement</h4>
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <PaymentIcon className={`h-4 w-4 ${iconColor}`} />
+                                <span className={`text-sm ${textColor} font-medium`}>
+                                  {paymentInfo.label} : {paymentInfo.method}
+                                </span>
+                              </div>
+                              {paymentInfo.date ? (
+                                <p className={`text-xs ${subTextColor}`}>
+                                  Payé le {paymentInfo.date}
+                                </p>
+                              ) : (
+                                <p className={`text-xs ${subTextColor}`}>
+                                  Le paiement sera effectué à la livraison
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <p className="text-xs text-yellow-600">
-                            Le paiement sera effectué à la livraison
-                          </p>
-                        </div>
-                      </div>
+                        );
+                      })()}
                     </div>
                   </div>
 
                   {/* Action Buttons */}
                   {nextAction && (
                     <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                      <button className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2">
+                      <button
+                        onClick={() => handleContactClient(clientPhones[order.clientId] || '')}
+                        disabled={!clientPhones[order.clientId]}
+                        className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
                         <Phone className="h-4 w-4" />
                         <span>Contacter le client</span>
                       </button>
