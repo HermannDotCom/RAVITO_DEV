@@ -120,15 +120,7 @@ export async function createSupplierOffer(
       return { success: false, error: error.message };
     }
 
-    const { error: orderUpdateError } = await supabase
-      .from('orders')
-      .update({ status: 'offers-received' })
-      .eq('id', orderId)
-      .eq('status', 'pending-offers');
-
-    if (orderUpdateError) {
-      console.error('Error updating order status:', orderUpdateError);
-    }
+    console.log('✅ Supplier offer created successfully');
 
     return { success: true, offerId: data.id };
   } catch (error) {
