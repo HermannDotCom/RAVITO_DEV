@@ -89,24 +89,45 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [user]);
 
   useEffect(() => {
-    if (!user || user.role !== 'client') return;
+    if (!user) return;
 
-    const channel = supabase
-      .channel('orders-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `client_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('📦 Order change detected:', payload);
-          loadOrders();
-        }
-      )
-      .subscribe();
+    let channel;
+
+    if (user.role === 'client') {
+      channel = supabase
+        .channel('orders-changes-client')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders',
+            filter: `client_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('📦 Client order change detected:', payload);
+            loadOrders();
+          }
+        )
+        .subscribe();
+    } else if (user.role === 'supplier') {
+      channel = supabase
+        .channel('orders-changes-supplier')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders',
+            filter: `supplier_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('📦 Supplier order change detected:', payload);
+            loadOrders();
+          }
+        )
+        .subscribe();
+    }
 
     // Also listen for custom refresh events from realtime hooks
     const handleRefreshEvent = () => {
@@ -117,7 +138,9 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     window.addEventListener('refresh-orders', handleRefreshEvent);
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
       window.removeEventListener('refresh-orders', handleRefreshEvent);
     };
   }, [user]);
