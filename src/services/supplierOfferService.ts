@@ -124,9 +124,17 @@ export async function createSupplierOffer(
 
 export async function getOffersByOrder(orderId: string): Promise<SupplierOffer[]> {
   try {
+    // Fetch offers with supplier subscription info to enable tier-based sorting
     const { data, error } = await supabase
       .from('supplier_offers')
-      .select('*')
+      .select(`
+        *,
+        supplier:profiles!supplier_id(
+          id,
+          name,
+          business_name
+        )
+      `)
       .eq('order_id', orderId)
       .order('created_at', { ascending: false });
 
@@ -300,20 +308,20 @@ export async function rejectOffer(offerId: string): Promise<{ success: boolean; 
   }
 }
 
-function mapDatabaseOfferToApp(dbOffer: any): SupplierOffer {
+function mapDatabaseOfferToApp(dbOffer: Record<string, unknown>): SupplierOffer {
   return {
-    id: dbOffer.id,
-    orderId: dbOffer.order_id,
-    supplierId: dbOffer.supplier_id,
-    status: dbOffer.status,
-    modifiedItems: dbOffer.modified_items,
-    totalAmount: dbOffer.total_amount,
-    consigneTotal: dbOffer.consigne_total,
-    supplierCommission: dbOffer.supplier_commission,
-    netSupplierAmount: dbOffer.net_supplier_amount,
-    supplierMessage: dbOffer.supplier_message,
-    createdAt: new Date(dbOffer.created_at),
-    acceptedAt: dbOffer.accepted_at ? new Date(dbOffer.accepted_at) : undefined,
-    rejectedAt: dbOffer.rejected_at ? new Date(dbOffer.rejected_at) : undefined
+    id: dbOffer.id as string,
+    orderId: dbOffer.order_id as string,
+    supplierId: dbOffer.supplier_id as string,
+    status: dbOffer.status as 'pending' | 'accepted' | 'rejected',
+    modifiedItems: dbOffer.modified_items as SupplierOfferItem[],
+    totalAmount: dbOffer.total_amount as number,
+    consigneTotal: dbOffer.consigne_total as number,
+    supplierCommission: dbOffer.supplier_commission as number,
+    netSupplierAmount: dbOffer.net_supplier_amount as number,
+    supplierMessage: dbOffer.supplier_message as string | undefined,
+    createdAt: new Date(dbOffer.created_at as string),
+    acceptedAt: dbOffer.accepted_at ? new Date(dbOffer.accepted_at as string) : undefined,
+    rejectedAt: dbOffer.rejected_at ? new Date(dbOffer.rejected_at as string) : undefined
   };
 }

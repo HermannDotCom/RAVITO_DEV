@@ -125,6 +125,8 @@ const AppContent: React.FC = () => {
             return <DeliveryHistory />;
           case 'profile':
             return <SupplierProfile />;
+          case 'premium':
+            return <PremiumTierDashboard />;
           case 'support':
             return <SupplierContactSupport />;
           default:
@@ -145,6 +147,8 @@ const AppContent: React.FC = () => {
             return <Treasury />;
           case 'zones':
             return <ZoneManagement />;
+          case 'premium':
+            return <PremiumTierManagement />;
           case 'data':
             return <DataManagement />;
           case 'settings':
