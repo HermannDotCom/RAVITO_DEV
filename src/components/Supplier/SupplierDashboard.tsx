@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Package, Truck, Clock, TrendingUp, Star, MapPin, Phone, Eye, CheckCircle, X, AlertCircle, Archive, CreditCard, User } from 'lucide-react';
+import { Package, Truck, Clock, TrendingUp, Star, MapPin, Phone, Eye, CheckCircle, X, AlertCircle, Archive, CreditCard, User, BarChart3, Zap } from 'lucide-react';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { useOrder } from '../../context/OrderContext';
 import { useCommission } from '../../context/CommissionContext';
@@ -150,6 +150,30 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
         <p className="text-gray-600">
           Responsable: {user?.name} • Gérez vos livraisons et commandes disponibles
         </p>
+      </div>
+
+      {/* Intelligence Dashboard CTA */}
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-lg p-6 mb-8">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="h-16 w-16 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+              <BarChart3 className="h-8 w-8 text-white" />
+            </div>
+            <div className="text-white">
+              <h3 className="text-xl font-bold mb-1">Intelligence Dashboard</h3>
+              <p className="text-purple-100 text-sm">
+                Advanced analytics, demand forecasting, and market insights
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => onNavigate('intelligence')}
+            className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-colors flex items-center gap-2 shadow-lg"
+          >
+            <Zap className="h-5 w-5" />
+            Access Dashboard
+          </button>
+        </div>
       </div>
 
       {/* Stats Grid */}
