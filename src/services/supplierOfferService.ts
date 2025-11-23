@@ -48,6 +48,21 @@ export async function createSupplierOffer(
       };
     }
 
+    // Vérifier que la commande n'a pas déjà une offre acceptée
+    const { data: acceptedOffer } = await supabase
+      .from('supplier_offers')
+      .select('id')
+      .eq('order_id', orderId)
+      .eq('status', 'accepted')
+      .maybeSingle();
+
+    if (acceptedOffer) {
+      return {
+        success: false,
+        error: 'Cette commande a déjà une offre acceptée. Vous ne pouvez plus soumettre d\'offre.'
+      };
+    }
+
     // Vérifier si ce fournisseur a déjà une offre en attente pour cette commande
     const { data: existingOffer } = await supabase
       .from('supplier_offers')
@@ -71,7 +86,7 @@ export async function createSupplierOffer(
           supplier_commission: supplierCommission,
           net_supplier_amount: netSupplierAmount,
           supplier_message: supplierMessage,
-          created_at: new Date().toISOString() // Mettre à jour la date pour qu'elle apparaisse comme nouvelle
+          created_at: new Date().toISOString()
         })
         .eq('id', existingOffer.id)
         .select()
@@ -124,7 +139,7 @@ export async function createSupplierOffer(
 
 export async function getOffersByOrder(orderId: string): Promise<SupplierOffer[]> {
   try {
-    // Fetch offers with supplier subscription info to enable tier-based sorting
+    // Ne récupérer que les offres en attente
     const { data, error } = await supabase
       .from('supplier_offers')
       .select(`
@@ -136,6 +151,7 @@ export async function getOffersByOrder(orderId: string): Promise<SupplierOffer[]
         )
       `)
       .eq('order_id', orderId)
+      .eq('status', 'pending')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -143,7 +159,7 @@ export async function getOffersByOrder(orderId: string): Promise<SupplierOffer[]
       return [];
     }
 
-    // Grouper par fournisseur et ne garder que l'offre la plus récente
+    // Grouper par fournisseur et ne garder que l'offre la plus récente de chaque fournisseur
     const offersBySupplier = new Map<string, any>();
     data.forEach(offer => {
       const existing = offersBySupplier.get(offer.supplier_id);

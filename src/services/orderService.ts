@@ -140,7 +140,7 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
         ),
         zone:zones (name)
       `)
-      .in('status', ['pending', 'pending-offers', 'awaiting-client-validation']);
+      .in('status', ['pending-offers', 'offers-received']);
 
     if (supplierId) {
       console.log('🔍 Fetching zones for supplier:', supplierId);
@@ -188,7 +188,20 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
       console.warn('⚠️ No orders returned from query');
     }
 
-    return data.map(mapDatabaseOrderToApp);
+    // Si on filtre pour un fournisseur, exclure les commandes avec une offre acceptée
+    let orders = data.map(mapDatabaseOrderToApp);
+
+    if (supplierId) {
+      const { data: acceptedOffers } = await supabase
+        .from('supplier_offers')
+        .select('order_id')
+        .eq('status', 'accepted');
+
+      const acceptedOrderIds = new Set(acceptedOffers?.map(o => o.order_id) || []);
+      orders = orders.filter(order => !acceptedOrderIds.has(order.id));
+    }
+
+    return orders;
   } catch (error) {
     console.error('Exception fetching pending orders:', error);
     return [];
