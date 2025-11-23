@@ -309,6 +309,26 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
               </div>
             </div>
           )}
+
+          {/* Delivery Confirmation Code */}
+          {clientCurrentOrder.status === 'delivering' && clientCurrentOrder.deliveryConfirmationCode && (
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl shadow-lg p-6">
+              <div className="text-center">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Code de confirmation de livraison</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Donnez ce code au livreur pour confirmer la réception de votre commande
+                </p>
+                <div className="bg-white rounded-lg p-6 inline-block">
+                  <div className="text-5xl font-bold text-orange-600 tracking-widest font-mono">
+                    {clientCurrentOrder.deliveryConfirmationCode}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-4">
+                  Ne partagez ce code qu'au moment de la livraison
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Order Summary */}

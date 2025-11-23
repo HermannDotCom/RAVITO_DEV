@@ -1,24 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import {
-  CreditCard, 
-  Users, 
-  Package, 
-  TrendingUp, 
-  CheckCircle, 
+  CreditCard,
+  Users,
+  Package,
+  TrendingUp,
+  CheckCircle,
   ArrowRight,
   Calendar,
   DollarSign,
   AlertTriangle,
   X
 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { useOrder } from '../../context/OrderContext';
 import { useCommission } from '../../context/CommissionContext';
 import { useAuth } from '../../context/AuthContext';
 import { SupplierPayment, Transfer } from '../../types';
-import { 
-  createTransfer, 
+import {
+  createTransfer,
   getRecentTransfers,
-  completeTransfer 
+  completeTransfer
 } from '../../services/transferService';
 
 export const Treasury: React.FC = () => {
@@ -53,20 +54,52 @@ export const Treasury: React.FC = () => {
   const PAYMENT_PROCESSING_FEE = commissionSettings.clientCommission / 100;
   const TOTAL_COMMISSION = PLATFORM_COMMISSION + PAYMENT_PROCESSING_FEE;
 
+  // State to hold supplier profiles
+  const [supplierProfiles, setSupplierProfiles] = useState<Record<string, { name: string; business_name?: string }>>({});
+
+  // Load supplier profiles
+  useEffect(() => {
+    const loadSupplierProfiles = async () => {
+      const supplierIds = Array.from(new Set(allOrders
+        .filter(o => o.supplierId)
+        .map(o => o.supplierId!)));
+
+      if (supplierIds.length === 0) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, business_name')
+        .in('id', supplierIds);
+
+      if (error) {
+        console.error('Error loading supplier profiles:', error);
+        return;
+      }
+
+      const profilesMap: Record<string, { name: string; business_name?: string }> = {};
+      data?.forEach(profile => {
+        profilesMap[profile.id] = {
+          name: profile.name,
+          business_name: profile.business_name
+        };
+      });
+      setSupplierProfiles(profilesMap);
+    };
+
+    loadSupplierProfiles();
+  }, [allOrders]);
+
   // Filtrer les commandes livrées et payées mais non transférées
-  const ordersToTransfer = allOrders.filter(order => 
-    order.status === 'delivered' && 
-    (!order.paymentStatus || order.paymentStatus === 'paid') &&
-    order.supplierId
+  const ordersToTransfer = allOrders.filter(order =>
+    order.status === 'delivered' &&
+    order.paymentStatus === 'paid' &&
+    order.supplierId &&
+    !order.transferredAt
   );
 
   const getSupplierName = (supplierId: string): string => {
-    const suppliers = {
-      'supplier-1': 'Dépôt du Plateau',
-      'supplier-2': 'Dépôt Cocody Express',
-      'supplier-3': 'Dépôt Marcory Sud'
-    };
-    return suppliers[supplierId as keyof typeof suppliers] || `Fournisseur ${supplierId}`;
+    const profile = supplierProfiles[supplierId];
+    return profile?.business_name || profile?.name || `Fournisseur ${supplierId.substring(0, 8)}`;
   };
 
   // Grouper par fournisseur

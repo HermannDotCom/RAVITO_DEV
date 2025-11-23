@@ -308,6 +308,7 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
     paymentMethod: dbOrder.payment_method as PaymentMethod,
     estimatedDeliveryTime: dbOrder.estimated_delivery_time,
     paymentStatus: dbOrder.payment_status,
+    deliveryConfirmationCode: dbOrder.delivery_confirmation_code,
     createdAt: new Date(dbOrder.created_at),
     acceptedAt: dbOrder.accepted_at ? new Date(dbOrder.accepted_at) : undefined,
     deliveredAt: dbOrder.delivered_at ? new Date(dbOrder.delivered_at) : undefined,

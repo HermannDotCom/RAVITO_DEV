@@ -147,6 +147,7 @@ export interface Order {
   paymentMethod: PaymentMethod;
   estimatedDeliveryTime?: number;
   paymentStatus?: PaymentStatus;
+  deliveryConfirmationCode?: string;
   paidAt?: Date;
   transferredAt?: Date;
   createdAt: Date;

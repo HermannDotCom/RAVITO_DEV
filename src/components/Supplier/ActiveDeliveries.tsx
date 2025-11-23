@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Navigation, Star, Archive, AlertCircle } from 'lucide-react';
+import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Navigation, Star, Archive, AlertCircle, X, Key } from 'lucide-react';
 import { Order, OrderStatus, CrateType } from '../../types';
 import { useOrder } from '../../context/OrderContext';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
@@ -21,6 +21,11 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
   const { user, getAccessRestrictions } = useProfileSecurity();
   const { supplierActiveDeliveries, updateOrderStatus } = useOrder();
   const [clientProfiles, setClientProfiles] = useState<Record<string, ClientProfile>>({});
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [selectedOrderForDelivery, setSelectedOrderForDelivery] = useState<Order | null>(null);
+  const [confirmationCode, setConfirmationCode] = useState('');
+  const [codeError, setCodeError] = useState('');
+  const [isValidating, setIsValidating] = useState(false);
 
   const accessRestrictions = getAccessRestrictions();
 
@@ -73,7 +78,48 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
   }
 
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
+    if (newStatus === 'delivered') {
+      const order = supplierActiveDeliveries.find(o => o.id === orderId);
+      if (order) {
+        setSelectedOrderForDelivery(order);
+        setShowConfirmationModal(true);
+        setConfirmationCode('');
+        setCodeError('');
+        return;
+      }
+    }
     await updateOrderStatus(orderId, newStatus);
+  };
+
+  const handleConfirmDelivery = async () => {
+    if (!selectedOrderForDelivery) return;
+
+    setCodeError('');
+    setIsValidating(true);
+
+    try {
+      if (confirmationCode.trim().length !== 6) {
+        setCodeError('Le code doit contenir 6 chiffres');
+        setIsValidating(false);
+        return;
+      }
+
+      if (confirmationCode !== selectedOrderForDelivery.deliveryConfirmationCode) {
+        setCodeError('Code incorrect. Veuillez demander le code au client.');
+        setIsValidating(false);
+        return;
+      }
+
+      await updateOrderStatus(selectedOrderForDelivery.id, 'delivered');
+      setShowConfirmationModal(false);
+      setSelectedOrderForDelivery(null);
+      setConfirmationCode('');
+    } catch (error) {
+      console.error('Error confirming delivery:', error);
+      setCodeError('Erreur lors de la confirmation');
+    } finally {
+      setIsValidating(false);
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -413,6 +459,105 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Delivery Confirmation Modal */}
+      {showConfirmationModal && selectedOrderForDelivery && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                <Key className="h-6 w-6 mr-2 text-orange-600" />
+                Confirmation de livraison
+              </h3>
+              <button
+                onClick={() => {
+                  setShowConfirmationModal(false);
+                  setSelectedOrderForDelivery(null);
+                  setConfirmationCode('');
+                  setCodeError('');
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-600 mb-4">
+                Pour confirmer la livraison de cette commande, veuillez saisir le code de confirmation fourni par le client.
+              </p>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Commande :</strong> #{selectedOrderForDelivery.id.substring(0, 8)}
+                </p>
+                <p className="text-sm text-blue-800">
+                  <strong>Montant :</strong> {new Intl.NumberFormat('fr-FR').format(selectedOrderForDelivery.totalAmount)} FCFA
+                </p>
+              </div>
+
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Code de confirmation (6 chiffres)
+              </label>
+              <input
+                type="text"
+                maxLength={6}
+                value={confirmationCode}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  setConfirmationCode(value);
+                  setCodeError('');
+                }}
+                placeholder="000000"
+                className={`w-full px-4 py-3 text-center text-2xl font-mono font-bold border-2 rounded-lg focus:outline-none focus:ring-2 ${
+                  codeError
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                    : 'border-gray-300 focus:border-orange-500 focus:ring-orange-200'
+                }`}
+              />
+
+              {codeError && (
+                <div className="mt-2 flex items-center text-red-600 text-sm">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {codeError}
+                </div>
+              )}
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowConfirmationModal(false);
+                  setSelectedOrderForDelivery(null);
+                  setConfirmationCode('');
+                  setCodeError('');
+                }}
+                disabled={isValidating}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleConfirmDelivery}
+                disabled={isValidating || confirmationCode.length !== 6}
+                className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {isValidating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Validation...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    Confirmer la livraison
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
