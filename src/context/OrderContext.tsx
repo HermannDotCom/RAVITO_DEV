@@ -70,7 +70,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
         setAvailableOrders(pending);
         setSupplierActiveDeliveries(active.filter(o =>
-          ['accepted', 'preparing', 'delivering'].includes(o.status)
+          ['paid', 'accepted', 'preparing', 'delivering'].includes(o.status)
         ));
         setSupplierCompletedDeliveries(completed.filter(o => o.status === 'delivered'));
       } else if (user.role === 'admin') {

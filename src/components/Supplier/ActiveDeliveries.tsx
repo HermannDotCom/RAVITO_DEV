@@ -45,6 +45,8 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
 
   const getStatusInfo = (status: OrderStatus) => {
     switch (status) {
+      case 'paid':
+        return { label: 'Payée', color: 'emerald', bgColor: 'bg-emerald-50', textColor: 'text-emerald-700' };
       case 'accepted':
         return { label: 'Acceptée', color: 'green', bgColor: 'bg-green-50', textColor: 'text-green-700' };
       case 'preparing':
@@ -60,6 +62,8 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
 
   const getNextAction = (status: OrderStatus) => {
     switch (status) {
+      case 'paid':
+        return { label: 'Commencer préparation', nextStatus: 'preparing' as OrderStatus };
       case 'accepted':
         return { label: 'Commencer préparation', nextStatus: 'preparing' as OrderStatus };
       case 'preparing':
