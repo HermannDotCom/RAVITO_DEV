@@ -200,55 +200,35 @@ export interface MatchingSupplier {
   estimatedTime: number;
 }
 
-export type TierName = 'basic' | 'silver' | 'gold';
-export type SubscriptionStatus = 'active' | 'inactive' | 'pending' | 'cancelled' | 'expired';
+export type TransferMethod = 'bank_transfer' | 'mobile_money' | 'cash';
+export type TransferStatus = 'pending' | 'approved' | 'completed' | 'rejected';
 
-export interface PremiumTier {
-  id: string;
-  name: TierName;
-  displayName: string;
-  priceMonthly: number;
-  features: {
-    description: string;
-    features: string[];
-  };
-  maxZones: number | null;
-  hasPriorityPlacement: boolean;
-  hasAdvancedAnalytics: boolean;
-  hasPrioritySupport: boolean;
-  hasUnlimitedZones: boolean;
-  displayOrder: number;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface SupplierSubscription {
+export interface Transfer {
   id: string;
   supplierId: string;
-  tierId: string;
-  status: SubscriptionStatus;
-  startsAt: Date;
-  endsAt?: Date;
-  autoRenew: boolean;
-  paymentMethod?: PaymentMethod;
-  lastPaymentDate?: Date;
-  nextPaymentDate?: Date;
-  totalPaid: number;
+  supplierName: string;
+  amount: number;
+  orderCount: number;
+  transferMethod: TransferMethod;
+  status: TransferStatus;
+  createdBy?: string;
+  approvedBy?: string;
+  approvedAt?: Date;
+  completedAt?: Date;
+  completedBy?: string;
+  rejectedAt?: Date;
+  rejectedBy?: string;
+  rejectionReason?: string;
+  metadata?: Record<string, any>;
+  notes?: string;
   createdAt: Date;
   updatedAt: Date;
-  activatedAt?: Date;
-  cancelledAt?: Date;
-  cancellationReason?: string;
 }
 
-export interface ActiveSubscription {
-  subscriptionId: string;
-  tierName: TierName;
-  tierDisplayName: string;
-  hasPriorityPlacement: boolean;
-  hasAdvancedAnalytics: boolean;
-  hasPrioritySupport: boolean;
-  hasUnlimitedZones: boolean;
-  maxZones: number | null;
+export interface TransferOrder {
+  id: string;
+  transferId: string;
+  orderId: string;
+  orderAmount: number;
+  createdAt: Date;
 }

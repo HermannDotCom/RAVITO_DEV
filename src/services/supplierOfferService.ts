@@ -48,57 +48,60 @@ export async function createSupplierOffer(
       };
     }
 
-    // Vérifier d'abord les conditions RLS manuellement pour un meilleur diagnostic
-    const { data: orderCheck } = await supabase
-      .from('orders')
-      .select('id, status, zone_id')
-      .eq('id', orderId)
-      .single();
-
-    console.log('📋 Order check:', orderCheck);
-
-    const { data: profileCheck } = await supabase
-      .from('profiles')
-      .select('id, role, is_approved')
-      .eq('id', userData.user.id)
-      .single();
-
-    console.log('👤 Profile check:', profileCheck);
-
-    const { data: zoneCheck } = await supabase
-      .from('supplier_zones')
-      .select('zone_id')
-      .eq('supplier_id', userData.user.id)
-      .eq('zone_id', orderCheck?.zone_id || '');
-
-    console.log('📍 Zone check:', zoneCheck);
-
-    const { data, error } = await supabase
+    // Vérifier si ce fournisseur a déjà une offre en attente pour cette commande
+    const { data: existingOffer } = await supabase
       .from('supplier_offers')
-      .insert({
-        order_id: orderId,
-        supplier_id: userData.user.id,
-        modified_items: modifiedItems,
-        total_amount: totalAmount,
-        consigne_total: consigneTotal,
-        supplier_commission: supplierCommission,
-        net_supplier_amount: netSupplierAmount,
-        supplier_message: supplierMessage
-      })
-      .select()
-      .single();
+      .select('id, status')
+      .eq('order_id', orderId)
+      .eq('supplier_id', userData.user.id)
+      .eq('status', 'pending')
+      .maybeSingle();
+
+    let data;
+    let error;
+
+    if (existingOffer) {
+      // Mettre à jour l'offre existante
+      const result = await supabase
+        .from('supplier_offers')
+        .update({
+          modified_items: modifiedItems,
+          total_amount: totalAmount,
+          consigne_total: consigneTotal,
+          supplier_commission: supplierCommission,
+          net_supplier_amount: netSupplierAmount,
+          supplier_message: supplierMessage,
+          created_at: new Date().toISOString() // Mettre à jour la date pour qu'elle apparaisse comme nouvelle
+        })
+        .eq('id', existingOffer.id)
+        .select()
+        .single();
+
+      data = result.data;
+      error = result.error;
+    } else {
+      // Créer une nouvelle offre
+      const result = await supabase
+        .from('supplier_offers')
+        .insert({
+          order_id: orderId,
+          supplier_id: userData.user.id,
+          modified_items: modifiedItems,
+          total_amount: totalAmount,
+          consigne_total: consigneTotal,
+          supplier_commission: supplierCommission,
+          net_supplier_amount: netSupplierAmount,
+          supplier_message: supplierMessage
+        })
+        .select()
+        .single();
+
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) {
-      console.error('❌ Error creating supplier offer:', error);
-      console.error('📊 Diagnostic:', {
-        orderId,
-        orderStatus: orderCheck?.status,
-        orderZone: orderCheck?.zone_id,
-        supplierId: userData.user.id,
-        supplierRole: profileCheck?.role,
-        supplierApproved: profileCheck?.is_approved,
-        supplierInZone: zoneCheck && zoneCheck.length > 0
-      });
+      console.error('❌ Error creating/updating supplier offer:', error);
       return { success: false, error: error.message };
     }
 
@@ -140,55 +143,16 @@ export async function getOffersByOrder(orderId: string): Promise<SupplierOffer[]
       return [];
     }
 
-    // Get active subscriptions for all suppliers to determine tier priority
-    const supplierIds = data
-      .map((offer: Record<string, unknown>) => offer.supplier_id)
-      .filter((id): id is string => typeof id === 'string');
-    const { data: subscriptions } = await supabase
-      .from('supplier_subscriptions')
-      .select(`
-        supplier_id,
-        tier:premium_tiers(name, display_order)
-      `)
-      .in('supplier_id', supplierIds)
-      .eq('status', 'active');
-
-    // Create a map of supplier tiers for fast lookup
-    const supplierTiers = new Map<string, { tierName: string; displayOrder: number }>();
-    subscriptions?.forEach((sub: Record<string, unknown>) => {
-      const tier = sub.tier as Record<string, unknown>;
-      supplierTiers.set(sub.supplier_id as string, {
-        tierName: (tier?.name as string) || 'basic',
-        displayOrder: (tier?.display_order as number) || 1
-      });
-    });
-
-    // Map and sort offers: Gold tier first (highest display_order), then by creation date
-    interface OfferWithTier extends SupplierOffer {
-      _tierDisplayOrder: number;
-      _tierName: string;
-    }
-
-    const mappedOffers: OfferWithTier[] = data.map((offer: Record<string, unknown>) => {
-      const tier = supplierTiers.get(offer.supplier_id as string) || { tierName: 'basic', displayOrder: 1 };
-      return {
-        ...mapDatabaseOfferToApp(offer),
-        _tierDisplayOrder: tier.displayOrder,
-        _tierName: tier.tierName
-      };
-    });
-
-    // Sort: Gold tier (display_order 3) first, then Silver (2), then Basic (1)
-    // Within same tier, sort by creation date (newest first)
-    mappedOffers.sort((a, b) => {
-      if (b._tierDisplayOrder !== a._tierDisplayOrder) {
-        return b._tierDisplayOrder - a._tierDisplayOrder;
+    // Grouper par fournisseur et ne garder que l'offre la plus récente
+    const offersBySupplier = new Map<string, any>();
+    data.forEach(offer => {
+      const existing = offersBySupplier.get(offer.supplier_id);
+      if (!existing || new Date(offer.created_at) > new Date(existing.created_at)) {
+        offersBySupplier.set(offer.supplier_id, offer);
       }
-      return b.createdAt.getTime() - a.createdAt.getTime();
     });
 
-    // Remove temporary sorting fields
-    return mappedOffers.map(({ _tierDisplayOrder, _tierName, ...offer }) => offer as SupplierOffer);
+    return Array.from(offersBySupplier.values()).map(mapDatabaseOfferToApp);
   } catch (error) {
     console.error('Exception fetching offers:', error);
     return [];
