@@ -3,16 +3,61 @@ import { Clock, Package, Truck, CheckCircle, MapPin, Phone, Archive } from 'luci
 import { useOrder } from '../../context/OrderContext';
 import { OrderStatus, CrateType } from '../../types';
 import { DeliveryTracking } from './DeliveryTracking';
+import { supabase } from '../../lib/supabase';
 
 interface OrderTrackingProps {
   onComplete: () => void;
+}
+
+interface SupplierProfile {
+  id: string;
+  name: string;
+  business_name?: string;
+  phone?: string;
+  rating?: number;
+  address?: string;
 }
 
 export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
   const { clientCurrentOrder, updateOrderStatus } = useOrder();
   const [estimatedTime, setEstimatedTime] = useState(25);
   const [notifications, setNotifications] = useState<Array<{ type: string; message: string; id: number }>>([]);
+  const [supplierProfile, setSupplierProfile] = useState<SupplierProfile | null>(null);
   const timeoutsRef = useRef<Set<NodeJS.Timeout>>(new Set());
+
+  // Load supplier profile when order has a supplier
+  useEffect(() => {
+    const loadSupplierProfile = async () => {
+      if (!clientCurrentOrder?.supplierId) {
+        setSupplierProfile(null);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, business_name, phone, rating, address')
+        .eq('id', clientCurrentOrder.supplierId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading supplier profile:', error);
+        return;
+      }
+
+      if (data) {
+        setSupplierProfile({
+          id: data.id,
+          name: data.name,
+          business_name: data.business_name,
+          phone: data.phone,
+          rating: data.rating,
+          address: data.address
+        });
+      }
+    };
+
+    loadSupplierProfile();
+  }, [clientCurrentOrder?.supplierId]);
 
   // Cleanup all timeouts on unmount
   useEffect(() => {
@@ -227,30 +272,40 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
           </div>
 
           {/* Supplier Info */}
-          {clientCurrentOrder.supplierId && (
+          {clientCurrentOrder.supplierId && supplierProfile && (
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Votre fournisseur</h3>
               <div className="flex items-center space-x-4">
                 <div className="h-12 w-12 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">DP</span>
+                  <span className="text-white font-bold">
+                    {(supplierProfile.business_name || supplierProfile.name).substring(0, 2).toUpperCase()}
+                  </span>
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">Dépôt du Plateau</h4>
-                  <div className="flex items-center text-sm text-gray-600 mt-1">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    <span>Plateau, Abidjan</span>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Phone className="h-4 w-4 mr-1" />
-                    <span>+225 05 44 33 22 11</span>
-                  </div>
+                  <h4 className="font-semibold text-gray-900">
+                    {supplierProfile.business_name || supplierProfile.name}
+                  </h4>
+                  {supplierProfile.address && (
+                    <div className="flex items-center text-sm text-gray-600 mt-1">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      <span>{supplierProfile.address}</span>
+                    </div>
+                  )}
+                  {supplierProfile.phone && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Phone className="h-4 w-4 mr-1" />
+                      <span>{supplierProfile.phone}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="text-right">
-                  <div className="flex items-center space-x-1">
-                    <span className="text-yellow-400">★</span>
-                    <span className="text-sm font-semibold">4.7</span>
+                {supplierProfile.rating && supplierProfile.rating > 0 && (
+                  <div className="text-right">
+                    <div className="flex items-center space-x-1">
+                      <span className="text-yellow-400">★</span>
+                      <span className="text-sm font-semibold">{supplierProfile.rating.toFixed(1)}</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           )}

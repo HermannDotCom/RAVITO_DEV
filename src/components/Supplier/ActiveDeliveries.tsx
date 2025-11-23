@@ -9,38 +9,50 @@ interface ActiveDeliveriesProps {
   onNavigate: (section: string) => void;
 }
 
+interface ClientProfile {
+  id: string;
+  name: string;
+  business_name?: string;
+  phone?: string;
+  rating?: number;
+}
+
 export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
-  const { supplierActiveDeliveries, updateOrderStatus, completeDelivery } = useOrder();
-  const [clientPhones, setClientPhones] = useState<Record<string, string>>({});
+  const { supplierActiveDeliveries, updateOrderStatus } = useOrder();
+  const [clientProfiles, setClientProfiles] = useState<Record<string, ClientProfile>>({});
 
   const accessRestrictions = getAccessRestrictions();
 
   useEffect(() => {
-    const loadClientPhones = async () => {
+    const loadClientProfiles = async () => {
       const clientIds = Array.from(new Set(supplierActiveDeliveries.map(order => order.clientId)));
       if (clientIds.length === 0) return;
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, phone')
+        .select('id, name, business_name, phone, rating')
         .in('id', clientIds);
 
       if (error) {
-        console.error('Error loading client phones:', error);
+        console.error('Error loading client profiles:', error);
         return;
       }
 
-      const phonesMap: Record<string, string> = {};
+      const profilesMap: Record<string, ClientProfile> = {};
       data?.forEach(profile => {
-        if (profile.phone) {
-          phonesMap[profile.id] = profile.phone;
-        }
+        profilesMap[profile.id] = {
+          id: profile.id,
+          name: profile.name,
+          business_name: profile.business_name,
+          phone: profile.phone,
+          rating: profile.rating
+        };
       });
-      setClientPhones(phonesMap);
+      setClientProfiles(profilesMap);
     };
 
-    loadClientPhones();
+    loadClientProfiles();
   }, [supplierActiveDeliveries]);
 
   // Restriction d'accès sécurisée
@@ -60,12 +72,8 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
     );
   }
 
-  const handleStatusUpdate = (orderId: string, newStatus: OrderStatus) => {
-    updateOrderStatus(orderId, newStatus);
-    
-    if (newStatus === 'delivered') {
-      completeDelivery(orderId);
-    }
+  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
+    await updateOrderStatus(orderId, newStatus);
   };
 
   const formatPrice = (price: number) => {
@@ -232,29 +240,40 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Client Info & Address */}
                     <div className="space-y-4">
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                          <MapPin className="h-4 w-4 mr-2 text-orange-600" />
-                          Informations client
-                        </h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Établissement</span>
-                            <span className="font-medium">Maquis Belle Vue</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Contact</span>
-                            <span className="font-medium">{clientPhones[order.clientId] || 'Non disponible'}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Note client</span>
-                            <div className="flex items-center space-x-1">
-                              <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                              <span className="font-medium">4.5</span>
+                      {(() => {
+                        const clientProfile = clientProfiles[order.clientId];
+                        const clientName = clientProfile?.business_name || clientProfile?.name || 'Client';
+                        const clientPhone = clientProfile?.phone || 'Non disponible';
+                        const clientRating = clientProfile?.rating || 0;
+
+                        return (
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                              <MapPin className="h-4 w-4 mr-2 text-orange-600" />
+                              Informations client
+                            </h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Établissement</span>
+                                <span className="font-medium">{clientName}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Contact</span>
+                                <span className="font-medium">{clientPhone}</span>
+                              </div>
+                              {clientRating > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Note client</span>
+                                  <div className="flex items-center space-x-1">
+                                    <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                                    <span className="font-medium">{clientRating.toFixed(1)}</span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        </div>
-                      </div>
+                        );
+                      })()}
 
                       <div className="bg-blue-50 rounded-lg p-4">
                         <h4 className="font-semibold text-gray-900 mb-2">Adresse de livraison</h4>
@@ -374,8 +393,8 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
                   {nextAction && (
                     <div className="mt-6 flex flex-col sm:flex-row gap-3">
                       <button
-                        onClick={() => handleContactClient(clientPhones[order.clientId] || '')}
-                        disabled={!clientPhones[order.clientId]}
+                        onClick={() => handleContactClient(clientProfiles[order.clientId]?.phone || '')}
+                        disabled={!clientProfiles[order.clientId]?.phone}
                         className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Phone className="h-4 w-4" />
