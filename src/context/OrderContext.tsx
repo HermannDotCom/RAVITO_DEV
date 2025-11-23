@@ -102,14 +102,23 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           filter: `client_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Order change:', payload);
+          console.log('📦 Order change detected:', payload);
           loadOrders();
         }
       )
       .subscribe();
 
+    // Also listen for custom refresh events from realtime hooks
+    const handleRefreshEvent = () => {
+      console.log('🔄 Manual refresh triggered');
+      loadOrders();
+    };
+
+    window.addEventListener('refresh-orders', handleRefreshEvent);
+
     return () => {
       supabase.removeChannel(channel);
+      window.removeEventListener('refresh-orders', handleRefreshEvent);
     };
   }, [user]);
 

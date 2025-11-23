@@ -58,8 +58,11 @@ export const useRealtimeOrders = () => {
       subscriptionRef.current = realtimeService.subscribeToClientOffers(
         user.id,
         (offer) => {
-          console.log('New offer notification for client:', offer);
-          
+          console.log('🆕 New offer notification for client:', offer);
+
+          // Force refresh of orders to update UI
+          window.dispatchEvent(new CustomEvent('refresh-orders'));
+
           // Show toast notification
           const supplier = offer.supplier as any;
           const order = offer.order as any;
@@ -73,7 +76,10 @@ export const useRealtimeOrders = () => {
           );
         },
         (offer) => {
-          console.log('Offer updated for client:', offer);
+          console.log('✏️ Offer updated for client:', offer);
+
+          // Force refresh when offer is updated
+          window.dispatchEvent(new CustomEvent('refresh-orders'));
         }
       );
     }
