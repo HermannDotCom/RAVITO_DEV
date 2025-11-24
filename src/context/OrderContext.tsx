@@ -7,6 +7,7 @@ import {
   getOrdersByClient,
   getOrdersBySupplier,
   getPendingOrders,
+  getAllOrders,
   updateOrderStatus as updateOrderStatusService
 } from '../services/orderService';
 
@@ -51,6 +52,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [supplierActiveDeliveries, setSupplierActiveDeliveries] = useState<Order[]>([]);
   const [supplierCompletedDeliveries, setSupplierCompletedDeliveries] = useState<Order[]>([]);
   const [clientOrders, setClientOrders] = useState<Order[]>([]);
+  const [adminAllOrders, setAdminAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const loadOrders = async () => {
@@ -74,8 +76,12 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         ));
         setSupplierCompletedDeliveries(completed.filter(o => o.status === 'delivered'));
       } else if (user.role === 'admin') {
-        const pending = await getPendingOrders();
+        const [pending, all] = await Promise.all([
+          getPendingOrders(),
+          getAllOrders()
+        ]);
         setAvailableOrders(pending);
+        setAdminAllOrders(all);
       }
     } catch (error) {
       console.error('Error loading orders:', error);
@@ -245,7 +251,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     await loadOrders();
   };
 
-  const allOrders = [...clientOrders, ...availableOrders, ...supplierActiveDeliveries, ...supplierCompletedDeliveries];
+  const allOrders = [...clientOrders, ...availableOrders, ...supplierActiveDeliveries, ...supplierCompletedDeliveries, ...adminAllOrders];
   
   const clientCurrentOrder = clientOrders.find(order => 
     ['pending', 'awaiting-client-validation', 'accepted', 'preparing', 'delivering'].includes(order.status)
