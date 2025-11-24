@@ -224,7 +224,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         .from('orders')
         .update({
           status: 'preparing',
-          payment_status: 'completed',
+          payment_status: 'paid',
           paid_at: new Date().toISOString(),
           payment_method: paymentMethod,
           transaction_id: transactionId
