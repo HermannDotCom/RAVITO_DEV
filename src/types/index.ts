@@ -152,6 +152,7 @@ export interface Order {
   createdAt: Date;
   acceptedAt?: Date;
   deliveredAt?: Date;
+  delivery_confirmation_code?: string;
 }
 
 export type OrderStatus =

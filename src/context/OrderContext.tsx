@@ -10,6 +10,16 @@ import {
   updateOrderStatus as updateOrderStatusService
 } from '../services/orderService';
 
+// Fonction utilitaire pour générer un code à 4 chiffres
+const generateConfirmationCode = (): string => {
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = '';
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
 interface OrderContextType {
   currentOrder: Order | null;
   clientCurrentOrder: Order | null;
@@ -147,8 +157,11 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     if (status === 'accepted') {
       updates.acceptedAt = new Date();
+    } else if (status === 'delivering') {
+      updates.delivery_confirmation_code = generateConfirmationCode();
     } else if (status === 'delivered') {
       updates.deliveredAt = new Date();
+      updates.delivery_confirmation_code = null; // Optionnel: effacer le code après livraison
     }
 
     const success = await updateOrderStatusService(orderId, status, updates);

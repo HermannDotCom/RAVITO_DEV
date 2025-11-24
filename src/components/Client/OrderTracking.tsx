@@ -1,18 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import { Clock, Package, Truck, CheckCircle, MapPin, Phone, Archive } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Clock, Package, Truck, CheckCircle, MapPin, Phone, Archive, CreditCard, AlertCircle } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
-import { OrderStatus, CrateType } from '../../types';
+import { useAuth } from '../../context/AuthContext';
+import { OrderStatus, CrateType, PaymentMethod } from '../../types';
+import { PaymentFlow } from './PaymentFlow';
 
 interface OrderTrackingProps {
   onComplete: () => void;
 }
 
 export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
-  const { clientCurrentOrder, updateOrderStatus } = useOrder();
+  const { user } = useAuth();
+  const { clientCurrentOrder, updateOrderStatus, processPayment } = useOrder();
   const [estimatedTime, setEstimatedTime] = useState(25);
+  const [showPaymentFlow, setShowPaymentFlow] = useState(false);
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
+
+  // Déterminer si le paiement est nécessaire
+  const needsPayment = clientCurrentOrder?.status === 'awaiting-client-validation' && 
+                       clientCurrentOrder?.payment_status !== 'completed';
 
   useEffect(() => {
     if (!clientCurrentOrder) return;
+
+    // Ne pas lancer l'auto-progression si le paiement est en attente
+    if (needsPayment) return;
 
     const statusFlow: OrderStatus[] = ['accepted', 'preparing', 'delivering', 'delivered'];
     let currentIndex = statusFlow.indexOf(clientCurrentOrder.status);
@@ -34,7 +46,7 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [clientCurrentOrder, updateOrderStatus, onComplete]);
+  }, [clientCurrentOrder, updateOrderStatus, onComplete, needsPayment]);
 
   if (!clientCurrentOrder) {
     return (
@@ -44,6 +56,32 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
           <h3 className="text-xl font-semibold text-gray-600">Aucune commande en cours</h3>
         </div>
       </div>
+    );
+  }
+
+  // Afficher l'interface de paiement si nécessaire
+  if (needsPayment && showPaymentFlow) {
+    return (
+      <PaymentFlow
+        order={clientCurrentOrder}
+        onPaymentComplete={async (paymentMethod: PaymentMethod, transactionId: string) => {
+          setPaymentProcessing(true);
+          const success = await processPayment(clientCurrentOrder.id, paymentMethod, transactionId);
+          setPaymentProcessing(false);
+          
+          if (success) {
+            setShowPaymentFlow(false);
+            // Rafraîchir pour voir le nouveau statut
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            alert('Erreur lors du traitement du paiement. Veuillez réessayer.');
+          }
+        }}
+        onCancel={() => setShowPaymentFlow(false)}
+        isProcessing={paymentProcessing}
+      />
     );
   }
 
@@ -113,6 +151,28 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
         <p className="text-gray-600">Commande #{clientCurrentOrder.id}</p>
       </div>
 
+      {/* Alerte de paiement en attente */}
+      {needsPayment && (
+        <div className="mb-6 bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
+          <div className="flex items-start">
+            <AlertCircle className="h-6 w-6 text-orange-600 mr-3 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-orange-900 mb-2">Paiement en attente</h3>
+              <p className="text-orange-800 mb-4">
+                Une offre a été reçue de la part du fournisseur. Veuillez procéder au paiement pour confirmer votre commande.
+              </p>
+              <button
+                onClick={() => setShowPaymentFlow(true)}
+                className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+              >
+                <CreditCard className="h-5 w-5 mr-2" />
+                Procéder au paiement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Order Status */}
         <div className="lg:col-span-2 space-y-6">
@@ -124,54 +184,84 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">{statusInfo.label}</h2>
-                {clientCurrentOrder.status !== 'delivered' && (
+                {clientCurrentOrder.status !== 'delivered' && !needsPayment && (
                   <p className="text-gray-600">Temps estimé: {estimatedTime} minutes</p>
                 )}
               </div>
             </div>
 
-            {/* Progress Steps */}
-            <div className="relative">
-              <div className="flex justify-between">
-                {steps.map((step, index) => {
-                  const StepIcon = step.icon;
-                  const isCompleted = index <= getCurrentStep();
-                  const isCurrent = index === getCurrentStep();
-                  
-                  return (
-                    <div key={step.id} className="flex flex-col items-center relative">
-                      <div className={`
-                        h-10 w-10 rounded-full flex items-center justify-center transition-all
-                        ${isCompleted 
-                          ? 'bg-green-500 text-white' 
-                          : isCurrent 
-                            ? 'bg-orange-500 text-white' 
-                            : 'bg-gray-200 text-gray-400'
-                        }
-                      `}>
-                        <StepIcon className="h-5 w-5" />
-                      </div>
-                      <span className={`mt-2 text-xs font-medium ${
-                        isCompleted ? 'text-green-600' : isCurrent ? 'text-orange-600' : 'text-gray-400'
-                      }`}>
-                        {step.label}
-                      </span>
-                      
-                      {index < steps.length - 1 && (
-                        <div className={`
-                          absolute top-5 left-5 w-16 h-0.5 transition-colors
-                          ${index < getCurrentStep() ? 'bg-green-500' : 'bg-gray-200'}
-                        `} />
-                      )}
-                    </div>
-                  );
-                })}
+            {/* Code de confirmation pour le client */}
+            {clientCurrentOrder.status === 'delivering' && clientCurrentOrder.delivery_confirmation_code && (
+              <div className="mt-4 bg-green-100 border border-green-300 rounded-lg p-4">
+                <p className="text-sm font-bold text-green-800 mb-2">Code de confirmation de livraison</p>
+                <p className="text-4xl font-bold text-green-600 tracking-widest text-center">
+                  {clientCurrentOrder.delivery_confirmation_code}
+                </p>
+                <p className="text-xs text-green-700 mt-2 text-center">
+                  À communiquer au livreur pour finaliser la livraison.
+                </p>
               </div>
-            </div>
+            )}
+
+            {/* Progress Steps */}
+            {!needsPayment && (
+              <div className="relative">
+                <div className="flex justify-between">
+                  {steps.map((step, index) => {
+                    const StepIcon = step.icon;
+                    const isCompleted = index <= getCurrentStep();
+                    const isCurrent = index === getCurrentStep();
+                    
+                    return (
+                      <div key={step.id} className="flex flex-col items-center relative">
+                        <div className={`
+                          h-10 w-10 rounded-full flex items-center justify-center transition-all
+                          ${isCompleted 
+                            ? 'bg-green-500 text-white' 
+                            : isCurrent 
+                              ? 'bg-orange-500 text-white' 
+                              : 'bg-gray-200 text-gray-400'
+                          }`}>
+                          <StepIcon className="h-5 w-5" />
+                        </div>
+                        <span className={`mt-2 text-xs font-medium ${
+                          isCompleted ? 'text-green-600' : isCurrent ? 'text-orange-600' : 'text-gray-400'
+                        }`}>
+                          {step.label}
+                        </span>
+                        
+                        {index < steps.length - 1 && (
+                          <div className={`
+                            absolute top-5 left-5 w-16 h-0.5 transition-colors
+                            ${index < getCurrentStep() ? 'bg-green-500' : 'bg-gray-200'}
+                          `} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
+          {/* Delivery Confirmation Code */}
+          {clientCurrentOrder.status === 'delivering' && clientCurrentOrder.delivery_confirmation_code && (
+            <div className="bg-green-50 rounded-xl shadow-lg border border-green-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Code de confirmation de livraison</h3>
+              <p className="text-gray-600 mb-4">Communiquez ce code au livreur pour confirmer la livraison :</p>
+              <div className="bg-white rounded-lg border-2 border-green-500 p-6 text-center">
+                <p className="text-5xl font-bold text-green-600 tracking-widest">
+                  {clientCurrentOrder.delivery_confirmation_code}
+                </p>
+              </div>
+              <p className="text-sm text-gray-600 mt-4 text-center">
+                ℹ️ Ce code est unique et sécurisé. Ne le partagez qu'avec le livreur.
+              </p>
+            </div>
+          )}
+
           {/* Supplier Info */}
-          {clientCurrentOrder.supplierId && (
+          {clientCurrentOrder.supplierId && !needsPayment && (
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Votre fournisseur</h3>
               <div className="flex items-center space-x-4">
@@ -239,6 +329,20 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
               <div className="flex justify-between text-lg font-bold text-gray-900 border-t pt-2">
                 <span>Total</span>
                 <span>{formatPrice(total)}</span>
+              </div>
+            </div>
+
+            {/* Payment Status */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Statut du paiement:</span>
+                <span className={`text-sm font-bold ${
+                  clientCurrentOrder.payment_status === 'completed' 
+                    ? 'text-green-600' 
+                    : 'text-orange-600'
+                }`}>
+                  {clientCurrentOrder.payment_status === 'completed' ? '✓ Payé' : 'En attente'}
+                </span>
               </div>
             </div>
           </div>
@@ -333,7 +437,8 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
             </div>
             <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded p-2">
               <p className="text-sm text-yellow-800">
-                <strong>Paiement :</strong> {getPaymentMethodLabel(clientCurrentOrder.paymentMethod)} à la livraison
+                <strong>Paiement :</strong> {getPaymentMethodLabel(clientCurrentOrder.paymentMethod)} 
+                {clientCurrentOrder.payment_status === 'completed' ? ' (Payé)' : ' (À la livraison)'}
               </p>
             </div>
           </div>
