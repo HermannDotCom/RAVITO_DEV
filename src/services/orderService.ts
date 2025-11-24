@@ -208,6 +208,32 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
   }
 }
 
+export async function getAllOrders(): Promise<Order[]> {
+  try {
+    const { data, error } = await supabase
+      .from('orders_with_coords')
+      .select(`
+        *,
+        order_items (
+          *,
+          product:products (*)
+        ),
+        zone:zones (name)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching all orders:', error);
+      return [];
+    }
+
+    return data.map(mapDatabaseOrderToApp);
+  } catch (error) {
+    console.error('Exception fetching all orders:', error);
+    return [];
+  }
+}
+
 export async function updateOrderStatus(
   orderId: string,
   status: OrderStatus,
