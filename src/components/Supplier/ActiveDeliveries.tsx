@@ -98,8 +98,8 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
     setIsValidating(true);
 
     try {
-      if (confirmationCode.trim().length !== 6) {
-        setCodeError('Le code doit contenir 6 chiffres');
+      if (confirmationCode.trim().length !== 8) {
+        setCodeError('Le code doit contenir 8 caractères');
         setIsValidating(false);
         return;
       }
@@ -499,18 +499,18 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
               </div>
 
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Code de confirmation (6 chiffres)
+                Code de confirmation (8 caractères)
               </label>
               <input
                 type="text"
-                maxLength={6}
+                maxLength={8}
                 value={confirmationCode}
                 onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '');
+                  const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
                   setConfirmationCode(value);
                   setCodeError('');
                 }}
-                placeholder="000000"
+                placeholder="XXXXXXXX"
                 className={`w-full px-4 py-3 text-center text-2xl font-mono font-bold border-2 rounded-lg focus:outline-none focus:ring-2 ${
                   codeError
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
@@ -541,7 +541,7 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
               </button>
               <button
                 onClick={handleConfirmDelivery}
-                disabled={isValidating || confirmationCode.length !== 6}
+                disabled={isValidating || confirmationCode.length !== 8}
                 className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {isValidating ? (
