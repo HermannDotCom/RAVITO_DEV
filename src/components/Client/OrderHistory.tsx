@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package, Clock, Star, MapPin, Filter, Search, CheckCircle, XCircle, Truck, Calendar, Eye, Download, Phone, Archive, CreditCard } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -8,9 +8,18 @@ import { Order, OrderStatus, CrateType } from '../../types';
 import { ClientRatingForm } from './ClientRatingForm';
 import { OrderDetailsWithOffers } from './OrderDetailsWithOffers';
 import { PaymentInterface } from './PaymentInterface';
+import { supabase } from '../../lib/supabase';
 
 interface OrderHistoryProps {
   onNavigate: (section: string) => void;
+}
+
+interface SupplierProfile {
+  id: string;
+  name: string;
+  business_name?: string;
+  phone?: string;
+  rating?: number;
 }
 
 export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
@@ -29,9 +38,46 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   const [showOffersModal, setShowOffersModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [orderForPayment, setOrderForPayment] = useState<Order | null>(null);
+  const [supplierProfiles, setSupplierProfiles] = useState<Record<string, SupplierProfile>>({});
+
+  // Load supplier profiles for all orders with a supplier
+  useEffect(() => {
+    const loadSupplierProfiles = async () => {
+      const supplierIds = Array.from(new Set(
+        allOrders
+          .filter(order => order.supplierId)
+          .map(order => order.supplierId!)
+      ));
+      if (supplierIds.length === 0) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, business_name, phone, rating')
+        .in('id', supplierIds);
+
+      if (error) {
+        console.error('Error loading supplier profiles:', error);
+        return;
+      }
+
+      const profilesMap: Record<string, SupplierProfile> = {};
+      data?.forEach(profile => {
+        profilesMap[profile.id] = {
+          id: profile.id,
+          name: profile.name,
+          business_name: profile.business_name,
+          phone: profile.phone,
+          rating: profile.rating
+        };
+      });
+      setSupplierProfiles(profilesMap);
+    };
+
+    loadSupplierProfiles();
+  }, [allOrders]);
 
   // Synchroniser les commandes sélectionnées avec les mises à jour du contexte
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedOrder) {
       const updatedOrder = allOrders.find(o => o.id === selectedOrder.id);
       if (updatedOrder && updatedOrder.status !== selectedOrder.status) {
@@ -47,6 +93,28 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
       }
     }
   }, [allOrders, selectedOrder, orderForPayment]);
+
+  // Reload order details including confirmation code when modal opens for delivering orders
+  useEffect(() => {
+    const reloadOrderDetails = async () => {
+      if (showOrderDetails && selectedOrder && selectedOrder.status === 'delivering') {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('delivery_confirmation_code')
+          .eq('id', selectedOrder.id)
+          .single();
+
+        if (!error && data?.delivery_confirmation_code) {
+          setSelectedOrder(prev => prev ? {
+            ...prev,
+            deliveryConfirmationCode: data.delivery_confirmation_code
+          } : null);
+        }
+      }
+    };
+
+    reloadOrderDetails();
+  }, [showOrderDetails, selectedOrder?.id]);
 
   // Filtrer les commandes de l'utilisateur connecté
   const userOrders = allOrders.filter(order => 
@@ -154,12 +222,12 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   };
 
   const getSupplierName = (supplierId?: string) => {
-    const suppliers = {
-      'supplier-1': 'Dépôt du Plateau',
-      'supplier-2': 'Dépôt Cocody Express',
-      'supplier-3': 'Dépôt Marcory Sud'
-    };
-    return suppliers[supplierId as keyof typeof suppliers] || 'Fournisseur inconnu';
+    if (!supplierId) return 'Fournisseur inconnu';
+    const profile = supplierProfiles[supplierId];
+    if (profile) {
+      return profile.business_name || profile.name || 'Fournisseur inconnu';
+    }
+    return 'Fournisseur inconnu';
   };
 
   // Calculer les statistiques réelles
