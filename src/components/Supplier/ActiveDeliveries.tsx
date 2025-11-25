@@ -33,31 +33,41 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
     const loadClientProfiles = async () => {
       if (supplierActiveDeliveries.length === 0) return;
 
+      // Filtrer les commandes avec des clients uniques non encore chargés
+      const uniqueOrders = supplierActiveDeliveries.filter((order, index, self) =>
+        self.findIndex(o => o.clientId === order.clientId) === index
+      );
+
+      // Charger les profils via la fonction RPC sécurisée en parallèle
+      const results = await Promise.allSettled(
+        uniqueOrders.map(order =>
+          supabase.rpc('get_client_info_for_order', { p_order_id: order.id })
+            .then(result => ({ orderId: order.id, ...result }))
+        )
+      );
+
       const profilesMap: Record<string, ClientProfile> = {};
       
-      // Charger les profils via la fonction RPC sécurisée
-      for (const order of supplierActiveDeliveries) {
-        if (profilesMap[order.clientId]) continue; // Déjà chargé
-        
-        const { data, error } = await supabase.rpc('get_client_info_for_order', {
-          p_order_id: order.id
-        });
-
-        if (error) {
-          console.error('Error loading client profile for order:', order.id, error);
-          continue;
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          const { data, error, orderId } = result.value;
+          if (error) {
+            console.error('Error loading client profile for order:', orderId, error);
+            return;
+          }
+          if (data) {
+            profilesMap[data.id] = {
+              id: data.id,
+              name: data.name,
+              business_name: data.business_name,
+              phone: data.phone,
+              rating: data.rating
+            };
+          }
+        } else {
+          console.error('Error loading client profile for order:', uniqueOrders[index].id, result.reason);
         }
-
-        if (data) {
-          profilesMap[data.id] = {
-            id: data.id,
-            name: data.name,
-            business_name: data.business_name,
-            phone: data.phone,
-            rating: data.rating
-          };
-        }
-      }
+      });
       
       setClientProfiles(profilesMap);
     };
