@@ -31,29 +31,34 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
 
   useEffect(() => {
     const loadClientProfiles = async () => {
-      const clientIds = Array.from(new Set(supplierActiveDeliveries.map(order => order.clientId)));
-      if (clientIds.length === 0) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name, business_name, phone, rating')
-        .in('id', clientIds);
-
-      if (error) {
-        console.error('Error loading client profiles:', error);
-        return;
-      }
+      if (supplierActiveDeliveries.length === 0) return;
 
       const profilesMap: Record<string, ClientProfile> = {};
-      data?.forEach(profile => {
-        profilesMap[profile.id] = {
-          id: profile.id,
-          name: profile.name,
-          business_name: profile.business_name,
-          phone: profile.phone,
-          rating: profile.rating
-        };
-      });
+      
+      // Charger les profils via la fonction RPC sécurisée
+      for (const order of supplierActiveDeliveries) {
+        if (profilesMap[order.clientId]) continue; // Déjà chargé
+        
+        const { data, error } = await supabase.rpc('get_client_info_for_order', {
+          p_order_id: order.id
+        });
+
+        if (error) {
+          console.error('Error loading client profile for order:', order.id, error);
+          continue;
+        }
+
+        if (data) {
+          profilesMap[data.id] = {
+            id: data.id,
+            name: data.name,
+            business_name: data.business_name,
+            phone: data.phone,
+            rating: data.rating
+          };
+        }
+      }
+      
       setClientProfiles(profilesMap);
     };
 
