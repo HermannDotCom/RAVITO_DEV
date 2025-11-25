@@ -104,7 +104,7 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
         return;
       }
 
-      if (confirmationCode !== selectedOrderForDelivery.deliveryConfirmationCode) {
+      if (confirmationCode.toUpperCase() !== selectedOrderForDelivery.deliveryConfirmationCode) {
         setCodeError('Code incorrect. Veuillez demander le code au client.');
         setIsValidating(false);
         return;
