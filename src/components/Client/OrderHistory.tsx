@@ -40,36 +40,42 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   const [orderForPayment, setOrderForPayment] = useState<Order | null>(null);
   const [supplierProfiles, setSupplierProfiles] = useState<Record<string, SupplierProfile>>({});
 
-  // Load supplier profiles for all orders with a supplier
+  // Load supplier profiles for paid orders via secure RPC function
   useEffect(() => {
     const loadSupplierProfiles = async () => {
-      const supplierIds = Array.from(new Set(
-        allOrders
-          .filter(order => order.supplierId)
-          .map(order => order.supplierId!)
-      ));
-      if (supplierIds.length === 0) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name, business_name, phone, rating')
-        .in('id', supplierIds);
-
-      if (error) {
-        console.error('Error loading supplier profiles:', error);
-        return;
-      }
+      // Filtrer les commandes payées avec un fournisseur
+      const paidOrdersWithSupplier = allOrders.filter(
+        order => order.supplierId && order.paymentStatus === 'paid'
+      );
+      
+      if (paidOrdersWithSupplier.length === 0) return;
 
       const profilesMap: Record<string, SupplierProfile> = {};
-      data?.forEach(profile => {
-        profilesMap[profile.id] = {
-          id: profile.id,
-          name: profile.name,
-          business_name: profile.business_name,
-          phone: profile.phone,
-          rating: profile.rating
-        };
-      });
+      
+      // Charger les profils via la fonction RPC sécurisée
+      for (const order of paidOrdersWithSupplier) {
+        if (profilesMap[order.supplierId!]) continue; // Déjà chargé
+        
+        const { data, error } = await supabase.rpc('get_supplier_info_for_order', {
+          p_order_id: order.id
+        });
+
+        if (error) {
+          console.error('Error loading supplier profile for order:', order.id, error);
+          continue;
+        }
+
+        if (data) {
+          profilesMap[data.id] = {
+            id: data.id,
+            name: data.name,
+            business_name: data.business_name,
+            phone: data.phone,
+            rating: data.rating
+          };
+        }
+      }
+      
       setSupplierProfiles(profilesMap);
     };
 

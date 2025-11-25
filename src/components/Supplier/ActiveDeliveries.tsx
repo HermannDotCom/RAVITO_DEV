@@ -125,7 +125,12 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
         return;
       }
 
-      await updateOrderStatus(selectedOrderForDelivery.id, 'delivered');
+      const success = await updateOrderStatus(selectedOrderForDelivery.id, 'delivered');
+      if (!success) {
+        setCodeError('Erreur lors de la mise à jour du statut. Veuillez réessayer.');
+        setIsValidating(false);
+        return;
+      }
       setShowConfirmationModal(false);
       setSelectedOrderForDelivery(null);
       setConfirmationCode('');
