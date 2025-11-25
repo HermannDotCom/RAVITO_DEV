@@ -104,17 +104,17 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
           .eq('id', selectedOrder.id)
           .single();
 
-        if (!error && data && data.delivery_confirmation_code) {
-          setSelectedOrder({
-            ...selectedOrder,
+        if (!error && data?.delivery_confirmation_code) {
+          setSelectedOrder(prev => prev ? {
+            ...prev,
             deliveryConfirmationCode: data.delivery_confirmation_code
-          });
+          } : null);
         }
       }
     };
 
     reloadOrderDetails();
-  }, [showOrderDetails, selectedOrder?.id, selectedOrder?.status]);
+  }, [showOrderDetails, selectedOrder?.id]);
 
   // Filtrer les commandes de l'utilisateur connecté
   const userOrders = allOrders.filter(order => 
