@@ -41,7 +41,7 @@ CREATE POLICY "Suppliers can create offers for zone orders"
       JOIN supplier_zones sz ON sz.zone_id = o.zone_id
       WHERE o.id = order_id
         AND sz.supplier_id = auth.uid()
-        AND (sz.is_active = true OR sz.is_active IS NULL)
+        AND COALESCE(sz.is_active, true) = true
     )
   );
 
