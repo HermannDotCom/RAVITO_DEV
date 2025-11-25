@@ -60,7 +60,12 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
           p_order_id: order.id
         });
 
-        if (!error && data) {
+        if (error) {
+          console.error('Error loading supplier profile for order:', order.id, error);
+          continue;
+        }
+
+        if (data) {
           profilesMap[data.id] = {
             id: data.id,
             name: data.name,
