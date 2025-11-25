@@ -98,13 +98,28 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
     setIsValidating(true);
 
     try {
+      // Reload the confirmation code from the database to ensure we have the latest
+      const { data: orderData, error: fetchError } = await supabase
+        .from('orders')
+        .select('delivery_confirmation_code')
+        .eq('id', selectedOrderForDelivery.id)
+        .single();
+
+      if (fetchError || !orderData) {
+        setCodeError('Erreur lors de la vérification du code');
+        setIsValidating(false);
+        return;
+      }
+
+      const dbCode = orderData.delivery_confirmation_code;
+
       if (confirmationCode.trim().length !== 8) {
         setCodeError('Le code doit contenir 8 caractères');
         setIsValidating(false);
         return;
       }
 
-      if (confirmationCode.toUpperCase() !== selectedOrderForDelivery.deliveryConfirmationCode) {
+      if (confirmationCode.toUpperCase() !== dbCode) {
         setCodeError('Code incorrect. Veuillez demander le code au client.');
         setIsValidating(false);
         return;
