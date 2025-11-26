@@ -866,12 +866,15 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
               >
                 <option value="all">Tous les statuts</option>
                 <option value="pending">En attente</option>
-                <option value="awaiting-client-validation">Offre reçue</option>
-                <option value="accepted">Acceptées</option>
+                <option value="pending-offers">En attente d'offres</option>
+                <option value="offers-received">Offres reçues</option>
+                <option value="awaiting-payment">En attente de paiement</option>
+                <option value="paid">Payée</option>
+                <option value="accepted">Acceptée</option>
                 <option value="preparing">En préparation</option>
                 <option value="delivering">En livraison</option>
-                <option value="delivered">Livrées</option>
-                <option value="cancelled">Annulées</option>
+                <option value="delivered">Livrée</option>
+                <option value="cancelled">Annulée</option>
               </select>
             </div>
 
