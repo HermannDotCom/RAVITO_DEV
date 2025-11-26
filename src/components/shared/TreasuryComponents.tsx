@@ -384,8 +384,8 @@ export const SimpleDonutChart: React.FC<SimpleDonutChartProps> = ({
           {data.map((item, index) => {
             const percentage = total > 0 ? (item.value / total) * 100 : 0;
             const dashLength = (percentage / 100) * circumference;
-            const dashOffset = cumulativeOffset;
-            cumulativeOffset -= dashLength;
+            const currentOffset = cumulativeOffset;
+            cumulativeOffset += dashLength;
 
             return (
               <circle
@@ -397,12 +397,12 @@ export const SimpleDonutChart: React.FC<SimpleDonutChartProps> = ({
                 stroke={item.color}
                 strokeWidth="12"
                 strokeDasharray={`${dashLength} ${circumference - dashLength}`}
-                strokeDashoffset={dashOffset}
+                strokeDashoffset={-currentOffset}
                 transform="rotate(-90 50 50)"
               />
             );
           })}
-          <text x="50" y="50" textAnchor="middle" dominantBaseline="middle" className="text-sm font-bold fill-gray-900">
+          <text x="50" y="50" textAnchor="middle" dominantBaseline="middle" fill="#111827" fontSize="8" fontWeight="bold">
             {formatValue(total)}
           </text>
         </svg>

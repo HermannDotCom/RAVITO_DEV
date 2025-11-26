@@ -660,6 +660,19 @@ export function aggregateToQuarterly(monthlyStats: MonthlyStats[]): QuarterlySta
 
 // Helper to aggregate monthly stats to yearly
 export function aggregateToYearly(monthlyStats: MonthlyStats[]): YearlyStats {
+  const currentYear = new Date().getFullYear();
+  
+  if (monthlyStats.length === 0) {
+    return {
+      year: currentYear,
+      orderCount: 0,
+      totalHT: 0,
+      commissions: 0,
+      totalTTC: 0,
+      netAmount: 0
+    };
+  }
+
   return monthlyStats.reduce(
     (acc, month) => ({
       year: month.year,
@@ -670,7 +683,7 @@ export function aggregateToYearly(monthlyStats: MonthlyStats[]): YearlyStats {
       netAmount: (acc.netAmount || 0) + (month.netAmount || 0)
     }),
     {
-      year: monthlyStats[0]?.year || new Date().getFullYear(),
+      year: monthlyStats[0].year,
       orderCount: 0,
       totalHT: 0,
       commissions: 0,

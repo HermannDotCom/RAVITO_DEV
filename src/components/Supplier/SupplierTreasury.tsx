@@ -153,7 +153,7 @@ export const SupplierTreasury: React.FC = () => {
     value: stat.netAmount || 0
   }));
 
-  // Prepare donut chart data for comparison
+  // Prepare donut chart data for comparison (showing breakdown of gross revenue)
   const donutData = summary ? [
     { label: 'Revenus Nets', value: summary.totalNet, color: '#22C55E' },
     { label: `Commissions (${commissionSettings.supplierCommission}%)`, value: summary.totalCommissions, color: '#F97316' }
@@ -263,7 +263,7 @@ export const SupplierTreasury: React.FC = () => {
         />
         <SimpleDonutChart
           data={donutData}
-          title="Revenus Bruts vs Net vs Commissions"
+          title="Répartition des revenus"
           formatValue={formatPrice}
         />
       </div>
