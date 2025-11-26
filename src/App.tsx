@@ -44,6 +44,7 @@ import { TicketManagement } from './components/Admin/TicketManagement';
 import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusIndicator';
 import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
 import { PremiumTierDashboard } from './components/Supplier/PremiumTierDashboard';
+import { SubscriptionPage } from './pages/Subscription/SubscriptionPage';
 import { useRealtimeOrders } from './hooks/useRealtimeOrders';
 
 const AppContent: React.FC = () => {
@@ -113,6 +114,8 @@ const AppContent: React.FC = () => {
             return <OrderHistory onNavigate={setActiveSection} />;
           case 'treasury':
             return <ClientTreasury />;
+          case 'subscription':
+            return <SubscriptionPage onNavigate={setActiveSection} />;
           case 'support':
             return <ContactSupport />;
           default:
@@ -135,14 +138,14 @@ const AppContent: React.FC = () => {
             return <SupplierProfile />;
           case 'treasury':
             return <SupplierTreasury />;
+          case 'subscription':
+            return <SubscriptionPage onNavigate={setActiveSection} />;
           case 'premium':
             return <PremiumTierDashboard />;
           case 'support':
             return <SupplierContactSupport />;
           case 'intelligence':
             return <SupplierIntelligenceDashboard supplierId={user.id} onNavigate={setActiveSection} />;
-          case 'subscription':
-            return <SubscriptionManagement supplierId={user.id} onClose={() => setActiveSection('intelligence')} />;
           default:
             return <SupplierDashboard onNavigate={setActiveSection} />;
         }

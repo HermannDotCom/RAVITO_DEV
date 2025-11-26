@@ -37,6 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'treasury', label: 'Trésorerie', icon: Wallet },
           { id: 'catalog', label: 'Catalogue', icon: Package },
           { id: 'cart', label: 'Panier', icon: ShoppingCart },
+          { id: 'subscription', label: 'Abonnement', icon: Crown },
           { id: 'support', label: 'Nous contacter', icon: MessageSquare },
           { id: 'profile', label: 'Mon Profil', icon: Settings }
         ];
@@ -48,7 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'deliveries', label: 'Livraisons en cours', icon: Truck },
           { id: 'history', label: 'Historique', icon: Clock },
           { id: 'treasury', label: 'Trésorerie', icon: Wallet },
-          { id: 'premium', label: 'Abonnement Premium', icon: Crown },
+          { id: 'subscription', label: 'Abonnement', icon: Crown },
           { id: 'support', label: 'Nous contacter', icon: MessageSquare },
           { id: 'profile', label: 'Mon Profil', icon: Settings }
         ];
