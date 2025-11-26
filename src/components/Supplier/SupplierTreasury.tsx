@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Wallet, 
   CreditCard, 
@@ -6,10 +6,12 @@ import {
   TrendingDown,
   Package,
   Clock,
-  Calendar,
   Download,
   DollarSign,
-  AlertCircle
+  AlertCircle,
+  Search,
+  X,
+  Banknote
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCommission } from '../../context/CommissionContext';
@@ -31,11 +33,12 @@ import {
   ViewModeTabs,
   StatsTable,
   TransactionList,
-  SimpleBarChart,
   SimpleDonutChart,
   LoadingSpinner,
   EmptyState
 } from '../shared/TreasuryComponents';
+import { RevenueChart } from '../Treasury/RevenueChart';
+import { WithdrawModal } from '../Treasury/WithdrawModal';
 
 export const SupplierTreasury: React.FC = () => {
   const { user } = useAuth();
@@ -46,6 +49,8 @@ export const SupplierTreasury: React.FC = () => {
   const [transferFilter, setTransferFilter] = useState<'all' | 'pending' | 'transferred'>('all');
   const [viewMode, setViewMode] = useState('monthly');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   const [summary, setSummary] = useState<FinancialSummary | null>(null);
   const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
@@ -93,10 +98,42 @@ export const SupplierTreasury: React.FC = () => {
   };
 
   const handleExport = () => {
-    if (transactions.length > 0) {
+    if (filteredTransactions.length > 0) {
       const filename = `tresorerie_fournisseur_${new Date().toISOString().split('T')[0]}`;
-      exportTransactionsToCSV(transactions, filename);
+      exportTransactionsToCSV(filteredTransactions, filename);
     }
+  };
+
+  const handleWithdraw = (amount: number) => {
+    // In production, would call API to process withdrawal
+    console.log('Withdrawal requested:', amount);
+    loadData();
+  };
+
+  // Filter transactions by search query
+  const filteredTransactions = useMemo(() => {
+    if (!searchQuery) return transactions;
+    const query = searchQuery.toLowerCase();
+    return transactions.filter(t => 
+      t.orderNumber.toLowerCase().includes(query) ||
+      t.counterpartyName.toLowerCase().includes(query)
+    );
+  }, [transactions, searchQuery]);
+
+  // Prepare chart data for Recharts revenue chart
+  const revenueChartData = useMemo(() => {
+    return monthlyStats.map(stat => ({
+      month: stat.monthName.substring(0, 3),
+      revenue: stat.netAmount || 0,
+      commission: stat.commissions || 0
+    }));
+  }, [monthlyStats]);
+
+  // Mock bank info (in production, would come from user profile)
+  const bankInfo = {
+    iban: 'CI** **** **** 7890',
+    bankName: 'SGBCI',
+    accountHolder: user?.name || 'Titulaire du compte'
   };
 
   const getQuarterlyStats = () => {
@@ -171,14 +208,24 @@ export const SupplierTreasury: React.FC = () => {
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-2">
-          <div className="h-12 w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
-            <Wallet className="h-6 w-6 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="h-12 w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
+              <Wallet className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Trésorerie</h1>
+              <p className="text-gray-600">Consultez vos revenus et virements</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Trésorerie</h1>
-            <p className="text-gray-600">Consultez vos revenus et virements</p>
-          </div>
+          <button
+            onClick={() => setShowWithdrawModal(true)}
+            disabled={(summary?.totalNet || 0) < 50000}
+            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Banknote className="h-4 w-4" />
+            <span>Demander un retrait</span>
+          </button>
         </div>
       </div>
 
@@ -256,10 +303,10 @@ export const SupplierTreasury: React.FC = () => {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <SimpleBarChart
-          data={chartData}
+        <RevenueChart
+          data={revenueChartData}
           title="Évolution des revenus mensuels"
-          formatValue={formatPrice}
+          formatPrice={formatPrice}
         />
         <SimpleDonutChart
           data={donutData}
@@ -312,16 +359,35 @@ export const SupplierTreasury: React.FC = () => {
             <div>
               <h2 className="text-lg font-bold text-gray-900">Historique des Transactions</h2>
               <p className="text-sm text-gray-600">
-                {transactions.length} transaction(s) trouvée(s)
+                {filteredTransactions.length} transaction(s) trouvée(s)
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full sm:w-64"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
               {/* Transfer Status Filter */}
               <div className="flex gap-2">
                 {transferFilters.map(filter => (
                   <button
                     key={filter.value}
-                    onClick={() => setTransferFilter(filter.value as any)}
+                    onClick={() => setTransferFilter(filter.value as 'all' | 'pending' | 'transferred')}
                     className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                       transferFilter === filter.value
                         ? 'bg-green-600 text-white'
@@ -332,7 +398,7 @@ export const SupplierTreasury: React.FC = () => {
                   </button>
                 ))}
               </div>
-              {transactions.length > 0 && (
+              {filteredTransactions.length > 0 && (
                 <button
                   onClick={handleExport}
                   className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -345,15 +411,15 @@ export const SupplierTreasury: React.FC = () => {
           </div>
         </div>
         <div className="p-6">
-          {transactions.length === 0 ? (
+          {filteredTransactions.length === 0 ? (
             <EmptyState
               icon={Package}
-              title="Aucune transaction"
-              description="Vos transactions apparaîtront ici une fois vos premières livraisons effectuées"
+              title={searchQuery ? "Aucun résultat" : "Aucune transaction"}
+              description={searchQuery ? "Aucune transaction correspondant à votre recherche" : "Vos transactions apparaîtront ici une fois vos premières livraisons effectuées"}
             />
           ) : (
             <TransactionList
-              transactions={transactions}
+              transactions={filteredTransactions}
               isSupplier={true}
             />
           )}
@@ -385,6 +451,16 @@ export const SupplierTreasury: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Withdraw Modal */}
+      <WithdrawModal
+        isOpen={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
+        onConfirm={handleWithdraw}
+        availableBalance={summary?.totalNet || 0}
+        bankInfo={bankInfo}
+        formatPrice={formatPrice}
+      />
     </div>
   );
 };
