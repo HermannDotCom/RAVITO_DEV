@@ -48,16 +48,18 @@ export const DeliveryHistory: React.FC = () => {
     const loadClientProfiles = async () => {
       if (supplierCompletedDeliveries.length === 0) return;
 
-      // Get unique orders for fetching client info
-      const uniqueOrders = supplierCompletedDeliveries.filter((order, index, self) =>
-        self.findIndex(o => o.clientId === order.clientId) === index
-      );
+      // Get unique orders by clientId using Set for O(n) complexity
+      const seenClientIds = new Set<string>();
+      const uniqueOrders = supplierCompletedDeliveries.filter(order => {
+        if (seenClientIds.has(order.clientId)) return false;
+        seenClientIds.add(order.clientId);
+        return true;
+      });
 
       // Load profiles via the secure RPC function
       const results = await Promise.allSettled(
         uniqueOrders.map(order =>
           supabase.rpc('get_client_info_for_order', { p_order_id: order.id })
-            .then(result => ({ orderId: order.id, ...result }))
         )
       );
 
