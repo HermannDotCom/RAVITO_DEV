@@ -82,7 +82,8 @@ class RealtimeService {
   public subscribeToSupplierOrders(
     supplierId: string,
     onNewOrder: (order: Record<string, unknown>) => void,
-    onOrderUpdate: (order: Record<string, unknown>) => void
+    onOrderUpdate: (order: Record<string, unknown>) => void,
+    onAvailableOrdersUpdate?: (order: Record<string, unknown>) => void
   ): RealtimeSubscription {
     const channel = supabase
       .channel(`supplier-orders-${supplierId}`)
@@ -126,6 +127,41 @@ class RealtimeService {
         (payload) => {
           console.log('Order updated:', payload);
           onOrderUpdate(payload.new);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+        },
+        async (payload) => {
+          const newRecord = payload.new as Record<string, unknown>;
+          const newStatus = newRecord.status as string;
+          
+          // Check if this is a relevant status change for available orders
+          // (orders that have received offers but are not yet assigned to a supplier)
+          if (
+            (newStatus === 'offers-received' || newStatus === 'pending-offers') &&
+            newRecord.supplier_id === null
+          ) {
+            console.log('Available order status changed:', payload);
+            
+            // Check if the order is in the supplier's zones
+            const { data: supplierZones } = await supabase
+              .from('supplier_zones')
+              .select('zone_id')
+              .eq('supplier_id', supplierId)
+              .eq('is_active', true)
+              .eq('approval_status', 'approved');
+
+            if (supplierZones?.some(sz => sz.zone_id === newRecord.zone_id)) {
+              if (onAvailableOrdersUpdate) {
+                onAvailableOrdersUpdate(newRecord);
+              }
+            }
+          }
         }
       )
       .subscribe((status) => {
