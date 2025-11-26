@@ -152,7 +152,6 @@ export const PremiumTierDashboard: React.FC = () => {
   const [activeSubscription, setActiveSubscription] = useState<ActiveSubscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
-  const [showPaymentInfo, setShowPaymentInfo] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -182,12 +181,18 @@ export const PremiumTierDashboard: React.FC = () => {
   const handleUpgrade = async (tierName: string) => {
     if (!user || upgrading) return;
     
+    // Validate tier name before API call
+    const validTiers = ['basic', 'silver', 'gold'] as const;
+    if (!validTiers.includes(tierName as typeof validTiers[number])) {
+      alert('Ce tier n\'est pas encore disponible pour la souscription automatique. Veuillez contacter le support.');
+      return;
+    }
+    
     setUpgrading(true);
     try {
       const result = await createOrUpgradeSubscription(user.id, tierName as 'basic' | 'silver' | 'gold');
       if (result.success) {
         alert(`Demande d'abonnement ${tierName.toUpperCase()} créée avec succès! Un administrateur activera votre abonnement après réception du paiement.`);
-        setShowPaymentInfo(tierName);
         await loadData();
       } else {
         alert(`Erreur: ${result.error}`);

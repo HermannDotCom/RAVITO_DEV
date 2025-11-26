@@ -422,7 +422,9 @@ export const SupplierIntelligenceDashboard: React.FC<SupplierIntelligenceDashboa
                   <div
                     className="bg-green-600 h-2 rounded-full"
                     style={{
-                      width: `${Math.min((revenueOpportunity.currentMonthlyRevenue / revenueOpportunity.potentialMonthlyRevenue) * 100, 100)}%`
+                      width: `${revenueOpportunity.potentialMonthlyRevenue > 0 
+                        ? Math.min((revenueOpportunity.currentMonthlyRevenue / revenueOpportunity.potentialMonthlyRevenue) * 100, 100) 
+                        : 0}%`
                     }}
                   ></div>
                 </div>
