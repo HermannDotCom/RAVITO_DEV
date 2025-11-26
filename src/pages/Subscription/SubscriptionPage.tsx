@@ -15,6 +15,11 @@ import { SubscribeModal } from '../../components/Subscription/SubscribeModal';
 import { SUBSCRIPTION_PLANS, formatPrice } from '../../config/subscriptionPlans';
 import type { PlanType, Invoice, PaymentMethod, Subscription } from '../../types';
 
+// Date calculation constants
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const DAYS_IN_MONTH = 30;
+const DAYS_IN_YEAR = 365;
+
 interface SubscriptionPageProps {
   onNavigate?: (section: string) => void;
 }
@@ -28,6 +33,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ onNavigate }
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [treasuryBalance, setTreasuryBalance] = useState(0);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -95,8 +101,8 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ onNavigate }
         status: 'active',
         startedAt: new Date(),
         expiresAt: billingPeriod === 'monthly' 
-          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-          : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          ? new Date(Date.now() + DAYS_IN_MONTH * MS_PER_DAY)
+          : new Date(Date.now() + DAYS_IN_YEAR * MS_PER_DAY),
         autoRenew: true
       });
 
@@ -128,10 +134,6 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ onNavigate }
   const handleCancelSubscription = async () => {
     if (!currentSubscription || currentSubscription.plan === 'FREE') return;
     
-    if (!confirm('Êtes-vous sûr de vouloir annuler votre abonnement ? Vous conserverez l\'accès jusqu\'à la fin de la période en cours.')) {
-      return;
-    }
-
     try {
       setLoading(true);
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -142,10 +144,9 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ onNavigate }
         autoRenew: false
       } : null);
 
-      alert('Abonnement annulé. Vous conservez l\'accès jusqu\'à la fin de votre période.');
+      setShowCancelConfirm(false);
     } catch (error) {
       console.error('Error cancelling subscription:', error);
-      alert('Erreur lors de l\'annulation.');
     } finally {
       setLoading(false);
     }
@@ -156,7 +157,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ onNavigate }
 
   // Calculate days remaining
   const daysRemaining = currentSubscription?.expiresAt 
-    ? Math.max(0, Math.ceil((new Date(currentSubscription.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    ? Math.max(0, Math.ceil((new Date(currentSubscription.expiresAt).getTime() - Date.now()) / MS_PER_DAY))
     : 0;
 
   if (loading) {
@@ -261,7 +262,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ onNavigate }
               Changer de plan
             </a>
             <button
-              onClick={handleCancelSubscription}
+              onClick={() => setShowCancelConfirm(true)}
               className="flex items-center justify-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg font-semibold transition-colors"
             >
               <XIcon className="h-4 w-4" />
@@ -270,6 +271,33 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ onNavigate }
           </div>
         )}
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Confirmer l'annulation</h3>
+            <p className="text-gray-600 mb-6">
+              Êtes-vous sûr de vouloir annuler votre abonnement ? Vous conserverez l'accès jusqu'à la fin de la période en cours.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Retour
+              </button>
+              <button
+                onClick={handleCancelSubscription}
+                disabled={loading}
+                className="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Annulation...' : 'Confirmer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Treasury Balance Info */}
       {treasuryBalance > 0 && (

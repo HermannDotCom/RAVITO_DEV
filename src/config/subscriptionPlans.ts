@@ -7,6 +7,17 @@
 
 import type { PlanFeature } from '../types';
 
+// Constants for pricing calculations
+export const YEARLY_DISCOUNT_RATE = 0.8; // 20% discount for yearly billing
+export const EUR_TO_FCFA_RATE = 655.957; // Euro to FCFA exchange rate
+
+/**
+ * Calculate yearly price with discount
+ */
+const calculateYearlyPrice = (monthlyPrice: number): number => {
+  return Math.round(monthlyPrice * 12 * YEARLY_DISCOUNT_RATE);
+};
+
 export interface SubscriptionPlanConfig {
   id: string;
   name: string;
@@ -45,7 +56,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlanConfig> = {
     id: 'silver',
     name: 'Silver',
     displayName: 'SILVER',
-    price: { monthly: 29, yearly: 278 }, // 278 = 29 * 12 * 0.8 (20% discount)
+    price: { monthly: 29, yearly: calculateYearlyPrice(29) },
     color: 'slate',
     bgColor: 'bg-slate-50',
     borderColor: 'border-slate-300',
@@ -64,7 +75,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlanConfig> = {
     id: 'gold',
     name: 'Gold',
     displayName: 'GOLD',
-    price: { monthly: 59, yearly: 566 }, // 566 = 59 * 12 * 0.8
+    price: { monthly: 59, yearly: calculateYearlyPrice(59) },
     color: 'yellow',
     bgColor: 'bg-yellow-50',
     borderColor: 'border-yellow-400',
@@ -84,7 +95,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlanConfig> = {
     id: 'platinum',
     name: 'Platinum',
     displayName: 'PLATINUM',
-    price: { monthly: 99, yearly: 950 }, // 950 = 99 * 12 * 0.8
+    price: { monthly: 99, yearly: calculateYearlyPrice(99) },
     color: 'purple',
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-400',
@@ -143,7 +154,6 @@ export const formatPrice = (price: number): string => {
  * Format price in FCFA
  */
 export const formatPriceFCFA = (price: number): string => {
-  // Convert EUR to FCFA (approximate rate: 1 EUR = 655.957 FCFA)
-  const fcfaPrice = Math.round(price * 655.957);
+  const fcfaPrice = Math.round(price * EUR_TO_FCFA_RATE);
   return new Intl.NumberFormat('fr-FR').format(fcfaPrice) + ' FCFA';
 };
