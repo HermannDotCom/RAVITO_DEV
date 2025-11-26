@@ -7,7 +7,7 @@
 import React from 'react';
 import { Star, ArrowRight, Check } from 'lucide-react';
 import { PlanFeatureList } from './PlanFeatureList';
-import type { SubscriptionPlanConfig } from '../../config/subscriptionPlans';
+import { formatPrice, type SubscriptionPlanConfig } from '../../config/subscriptionPlans';
 
 interface PlanCardProps {
   plan: SubscriptionPlanConfig;
@@ -68,13 +68,13 @@ export const PlanCard: React.FC<PlanCardProps> = ({
             <span className="text-3xl font-bold">Gratuit</span>
           ) : (
             <>
-              <span className="text-3xl font-bold">{price}€</span>
+              <span className="text-2xl font-bold">{formatPrice(price)}</span>
               <span className="text-sm font-normal opacity-80">
                 /{billingPeriod === 'monthly' ? 'mois' : 'an'}
               </span>
               {billingPeriod === 'yearly' && (
                 <div className="text-sm opacity-80 mt-1">
-                  soit {monthlyEquivalent}€/mois
+                  soit {formatPrice(monthlyEquivalent)}/mois
                 </div>
               )}
             </>

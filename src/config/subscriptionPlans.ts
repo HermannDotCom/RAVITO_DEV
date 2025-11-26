@@ -8,15 +8,7 @@
 import type { PlanFeature } from '../types';
 
 // Constants for pricing calculations
-export const YEARLY_DISCOUNT_RATE = 0.8; // 20% discount for yearly billing
-export const EUR_TO_FCFA_RATE = 655.957; // Euro to FCFA exchange rate
-
-/**
- * Calculate yearly price with discount
- */
-const calculateYearlyPrice = (monthlyPrice: number): number => {
-  return Math.round(monthlyPrice * 12 * YEARLY_DISCOUNT_RATE);
-};
+export const YEARLY_DISCOUNT_RATE = 0.5; // 50% discount for yearly billing
 
 export interface SubscriptionPlanConfig {
   id: string;
@@ -56,7 +48,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlanConfig> = {
     id: 'silver',
     name: 'Silver',
     displayName: 'SILVER',
-    price: { monthly: 29, yearly: calculateYearlyPrice(29) },
+    price: { monthly: 5000, yearly: 30000 },
     color: 'slate',
     bgColor: 'bg-slate-50',
     borderColor: 'border-slate-300',
@@ -75,7 +67,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlanConfig> = {
     id: 'gold',
     name: 'Gold',
     displayName: 'GOLD',
-    price: { monthly: 59, yearly: calculateYearlyPrice(59) },
+    price: { monthly: 10000, yearly: 60000 },
     color: 'yellow',
     bgColor: 'bg-yellow-50',
     borderColor: 'border-yellow-400',
@@ -95,7 +87,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlanConfig> = {
     id: 'platinum',
     name: 'Platinum',
     displayName: 'PLATINUM',
-    price: { monthly: 99, yearly: calculateYearlyPrice(99) },
+    price: { monthly: 20000, yearly: 120000 },
     color: 'purple',
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-400',
@@ -139,21 +131,8 @@ export const calculateYearlyDiscount = (plan: SubscriptionPlanConfig): number =>
 };
 
 /**
- * Format price in EUR
- */
-export const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price);
-};
-
-/**
  * Format price in FCFA
  */
-export const formatPriceFCFA = (price: number): string => {
-  const fcfaPrice = Math.round(price * EUR_TO_FCFA_RATE);
-  return new Intl.NumberFormat('fr-FR').format(fcfaPrice) + ' FCFA';
+export const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
 };
