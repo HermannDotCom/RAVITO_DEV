@@ -10,7 +10,21 @@ import {
   CreateTicketData
 } from '../../services/ticketService';
 
-export const SupplierContactSupport: React.FC = () => {
+interface SupplierContactSupportProps {
+  initialSubject?: string;
+  initialCategory?: TicketCategory;
+  initialMessage?: string;
+  initialPriority?: TicketPriority;
+  onClaimDataClear?: () => void;
+}
+
+export const SupplierContactSupport: React.FC<SupplierContactSupportProps> = ({
+  initialSubject,
+  initialCategory,
+  initialMessage,
+  initialPriority,
+  onClaimDataClear
+}) => {
   const { user } = useAuth();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -20,13 +34,26 @@ export const SupplierContactSupport: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<CreateTicketData>({
-    subject: '',
-    message: '',
-    category: 'other',
-    priority: 'medium'
+    subject: initialSubject || '',
+    message: initialMessage || '',
+    category: initialCategory || 'other',
+    priority: initialPriority || 'medium'
   });
 
   const [newMessage, setNewMessage] = useState('');
+
+  // Handle pre-filled data from claim navigation
+  useEffect(() => {
+    if (initialSubject || initialCategory || initialMessage || initialPriority) {
+      setFormData({
+        subject: initialSubject || '',
+        message: initialMessage || '',
+        category: initialCategory || 'other',
+        priority: initialPriority || 'medium'
+      });
+      setShowCreateForm(true);
+    }
+  }, [initialSubject, initialCategory, initialMessage, initialPriority]);
 
   useEffect(() => {
     if (user) {
@@ -69,6 +96,10 @@ export const SupplierContactSupport: React.FC = () => {
         priority: 'medium'
       });
       setShowCreateForm(false);
+      // Clear claim data if it was a pre-filled form
+      if (onClaimDataClear) {
+        onClaimDataClear();
+      }
       alert('Ticket créé avec succès!');
     } else {
       alert('Erreur lors de la création du ticket');
@@ -307,6 +338,7 @@ export const SupplierContactSupport: React.FC = () => {
                   <option value="billing">Facturation</option>
                   <option value="delivery">Livraison</option>
                   <option value="account">Compte</option>
+                  <option value="complaint">Réclamation</option>
                   <option value="other">Autre</option>
                 </select>
               </div>

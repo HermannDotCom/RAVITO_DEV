@@ -19,7 +19,7 @@ import { OrderTracking } from './components/Client/OrderTracking';
 import { RatingForm } from './components/Client/RatingForm';
 import { AvailableOrders } from './components/Supplier/AvailableOrders';
 import { ActiveDeliveries } from './components/Supplier/ActiveDeliveries';
-import { DeliveryHistory } from './components/Supplier/DeliveryHistory';
+import { DeliveryHistory, ClaimData } from './components/Supplier/DeliveryHistory';
 import { SupplierProfile } from './components/Supplier/SupplierProfile';
 import { ZoneRegistration } from './components/Supplier/ZoneRegistration';
 import { SupplierIntelligenceDashboard } from './components/Supplier/SupplierIntelligenceDashboard';
@@ -52,6 +52,7 @@ const AppContent: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showRating, setShowRating] = useState(false);
+  const [claimData, setClaimData] = useState<ClaimData | null>(null);
 
   // Enable realtime order notifications
   useRealtimeOrders();
@@ -133,7 +134,7 @@ const AppContent: React.FC = () => {
           case 'deliveries':
             return <ActiveDeliveries onNavigate={setActiveSection} />;
           case 'history':
-            return <DeliveryHistory />;
+            return <DeliveryHistory onNavigate={setActiveSection} onClaimRequest={setClaimData} />;
           case 'profile':
             return <SupplierProfile />;
           case 'treasury':
@@ -143,7 +144,15 @@ const AppContent: React.FC = () => {
           case 'premium':
             return <PremiumTierDashboard />;
           case 'support':
-            return <SupplierContactSupport />;
+            return (
+              <SupplierContactSupport
+                initialSubject={claimData?.subject}
+                initialCategory={claimData?.category}
+                initialMessage={claimData?.message}
+                initialPriority={claimData?.priority}
+                onClaimDataClear={() => setClaimData(null)}
+              />
+            );
           case 'intelligence':
             return <SupplierIntelligenceDashboard supplierId={user.id} onNavigate={setActiveSection} />;
           default:
