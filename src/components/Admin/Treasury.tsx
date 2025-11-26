@@ -56,6 +56,8 @@ export const Treasury: React.FC = () => {
 
   // State to hold supplier profiles
   const [supplierProfiles, setSupplierProfiles] = useState<Record<string, { name: string; business_name?: string }>>({});
+  // State to hold client profiles
+  const [clientProfiles, setClientProfiles] = useState<Record<string, { name: string; business_name?: string }>>({});
 
   // Load supplier profiles
   useEffect(() => {
@@ -89,6 +91,38 @@ export const Treasury: React.FC = () => {
     loadSupplierProfiles();
   }, [allOrders]);
 
+  // Load client profiles
+  useEffect(() => {
+    const loadClientProfiles = async () => {
+      const clientIds = Array.from(new Set(allOrders
+        .filter(o => o.clientId)
+        .map(o => o.clientId)));
+
+      if (clientIds.length === 0) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, business_name')
+        .in('id', clientIds);
+
+      if (error) {
+        console.error('Error loading client profiles:', error);
+        return;
+      }
+
+      const profilesMap: Record<string, { name: string; business_name?: string }> = {};
+      data?.forEach(profile => {
+        profilesMap[profile.id] = {
+          name: profile.name,
+          business_name: profile.business_name
+        };
+      });
+      setClientProfiles(profilesMap);
+    };
+
+    loadClientProfiles();
+  }, [allOrders]);
+
   // Filtrer les commandes livrées et payées mais non transférées
   const ordersToTransfer = allOrders.filter(order =>
     order.status === 'delivered' &&
@@ -100,6 +134,11 @@ export const Treasury: React.FC = () => {
   const getSupplierName = (supplierId: string): string => {
     const profile = supplierProfiles[supplierId];
     return profile?.business_name || profile?.name || `Fournisseur ${supplierId.substring(0, 8)}`;
+  };
+
+  const getClientName = (clientId: string): string => {
+    const profile = clientProfiles[clientId];
+    return profile?.business_name || profile?.name || 'Client';
   };
 
   // Grouper par fournisseur
@@ -450,7 +489,7 @@ export const Treasury: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                           <div>
                             <span className="text-gray-600">Client:</span>
-                            <span className="font-medium text-gray-900 ml-2">Maquis Belle Vue</span>
+                            <span className="font-medium text-gray-900 ml-2">{getClientName(order.clientId)}</span>
                           </div>
                           <div>
                             <span className="text-gray-600">Articles:</span>

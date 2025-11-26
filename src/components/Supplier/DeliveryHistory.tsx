@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Package, Star, MapPin, Clock, Filter, Search } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
 import { useRating } from '../../context/RatingContext';
 import { useAuth } from '../../context/AuthContext';
 import { Order } from '../../types';
 import { SupplierRatingForm } from './SupplierRatingForm';
+import { supabase } from '../../lib/supabase';
 
 interface DeliveryRecord {
   id: string;
@@ -19,6 +20,12 @@ interface DeliveryRecord {
   paymentMethod: string;
 }
 
+interface ClientProfile {
+  id: string;
+  name: string;
+  business_name?: string;
+}
+
 export const DeliveryHistory: React.FC = () => {
   const { allOrders } = useOrder();
   const { getOrderRatings, needsRating, submitRating } = useRating();
@@ -28,17 +35,63 @@ export const DeliveryHistory: React.FC = () => {
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedOrderForRating, setSelectedOrderForRating] = useState<Order | null>(null);
+  const [clientProfiles, setClientProfiles] = useState<Record<string, ClientProfile>>({});
 
   // Filter completed deliveries for current supplier
   const supplierCompletedDeliveries = allOrders.filter(order => 
     order.status === 'delivered' && 
-    order.supplierId === user?.id // In real app, match with actual supplier ID
+    order.supplierId === user?.id
   );
+
+  // Load client profiles for completed deliveries
+  useEffect(() => {
+    const loadClientProfiles = async () => {
+      if (supplierCompletedDeliveries.length === 0) return;
+
+      // Get unique orders for fetching client info
+      const uniqueOrders = supplierCompletedDeliveries.filter((order, index, self) =>
+        self.findIndex(o => o.clientId === order.clientId) === index
+      );
+
+      // Load profiles via the secure RPC function
+      const results = await Promise.allSettled(
+        uniqueOrders.map(order =>
+          supabase.rpc('get_client_info_for_order', { p_order_id: order.id })
+            .then(result => ({ orderId: order.id, ...result }))
+        )
+      );
+
+      const profilesMap: Record<string, ClientProfile> = {};
+      
+      results.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          const { data, error } = result.value;
+          if (!error && data) {
+            profilesMap[data.id] = {
+              id: data.id,
+              name: data.name,
+              business_name: data.business_name
+            };
+          }
+        }
+      });
+      
+      setClientProfiles(profilesMap);
+    };
+
+    loadClientProfiles();
+  }, [supplierCompletedDeliveries]);
+
+  // Helper function to get client display name
+  const getClientName = (clientId: string): string => {
+    const profile = clientProfiles[clientId];
+    return profile?.business_name || profile?.name || 'Client';
+  };
 
   // Convert orders to delivery records format
   const deliveries: DeliveryRecord[] = supplierCompletedDeliveries.map(order => ({
     id: order.id,
-    clientName: 'Maquis Belle Vue', // In real app, get from order.clientId
+    clientName: getClientName(order.clientId),
     address: order.deliveryAddress,
     items: order.items.length,
     total: order.totalAmount,
@@ -290,7 +343,7 @@ export const DeliveryHistory: React.FC = () => {
                   <Star className="h-8 w-8 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Évaluez votre client</h2>
-                <p className="text-gray-600">Comment s'est passée la livraison pour <strong>Maquis Belle Vue</strong> ?</p>
+                <p className="text-gray-600">Comment s'est passée la livraison pour <strong>{getClientName(selectedOrderForRating.clientId)}</strong> ?</p>
               </div>
 
               <SupplierRatingForm

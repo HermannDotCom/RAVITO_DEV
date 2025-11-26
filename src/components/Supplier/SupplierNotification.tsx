@@ -141,19 +141,19 @@ export const SupplierNotification: React.FC<SupplierNotificationProps> = ({
             <div className="flex items-center space-x-4 mb-4">
               <div className="h-12 w-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold">
-                  MB
+                  {(clientInfo.businessName || clientInfo.name || 'C').charAt(0).toUpperCase()}
                 </span>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900">Maquis Belle Vue</h4>
-                <p className="text-sm text-gray-600">Contact: Jean Dupont</p>
+                <h4 className="font-semibold text-gray-900">{clientInfo.businessName || clientInfo.name || 'Client'}</h4>
+                <p className="text-sm text-gray-600">Contact: {clientInfo.name || 'Non disponible'}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-gray-400" />
-                <span className="text-gray-900 font-medium">+225 07 12 34 56 78</span>
+                <span className="text-gray-900 font-medium">{clientInfo.phone || 'Non disponible'}</span>
               </div>
               <div className="flex items-center space-x-2 sm:col-span-2">
                 <MapPin className="h-4 w-4 text-gray-400" />
