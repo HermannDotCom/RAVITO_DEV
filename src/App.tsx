@@ -24,6 +24,7 @@ import { SupplierProfile } from './components/Supplier/SupplierProfile';
 import { ZoneRegistration } from './components/Supplier/ZoneRegistration';
 import { SupplierIntelligenceDashboard } from './components/Supplier/SupplierIntelligenceDashboard';
 import { SubscriptionManagement } from './components/Supplier/SubscriptionManagement';
+import { SupplierTreasury } from './components/Supplier/SupplierTreasury';
 import { UserManagement } from './components/Admin/UserManagement';
 import { OrderManagement } from './components/Admin/OrderManagement';
 import { Analytics } from './components/Admin/Analytics';
@@ -32,14 +33,17 @@ import { SystemSettings } from './components/Admin/SystemSettings';
 import { ProductManagement } from './components/Admin/ProductManagement';
 import { Treasury } from './components/Admin/Treasury';
 import { DataManagement } from './components/Admin/DataManagement';
+import { PremiumTierManagement } from './components/Admin/PremiumTierManagement';
 import { ClientProfile } from './components/Client/ClientProfile';
 import { OrderHistory } from './components/Client/OrderHistory';
+import { ClientTreasury } from './components/Client/ClientTreasury';
 import { ClientRatingForm } from './components/Client/ClientRatingForm';
 import { ContactSupport } from './components/Client/ContactSupport';
 import { SupplierContactSupport } from './components/Supplier/ContactSupport';
 import { TicketManagement } from './components/Admin/TicketManagement';
 import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusIndicator';
 import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
+import { PremiumTierDashboard } from './components/Supplier/PremiumTierDashboard';
 import { useRealtimeOrders } from './hooks/useRealtimeOrders';
 
 const AppContent: React.FC = () => {
@@ -107,6 +111,8 @@ const AppContent: React.FC = () => {
             return <ClientProfile />;
           case 'orders':
             return <OrderHistory onNavigate={setActiveSection} />;
+          case 'treasury':
+            return <ClientTreasury />;
           case 'support':
             return <ContactSupport />;
           default:
@@ -127,6 +133,8 @@ const AppContent: React.FC = () => {
             return <DeliveryHistory />;
           case 'profile':
             return <SupplierProfile />;
+          case 'treasury':
+            return <SupplierTreasury />;
           case 'premium':
             return <PremiumTierDashboard />;
           case 'support':
