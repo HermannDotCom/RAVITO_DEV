@@ -530,6 +530,7 @@ Décrivez votre problème en détail...`,
               {(() => {
                 const crateSummary = getCrateSummary(selectedDelivery.order);
                 const totalCratesRecovered = Object.values(crateSummary).reduce((sum, crate) => sum + crate.toReturn, 0);
+                const cratesWithReturns = Object.entries(crateSummary).filter(([, counts]) => counts.toReturn > 0);
 
                 return (
                   <div className="mt-6 bg-blue-50 rounded-lg p-4">
@@ -542,13 +543,11 @@ Décrivez votre problème en détail...`,
                       <div className="mb-3">
                         <p className="text-sm font-medium text-blue-800 mb-2">Casiers récupérés :</p>
                         <div className="grid grid-cols-2 gap-2">
-                          {Object.entries(crateSummary).map(([crateType, counts]) => (
-                            counts.toReturn > 0 && (
-                              <div key={crateType} className="bg-white rounded p-2 text-center">
-                                <div className="font-bold text-blue-700">{counts.toReturn}</div>
-                                <div className="text-blue-600 text-xs">{crateType}</div>
-                              </div>
-                            )
+                          {cratesWithReturns.map(([crateType, counts]) => (
+                            <div key={crateType} className="bg-white rounded p-2 text-center">
+                              <div className="font-bold text-blue-700">{counts.toReturn}</div>
+                              <div className="text-blue-600 text-xs">{crateType}</div>
+                            </div>
                           ))}
                         </div>
                       </div>

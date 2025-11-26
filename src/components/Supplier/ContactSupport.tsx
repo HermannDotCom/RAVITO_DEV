@@ -44,7 +44,9 @@ export const SupplierContactSupport: React.FC<SupplierContactSupportProps> = ({
 
   // Handle pre-filled data from claim navigation
   useEffect(() => {
-    if (initialSubject || initialCategory || initialMessage || initialPriority) {
+    // Only update form if at least one prop has a meaningful value
+    const hasPrefilledData = Boolean(initialSubject || initialMessage);
+    if (hasPrefilledData) {
       setFormData({
         subject: initialSubject || '',
         message: initialMessage || '',
