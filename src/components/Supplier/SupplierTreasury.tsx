@@ -6,10 +6,10 @@ import {
   TrendingDown,
   Package,
   Clock,
-  Calendar,
   Download,
   DollarSign,
-  AlertCircle
+  AlertCircle,
+  Banknote
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCommission } from '../../context/CommissionContext';
@@ -36,6 +36,8 @@ import {
   LoadingSpinner,
   EmptyState
 } from '../shared/TreasuryComponents';
+import { WithdrawalModal } from '../Treasury/WithdrawalModal';
+import { BalanceCard } from '../Treasury/BalanceCard';
 
 export const SupplierTreasury: React.FC = () => {
   const { user } = useAuth();
@@ -46,6 +48,7 @@ export const SupplierTreasury: React.FC = () => {
   const [transferFilter, setTransferFilter] = useState<'all' | 'pending' | 'transferred'>('all');
   const [viewMode, setViewMode] = useState('monthly');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
 
   const [summary, setSummary] = useState<FinancialSummary | null>(null);
   const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
@@ -97,6 +100,15 @@ export const SupplierTreasury: React.FC = () => {
       const filename = `tresorerie_fournisseur_${new Date().toISOString().split('T')[0]}`;
       exportTransactionsToCSV(transactions, filename);
     }
+  };
+
+  const handleWithdrawal = async (amount: number, iban: string) => {
+    // In a real application, this would call a backend API to process the withdrawal
+    console.log(`Withdrawal request: ${amount} FCFA to IBAN ${iban}`);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Reload data to reflect the new withdrawal request
+    loadData();
   };
 
   const getQuarterlyStats = () => {
@@ -171,15 +183,37 @@ export const SupplierTreasury: React.FC = () => {
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-2">
-          <div className="h-12 w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
-            <Wallet className="h-6 w-6 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="h-12 w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
+              <Wallet className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Trésorerie</h1>
+              <p className="text-gray-600">Consultez vos revenus et virements</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Trésorerie</h1>
-            <p className="text-gray-600">Consultez vos revenus et virements</p>
-          </div>
+          <button
+            onClick={() => setShowWithdrawalModal(true)}
+            disabled={(summary?.totalNet || 0) < 50000}
+            className="hidden md:flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Banknote className="h-5 w-5" />
+            <span>Demander un retrait</span>
+          </button>
         </div>
+      </div>
+
+      {/* Balance Card (Mobile) */}
+      <div className="md:hidden mb-6">
+        <BalanceCard
+          balance={summary?.totalNet || 0}
+          pendingBalance={summary?.pendingTransferAmount}
+          actionLabel="Demander un retrait"
+          onAction={() => setShowWithdrawalModal(true)}
+          isClient={false}
+          formatValue={formatPrice}
+        />
       </div>
 
       {/* Pending Transfers Alert */}
@@ -385,6 +419,16 @@ export const SupplierTreasury: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Withdrawal Modal */}
+      <WithdrawalModal
+        isOpen={showWithdrawalModal}
+        onClose={() => setShowWithdrawalModal(false)}
+        onConfirm={handleWithdrawal}
+        availableBalance={summary?.totalNet || 0}
+        pendingBalance={summary?.pendingTransferAmount}
+        formatValue={formatPrice}
+      />
     </div>
   );
 };

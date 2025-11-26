@@ -4,9 +4,9 @@ import {
   CreditCard, 
   Package, 
   ShoppingCart,
-  Calendar,
   Download,
-  TrendingUp
+  TrendingUp,
+  Plus
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCommission } from '../../context/CommissionContext';
@@ -32,6 +32,8 @@ import {
   LoadingSpinner,
   EmptyState
 } from '../shared/TreasuryComponents';
+import { RechargeModal } from '../Treasury/RechargeModal';
+import { BalanceCard } from '../Treasury/BalanceCard';
 
 export const ClientTreasury: React.FC = () => {
   const { user } = useAuth();
@@ -41,6 +43,8 @@ export const ClientTreasury: React.FC = () => {
   const [period, setPeriod] = useState('30d');
   const [viewMode, setViewMode] = useState('monthly');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [showRechargeModal, setShowRechargeModal] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   const [summary, setSummary] = useState<FinancialSummary | null>(null);
   const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
@@ -82,6 +86,17 @@ export const ClientTreasury: React.FC = () => {
       const filename = `tresorerie_client_${new Date().toISOString().split('T')[0]}`;
       exportTransactionsToCSV(transactions, filename);
     }
+  };
+
+  const handleRecharge = async (amount: number, paymentMethod: string) => {
+    // In a real application, this would call a backend API to process the payment
+    console.log(`Recharging ${amount} FCFA via ${paymentMethod}`);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Update local balance (in real app, this would come from the server)
+    setWalletBalance(prev => prev + amount);
+    // Reload data to reflect the new transaction
+    loadData();
   };
 
   const getQuarterlyStats = () => {
@@ -149,15 +164,35 @@ export const ClientTreasury: React.FC = () => {
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center space-x-3 mb-2">
-          <div className="h-12 w-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
-            <Wallet className="h-6 w-6 text-white" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="h-12 w-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
+              <Wallet className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Trésorerie</h1>
+              <p className="text-gray-600">Consultez vos dépenses et commissions</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Trésorerie</h1>
-            <p className="text-gray-600">Consultez vos dépenses et commissions</p>
-          </div>
+          <button
+            onClick={() => setShowRechargeModal(true)}
+            className="hidden md:flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all font-semibold"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Recharger</span>
+          </button>
         </div>
+      </div>
+
+      {/* Balance Card (Mobile) */}
+      <div className="md:hidden mb-6">
+        <BalanceCard
+          balance={walletBalance}
+          actionLabel="Recharger mon compte"
+          onAction={() => setShowRechargeModal(true)}
+          isClient={true}
+          formatValue={formatPrice}
+        />
       </div>
 
       {/* Period Filter */}
@@ -302,6 +337,15 @@ export const ClientTreasury: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Recharge Modal */}
+      <RechargeModal
+        isOpen={showRechargeModal}
+        onClose={() => setShowRechargeModal(false)}
+        onConfirm={handleRecharge}
+        currentBalance={walletBalance}
+        formatValue={formatPrice}
+      />
     </div>
   );
 };
