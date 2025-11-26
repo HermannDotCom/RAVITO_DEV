@@ -87,7 +87,7 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
         setCustomAmount('');
         setSelectedPayment('');
       }, 2000);
-    } catch (err) {
+    } catch {
       setError('Une erreur est survenue lors de la recharge. Veuillez réessayer.');
     } finally {
       setIsProcessing(false);

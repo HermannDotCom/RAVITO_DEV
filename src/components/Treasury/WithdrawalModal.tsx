@@ -102,7 +102,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
         setAmount('');
         setCustomIban('');
       }, 2000);
-    } catch (err) {
+    } catch {
       setError('Une erreur est survenue lors de la demande de retrait. Veuillez réessayer.');
     } finally {
       setIsProcessing(false);
