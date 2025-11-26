@@ -34,7 +34,9 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
 
   if (!isOpen) return null;
 
-  const parsedAmount = parseInt(amount.replace(/\D/g, ''), 10) || 0;
+  // Parse amount as integer (FCFA doesn't have decimal places)
+  // Use Math.floor to ensure we don't have any floating point precision issues
+  const parsedAmount = Math.floor(Number(amount.replace(/\D/g, '')) || 0);
   const isValidAmount = parsedAmount >= MIN_WITHDRAWAL && parsedAmount <= availableBalance;
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {

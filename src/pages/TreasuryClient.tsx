@@ -8,7 +8,8 @@ import {
 } from 'lucide-react';
 import { BalanceCard } from '../components/Treasury/BalanceCard';
 import { TransactionFilters } from '../components/Treasury/TransactionFilters';
-import { TransactionList, Transaction } from '../components/Treasury/TransactionList';
+import { TransactionList } from '../components/Treasury/TransactionList';
+import type { Transaction } from '../components/Treasury';
 import { BalanceChart } from '../components/Treasury/BalanceChart';
 import { RechargeModal } from '../components/Treasury/RechargeModal';
 import { ExportButton } from '../components/Treasury/ExportButton';
@@ -171,10 +172,6 @@ export const TreasuryClient: React.FC<TreasuryClientProps> = ({ onBack }) => {
     setBalance(prev => prev + amount);
     // In real app, would call API
     console.log('Recharged:', amount);
-  };
-
-  const handleExport = () => {
-    // Export is handled by ExportButton component
   };
 
   return (

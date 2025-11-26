@@ -1,17 +1,6 @@
 import React from 'react';
 import { ArrowUp, ArrowDown, Repeat, ShoppingCart, Gift, DollarSign, Minus } from 'lucide-react';
-
-interface Transaction {
-  id: string;
-  date: string;
-  description: string;
-  amount: number;
-  type: 'recharge' | 'purchase' | 'refund' | 'sale' | 'commission' | 'withdrawal' | 'bonus';
-  status: 'completed' | 'pending' | 'failed';
-  order_id?: string;
-  commission?: number;
-  net_amount?: number;
-}
+import type { Transaction } from './index';
 
 interface TransactionListProps {
   transactions: Transaction[];

@@ -8,7 +8,8 @@ import {
   Banknote
 } from 'lucide-react';
 import { TransactionFilters } from '../components/Treasury/TransactionFilters';
-import { TransactionList, Transaction } from '../components/Treasury/TransactionList';
+import { TransactionList } from '../components/Treasury/TransactionList';
+import type { Transaction } from '../components/Treasury';
 import { RevenueChart } from '../components/Treasury/RevenueChart';
 import { WithdrawModal } from '../components/Treasury/WithdrawModal';
 import { ExportButton } from '../components/Treasury/ExportButton';
