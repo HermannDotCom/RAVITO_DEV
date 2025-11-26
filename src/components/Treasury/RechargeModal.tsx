@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { X, CreditCard, Plus, Check } from 'lucide-react';
-import { DEFAULT_RECHARGE_AMOUNTS, type RechargeOption } from '../../types/treasury';
+import { 
+  DEFAULT_RECHARGE_AMOUNTS, 
+  MINIMUM_RECHARGE_AMOUNT, 
+  MAXIMUM_RECHARGE_AMOUNT, 
+  type RechargeOption 
+} from '../../types/treasury';
 
 interface RechargeModalProps {
   /** Whether the modal is open */
@@ -17,7 +22,7 @@ interface RechargeModalProps {
  * RechargeModal Component
  * 
  * Modal for clients to recharge their account balance.
- * Offers predefined amounts (50€, 100€, 200€, 500€) and custom amount option.
+ * Offers predefined amounts (50K, 100K, 200K, 500K FCFA) and custom amount option.
  */
 export const RechargeModal: React.FC<RechargeModalProps> = ({
   isOpen,
@@ -61,13 +66,13 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
   const handleRecharge = async () => {
     const amount = getFinalAmount();
     
-    if (amount < 10000) {
-      setError('Le montant minimum est de 10 000 FCFA');
+    if (amount < MINIMUM_RECHARGE_AMOUNT) {
+      setError(`Le montant minimum est de ${formatPrice(MINIMUM_RECHARGE_AMOUNT)}`);
       return;
     }
 
-    if (amount > 5000000) {
-      setError('Le montant maximum est de 5 000 000 FCFA');
+    if (amount > MAXIMUM_RECHARGE_AMOUNT) {
+      setError(`Le montant maximum est de ${formatPrice(MAXIMUM_RECHARGE_AMOUNT)}`);
       return;
     }
 
@@ -172,7 +177,7 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
               </span>
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Minimum: 10 000 FCFA | Maximum: 5 000 000 FCFA
+              Minimum: {formatPrice(MINIMUM_RECHARGE_AMOUNT)} | Maximum: {formatPrice(MAXIMUM_RECHARGE_AMOUNT)}
             </p>
           </div>
 

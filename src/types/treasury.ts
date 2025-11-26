@@ -81,6 +81,16 @@ export const DEFAULT_RECHARGE_AMOUNTS: RechargeOption[] = [
 export const MINIMUM_WITHDRAWAL_AMOUNT = 50000;
 
 /**
+ * Minimum recharge amount for clients (in FCFA)
+ */
+export const MINIMUM_RECHARGE_AMOUNT = 10000;
+
+/**
+ * Maximum recharge amount for clients (in FCFA)
+ */
+export const MAXIMUM_RECHARGE_AMOUNT = 5000000;
+
+/**
  * Treasury statistics interface
  */
 export interface TreasuryStats {

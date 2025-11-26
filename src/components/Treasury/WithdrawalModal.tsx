@@ -21,7 +21,7 @@ interface WithdrawalModalProps {
  * WithdrawalModal Component
  * 
  * Modal for suppliers to request withdrawals from their balance.
- * Includes minimum amount validation (50€/50,000 FCFA) and IBAN display.
+ * Includes minimum amount validation (50,000 FCFA) and IBAN display.
  */
 export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
   isOpen,

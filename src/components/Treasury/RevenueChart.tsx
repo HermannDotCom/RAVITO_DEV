@@ -124,8 +124,16 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({
   const innerWidth = chartWidth - padding * 2;
   const innerHeight = chartHeight - padding * 2;
 
+  // Calculate x position - handle single data point by centering it
+  const getXPosition = (index: number, totalPoints: number): number => {
+    if (totalPoints <= 1) {
+      return padding + innerWidth / 2; // Center single point
+    }
+    return padding + (index / (totalPoints - 1)) * innerWidth;
+  };
+
   const points = data.map((d, i) => ({
-    x: padding + (i / (data.length - 1 || 1)) * innerWidth,
+    x: getXPosition(i, data.length),
     y: padding + innerHeight - (d.value / maxValue) * innerHeight,
     ...d
   }));
