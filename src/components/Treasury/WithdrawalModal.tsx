@@ -14,7 +14,29 @@ interface WithdrawalModalProps {
   formatValue?: (value: number) => string;
 }
 
-const MINIMUM_WITHDRAWAL = 50000; // 50€ in FCFA (approximately)
+// Minimum withdrawal amount in FCFA (50,000 FCFA as per business requirement)
+const MINIMUM_WITHDRAWAL = 50000;
+
+// IBAN validation regex pattern - validates basic IBAN format
+// IBAN: 2 letter country code + 2 check digits + up to 30 alphanumeric characters
+const IBAN_PATTERN = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{4,30}$/;
+
+const validateIban = (iban: string): boolean => {
+  // Remove spaces and convert to uppercase
+  const cleanIban = iban.replace(/\s/g, '').toUpperCase();
+  
+  // Check basic format
+  if (!IBAN_PATTERN.test(cleanIban)) {
+    return false;
+  }
+  
+  // Check minimum length (varies by country, but minimum is 15)
+  if (cleanIban.length < 15 || cleanIban.length > 34) {
+    return false;
+  }
+  
+  return true;
+};
 
 export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
   isOpen,
@@ -37,7 +59,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
   const withdrawalAmount = amount ? parseInt(amount, 10) : 0;
   const selectedIban = useStoredIban && bankInfo ? bankInfo.iban : customIban;
   const isValidAmount = withdrawalAmount >= MINIMUM_WITHDRAWAL && withdrawalAmount <= availableBalance;
-  const isValidIban = selectedIban.length >= 15;
+  const isValidIban = useStoredIban && bankInfo ? true : validateIban(selectedIban);
   const isValid = isValidAmount && isValidIban;
 
   const maskIban = (iban: string) => {

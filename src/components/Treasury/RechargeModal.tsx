@@ -1,6 +1,21 @@
 import React, { useState } from 'react';
 import { X, CreditCard, Plus, AlertCircle, CheckCircle } from 'lucide-react';
 
+// Configurable recharge amounts (can be adjusted per business requirements)
+const RECHARGE_AMOUNTS = {
+  MIN_AMOUNT: 5000,
+  PREDEFINED: [20000, 50000, 100000, 200000]
+};
+
+// Payment methods available in Côte d'Ivoire
+const PAYMENT_METHODS = [
+  { id: 'orange', name: 'Orange Money', icon: '🟠' },
+  { id: 'mtn', name: 'MTN Mobile Money', icon: '🟡' },
+  { id: 'moov', name: 'Moov Money', icon: '🔵' },
+  { id: 'wave', name: 'Wave', icon: '🌊' },
+  { id: 'card', name: 'Carte bancaire', icon: '💳' }
+];
+
 interface RechargeModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -9,20 +24,12 @@ interface RechargeModalProps {
   formatValue?: (value: number) => string;
 }
 
-const predefinedAmounts = [
-  { value: 20000, label: '20 000 FCFA' },
-  { value: 50000, label: '50 000 FCFA' },
-  { value: 100000, label: '100 000 FCFA' },
-  { value: 200000, label: '200 000 FCFA' }
-];
+const formatAmount = (value: number) => new Intl.NumberFormat('fr-FR').format(value) + ' FCFA';
 
-const paymentMethods = [
-  { id: 'orange', name: 'Orange Money', icon: '🟠' },
-  { id: 'mtn', name: 'MTN Mobile Money', icon: '🟡' },
-  { id: 'moov', name: 'Moov Money', icon: '🔵' },
-  { id: 'wave', name: 'Wave', icon: '🌊' },
-  { id: 'card', name: 'Carte bancaire', icon: '💳' }
-];
+const predefinedAmounts = RECHARGE_AMOUNTS.PREDEFINED.map(value => ({
+  value,
+  label: formatAmount(value)
+}));
 
 export const RechargeModal: React.FC<RechargeModalProps> = ({
   isOpen,
@@ -41,7 +48,7 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
   if (!isOpen) return null;
 
   const finalAmount = selectedAmount || (customAmount ? parseInt(customAmount, 10) : 0);
-  const isValid = finalAmount >= 5000 && selectedPayment !== '';
+  const isValid = finalAmount >= RECHARGE_AMOUNTS.MIN_AMOUNT && selectedPayment !== '';
 
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount);
@@ -62,8 +69,8 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
       return;
     }
 
-    if (finalAmount < 5000) {
-      setError('Le montant minimum de recharge est de 5 000 FCFA');
+    if (finalAmount < RECHARGE_AMOUNTS.MIN_AMOUNT) {
+      setError(`Le montant minimum de recharge est de ${formatAmount(RECHARGE_AMOUNTS.MIN_AMOUNT)}`);
       return;
     }
 
@@ -175,7 +182,7 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
                     FCFA
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Minimum : 5 000 FCFA</p>
+                <p className="text-xs text-gray-500 mt-1">Minimum : {formatAmount(RECHARGE_AMOUNTS.MIN_AMOUNT)}</p>
               </div>
 
               {/* Payment Methods */}
@@ -184,7 +191,7 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
                   Mode de paiement
                 </label>
                 <div className="space-y-2">
-                  {paymentMethods.map(method => (
+                  {PAYMENT_METHODS.map(method => (
                     <button
                       key={method.id}
                       onClick={() => setSelectedPayment(method.id)}
