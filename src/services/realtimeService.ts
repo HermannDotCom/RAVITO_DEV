@@ -98,12 +98,13 @@ class RealtimeService {
         async (payload) => {
           console.log('New order detected:', payload);
           
-          // Check if order is in supplier's zones
+          // Check if order is in supplier's approved zones
           const { data: supplierZones } = await supabase
             .from('supplier_zones')
             .select('zone_id')
             .eq('supplier_id', supplierId)
-            .eq('is_active', true);
+            .eq('is_active', true)
+            .eq('approval_status', 'approved');
 
           const { data: order } = await supabase
             .from('orders')
