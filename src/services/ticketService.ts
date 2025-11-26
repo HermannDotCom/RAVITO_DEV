@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 
-export type TicketCategory = 'technical' | 'billing' | 'delivery' | 'account' | 'other';
+export type TicketCategory = 'technical' | 'billing' | 'delivery' | 'account' | 'complaint' | 'other';
 export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type TicketStatus = 'open' | 'in_progress' | 'waiting_response' | 'resolved' | 'closed';
 
@@ -361,6 +361,7 @@ export const ticketService = {
       billing: 'Facturation',
       delivery: 'Livraison',
       account: 'Compte',
+      complaint: 'Réclamation',
       other: 'Autre'
     };
     return labels[category];
