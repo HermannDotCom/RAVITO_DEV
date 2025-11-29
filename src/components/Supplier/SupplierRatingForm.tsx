@@ -5,13 +5,14 @@ import { useOrder } from '../../context/OrderContext';
 import { createRating } from '../../services/ratingService';
 
 interface SupplierRatingFormProps {
+  orderId: string;
+  clientId: string;
   onSubmit: (ratings: any) => void;
   onCancel: () => void;
 }
 
-export const SupplierRatingForm: React.FC<SupplierRatingFormProps> = ({ onSubmit, onCancel }) => {
+export const SupplierRatingForm: React.FC<SupplierRatingFormProps> = ({ orderId, clientId, onSubmit, onCancel }) => {
   const { user } = useAuth();
-  const { currentOrder } = useOrder();
   const [ratings, setRatings] = useState({
     punctuality: 0,
     quality: 0,
@@ -34,15 +35,15 @@ export const SupplierRatingForm: React.FC<SupplierRatingFormProps> = ({ onSubmit
 
   const handleSubmit = async () => {
     const allRated = Object.values(ratings).every(rating => rating > 0);
-    if (!allRated || !user || !currentOrder) return;
+    if (!allRated || !user) return;
 
     setIsSubmitting(true);
 
     try {
       const success = await createRating({
-        orderId: currentOrder.id,
+        orderId: orderId,
         fromUserId: user.id,
-        toUserId: currentOrder.clientId,
+        toUserId: clientId,
         fromUserRole: 'supplier',
         toUserRole: 'client',
         punctuality: ratings.punctuality,

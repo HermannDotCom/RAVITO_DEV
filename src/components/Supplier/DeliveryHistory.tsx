@@ -602,13 +602,15 @@ Décrivez votre problème en détail...`,
                 <p className="text-gray-600">Comment s'est passée la livraison pour <strong>{getClientName(selectedOrderForRating.clientId)}</strong> ?</p>
               </div>
 
-              <SupplierRatingForm
-                onSubmit={handleSubmitRating}
-                onCancel={() => {
-                  setShowRatingModal(false);
-                  setSelectedOrderForRating(null);
-                }}
-              />
+	              <SupplierRatingForm
+	                orderId={selectedOrderForRating.id}
+	                clientId={selectedOrderForRating.clientId}
+	                onSubmit={handleSubmitRating}
+	                onCancel={() => {
+	                  setShowRatingModal(false);
+	                  setSelectedOrderForRating(null);
+	                }}
+	              />
             </div>
           </div>
         </div>

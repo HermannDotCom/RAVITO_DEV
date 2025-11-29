@@ -1,7 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Clock, Package, Truck, CheckCircle, MapPin, Phone, Archive } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Clock, Package, Truck, CheckCircle, MapPin, Phone, Archive, CreditCard, AlertCircle } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
-import { OrderStatus, CrateType } from '../../types';
+import { useAuth } from '../../context/AuthContext';
+import { OrderStatus, CrateType, PaymentMethod } from '../../types';
+import { PaymentFlow } from './PaymentFlow';
 import { DeliveryTracking } from './DeliveryTracking';
 import { supabase } from '../../lib/supabase';
 
@@ -19,31 +21,38 @@ interface SupplierProfile {
 }
 
 export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
-  const { clientCurrentOrder, updateOrderStatus } = useOrder();
+  const { user } = useAuth();
+  const { clientCurrentOrder, updateOrderStatus, processPayment } = useOrder();
   const [estimatedTime, setEstimatedTime] = useState(25);
+
+  // --- Etats enrichis pour UX/Paiement/Notifications/Supplier ---
+  const [showPaymentFlow, setShowPaymentFlow] = useState(false);
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [notifications, setNotifications] = useState<Array<{ type: string; message: string; id: number }>>([]);
   const [supplierProfile, setSupplierProfile] = useState<SupplierProfile | null>(null);
   const timeoutsRef = useRef<Set<NodeJS.Timeout>>(new Set());
 
-  // Load supplier profile when order has a supplier
+  // Paiement nécessaire ?
+  const needsPayment =
+    clientCurrentOrder?.status === 'awaiting-client-validation' &&
+    clientCurrentOrder?.payment_status !== 'completed';
+
+  // Charger les infos fournisseur si commande a un supplierId
   useEffect(() => {
     const loadSupplierProfile = async () => {
       if (!clientCurrentOrder?.supplierId) {
         setSupplierProfile(null);
         return;
       }
-
       const { data, error } = await supabase
         .from('profiles')
         .select('id, name, business_name, phone, rating, address')
         .eq('id', clientCurrentOrder.supplierId)
         .maybeSingle();
-
       if (error) {
         console.error('Error loading supplier profile:', error);
         return;
       }
-
       if (data) {
         setSupplierProfile({
           id: data.id,
@@ -55,11 +64,9 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
         });
       }
     };
-
     loadSupplierProfile();
   }, [clientCurrentOrder?.supplierId]);
 
-  // Cleanup all timeouts on unmount
   useEffect(() => {
     return () => {
       timeoutsRef.current.forEach(timeout => clearTimeout(timeout));
@@ -67,33 +74,28 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
     };
   }, []);
 
-  // Handle notifications from DeliveryTracking component
+  // Notifications
   const handleNotification = (type: string, message: string) => {
     const newNotification = { type, message, id: Date.now() };
     setNotifications(prev => [...prev, newNotification]);
-    
-    // Auto-remove notification after 5 seconds
     const timeoutId = setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== newNotification.id));
       timeoutsRef.current.delete(timeoutId);
     }, 5000);
-    
     timeoutsRef.current.add(timeoutId);
   };
 
+  // Suivi du workflow de la commande (auto-progression si payé)
   useEffect(() => {
     if (!clientCurrentOrder) return;
-
+    if (needsPayment) return;
     const statusFlow: OrderStatus[] = ['accepted', 'preparing', 'delivering', 'delivered'];
     let currentIndex = statusFlow.indexOf(clientCurrentOrder.status);
-
     if (currentIndex === -1 || currentIndex >= statusFlow.length - 1) return;
-
     const interval = setInterval(() => {
       currentIndex++;
       if (currentIndex < statusFlow.length) {
         updateOrderStatus(clientCurrentOrder.id, statusFlow[currentIndex]);
-        
         if (statusFlow[currentIndex] === 'delivered') {
           clearInterval(interval);
           setTimeout(onComplete, 2000);
@@ -102,9 +104,8 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
         }
       }
     }, 5000);
-
     return () => clearInterval(interval);
-  }, [clientCurrentOrder, updateOrderStatus, onComplete]);
+  }, [clientCurrentOrder, updateOrderStatus, onComplete, needsPayment]);
 
   if (!clientCurrentOrder) {
     return (
@@ -114,6 +115,30 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
           <h3 className="text-xl font-semibold text-gray-600">Aucune commande en cours</h3>
         </div>
       </div>
+    );
+  }
+
+  // Afficher l'interface de paiement si nécessaire
+  if (needsPayment && showPaymentFlow) {
+    return (
+      <PaymentFlow
+        order={clientCurrentOrder}
+        onPaymentComplete={async (paymentMethod: PaymentMethod, transactionId: string) => {
+          setPaymentProcessing(true);
+          const success = await processPayment(clientCurrentOrder.id, paymentMethod, transactionId);
+          setPaymentProcessing(false);
+          if (success) {
+            setShowPaymentFlow(false);
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+          } else {
+            alert('Erreur lors du traitement du paiement. Veuillez réessayer.');
+          }
+        }}
+        onCancel={() => setShowPaymentFlow(false)}
+        isProcessing={paymentProcessing}
+      />
     );
   }
 
@@ -154,11 +179,9 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
   const subtotal = clientCurrentOrder.items.reduce((sum, item) => 
     sum + (item.product.pricePerUnit * item.quantity), 0
   );
-  
   const consigneTotal = clientCurrentOrder.items.reduce((sum, item) => 
     sum + (item.withConsigne ? item.product.consigneAmount * item.quantity : 0), 0
   );
-  
   const total = subtotal + consigneTotal;
 
   const formatPrice = (price: number) => {
@@ -178,7 +201,7 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      {/* Notification Toast */}
+      {/* Notification Toast for tracking */}
       {notifications.length > 0 && (
         <div className="fixed top-4 right-4 z-50 space-y-2">
           {notifications.map(notification => (
@@ -209,6 +232,28 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
         <p className="text-gray-600">Commande #{clientCurrentOrder.id}</p>
       </div>
 
+      {/* Alert: paiement en attente */}
+      {needsPayment && (
+        <div className="mb-6 bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
+          <div className="flex items-start">
+            <AlertCircle className="h-6 w-6 text-orange-600 mr-3 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-orange-900 mb-2">Paiement en attente</h3>
+              <p className="text-orange-800 mb-4">
+                Une offre a été reçue de la part du fournisseur. Veuillez procéder au paiement pour confirmer votre commande.
+              </p>
+              <button
+                onClick={() => setShowPaymentFlow(true)}
+                className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+              >
+                <CreditCard className="h-5 w-5 mr-2" />
+                Procéder au paiement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* GPS Delivery Tracking - Show when delivering */}
       {clientCurrentOrder.status === 'delivering' && (
         <DeliveryTracking order={clientCurrentOrder} onNotification={handleNotification} />
@@ -225,51 +270,79 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">{statusInfo.label}</h2>
-                {clientCurrentOrder.status !== 'delivered' && (
+                {clientCurrentOrder.status !== 'delivered' && !needsPayment && (
                   <p className="text-gray-600">Temps estimé: {estimatedTime} minutes</p>
                 )}
               </div>
             </div>
 
-            {/* Progress Steps */}
-            <div className="relative">
-              <div className="flex justify-between">
-                {steps.map((step, index) => {
-                  const StepIcon = step.icon;
-                  const isCompleted = index <= getCurrentStep();
-                  const isCurrent = index === getCurrentStep();
-                  
-                  return (
-                    <div key={step.id} className="flex flex-col items-center relative">
-                      <div className={`
-                        h-10 w-10 rounded-full flex items-center justify-center transition-all
-                        ${isCompleted 
-                          ? 'bg-green-500 text-white' 
-                          : isCurrent 
-                            ? 'bg-orange-500 text-white' 
-                            : 'bg-gray-200 text-gray-400'
-                        }
-                      `}>
-                        <StepIcon className="h-5 w-5" />
-                      </div>
-                      <span className={`mt-2 text-xs font-medium ${
-                        isCompleted ? 'text-green-600' : isCurrent ? 'text-orange-600' : 'text-gray-400'
-                      }`}>
-                        {step.label}
-                      </span>
-                      
-                      {index < steps.length - 1 && (
-                        <div className={`
-                          absolute top-5 left-5 w-16 h-0.5 transition-colors
-                          ${index < getCurrentStep() ? 'bg-green-500' : 'bg-gray-200'}
-                        `} />
-                      )}
-                    </div>
-                  );
-                })}
+            {/* Code de confirmation pour le client */}
+            {clientCurrentOrder.status === 'delivering' && clientCurrentOrder.delivery_confirmation_code && (
+              <div className="mt-4 bg-green-100 border border-green-300 rounded-lg p-4">
+                <p className="text-sm font-bold text-green-800 mb-2">Code de confirmation de livraison</p>
+                <p className="text-4xl font-bold text-green-600 tracking-widest text-center">
+                  {clientCurrentOrder.delivery_confirmation_code}
+                </p>
+                <p className="text-xs text-green-700 mt-2 text-center">
+                  À communiquer au livreur pour finaliser la livraison.
+                </p>
               </div>
-            </div>
+            )}
+
+            {/* Progress Steps */}
+            {!needsPayment && (
+              <div className="relative">
+                <div className="flex justify-between">
+                  {steps.map((step, index) => {
+                    const StepIcon = step.icon;
+                    const isCompleted = index <= getCurrentStep();
+                    const isCurrent = index === getCurrentStep();
+                    return (
+                      <div key={step.id} className="flex flex-col items-center relative">
+                        <div className={`
+                          h-10 w-10 rounded-full flex items-center justify-center transition-all
+                          ${isCompleted 
+                            ? 'bg-green-500 text-white' 
+                            : isCurrent 
+                              ? 'bg-orange-500 text-white' 
+                              : 'bg-gray-200 text-gray-400'
+                          }`}>
+                          <StepIcon className="h-5 w-5" />
+                        </div>
+                        <span className={`mt-2 text-xs font-medium ${
+                          isCompleted ? 'text-green-600' : isCurrent ? 'text-orange-600' : 'text-gray-400'
+                        }`}>
+                          {step.label}
+                        </span>
+                        {index < steps.length - 1 && (
+                          <div className={`
+                            absolute top-5 left-5 w-16 h-0.5 transition-colors
+                            ${index < getCurrentStep() ? 'bg-green-500' : 'bg-gray-200'}
+                          `} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Delivery Confirmation Code */}
+          {clientCurrentOrder.status === 'delivering' && clientCurrentOrder.delivery_confirmation_code && (
+            <div className="bg-green-50 rounded-xl shadow-lg border border-green-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Code de confirmation de livraison</h3>
+              <p className="text-gray-600 mb-4">Communiquez ce code au livreur pour confirmer la livraison :</p>
+              <div className="bg-white rounded-lg border-2 border-green-500 p-6 text-center">
+                <p className="text-5xl font-bold text-green-600 tracking-widest">
+                  {clientCurrentOrder.delivery_confirmation_code}
+                </p>
+              </div>
+              <p className="text-sm text-gray-600 mt-4 text-center">
+                ℹ️ Ce code est unique et sécurisé. Ne le partagez qu'avec le livreur.
+              </p>
+            </div>
+          )}
 
           {/* Supplier Info */}
           {clientCurrentOrder.supplierId && supplierProfile && (
@@ -309,33 +382,12 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
               </div>
             </div>
           )}
-
-          {/* Delivery Confirmation Code */}
-          {clientCurrentOrder.status === 'delivering' && clientCurrentOrder.deliveryConfirmationCode && (
-            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl shadow-lg p-6">
-              <div className="text-center">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Code de confirmation de livraison</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Donnez ce code au livreur pour confirmer la réception de votre commande
-                </p>
-                <div className="bg-white rounded-lg p-6 inline-block">
-                  <div className="text-5xl font-bold text-orange-600 tracking-widest font-mono">
-                    {clientCurrentOrder.deliveryConfirmationCode}
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-4">
-                  Ne partagez ce code qu'au moment de la livraison
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Order Summary */}
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Détails de la commande</h3>
-            
             <div className="space-y-3">
               {clientCurrentOrder.items.map((item) => (
                 <div key={item.product.id} className="flex justify-between items-center">
@@ -349,13 +401,12 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                     )}
                   </div>
                   <span className="font-semibold">
-                    {formatPrice(item.product.pricePerUnit * item.quantity + 
+                    {formatPrice(item.product.pricePerUnit * item.quantity +
                       (item.withConsigne ? item.product.consigneAmount * item.quantity : 0))}
                   </span>
                 </div>
               ))}
             </div>
-
             <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
               <div className="flex justify-between text-gray-600">
                 <span>Sous-total produits</span>
@@ -372,15 +423,26 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                 <span>{formatPrice(total)}</span>
               </div>
             </div>
+            {/* Payment Status */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Statut du paiement:</span>
+                <span className={`text-sm font-bold ${
+                  clientCurrentOrder.payment_status === 'completed'
+                    ? 'text-green-600'
+                    : 'text-orange-600'
+                }`}>
+                  {clientCurrentOrder.payment_status === 'completed' ? '✓ Payé' : 'En attente'}
+                </span>
+              </div>
+            </div>
           </div>
-
           {/* Crate Information */}
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
               <Archive className="h-4 w-4 mr-2 text-blue-600" />
               Gestion des casiers (interchangeables par type)
             </h3>
-            
             {(() => {
               // Calculate crate summary by type (cumulative)
               const crateSummary: { [key in CrateType]: number } = {
@@ -389,16 +451,13 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                 C12V: 0,
                 C6: 0
               };
-
               clientCurrentOrder.items.forEach(item => {
                 if (!item.withConsigne) {
                   crateSummary[item.product.crateType] += item.quantity;
                 }
               });
-
               const totalCratesToReturn = Object.values(crateSummary).reduce((sum, count) => sum + count, 0);
               const cratesWithConsigne = clientCurrentOrder.items.filter(item => item.withConsigne);
-              
               return (
                 <div className="space-y-3">
                   {totalCratesToReturn > 0 && (
@@ -411,8 +470,8 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                               <div className="text-lg font-bold text-blue-700">{count}</div>
                               <div className="text-blue-600 text-sm">{crateType}</div>
                               <div className="text-blue-500 text-xs mt-1">
-                                {crateType === 'C24' ? '24×33cl' : 
-                                 crateType === 'C12' ? '12×66cl' : 
+                                {crateType === 'C24' ? '24×33cl' :
+                                 crateType === 'C12' ? '12×66cl' :
                                  crateType === 'C12V' ? '12×75cl' : '6×1.5L'}
                               </div>
                             </div>
@@ -424,13 +483,12 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                           ⚠️ <strong>Total : {totalCratesToReturn} casier(s) vide(s) à rendre obligatoirement</strong>
                         </p>
                         <p className="text-xs text-blue-700">
-                          💡 <strong>Casiers interchangeables :</strong> Vous pouvez rendre n'importe quel casier vide du même type, 
+                          💡 <strong>Casiers interchangeables :</strong> Vous pouvez rendre n'importe quel casier vide du même type,
                           peu importe la marque d'origine (ex: casier C24 Flag = casier C24 Castel).
                         </p>
                       </div>
                     </div>
                   )}
-                  
                   {cratesWithConsigne.length > 0 && (
                     <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                       <p className="text-sm font-medium text-orange-800 mb-2">Consignes incluses :</p>
@@ -446,7 +504,6 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                       </div>
                     </div>
                   )}
-                  
                   {totalCratesToReturn === 0 && cratesWithConsigne.length === 0 && (
                     <p className="text-sm text-blue-700">Aucun casier à gérer</p>
                   )}
@@ -454,7 +511,6 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
               );
             })()}
           </div>
-
           {/* Delivery Address */}
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Livraison et paiement</h3>
@@ -464,7 +520,8 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
             </div>
             <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded p-2">
               <p className="text-sm text-yellow-800">
-                <strong>Paiement :</strong> {getPaymentMethodLabel(clientCurrentOrder.paymentMethod)} à la livraison
+                <strong>Paiement :</strong> {getPaymentMethodLabel(clientCurrentOrder.paymentMethod)}
+                {clientCurrentOrder.payment_status === 'completed' ? ' (Payé)' : ' (À la livraison)'}
               </p>
             </div>
           </div>

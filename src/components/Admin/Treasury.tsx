@@ -126,7 +126,6 @@ export const Treasury: React.FC = () => {
   // Filtrer les commandes livrées et payées mais non transférées
   const ordersToTransfer = allOrders.filter(order =>
     order.status === 'delivered' &&
-    order.paymentStatus === 'paid' &&
     order.supplierId &&
     !order.transferredAt
   );
