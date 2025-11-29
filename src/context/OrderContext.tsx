@@ -7,6 +7,7 @@ import {
   getOrdersByClient,
   getOrdersBySupplier,
   getPendingOrders,
+  getAllOrders,
   updateOrderStatus as updateOrderStatusService
 } from '../services/orderService';
 
@@ -61,6 +62,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [supplierActiveDeliveries, setSupplierActiveDeliveries] = useState<Order[]>([]);
   const [supplierCompletedDeliveries, setSupplierCompletedDeliveries] = useState<Order[]>([]);
   const [clientOrders, setClientOrders] = useState<Order[]>([]);
+  const [adminAllOrders, setAdminAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const loadOrders = async () => {
@@ -80,12 +82,16 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
         setAvailableOrders(pending);
         setSupplierActiveDeliveries(active.filter(o =>
-          ['accepted', 'preparing', 'delivering'].includes(o.status)
+          ['paid', 'accepted', 'preparing', 'delivering'].includes(o.status)
         ));
         setSupplierCompletedDeliveries(completed.filter(o => o.status === 'delivered'));
       } else if (user.role === 'admin') {
-        const pending = await getPendingOrders();
+        const [pending, all] = await Promise.all([
+          getPendingOrders(),
+          getAllOrders()
+        ]);
         setAvailableOrders(pending);
+        setAdminAllOrders(all);
       }
     } catch (error) {
       console.error('Error loading orders:', error);
@@ -99,27 +105,59 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [user]);
 
   useEffect(() => {
-    if (!user || user.role !== 'client') return;
+    if (!user) return;
 
-    const channel = supabase
-      .channel('orders-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `client_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('Order change:', payload);
-          loadOrders();
-        }
-      )
-      .subscribe();
+    let channel;
+
+    if (user.role === 'client') {
+      channel = supabase
+        .channel('orders-changes-client')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders',
+            filter: `client_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('📦 Client order change detected:', payload);
+            loadOrders();
+          }
+        )
+        .subscribe();
+    } else if (user.role === 'supplier') {
+      channel = supabase
+        .channel('orders-changes-supplier')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'orders',
+            filter: `supplier_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('📦 Supplier order change detected:', payload);
+            loadOrders();
+          }
+        )
+        .subscribe();
+    }
+
+    // Also listen for custom refresh events from realtime hooks
+    const handleRefreshEvent = () => {
+      console.log('🔄 Manual refresh triggered');
+      loadOrders();
+    };
+
+    window.addEventListener('refresh-orders', handleRefreshEvent);
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+      window.removeEventListener('refresh-orders', handleRefreshEvent);
     };
   }, [user]);
 
@@ -205,7 +243,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         .from('orders')
         .update({
           status: 'preparing',
-          payment_status: 'completed',
+          payment_status: 'paid',
           paid_at: new Date().toISOString(),
           payment_method: paymentMethod,
           transaction_id: transactionId
@@ -226,7 +264,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     await loadOrders();
   };
 
-  const allOrders = [...clientOrders, ...availableOrders, ...supplierActiveDeliveries, ...supplierCompletedDeliveries];
+  const allOrders = [...clientOrders, ...availableOrders, ...supplierActiveDeliveries, ...supplierCompletedDeliveries, ...adminAllOrders];
   
   const clientCurrentOrder = clientOrders.find(order => 
     ['pending', 'awaiting-client-validation', 'accepted', 'preparing', 'delivering'].includes(order.status)

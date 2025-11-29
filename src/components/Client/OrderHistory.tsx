@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package, Clock, Star, MapPin, Filter, Search, CheckCircle, XCircle, Truck, Calendar, Eye, Download, Phone, Archive, CreditCard } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -8,9 +8,18 @@ import { Order, OrderStatus, CrateType } from '../../types';
 import { ClientRatingForm } from './ClientRatingForm';
 import { OrderDetailsWithOffers } from './OrderDetailsWithOffers';
 import { PaymentInterface } from './PaymentInterface';
+import { supabase } from '../../lib/supabase';
 
 interface OrderHistoryProps {
   onNavigate: (section: string) => void;
+}
+
+interface SupplierProfile {
+  id: string;
+  name: string;
+  business_name?: string;
+  phone?: string;
+  rating?: number;
 }
 
 export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
@@ -29,9 +38,52 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   const [showOffersModal, setShowOffersModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [orderForPayment, setOrderForPayment] = useState<Order | null>(null);
+  const [supplierProfiles, setSupplierProfiles] = useState<Record<string, SupplierProfile>>({});
+
+  // Load supplier profiles for paid orders via secure RPC function
+  useEffect(() => {
+    const loadSupplierProfiles = async () => {
+      // Filtrer les commandes payées avec un fournisseur
+      const paidOrdersWithSupplier = allOrders.filter(
+        order => order.supplierId && order.paymentStatus === 'paid'
+      );
+      
+      if (paidOrdersWithSupplier.length === 0) return;
+
+      const profilesMap: Record<string, SupplierProfile> = {};
+      
+      // Charger les profils via la fonction RPC sécurisée
+      for (const order of paidOrdersWithSupplier) {
+        if (profilesMap[order.supplierId!]) continue; // Déjà chargé
+        
+        const { data, error } = await supabase.rpc('get_supplier_info_for_order', {
+          p_order_id: order.id
+        });
+
+        if (error) {
+          console.error('Error loading supplier profile for order:', order.id, error);
+          continue;
+        }
+
+        if (data) {
+          profilesMap[data.id] = {
+            id: data.id,
+            name: data.name,
+            business_name: data.business_name,
+            phone: data.phone,
+            rating: data.rating
+          };
+        }
+      }
+      
+      setSupplierProfiles(profilesMap);
+    };
+
+    loadSupplierProfiles();
+  }, [allOrders]);
 
   // Synchroniser les commandes sélectionnées avec les mises à jour du contexte
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedOrder) {
       const updatedOrder = allOrders.find(o => o.id === selectedOrder.id);
       if (updatedOrder && updatedOrder.status !== selectedOrder.status) {
@@ -47,6 +99,28 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
       }
     }
   }, [allOrders, selectedOrder, orderForPayment]);
+
+  // Reload order details including confirmation code when modal opens for delivering orders
+  useEffect(() => {
+    const reloadOrderDetails = async () => {
+      if (showOrderDetails && selectedOrder && selectedOrder.status === 'delivering') {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('delivery_confirmation_code')
+          .eq('id', selectedOrder.id)
+          .single();
+
+        if (!error && data?.delivery_confirmation_code) {
+          setSelectedOrder(prev => prev ? {
+            ...prev,
+            deliveryConfirmationCode: data.delivery_confirmation_code
+          } : null);
+        }
+      }
+    };
+
+    reloadOrderDetails();
+  }, [showOrderDetails, selectedOrder?.id]);
 
   // Filtrer les commandes de l'utilisateur connecté
   const userOrders = allOrders.filter(order => 
@@ -154,12 +228,12 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   };
 
   const getSupplierName = (supplierId?: string) => {
-    const suppliers = {
-      'supplier-1': 'Dépôt du Plateau',
-      'supplier-2': 'Dépôt Cocody Express',
-      'supplier-3': 'Dépôt Marcory Sud'
-    };
-    return suppliers[supplierId as keyof typeof suppliers] || 'Fournisseur inconnu';
+    if (!supplierId) return 'Fournisseur inconnu';
+    const profile = supplierProfiles[supplierId];
+    if (profile) {
+      return profile.business_name || profile.name || 'Fournisseur inconnu';
+    }
+    return 'Fournisseur inconnu';
   };
 
   // Calculer les statistiques réelles
@@ -317,6 +391,26 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                     </span>
                   </div>
                 </div>
+
+                {/* Delivery Confirmation Code - Displayed when delivering */}
+                {order.status === 'delivering' && order.deliveryConfirmationCode && (
+                  <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl p-6">
+                    <div className="text-center">
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">Code de confirmation de livraison</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Donnez ce code au livreur pour confirmer la réception de votre commande
+                      </p>
+                      <div className="bg-white rounded-lg p-6 inline-block">
+                        <div className="text-4xl font-bold text-orange-600 tracking-widest font-mono">
+                          {order.deliveryConfirmationCode}
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-4">
+                        Ne partagez ce code qu'au moment de la livraison
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Timeline */}
                 <div className="bg-gray-50 rounded-xl p-6">
@@ -772,12 +866,15 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
               >
                 <option value="all">Tous les statuts</option>
                 <option value="pending">En attente</option>
-                <option value="awaiting-client-validation">Offre reçue</option>
-                <option value="accepted">Acceptées</option>
+                <option value="pending-offers">En attente d'offres</option>
+                <option value="offers-received">Offres reçues</option>
+                <option value="awaiting-payment">En attente de paiement</option>
+                <option value="paid">Payée</option>
+                <option value="accepted">Acceptée</option>
                 <option value="preparing">En préparation</option>
                 <option value="delivering">En livraison</option>
-                <option value="delivered">Livrées</option>
-                <option value="cancelled">Annulées</option>
+                <option value="delivered">Livrée</option>
+                <option value="cancelled">Annulée</option>
               </select>
             </div>
 

@@ -117,6 +117,43 @@ export const ZoneRegistration: React.FC = () => {
 
     setIsSubmitting(true);
     try {
+      // Check if a request already exists for this supplier and zone
+      const { data: existing, error: checkError } = await supabase
+        .from('supplier_zones')
+        .select('id, approval_status')
+        .eq('supplier_id', user.id)
+        .eq('zone_id', zoneId)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (existing) {
+        if (existing.approval_status === 'pending') {
+          alert('⏳ Une demande est déjà en cours pour cette zone. Veuillez patienter.');
+          return;
+        } else if (existing.approval_status === 'approved') {
+          alert('✅ Vous êtes déjà approuvé pour cette zone !');
+          await loadMyZones();
+          return;
+        } else if (existing.approval_status === 'rejected') {
+          // Update the existing rejected request to pending
+          const { error: updateError } = await supabase
+            .from('supplier_zones')
+            .update({ 
+              approval_status: 'pending', 
+              requested_at: new Date().toISOString(),
+              rejection_reason: null 
+            })
+            .eq('id', existing.id);
+
+          if (updateError) throw updateError;
+          alert('✅ Nouvelle demande envoyée avec succès !');
+          await loadMyZones();
+          return;
+        }
+      }
+
+      // Create a new request only if no existing entry
       const { error } = await supabase
         .from('supplier_zones')
         .insert({

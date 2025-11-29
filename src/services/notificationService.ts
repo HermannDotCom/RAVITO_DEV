@@ -5,7 +5,7 @@ export interface CreateNotificationParams {
   type: string;
   title: string;
   message: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 export const createNotification = async (params: CreateNotificationParams): Promise<void> => {

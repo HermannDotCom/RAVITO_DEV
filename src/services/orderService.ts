@@ -140,7 +140,7 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
         ),
         zone:zones (name)
       `)
-      .in('status', ['pending', 'pending-offers', 'awaiting-client-validation']);
+      .in('status', ['pending-offers', 'offers-received']);
 
     if (supplierId) {
       console.log('🔍 Fetching zones for supplier:', supplierId);
@@ -188,9 +188,48 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
       console.warn('⚠️ No orders returned from query');
     }
 
-    return data.map(mapDatabaseOrderToApp);
+    // Si on filtre pour un fournisseur, exclure les commandes avec une offre acceptée
+    let orders = data.map(mapDatabaseOrderToApp);
+
+    if (supplierId) {
+      const { data: acceptedOffers } = await supabase
+        .from('supplier_offers')
+        .select('order_id')
+        .eq('status', 'accepted');
+
+      const acceptedOrderIds = new Set(acceptedOffers?.map(o => o.order_id) || []);
+      orders = orders.filter(order => !acceptedOrderIds.has(order.id));
+    }
+
+    return orders;
   } catch (error) {
     console.error('Exception fetching pending orders:', error);
+    return [];
+  }
+}
+
+export async function getAllOrders(): Promise<Order[]> {
+  try {
+    const { data, error } = await supabase
+      .from('orders_with_coords')
+      .select(`
+        *,
+        order_items (
+          *,
+          product:products (*)
+        ),
+        zone:zones (name)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching all orders:', error);
+      return [];
+    }
+
+    return data.map(mapDatabaseOrderToApp);
+  } catch (error) {
+    console.error('Exception fetching all orders:', error);
     return [];
   }
 }
@@ -295,6 +334,7 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
     paymentMethod: dbOrder.payment_method as PaymentMethod,
     estimatedDeliveryTime: dbOrder.estimated_delivery_time,
     paymentStatus: dbOrder.payment_status,
+    deliveryConfirmationCode: dbOrder.delivery_confirmation_code,
     createdAt: new Date(dbOrder.created_at),
     acceptedAt: dbOrder.accepted_at ? new Date(dbOrder.accepted_at) : undefined,
     deliveredAt: dbOrder.delivered_at ? new Date(dbOrder.delivered_at) : undefined,

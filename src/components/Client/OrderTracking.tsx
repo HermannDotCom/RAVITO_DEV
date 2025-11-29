@@ -1,41 +1,101 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Clock, Package, Truck, CheckCircle, MapPin, Phone, Archive, CreditCard, AlertCircle } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
 import { useAuth } from '../../context/AuthContext';
 import { OrderStatus, CrateType, PaymentMethod } from '../../types';
 import { PaymentFlow } from './PaymentFlow';
+import { DeliveryTracking } from './DeliveryTracking';
+import { supabase } from '../../lib/supabase';
 
 interface OrderTrackingProps {
   onComplete: () => void;
+}
+
+interface SupplierProfile {
+  id: string;
+  name: string;
+  business_name?: string;
+  phone?: string;
+  rating?: number;
+  address?: string;
 }
 
 export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
   const { user } = useAuth();
   const { clientCurrentOrder, updateOrderStatus, processPayment } = useOrder();
   const [estimatedTime, setEstimatedTime] = useState(25);
+
+  // --- Etats enrichis pour UX/Paiement/Notifications/Supplier ---
   const [showPaymentFlow, setShowPaymentFlow] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
+  const [notifications, setNotifications] = useState<Array<{ type: string; message: string; id: number }>>([]);
+  const [supplierProfile, setSupplierProfile] = useState<SupplierProfile | null>(null);
+  const timeoutsRef = useRef<Set<NodeJS.Timeout>>(new Set());
 
-  // Déterminer si le paiement est nécessaire
-  const needsPayment = clientCurrentOrder?.status === 'awaiting-client-validation' && 
-                       clientCurrentOrder?.payment_status !== 'completed';
+  // Paiement nécessaire ?
+  const needsPayment =
+    clientCurrentOrder?.status === 'awaiting-client-validation' &&
+    clientCurrentOrder?.payment_status !== 'completed';
+
+  // Charger les infos fournisseur si commande a un supplierId
+  useEffect(() => {
+    const loadSupplierProfile = async () => {
+      if (!clientCurrentOrder?.supplierId) {
+        setSupplierProfile(null);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, business_name, phone, rating, address')
+        .eq('id', clientCurrentOrder.supplierId)
+        .maybeSingle();
+      if (error) {
+        console.error('Error loading supplier profile:', error);
+        return;
+      }
+      if (data) {
+        setSupplierProfile({
+          id: data.id,
+          name: data.name,
+          business_name: data.business_name,
+          phone: data.phone,
+          rating: data.rating,
+          address: data.address
+        });
+      }
+    };
+    loadSupplierProfile();
+  }, [clientCurrentOrder?.supplierId]);
 
   useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+      timeoutsRef.current.clear();
+    };
+  }, []);
+
+  // Notifications
+  const handleNotification = (type: string, message: string) => {
+    const newNotification = { type, message, id: Date.now() };
+    setNotifications(prev => [...prev, newNotification]);
+    const timeoutId = setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== newNotification.id));
+      timeoutsRef.current.delete(timeoutId);
+    }, 5000);
+    timeoutsRef.current.add(timeoutId);
+  };
+
+  // Suivi du workflow de la commande (auto-progression si payé)
+  useEffect(() => {
     if (!clientCurrentOrder) return;
-
-    // Ne pas lancer l'auto-progression si le paiement est en attente
     if (needsPayment) return;
-
     const statusFlow: OrderStatus[] = ['accepted', 'preparing', 'delivering', 'delivered'];
     let currentIndex = statusFlow.indexOf(clientCurrentOrder.status);
-
     if (currentIndex === -1 || currentIndex >= statusFlow.length - 1) return;
-
     const interval = setInterval(() => {
       currentIndex++;
       if (currentIndex < statusFlow.length) {
         updateOrderStatus(clientCurrentOrder.id, statusFlow[currentIndex]);
-        
         if (statusFlow[currentIndex] === 'delivered') {
           clearInterval(interval);
           setTimeout(onComplete, 2000);
@@ -44,7 +104,6 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
         }
       }
     }, 5000);
-
     return () => clearInterval(interval);
   }, [clientCurrentOrder, updateOrderStatus, onComplete, needsPayment]);
 
@@ -68,10 +127,8 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
           setPaymentProcessing(true);
           const success = await processPayment(clientCurrentOrder.id, paymentMethod, transactionId);
           setPaymentProcessing(false);
-          
           if (success) {
             setShowPaymentFlow(false);
-            // Rafraîchir pour voir le nouveau statut
             setTimeout(() => {
               window.location.reload();
             }, 1000);
@@ -122,11 +179,9 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
   const subtotal = clientCurrentOrder.items.reduce((sum, item) => 
     sum + (item.product.pricePerUnit * item.quantity), 0
   );
-  
   const consigneTotal = clientCurrentOrder.items.reduce((sum, item) => 
     sum + (item.withConsigne ? item.product.consigneAmount * item.quantity : 0), 0
   );
-  
   const total = subtotal + consigneTotal;
 
   const formatPrice = (price: number) => {
@@ -146,12 +201,38 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Notification Toast for tracking */}
+      {notifications.length > 0 && (
+        <div className="fixed top-4 right-4 z-50 space-y-2">
+          {notifications.map(notification => (
+            <div
+              key={notification.id}
+              className={`
+                p-4 rounded-lg shadow-lg border max-w-md animate-slide-in
+                ${notification.type === 'success' ? 'bg-green-50 border-green-200' : ''}
+                ${notification.type === 'warning' ? 'bg-orange-50 border-orange-200' : ''}
+                ${notification.type === 'info' ? 'bg-blue-50 border-blue-200' : ''}
+              `}
+            >
+              <p className={`
+                text-sm font-medium
+                ${notification.type === 'success' ? 'text-green-800' : ''}
+                ${notification.type === 'warning' ? 'text-orange-800' : ''}
+                ${notification.type === 'info' ? 'text-blue-800' : ''}
+              `}>
+                {notification.message}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Suivi de commande</h1>
         <p className="text-gray-600">Commande #{clientCurrentOrder.id}</p>
       </div>
 
-      {/* Alerte de paiement en attente */}
+      {/* Alert: paiement en attente */}
       {needsPayment && (
         <div className="mb-6 bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
           <div className="flex items-start">
@@ -171,6 +252,11 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* GPS Delivery Tracking - Show when delivering */}
+      {clientCurrentOrder.status === 'delivering' && (
+        <DeliveryTracking order={clientCurrentOrder} onNotification={handleNotification} />
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -211,7 +297,6 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                     const StepIcon = step.icon;
                     const isCompleted = index <= getCurrentStep();
                     const isCurrent = index === getCurrentStep();
-                    
                     return (
                       <div key={step.id} className="flex flex-col items-center relative">
                         <div className={`
@@ -229,7 +314,6 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                         }`}>
                           {step.label}
                         </span>
-                        
                         {index < steps.length - 1 && (
                           <div className={`
                             absolute top-5 left-5 w-16 h-0.5 transition-colors
@@ -261,30 +345,40 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
           )}
 
           {/* Supplier Info */}
-          {clientCurrentOrder.supplierId && !needsPayment && (
+          {clientCurrentOrder.supplierId && supplierProfile && (
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Votre fournisseur</h3>
               <div className="flex items-center space-x-4">
                 <div className="h-12 w-12 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">DP</span>
+                  <span className="text-white font-bold">
+                    {(supplierProfile.business_name || supplierProfile.name).substring(0, 2).toUpperCase()}
+                  </span>
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">Dépôt du Plateau</h4>
-                  <div className="flex items-center text-sm text-gray-600 mt-1">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    <span>Plateau, Abidjan</span>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Phone className="h-4 w-4 mr-1" />
-                    <span>+225 05 44 33 22 11</span>
-                  </div>
+                  <h4 className="font-semibold text-gray-900">
+                    {supplierProfile.business_name || supplierProfile.name}
+                  </h4>
+                  {supplierProfile.address && (
+                    <div className="flex items-center text-sm text-gray-600 mt-1">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      <span>{supplierProfile.address}</span>
+                    </div>
+                  )}
+                  {supplierProfile.phone && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Phone className="h-4 w-4 mr-1" />
+                      <span>{supplierProfile.phone}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="text-right">
-                  <div className="flex items-center space-x-1">
-                    <span className="text-yellow-400">★</span>
-                    <span className="text-sm font-semibold">4.7</span>
+                {supplierProfile.rating && supplierProfile.rating > 0 && (
+                  <div className="text-right">
+                    <div className="flex items-center space-x-1">
+                      <span className="text-yellow-400">★</span>
+                      <span className="text-sm font-semibold">{supplierProfile.rating.toFixed(1)}</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           )}
@@ -294,7 +388,6 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
         <div className="space-y-6">
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Détails de la commande</h3>
-            
             <div className="space-y-3">
               {clientCurrentOrder.items.map((item) => (
                 <div key={item.product.id} className="flex justify-between items-center">
@@ -308,13 +401,12 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                     )}
                   </div>
                   <span className="font-semibold">
-                    {formatPrice(item.product.pricePerUnit * item.quantity + 
+                    {formatPrice(item.product.pricePerUnit * item.quantity +
                       (item.withConsigne ? item.product.consigneAmount * item.quantity : 0))}
                   </span>
                 </div>
               ))}
             </div>
-
             <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
               <div className="flex justify-between text-gray-600">
                 <span>Sous-total produits</span>
@@ -331,14 +423,13 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                 <span>{formatPrice(total)}</span>
               </div>
             </div>
-
             {/* Payment Status */}
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Statut du paiement:</span>
                 <span className={`text-sm font-bold ${
-                  clientCurrentOrder.payment_status === 'completed' 
-                    ? 'text-green-600' 
+                  clientCurrentOrder.payment_status === 'completed'
+                    ? 'text-green-600'
                     : 'text-orange-600'
                 }`}>
                   {clientCurrentOrder.payment_status === 'completed' ? '✓ Payé' : 'En attente'}
@@ -346,14 +437,12 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
               </div>
             </div>
           </div>
-
           {/* Crate Information */}
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
               <Archive className="h-4 w-4 mr-2 text-blue-600" />
               Gestion des casiers (interchangeables par type)
             </h3>
-            
             {(() => {
               // Calculate crate summary by type (cumulative)
               const crateSummary: { [key in CrateType]: number } = {
@@ -362,16 +451,13 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                 C12V: 0,
                 C6: 0
               };
-
               clientCurrentOrder.items.forEach(item => {
                 if (!item.withConsigne) {
                   crateSummary[item.product.crateType] += item.quantity;
                 }
               });
-
               const totalCratesToReturn = Object.values(crateSummary).reduce((sum, count) => sum + count, 0);
               const cratesWithConsigne = clientCurrentOrder.items.filter(item => item.withConsigne);
-              
               return (
                 <div className="space-y-3">
                   {totalCratesToReturn > 0 && (
@@ -384,8 +470,8 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                               <div className="text-lg font-bold text-blue-700">{count}</div>
                               <div className="text-blue-600 text-sm">{crateType}</div>
                               <div className="text-blue-500 text-xs mt-1">
-                                {crateType === 'C24' ? '24×33cl' : 
-                                 crateType === 'C12' ? '12×66cl' : 
+                                {crateType === 'C24' ? '24×33cl' :
+                                 crateType === 'C12' ? '12×66cl' :
                                  crateType === 'C12V' ? '12×75cl' : '6×1.5L'}
                               </div>
                             </div>
@@ -397,13 +483,12 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                           ⚠️ <strong>Total : {totalCratesToReturn} casier(s) vide(s) à rendre obligatoirement</strong>
                         </p>
                         <p className="text-xs text-blue-700">
-                          💡 <strong>Casiers interchangeables :</strong> Vous pouvez rendre n'importe quel casier vide du même type, 
+                          💡 <strong>Casiers interchangeables :</strong> Vous pouvez rendre n'importe quel casier vide du même type,
                           peu importe la marque d'origine (ex: casier C24 Flag = casier C24 Castel).
                         </p>
                       </div>
                     </div>
                   )}
-                  
                   {cratesWithConsigne.length > 0 && (
                     <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                       <p className="text-sm font-medium text-orange-800 mb-2">Consignes incluses :</p>
@@ -419,7 +504,6 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                       </div>
                     </div>
                   )}
-                  
                   {totalCratesToReturn === 0 && cratesWithConsigne.length === 0 && (
                     <p className="text-sm text-blue-700">Aucun casier à gérer</p>
                   )}
@@ -427,7 +511,6 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
               );
             })()}
           </div>
-
           {/* Delivery Address */}
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Livraison et paiement</h3>
@@ -437,7 +520,7 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
             </div>
             <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded p-2">
               <p className="text-sm text-yellow-800">
-                <strong>Paiement :</strong> {getPaymentMethodLabel(clientCurrentOrder.paymentMethod)} 
+                <strong>Paiement :</strong> {getPaymentMethodLabel(clientCurrentOrder.paymentMethod)}
                 {clientCurrentOrder.payment_status === 'completed' ? ' (Payé)' : ' (À la livraison)'}
               </p>
             </div>

@@ -1,14 +1,29 @@
-import React, { useState } from 'react';
-import { Calendar, Package, Star, MapPin, Clock, Filter, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Package, Star, MapPin, Clock, Filter, Search, X, Navigation, Archive, CheckCircle, MessageSquare } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
 import { useRating } from '../../context/RatingContext';
 import { useAuth } from '../../context/AuthContext';
-import { Order } from '../../types';
+import { Order, CrateType } from '../../types';
 import { SupplierRatingForm } from './SupplierRatingForm';
+import { supabase } from '../../lib/supabase';
+
+interface DeliveryHistoryProps {
+  onNavigate?: (section: string) => void;
+  onClaimRequest?: (claimData: ClaimData) => void;
+}
+
+export interface ClaimData {
+  subject: string;
+  category: 'complaint';
+  message: string;
+  priority: 'medium';
+}
 
 interface DeliveryRecord {
   id: string;
+  clientId: string;
   clientName: string;
+  clientEmail?: string;
   address: string;
   items: number;
   total: number;
@@ -17,9 +32,19 @@ interface DeliveryRecord {
   distance: string;
   duration: number;
   paymentMethod: string;
+  order: Order;
 }
 
-export const DeliveryHistory: React.FC = () => {
+interface ClientProfile {
+  id: string;
+  name: string;
+  business_name?: string;
+  email?: string;
+  phone?: string;
+  rating?: number;
+}
+
+export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, onClaimRequest }) => {
   const { allOrders } = useOrder();
   const { getOrderRatings, needsRating, submitRating } = useRating();
   const { user } = useAuth();
@@ -28,28 +53,84 @@ export const DeliveryHistory: React.FC = () => {
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedOrderForRating, setSelectedOrderForRating] = useState<Order | null>(null);
+  const [clientProfiles, setClientProfiles] = useState<Record<string, ClientProfile>>({});
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedDelivery, setSelectedDelivery] = useState<DeliveryRecord | null>(null);
 
   // Filter completed deliveries for current supplier
   const supplierCompletedDeliveries = allOrders.filter(order => 
     order.status === 'delivered' && 
-    order.supplierId === user?.id // In real app, match with actual supplier ID
+    order.supplierId === user?.id
   );
+
+  // Load client profiles for completed deliveries
+  useEffect(() => {
+    const loadClientProfiles = async () => {
+      if (supplierCompletedDeliveries.length === 0) return;
+
+      // Get unique orders by clientId using Set for O(n) complexity
+      const seenClientIds = new Set<string>();
+      const uniqueOrders = supplierCompletedDeliveries.filter(order => {
+        if (seenClientIds.has(order.clientId)) return false;
+        seenClientIds.add(order.clientId);
+        return true;
+      });
+
+      // Load profiles via the secure RPC function
+      const results = await Promise.allSettled(
+        uniqueOrders.map(order =>
+          supabase.rpc('get_client_info_for_order', { p_order_id: order.id })
+        )
+      );
+
+      const profilesMap: Record<string, ClientProfile> = {};
+      
+      results.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          const { data, error } = result.value;
+          if (!error && data) {
+            profilesMap[data.id] = {
+              id: data.id,
+              name: data.name,
+              business_name: data.business_name,
+              email: data.email,
+              phone: data.phone,
+              rating: data.rating
+            };
+          }
+        }
+      });
+      
+      setClientProfiles(profilesMap);
+    };
+
+    loadClientProfiles();
+  }, [supplierCompletedDeliveries]);
+
+  // Helper function to get client display name
+  const getClientName = (clientId: string): string => {
+    const profile = clientProfiles[clientId];
+    return profile?.business_name || profile?.name || 'Client';
+  };
 
   // Convert orders to delivery records format
   const deliveries: DeliveryRecord[] = supplierCompletedDeliveries.map(order => ({
     id: order.id,
-    clientName: 'Maquis Belle Vue', // In real app, get from order.clientId
+    clientId: order.clientId,
+    clientName: getClientName(order.clientId),
+    clientEmail: clientProfiles[order.clientId]?.email,
     address: order.deliveryAddress,
     items: order.items.length,
     total: order.totalAmount,
     deliveredAt: order.deliveredAt || new Date(),
-    rating: 4.5, // Default rating, will be replaced by actual rating when both parties have rated
+    rating: clientProfiles[order.clientId]?.rating || 4.5, // Use client's rating or default
     distance: '2.3 km', // Mock distance
     duration: order.estimatedDeliveryTime || 25,
     paymentMethod: order.paymentMethod === 'orange' ? 'Orange Money' : 
                    order.paymentMethod === 'mtn' ? 'MTN Mobile Money' :
                    order.paymentMethod === 'moov' ? 'Moov Money' :
-                   order.paymentMethod === 'wave' ? 'Wave' : 'Carte bancaire'
+                   order.paymentMethod === 'wave' ? 'Wave' : 'Carte bancaire',
+    order: order
   }));
 
   const filteredDeliveries = deliveries.filter(delivery => {
@@ -99,6 +180,63 @@ export const DeliveryHistory: React.FC = () => {
     submitRating(selectedOrderForRating.id, ratings, 'supplier', 'client');
     setShowRatingModal(false);
     setSelectedOrderForRating(null);
+  };
+
+  const handleShowDetails = (delivery: DeliveryRecord) => {
+    setSelectedDelivery(delivery);
+    setShowDetailsModal(true);
+  };
+
+  const handleOpenMaps = (address: string) => {
+    const encodedAddress = encodeURIComponent(address);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank');
+  };
+
+  const handleMakeClaim = () => {
+    if (!selectedDelivery) return;
+
+    const shortOrderId = selectedDelivery.id.substring(0, 8).toUpperCase();
+    const claimData: ClaimData = {
+      subject: `Réclamation - Commande #${shortOrderId}`,
+      category: 'complaint',
+      message: `Client : ${selectedDelivery.clientName}
+Date livraison : ${formatDate(selectedDelivery.deliveredAt)}
+Montant : ${formatPrice(selectedDelivery.total)}
+────────────────────────────────
+
+Décrivez votre problème en détail...`,
+      priority: 'medium'
+    };
+
+    setShowDetailsModal(false);
+    setSelectedDelivery(null);
+
+    if (onClaimRequest) {
+      onClaimRequest(claimData);
+    }
+    if (onNavigate) {
+      onNavigate('support');
+    }
+  };
+
+  // Helper function to calculate crate summary for an order
+  const getCrateSummary = (order: Order) => {
+    const crateSummary: { [key in CrateType]: { withConsigne: number; toReturn: number } } = {
+      C24: { withConsigne: 0, toReturn: 0 },
+      C12: { withConsigne: 0, toReturn: 0 },
+      C12V: { withConsigne: 0, toReturn: 0 },
+      C6: { withConsigne: 0, toReturn: 0 }
+    };
+
+    order.items.forEach(item => {
+      if (item.withConsigne) {
+        crateSummary[item.product.crateType].withConsigne += item.quantity;
+      } else {
+        crateSummary[item.product.crateType].toReturn += item.quantity;
+      }
+    });
+
+    return crateSummary;
   };
 
   return (
@@ -233,7 +371,10 @@ export const DeliveryHistory: React.FC = () => {
                   </div>
 
                   <div className="flex space-x-3">
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                    <button 
+                      onClick={() => handleShowDetails(delivery)}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                    >
                       Détails
                     </button>
                     {(() => {
@@ -280,6 +421,174 @@ export const DeliveryHistory: React.FC = () => {
       </div>
       </div>
 
+      {/* Delivery Details Modal */}
+      {showDetailsModal && selectedDelivery && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-4">
+                  <div className="h-12 w-12 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
+                    <Package className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Commande #{selectedDelivery.id.substring(0, 8).toUpperCase()}</h3>
+                    <div className="flex items-center space-x-2">
+                      <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700">
+                        Livrée
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        Total: {formatPrice(selectedDelivery.total)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDetailsModal(false);
+                    setSelectedDelivery(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Client Info */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <MapPin className="h-4 w-4 mr-2 text-orange-600" />
+                    Informations client
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Établissement</span>
+                      <span className="font-medium">{selectedDelivery.clientName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Contact</span>
+                      <span className="font-medium">{selectedDelivery.clientEmail || 'Non disponible'}</span>
+                    </div>
+                    {selectedDelivery.rating > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Note client</span>
+                        <div className="flex items-center space-x-1">
+                          <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                          <span className="font-medium">{selectedDelivery.rating.toFixed(1)}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Delivery Address */}
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2">Adresse de livraison</h4>
+                  <p className="text-gray-700 text-sm mb-3">{selectedDelivery.address}</p>
+                  <button
+                    onClick={() => handleOpenMaps(selectedDelivery.address)}
+                    className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"
+                  >
+                    <Navigation className="h-4 w-4" />
+                    <span className="text-sm font-medium">Ouvrir dans Maps</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Order Details */}
+              <div className="mt-6 bg-gray-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-3">Détails de la commande</h4>
+                <div className="space-y-2">
+                  {selectedDelivery.order.items.map((item, index) => (
+                    <div key={index} className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700">
+                        {item.quantity}x {item.product.name} ({item.product.crateType})
+                      </span>
+                      <span className="font-medium">
+                        {formatPrice(item.product.cratePrice * item.quantity)}
+                      </span>
+                    </div>
+                  ))}
+                  {selectedDelivery.order.consigneTotal > 0 && (
+                    <div className="flex justify-between items-center text-sm text-orange-600 border-t border-gray-200 pt-2">
+                      <span>Consignes incluses</span>
+                      <span className="font-medium">{formatPrice(selectedDelivery.order.consigneTotal)}</span>
+                    </div>
+                  )}
+                  <div className="border-t border-gray-200 pt-2">
+                    <div className="flex justify-between items-center font-bold">
+                      <span>Total</span>
+                      <span>{formatPrice(selectedDelivery.total)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Crate Management */}
+              {(() => {
+                const crateSummary = getCrateSummary(selectedDelivery.order);
+                const totalCratesRecovered = Object.values(crateSummary).reduce((sum, crate) => sum + crate.toReturn, 0);
+                const cratesWithReturns = Object.entries(crateSummary).filter(([, counts]) => counts.toReturn > 0);
+
+                return (
+                  <div className="mt-6 bg-blue-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                      <Archive className="h-4 w-4 mr-2 text-blue-600" />
+                      Gestion des casiers
+                    </h4>
+                    
+                    {totalCratesRecovered > 0 ? (
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-blue-800 mb-2">Casiers récupérés :</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {cratesWithReturns.map(([crateType, counts]) => (
+                            <div key={crateType} className="bg-white rounded p-2 text-center">
+                              <div className="font-bold text-blue-700">{counts.toReturn}</div>
+                              <div className="text-blue-600 text-xs">{crateType}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-blue-700">Aucun casier récupéré</p>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Payment */}
+              <div className="mt-6 bg-green-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-2">Paiement</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="text-sm text-green-700 font-medium">
+                      Paiement confirmé : {selectedDelivery.paymentMethod}
+                    </span>
+                  </div>
+                  <p className="text-xs text-green-600">
+                    Livré le {formatDate(selectedDelivery.deliveredAt)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Claim Button */}
+              <div className="mt-6 flex justify-center">
+                <button
+                  onClick={handleMakeClaim}
+                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all flex items-center space-x-2"
+                >
+                  <MessageSquare className="h-5 w-5" />
+                  <span>Faire une réclamation</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Rating Modal */}
       {showRatingModal && selectedOrderForRating && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -290,7 +599,7 @@ export const DeliveryHistory: React.FC = () => {
                   <Star className="h-8 w-8 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Évaluez votre client</h2>
-                <p className="text-gray-600">Comment s'est passée la livraison pour <strong>Maquis Belle Vue</strong> ?</p>
+                <p className="text-gray-600">Comment s'est passée la livraison pour <strong>{getClientName(selectedOrderForRating.clientId)}</strong> ?</p>
               </div>
 
 	              <SupplierRatingForm

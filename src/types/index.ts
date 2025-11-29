@@ -147,6 +147,7 @@ export interface Order {
   paymentMethod: PaymentMethod;
   estimatedDeliveryTime?: number;
   paymentStatus?: PaymentStatus;
+  deliveryConfirmationCode?: string;
   paidAt?: Date;
   transferredAt?: Date;
   createdAt: Date;
@@ -199,4 +200,133 @@ export interface MatchingSupplier {
   supplier: Supplier;
   distance: number;
   estimatedTime: number;
+}
+
+export type TransferMethod = 'bank_transfer' | 'mobile_money' | 'cash';
+export type TransferStatus = 'pending' | 'approved' | 'completed' | 'rejected';
+
+export interface Transfer {
+  id: string;
+  supplierId: string;
+  supplierName: string;
+  amount: number;
+  orderCount: number;
+  transferMethod: TransferMethod;
+  status: TransferStatus;
+  createdBy?: string;
+  approvedBy?: string;
+  approvedAt?: Date;
+  completedAt?: Date;
+  completedBy?: string;
+  rejectedAt?: Date;
+  rejectedBy?: string;
+  rejectionReason?: string;
+  metadata?: Record<string, any>;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TransferOrder {
+  id: string;
+  transferId: string;
+  orderId: string;
+  orderAmount: number;
+  createdAt: Date;
+}
+
+// =============================================
+// SUBSCRIPTION & PREMIUM TIER TYPES
+// =============================================
+
+export type TierName = 'basic' | 'silver' | 'gold' | 'platinum';
+export type PlanType = 'FREE' | 'SILVER' | 'GOLD' | 'PLATINUM';
+export type BillingPeriod = 'monthly' | 'yearly';
+export type SubscriptionStatus = 'active' | 'inactive' | 'pending' | 'cancelled' | 'expired';
+
+export interface PremiumTier {
+  id: string;
+  name: TierName;
+  displayName: string;
+  priceMonthly: number;
+  features: {
+    description: string;
+    features: string[];
+  };
+  maxZones: number | null;
+  hasPriorityPlacement: boolean;
+  hasAdvancedAnalytics: boolean;
+  hasPrioritySupport: boolean;
+  hasUnlimitedZones: boolean;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ActiveSubscription {
+  subscriptionId: string;
+  tierName: TierName;
+  tierDisplayName: string;
+  hasPriorityPlacement: boolean;
+  hasAdvancedAnalytics: boolean;
+  hasPrioritySupport: boolean;
+  hasUnlimitedZones: boolean;
+  maxZones: number | null;
+}
+
+export interface SupplierSubscription {
+  id: string;
+  supplierId: string;
+  tierId: string;
+  status: SubscriptionStatus;
+  startsAt: Date;
+  endsAt?: Date;
+  autoRenew: boolean;
+  paymentMethod?: PaymentMethod;
+  lastPaymentDate?: Date;
+  nextPaymentDate?: Date;
+  totalPaid: number;
+  createdAt: Date;
+  updatedAt: Date;
+  activatedAt?: Date;
+  cancelledAt?: Date;
+  cancellationReason?: string;
+}
+
+export interface PlanFeature {
+  name: string;
+  included: boolean;
+  tooltip?: string;
+}
+
+export interface Plan {
+  id: string;
+  name: string;
+  price: { monthly: number; yearly: number };
+  color: string;
+  popular?: boolean;
+  features: PlanFeature[];
+}
+
+export interface Invoice {
+  id: string;
+  subscriptionId: string;
+  userId: string;
+  amount: number;
+  status: 'paid' | 'pending' | 'failed';
+  createdAt: Date;
+  paidAt?: Date;
+  pdfUrl?: string;
+}
+
+export interface Subscription {
+  id: string;
+  userId: string;
+  plan: PlanType;
+  billingPeriod: BillingPeriod;
+  status: 'active' | 'cancelled' | 'expired' | 'past_due';
+  startedAt: Date;
+  expiresAt: Date;
+  autoRenew: boolean;
 }

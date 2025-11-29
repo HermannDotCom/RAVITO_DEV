@@ -11,7 +11,9 @@ import {
   CreditCard,
   Clock,
   ShoppingBag,
-  MessageSquare
+  MessageSquare,
+  Crown,
+  Wallet
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -32,8 +34,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
       case 'client':
         return [
           { id: 'orders', label: 'Mes Commandes', icon: Package },
+          { id: 'treasury', label: 'Trésorerie', icon: Wallet },
           { id: 'catalog', label: 'Catalogue', icon: Package },
           { id: 'cart', label: 'Panier', icon: ShoppingCart },
+          { id: 'subscription', label: 'Abonnement', icon: Crown },
           { id: 'support', label: 'Nous contacter', icon: MessageSquare },
           { id: 'profile', label: 'Mon Profil', icon: Settings }
         ];
@@ -44,6 +48,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'orders', label: 'Commandes Disponibles', icon: Package },
           { id: 'deliveries', label: 'Livraisons en cours', icon: Truck },
           { id: 'history', label: 'Historique', icon: Clock },
+          { id: 'treasury', label: 'Trésorerie', icon: Wallet },
+          { id: 'subscription', label: 'Abonnement', icon: Crown },
           { id: 'support', label: 'Nous contacter', icon: MessageSquare },
           { id: 'profile', label: 'Mon Profil', icon: Settings }
         ];
@@ -55,6 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag },
           { id: 'treasury', label: 'Trésorerie', icon: CreditCard },
           { id: 'zones', label: 'Zones de Livraison', icon: MapPin },
+          { id: 'premium', label: 'Abonnements Premium', icon: Crown },
           { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare },
           { id: 'data', label: 'Gestion des Données', icon: Settings },
           { id: 'settings', label: 'Paramètres', icon: Settings }
