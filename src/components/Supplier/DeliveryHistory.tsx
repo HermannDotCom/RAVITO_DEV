@@ -406,14 +406,12 @@ Décrivez votre problème en détail...`,
                     {(() => {
                       const order = supplierCompletedDeliveries.find(o => o.id === delivery.id);
                       if (!order) return null;
-                      
-                      const { clientRating, supplierRating } = getOrderRatings(order.id);
+
                       const needsSupplierRating = needsRating(order.id, 'supplier');
-                      const bothRated = !!(clientRating && supplierRating);
-                      
+
                       if (needsSupplierRating) {
                         return (
-                          <button 
+                          <button
                             onClick={() => handleRateClient(order)}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
                           >
@@ -422,19 +420,11 @@ Décrivez votre problème en détail...`,
                           </button>
                         );
                       }
-                      
-                      if (bothRated) {
-                        return (
-                          <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center space-x-2">
-                            <Star className="h-4 w-4" />
-                            <span>Évaluations complètes</span>
-                          </button>
-                        );
-                      }
-                      
+
                       return (
-                        <button className="px-4 py-2 bg-yellow-600 text-white rounded-lg font-medium cursor-not-allowed opacity-75 text-xs">
-                          En attente évaluation client
+                        <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center space-x-2">
+                          <Star className="h-4 w-4" />
+                          <span>Évalué</span>
                         </button>
                       );
                     })()}

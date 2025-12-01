@@ -42,21 +42,22 @@ export const SupplierRatingForm: React.FC<SupplierRatingFormProps> = ({
 
     setIsSubmitting(true);
 
-    // Vérification d’un rating déjà existant (BLOCKER UX)
-    const { data: existingRatings, error } = await supabase
-      .from('ratings')
-      .select('id')
-      .eq('order_id', orderId)
-      .eq('from_user_id', user.id);
-
-    if (existingRatings && existingRatings.length > 0) {
-      alert("Vous avez déjà évalué cette commande.");
-      setIsSubmitting(false);
-      return;
-    }
-
     try {
-      // Appel à l’API REST Supabase (adapté selon ton schema)
+      // Vérification d'un rating déjà existant
+      const { data: existingRatings, error: checkError } = await supabase
+        .from('ratings')
+        .select('id')
+        .eq('order_id', orderId)
+        .eq('from_user_id', user.id);
+
+      // Si erreur réseau, on continue quand même (la contrainte DB bloquera si doublon)
+      if (!checkError && existingRatings && existingRatings.length > 0) {
+        alert("Vous avez déjà évalué cette commande.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Insertion de l'évaluation
       const { error: insertError } = await supabase
         .from('ratings')
         .insert([
@@ -80,7 +81,12 @@ export const SupplierRatingForm: React.FC<SupplierRatingFormProps> = ({
       if (!insertError) {
         onSubmit({ ratings, comment });
       } else {
-        alert('Erreur lors de l\'envoi de l\'évaluation.');
+        console.error('Insert error:', insertError);
+        if (insertError.code === '23505') {
+          alert('Vous avez déjà évalué cette commande.');
+        } else {
+          alert('Erreur lors de l\'envoi de l\'évaluation: ' + insertError.message);
+        }
       }
     } catch (err) {
       console.error('Error submitting rating:', err);

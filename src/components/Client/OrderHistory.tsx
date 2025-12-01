@@ -1046,13 +1046,11 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                         )}
                         
                         {order.status === 'delivered' && order.supplierId && (() => {
-                          const { clientRating, supplierRating } = getOrderRatings(order.id);
-                          const bothRated = !!(clientRating && supplierRating);
                           const needsClientRating = needsRating(order.id, 'client');
-                          
+
                           if (needsClientRating) {
                             return (
-                              <button 
+                              <button
                                 onClick={() => handleRateSupplier(order)}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
                               >
@@ -1061,19 +1059,11 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                               </button>
                             );
                           }
-                          
-                          if (bothRated) {
-                            return (
-                              <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center space-x-2">
-                                <CheckCircle className="h-4 w-4" />
-                                <span>Évalué</span>
-                              </button>
-                            );
-                          }
-                          
+
                           return (
-                            <button className="px-4 py-2 bg-yellow-600 text-white rounded-lg font-medium cursor-not-allowed opacity-75 text-xs">
-                              Attente éval. fournisseur
+                            <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center space-x-2">
+                              <CheckCircle className="h-4 w-4" />
+                              <span>Évalué</span>
                             </button>
                           );
                         })()}
