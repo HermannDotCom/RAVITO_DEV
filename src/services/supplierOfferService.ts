@@ -37,17 +37,6 @@ export async function createSupplierOffer(
       return { success: false, error: 'Non authentifié' };
     }
 
-    const { data: hasPendingRatings } = await supabase.rpc('has_pending_ratings', {
-      user_id: userData.user.id
-    });
-
-    if (hasPendingRatings) {
-      return {
-        success: false,
-        error: 'Vous devez d\'abord évaluer votre dernière transaction avant d\'accepter une nouvelle commande.'
-      };
-    }
-
     // Vérifier que la commande n'a pas déjà une offre acceptée
     const { data: acceptedOffer } = await supabase
       .from('supplier_offers')
@@ -195,17 +184,6 @@ export async function acceptOffer(
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
       return { success: false, error: 'Non authentifié' };
-    }
-
-    const { data: hasPendingRatings } = await supabase.rpc('has_pending_ratings', {
-      user_id: userData.user.id
-    });
-
-    if (hasPendingRatings) {
-      return {
-        success: false,
-        error: 'Vous devez d\'abord évaluer votre dernière transaction avant de passer une nouvelle commande.'
-      };
     }
 
     const { data: offers } = await supabase
