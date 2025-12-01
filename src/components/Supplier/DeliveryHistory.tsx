@@ -169,17 +169,43 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
   const totalEarnings = filteredDeliveries.reduce((sum, delivery) => sum + delivery.total, 0);
   const averageRating = filteredDeliveries.reduce((sum, delivery) => sum + delivery.rating, 0) / filteredDeliveries.length;
 
-  const handleRateClient = (order: Order) => {
+  const handleRateClient = async (order: Order) => {
+    if (!order.clientId) {
+      console.error('No client ID for this order');
+      return;
+    }
+
+    // Vérifier si le fournisseur a déjà évalué cette commande
+    const { data: existingRating } = await supabase
+      .from('ratings')
+      .select('id')
+      .eq('order_id', order.id)
+      .eq('from_user_id', user?.id)
+      .maybeSingle();
+
+    if (existingRating) {
+      alert('Vous avez déjà évalué cette commande');
+      return;
+    }
+
     setSelectedOrderForRating(order);
     setShowRatingModal(true);
   };
 
-  const handleSubmitRating = (ratings: any) => {
-    if (!selectedOrderForRating || !user) return;
-    
-    submitRating(selectedOrderForRating.id, ratings, 'supplier', 'client');
-    setShowRatingModal(false);
-    setSelectedOrderForRating(null);
+  const handleSubmitRating = async (ratings: any) => {
+    if (!selectedOrderForRating || !user || !selectedOrderForRating.clientId) return;
+
+    const success = await submitRating(
+      selectedOrderForRating.id,
+      ratings,
+      selectedOrderForRating.clientId,
+      'client'
+    );
+
+    if (success) {
+      setShowRatingModal(false);
+      setSelectedOrderForRating(null);
+    }
   };
 
   const handleShowDetails = (delivery: DeliveryRecord) => {

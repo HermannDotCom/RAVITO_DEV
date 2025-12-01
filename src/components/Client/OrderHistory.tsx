@@ -300,13 +300,31 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
     }
   };
 
-  const handleRateSupplier = (order: Order) => {
+  const handleRateSupplier = async (order: Order) => {
+    if (!order.supplierId) {
+      console.error('No supplier ID for this order');
+      return;
+    }
+
+    // Vérifier si le client a déjà évalué cette commande
+    const { data: existingRating } = await supabase
+      .from('ratings')
+      .select('id')
+      .eq('order_id', order.id)
+      .eq('from_user_id', user?.id)
+      .maybeSingle();
+
+    if (existingRating) {
+      alert('Vous avez déjà évalué cette commande');
+      return;
+    }
+
     setSelectedOrderForRating(order);
     setShowRatingModal(true);
   };
 
   const handleSubmitRating = (rating: number, comment: string) => {
-    if (selectedOrderForRating) {
+    if (selectedOrderForRating && selectedOrderForRating.supplierId) {
       const ratingData = {
         punctuality: rating,
         quality: rating,
@@ -314,8 +332,8 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
         overall: rating,
         comment: comment
       };
-      
-      submitRating(selectedOrderForRating.id, ratingData, 'client', 'supplier');
+
+      submitRating(selectedOrderForRating.id, ratingData, selectedOrderForRating.supplierId, 'supplier');
       setShowRatingModal(false);
       setSelectedOrderForRating(null);
     }
@@ -1103,11 +1121,20 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
               </div>
 
               <ClientRatingForm
-                onSubmit={(ratingData) => {
-                  if (selectedOrderForRating) {
-                    submitRating(selectedOrderForRating.id, ratingData, 'client', 'supplier');
-                    setShowRatingModal(false);
-                    setSelectedOrderForRating(null);
+                onSubmit={async (data) => {
+                  if (selectedOrderForRating && selectedOrderForRating.supplierId) {
+                    const success = await submitRating(
+                      selectedOrderForRating.id,
+                      data.ratings,
+                      selectedOrderForRating.supplierId,
+                      'supplier'
+                    );
+
+                    if (success) {
+                      setShowRatingModal(false);
+                      setSelectedOrderForRating(null);
+                      await refreshOrders();
+                    }
                   }
                 }}
                 onCancel={() => {
