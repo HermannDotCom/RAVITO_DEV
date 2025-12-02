@@ -4,7 +4,8 @@ import { useOrder } from '../../context/OrderContext';
 import { useRating } from '../../context/RatingContext';
 import { useAuth } from '../../context/AuthContext';
 import { Order, CrateType } from '../../types';
-import { SupplierRatingForm } from './SupplierRatingForm';
+import { UnifiedRatingForm } from '../Shared/UnifiedRatingForm';
+import { MutualRatingsDisplay } from '../Shared/MutualRatingsDisplay';
 import { supabase } from '../../lib/supabase';
 
 interface DeliveryHistoryProps {
@@ -590,6 +591,14 @@ Décrivez votre problème en détail...`,
                 </div>
               </div>
 
+              {/* Mutual Ratings Display */}
+              <div className="mt-6">
+                <MutualRatingsDisplay
+                  orderId={selectedDelivery.id}
+                  currentUserRole="supplier"
+                />
+              </div>
+
               {/* Claim Button */}
               <div className="mt-6 flex justify-center">
                 <button
@@ -610,23 +619,28 @@ Décrivez votre problème en détail...`,
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-8">
-              <div className="text-center mb-8">
-                <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="text-center mb-6">
+                <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Star className="h-8 w-8 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Évaluez votre client</h2>
                 <p className="text-gray-600">Comment s'est passée la livraison pour <strong>{getClientName(selectedOrderForRating.clientId)}</strong> ?</p>
               </div>
 
-	              <SupplierRatingForm
-	                orderId={selectedOrderForRating.id}
-	                clientId={selectedOrderForRating.clientId}
-	                onSubmit={handleSubmitRating}
-	                onCancel={() => {
-	                  setShowRatingModal(false);
-	                  setSelectedOrderForRating(null);
-	                }}
-	              />
+              <UnifiedRatingForm
+                orderId={selectedOrderForRating.id}
+                toUserId={selectedOrderForRating.clientId}
+                toUserRole="client"
+                otherPartyName={getClientName(selectedOrderForRating.clientId)}
+                onSubmit={() => {
+                  setShowRatingModal(false);
+                  setSelectedOrderForRating(null);
+                }}
+                onCancel={() => {
+                  setShowRatingModal(false);
+                  setSelectedOrderForRating(null);
+                }}
+              />
             </div>
           </div>
         </div>

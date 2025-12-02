@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-import { OrderProvider, useOrder } from './context/OrderContext';
+import { OrderProvider } from './context/OrderContext';
 import { CommissionProvider } from './context/CommissionContext';
 import { RatingProvider } from './context/RatingContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -10,7 +10,6 @@ import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AuthScreen } from './components/Auth/AuthScreen';
 import { SkipLink } from './components/Accessibility/SkipLink';
-import { ClientDashboard } from './components/Client/ClientDashboard';
 import { SupplierDashboard } from './components/Supplier/SupplierDashboard';
 import { ProductCatalog } from './components/Client/ProductCatalog';
 import { Cart } from './components/Client/Cart';
@@ -37,16 +36,17 @@ import { PremiumTierManagement } from './components/Admin/PremiumTierManagement'
 import { ClientProfile } from './components/Client/ClientProfile';
 import { OrderHistory } from './components/Client/OrderHistory';
 import { ClientTreasury } from './components/Client/ClientTreasury';
-import { ClientRatingForm } from './components/Client/ClientRatingForm';
 import { ContactSupport } from './components/Client/ContactSupport';
 import { SupplierContactSupport } from './components/Supplier/ContactSupport';
 import { TicketManagement } from './components/Admin/TicketManagement';
 import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusIndicator';
 import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
+import { RatingReminder } from './components/Shared/RatingReminder';
 import { SessionErrorBanner } from './components/Shared/SessionErrorBanner';
 import { PremiumTierDashboard } from './components/Supplier/PremiumTierDashboard';
 import { SubscriptionPage } from './pages/Subscription/SubscriptionPage';
 import { useRealtimeOrders } from './hooks/useRealtimeOrders';
+import { usePendingRatings } from './hooks/usePendingRatings';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing, sessionError, refreshSession, logout, clearSessionError } = useAuth();
@@ -55,6 +55,12 @@ const AppContent: React.FC = () => {
   const [showRating, setShowRating] = useState(false);
   const [claimData, setClaimData] = useState<ClaimData | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Hook for pending ratings
+  const { pendingOrders } = usePendingRatings(
+    user?.id || null, 
+    user?.role as 'client' | 'supplier' | undefined
+  );
 
   // Enable realtime order notifications
   useRealtimeOrders();
@@ -207,6 +213,16 @@ const AppContent: React.FC = () => {
     }
   };
 
+  // Handle rating from reminder
+  const handleRateFromReminder = (_orderId: string) => {
+    // Navigate to the appropriate history section
+    if (user?.role === 'client') {
+      setActiveSection('orders');
+    } else if (user?.role === 'supplier') {
+      setActiveSection('history');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Session Error Banner */}
@@ -245,6 +261,14 @@ const AppContent: React.FC = () => {
       
       {/* Notification Permission Prompt */}
       <NotificationPermissionPrompt />
+
+      {/* Rating Reminder for pending ratings */}
+      {user && (user.role === 'client' || user.role === 'supplier') && pendingOrders.length > 0 && (
+        <RatingReminder
+          pendingOrders={pendingOrders}
+          onRateOrder={handleRateFromReminder}
+        />
+      )}
     </div>
   );
 };

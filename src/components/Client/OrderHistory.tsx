@@ -5,7 +5,8 @@ import { useCart } from '../../context/CartContext';
 import { useOrder } from '../../context/OrderContext';
 import { useRating } from '../../context/RatingContext';
 import { Order, OrderStatus, CrateType } from '../../types';
-import { ClientRatingForm } from './ClientRatingForm';
+import { UnifiedRatingForm } from '../Shared/UnifiedRatingForm';
+import { MutualRatingsDisplay } from '../Shared/MutualRatingsDisplay';
 import { OrderDetailsWithOffers } from './OrderDetailsWithOffers';
 import { PaymentInterface } from './PaymentInterface';
 import { supabase } from '../../lib/supabase';
@@ -185,6 +186,8 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
         return { label: 'Livrée', color: 'bg-green-100 text-green-700', icon: CheckCircle, textColor: 'text-green-600' };
       case 'awaiting-rating':
         return { label: 'En attente d\'évaluation', color: 'bg-yellow-100 text-yellow-700', icon: Star, textColor: 'text-yellow-600' };
+      case 'completed':
+        return { label: 'Terminée', color: 'bg-green-100 text-green-700', icon: CheckCircle, textColor: 'text-green-600' };
       case 'cancelled':
         return { label: 'Annulée', color: 'bg-red-100 text-red-700', icon: XCircle, textColor: 'text-red-600' };
       default:
@@ -624,6 +627,14 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                   )}
                 </div>
 
+                {/* Mutual Ratings Display - for completed orders */}
+                {(order.status === 'completed' || order.status === 'delivered') && (
+                  <MutualRatingsDisplay
+                    orderId={order.id}
+                    currentUserRole="client"
+                  />
+                )}
+
                 {/* Actions */}
                 <div className="space-y-3">
                   {order.status === 'delivered' && (
@@ -892,6 +903,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                 <option value="preparing">En préparation</option>
                 <option value="delivering">En livraison</option>
                 <option value="delivered">Livrée</option>
+                <option value="completed">Terminée</option>
                 <option value="cancelled">Annulée</option>
               </select>
             </div>
@@ -1098,34 +1110,27 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
       )}
 
       {/* Rating Modal */}
-      {showRatingModal && selectedOrderForRating && (
+      {showRatingModal && selectedOrderForRating && selectedOrderForRating.supplierId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-8">
-              <div className="text-center mb-8">
-                <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="text-center mb-6">
+                <div className="h-16 w-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Star className="h-8 w-8 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Évaluez votre fournisseur</h2>
                 <p className="text-gray-600">Comment s'est passée votre livraison avec <strong>{getSupplierName(selectedOrderForRating.supplierId)}</strong> ?</p>
               </div>
 
-              <ClientRatingForm
-                onSubmit={async (data) => {
-                  if (selectedOrderForRating && selectedOrderForRating.supplierId) {
-                    const success = await submitRating(
-                      selectedOrderForRating.id,
-                      data.ratings,
-                      selectedOrderForRating.supplierId,
-                      'supplier'
-                    );
-
-                    if (success) {
-                      setShowRatingModal(false);
-                      setSelectedOrderForRating(null);
-                      await refreshOrders();
-                    }
-                  }
+              <UnifiedRatingForm
+                orderId={selectedOrderForRating.id}
+                toUserId={selectedOrderForRating.supplierId}
+                toUserRole="supplier"
+                otherPartyName={getSupplierName(selectedOrderForRating.supplierId)}
+                onSubmit={async () => {
+                  setShowRatingModal(false);
+                  setSelectedOrderForRating(null);
+                  await refreshOrders();
                 }}
                 onCancel={() => {
                   setShowRatingModal(false);
