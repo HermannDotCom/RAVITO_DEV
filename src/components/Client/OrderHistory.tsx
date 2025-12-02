@@ -46,21 +46,14 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
   // Statuts post-paiement où l'identité du fournisseur est révélée
   const REVEALED_STATUSES: OrderStatus[] = ['paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating', 'completed'];
 
-  // Load supplier profiles for ALL orders with a supplier (for statistics and frequent suppliers)
+  // Load supplier profiles ONLY for paid orders (respects anonymity rules)
   useEffect(() => {
     const loadSupplierProfiles = async () => {
-      // Collecter tous les supplier IDs uniques de toutes les commandes
-      const supplierIds = [...new Set(
-        allOrders
-          .filter(order => order.supplierId)
-          .map(order => order.supplierId!)
-      )];
-      
-      if (supplierIds.length === 0) return;
+      if (!user) return;
 
-      // Charger les profils en batch via la fonction RPC sécurisée
+      // Use the new function that filters by payment status
       const { data: profiles, error } = await supabase
-        .rpc('get_public_profile_info', { user_ids: supplierIds });
+        .rpc('get_supplier_profiles_for_client', { client_user_id: user.id });
 
       if (error) {
         console.error('Error loading supplier profiles:', error);
@@ -68,7 +61,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
       }
 
       const profilesMap: Record<string, SupplierProfile> = {};
-      
+
       if (profiles) {
         for (const profile of profiles) {
           profilesMap[profile.id] = {
@@ -80,12 +73,12 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
           };
         }
       }
-      
+
       setSupplierProfiles(profilesMap);
     };
 
     loadSupplierProfiles();
-  }, [allOrders]);
+  }, [allOrders, user]);
 
   // Synchroniser les commandes sélectionnées avec les mises à jour du contexte
   useEffect(() => {

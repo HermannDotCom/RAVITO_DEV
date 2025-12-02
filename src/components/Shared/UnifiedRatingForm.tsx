@@ -70,12 +70,39 @@ export const UnifiedRatingForm: React.FC<UnifiedRatingFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [confetti, setConfetti] = useState<Array<{ id: number; left: number; delay: number }>>([]);
+  const [actualName, setActualName] = useState<string>(otherPartyName);
 
   const fromUserRole = user?.role === 'client' ? 'client' : 'supplier';
   const criteria = fromUserRole === 'client' ? clientCriteria : supplierCriteria;
 
   const average = Object.values(ratings).reduce((sum, r) => sum + r, 0) / 3;
   const isComplete = Object.values(ratings).every(r => r > 0);
+
+  // Load the actual profile name for rating (post-delivery, identity is revealed)
+  useEffect(() => {
+    const loadProfileForRating = async () => {
+      const { data, error } = await supabase
+        .rpc('get_profile_for_rating', {
+          p_order_id: orderId,
+          p_user_id: toUserId
+        });
+
+      if (error) {
+        console.error('Error loading profile for rating:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const profile = data[0];
+        const displayName = profile.business_name || profile.name;
+        if (displayName) {
+          setActualName(displayName);
+        }
+      }
+    };
+
+    loadProfileForRating();
+  }, [orderId, toUserId]);
 
   const handleStarClick = (criteriaKey: string, star: number) => {
     setRatings(prev => ({ ...prev, [criteriaKey]: star }));
@@ -287,7 +314,7 @@ export const UnifiedRatingForm: React.FC<UnifiedRatingFormProps> = ({
           onChange={(e) => setComment(e.target.value)}
           rows={3}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none transition-all duration-200"
-          placeholder={`Partagez votre expérience avec ${otherPartyName}...`}
+          placeholder={`Partagez votre expérience avec ${actualName}...`}
         />
       </div>
 

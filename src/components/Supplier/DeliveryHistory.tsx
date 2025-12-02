@@ -66,49 +66,39 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
     order.supplierId === user?.id
   );
 
-  // Load client profiles for completed deliveries
+  // Load client profiles ONLY for paid deliveries (respects anonymity rules)
   useEffect(() => {
     const loadClientProfiles = async () => {
-      if (supplierCompletedDeliveries.length === 0) return;
+      if (!user) return;
 
-      // Get unique orders by clientId using Set for O(n) complexity
-      const seenClientIds = new Set<string>();
-      const uniqueOrders = supplierCompletedDeliveries.filter(order => {
-        if (seenClientIds.has(order.clientId)) return false;
-        seenClientIds.add(order.clientId);
-        return true;
-      });
+      // Use the new function that filters by payment status
+      const { data: profiles, error } = await supabase
+        .rpc('get_client_profiles_for_supplier', { supplier_user_id: user.id });
 
-      // Load profiles via the secure RPC function
-      const results = await Promise.allSettled(
-        uniqueOrders.map(order =>
-          supabase.rpc('get_client_info_for_order', { p_order_id: order.id })
-        )
-      );
+      if (error) {
+        console.error('Error loading client profiles:', error);
+        return;
+      }
 
       const profilesMap: Record<string, ClientProfile> = {};
-      
-      results.forEach((result) => {
-        if (result.status === 'fulfilled') {
-          const { data, error } = result.value;
-          if (!error && data) {
-            profilesMap[data.id] = {
-              id: data.id,
-              name: data.name,
-              business_name: data.business_name,
-              email: data.email,
-              phone: data.phone,
-              rating: data.rating
-            };
-          }
+
+      if (profiles) {
+        for (const profile of profiles) {
+          profilesMap[profile.id] = {
+            id: profile.id,
+            name: profile.name,
+            business_name: profile.business_name,
+            phone: profile.phone,
+            rating: profile.rating
+          };
         }
-      });
-      
+      }
+
       setClientProfiles(profilesMap);
     };
 
     loadClientProfiles();
-  }, [supplierCompletedDeliveries]);
+  }, [supplierCompletedDeliveries, user]);
 
   // Auto-open rating modal when initialOrderIdToRate is provided
   useEffect(() => {
