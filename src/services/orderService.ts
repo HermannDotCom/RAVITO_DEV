@@ -134,6 +134,10 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
       .from('orders_with_coords')
       .select(`
         *,
+        client:profiles!client_id(
+          id,
+          rating
+        ),
         order_items (
           *,
           product:products (*)
@@ -335,6 +339,7 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
     estimatedDeliveryTime: dbOrder.estimated_delivery_time,
     paymentStatus: dbOrder.payment_status,
     deliveryConfirmationCode: dbOrder.delivery_confirmation_code,
+    clientRating: dbOrder.client?.rating ?? undefined,
     createdAt: new Date(dbOrder.created_at),
     acceptedAt: dbOrder.accepted_at ? new Date(dbOrder.accepted_at) : undefined,
     deliveredAt: dbOrder.delivered_at ? new Date(dbOrder.delivered_at) : undefined,

@@ -17,6 +17,7 @@ export interface SupplierOffer {
   supplierCommission: number;
   netSupplierAmount: number;
   supplierMessage?: string;
+  supplierRating?: number;
   createdAt: Date;
   acceptedAt?: Date;
   rejectedAt?: Date;
@@ -128,7 +129,8 @@ export async function getOffersByOrder(orderId: string): Promise<SupplierOffer[]
         supplier:profiles!supplier_id(
           id,
           name,
-          business_name
+          business_name,
+          rating
         )
       `)
       .eq('order_id', orderId)
@@ -295,6 +297,7 @@ export async function rejectOffer(offerId: string): Promise<{ success: boolean; 
 }
 
 function mapDatabaseOfferToApp(dbOffer: Record<string, unknown>): SupplierOffer {
+  const supplier = dbOffer.supplier as { rating?: number } | null;
   return {
     id: dbOffer.id as string,
     orderId: dbOffer.order_id as string,
@@ -306,6 +309,7 @@ function mapDatabaseOfferToApp(dbOffer: Record<string, unknown>): SupplierOffer 
     supplierCommission: dbOffer.supplier_commission as number,
     netSupplierAmount: dbOffer.net_supplier_amount as number,
     supplierMessage: dbOffer.supplier_message as string | undefined,
+    supplierRating: supplier?.rating ?? undefined,
     createdAt: new Date(dbOffer.created_at as string),
     acceptedAt: dbOffer.accepted_at ? new Date(dbOffer.accepted_at as string) : undefined,
     rejectedAt: dbOffer.rejected_at ? new Date(dbOffer.rejected_at as string) : undefined
