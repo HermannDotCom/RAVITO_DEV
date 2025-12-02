@@ -55,6 +55,7 @@ const AppContent: React.FC = () => {
   const [showRating, setShowRating] = useState(false);
   const [claimData, setClaimData] = useState<ClaimData | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [orderIdToRate, setOrderIdToRate] = useState<string | null>(null);
 
   // Hook for pending ratings
   const { pendingOrders } = usePendingRatings(
@@ -135,7 +136,7 @@ const AppContent: React.FC = () => {
           case 'profile':
             return <ClientProfile />;
           case 'orders':
-            return <OrderHistory onNavigate={setActiveSection} />;
+            return <OrderHistory onNavigate={setActiveSection} initialOrderIdToRate={orderIdToRate} onOrderRated={handleOrderRated} />;
           case 'treasury':
             return <ClientTreasury />;
           case 'subscription':
@@ -143,7 +144,7 @@ const AppContent: React.FC = () => {
           case 'support':
             return <ContactSupport />;
           default:
-            return <OrderHistory onNavigate={setActiveSection} />;
+            return <OrderHistory onNavigate={setActiveSection} initialOrderIdToRate={orderIdToRate} onOrderRated={handleOrderRated} />;
         }
       
       case 'supplier':
@@ -157,7 +158,7 @@ const AppContent: React.FC = () => {
           case 'deliveries':
             return <ActiveDeliveries onNavigate={setActiveSection} />;
           case 'history':
-            return <DeliveryHistory onNavigate={setActiveSection} onClaimRequest={setClaimData} />;
+            return <DeliveryHistory onNavigate={setActiveSection} onClaimRequest={setClaimData} initialOrderIdToRate={orderIdToRate} onOrderRated={handleOrderRated} />;
           case 'profile':
             return <SupplierProfile />;
           case 'treasury':
@@ -214,13 +215,20 @@ const AppContent: React.FC = () => {
   };
 
   // Handle rating from reminder
-  const handleRateFromReminder = (_orderId: string) => {
+  const handleRateFromReminder = (orderId: string) => {
+    // Store the orderId to open the rating modal
+    setOrderIdToRate(orderId);
     // Navigate to the appropriate history section
     if (user?.role === 'client') {
       setActiveSection('orders');
     } else if (user?.role === 'supplier') {
       setActiveSection('history');
     }
+  };
+
+  // Callback to clear the orderIdToRate after it's been handled
+  const handleOrderRated = () => {
+    setOrderIdToRate(null);
   };
 
   return (
@@ -267,6 +275,7 @@ const AppContent: React.FC = () => {
         <RatingReminder
           pendingOrders={pendingOrders}
           onRateOrder={handleRateFromReminder}
+          userRole={user.role as 'client' | 'supplier'}
         />
       )}
     </div>

@@ -5,6 +5,7 @@ export interface PendingOrder {
   orderId: string;
   orderNumber?: string;
   otherPartyName: string;
+  otherPartyId: string;
   deliveredAt: Date;
 }
 
@@ -95,21 +96,25 @@ export function usePendingRatings(userId: string | null, userRole?: 'client' | '
         .in('id', otherPartyIds);
 
       if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
+        console.error('[usePendingRatings] Error fetching profiles:', profilesError);
       }
 
       const profilesMap = new Map(
         (profiles || []).map(p => [p.id, p.business_name || p.name || 'Utilisateur'])
       );
 
-      const pending: PendingOrder[] = unratedOrders.map(order => ({
-        orderId: order.id,
-        orderNumber: order.id.substring(0, 8).toUpperCase(),
-        otherPartyName: profilesMap.get(
-          userRole === 'client' ? order.supplier_id : order.client_id
-        ) || 'Utilisateur',
-        deliveredAt: new Date(order.delivered_at)
-      }));
+      const pending: PendingOrder[] = unratedOrders.map(order => {
+        const otherPartyId = userRole === 'client' ? order.supplier_id : order.client_id;
+        const otherPartyName = profilesMap.get(otherPartyId) || 'Utilisateur';
+        
+        return {
+          orderId: order.id,
+          orderNumber: order.id.substring(0, 8).toUpperCase(),
+          otherPartyName,
+          otherPartyId: otherPartyId || '',
+          deliveredAt: new Date(order.delivered_at)
+        };
+      });
 
       setHasPendingRatings(pending.length > 0);
       setPendingOrders(pending);
