@@ -168,6 +168,7 @@ export type OrderStatus =
   | 'delivering'
   | 'delivered'
   | 'awaiting-rating'
+  | 'completed'
   | 'cancelled';
 
 export type PaymentStatus = 'pending' | 'paid' | 'transferred' | 'completed';
