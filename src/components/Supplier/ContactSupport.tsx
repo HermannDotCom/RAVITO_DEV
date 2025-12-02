@@ -25,7 +25,7 @@ export const SupplierContactSupport: React.FC<SupplierContactSupportProps> = ({
   initialPriority,
   onClaimDataClear
 }) => {
-  const { user } = useAuth();
+  const { user, setSessionError } = useAuth();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
@@ -87,10 +87,10 @@ export const SupplierContactSupport: React.FC<SupplierContactSupportProps> = ({
     if (!user) return;
 
     setIsSubmitting(true);
-    const ticket = await ticketService.createTicket(user.id, formData);
+    const result = await ticketService.createTicket(user.id, formData);
 
-    if (ticket) {
-      setTickets([ticket, ...tickets]);
+    if (result.success && result.ticket) {
+      setTickets([result.ticket, ...tickets]);
       setFormData({
         subject: '',
         message: '',
@@ -104,7 +104,11 @@ export const SupplierContactSupport: React.FC<SupplierContactSupportProps> = ({
       }
       alert('Ticket créé avec succès!');
     } else {
-      alert('Erreur lors de la création du ticket');
+      // Check if we should trigger session error UI
+      if (result.shouldRefresh && result.error) {
+        setSessionError(result.error.message);
+      }
+      alert(result.error?.message || 'Erreur lors de la création du ticket');
     }
     setIsSubmitting(false);
   };

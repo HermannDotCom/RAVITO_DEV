@@ -43,19 +43,36 @@ import { SupplierContactSupport } from './components/Supplier/ContactSupport';
 import { TicketManagement } from './components/Admin/TicketManagement';
 import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusIndicator';
 import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
+import { SessionErrorBanner } from './components/Shared/SessionErrorBanner';
 import { PremiumTierDashboard } from './components/Supplier/PremiumTierDashboard';
 import { SubscriptionPage } from './pages/Subscription/SubscriptionPage';
 import { useRealtimeOrders } from './hooks/useRealtimeOrders';
 
 const AppContent: React.FC = () => {
-  const { user, isInitializing } = useAuth();
+  const { user, isInitializing, sessionError, refreshSession, logout, clearSessionError } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showRating, setShowRating] = useState(false);
   const [claimData, setClaimData] = useState<ClaimData | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Enable realtime order notifications
   useRealtimeOrders();
+
+  // Handler for session refresh
+  const handleSessionRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshSession();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Handler for logout from session error banner
+  const handleSessionLogout = async () => {
+    await logout();
+  };
 
   if (isInitializing) {
     return (
@@ -192,6 +209,17 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Session Error Banner */}
+      {sessionError && (
+        <SessionErrorBanner
+          error={sessionError}
+          isRecovering={isRefreshing}
+          onRefresh={handleSessionRefresh}
+          onLogout={handleSessionLogout}
+          onDismiss={clearSessionError}
+        />
+      )}
+      
       <SkipLink />
       <Header
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
@@ -207,7 +235,7 @@ const AppContent: React.FC = () => {
           onSectionChange={setActiveSection}
         />
 
-        <main id="main-content" className="flex-1 lg:ml-0">
+        <main id="main-content" className={`flex-1 lg:ml-0 ${sessionError ? 'pt-16 sm:pt-14' : ''}`}>
           {renderMainContent()}
         </main>
       </div>
