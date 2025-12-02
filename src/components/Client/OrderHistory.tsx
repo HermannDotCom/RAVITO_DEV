@@ -202,7 +202,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR', { 
       maximumFractionDigits: 0 
-    }).format(Math.round(price)) + ' FCFA';
+    }).format(price) + ' FCFA';
   };
 
   const formatDate = (date: Date | string) => {
