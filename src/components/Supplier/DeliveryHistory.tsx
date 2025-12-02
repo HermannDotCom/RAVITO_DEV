@@ -115,7 +115,6 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
     if (initialOrderIdToRate) {
       const order = supplierCompletedDeliveries.find(o => o.id === initialOrderIdToRate);
       if (order && order.clientId) {
-        console.log('[DeliveryHistory] Auto-opening rating modal for order:', initialOrderIdToRate);
         setSelectedOrderForRating(order);
         setShowRatingModal(true);
         // Clear the initialOrderIdToRate after opening
