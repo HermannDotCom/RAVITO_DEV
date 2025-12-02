@@ -100,11 +100,24 @@ export function usePendingRatings(userId: string | null, userRole?: 'client' | '
                 p_user_id: otherPartyId
               });
 
+            console.log('[usePendingRatings] Profile lookup:', {
+              orderId: order.id,
+              otherPartyId,
+              profileData,
+              error: profileError
+            });
+
             if (!profileError && profileData && profileData.length > 0) {
               const profile = profileData[0];
-              otherPartyName = profile.business_name || profile.name || 'Utilisateur';
+              // Handle empty strings correctly - use business_name if available, then name, then fallback
+              const businessName = profile.business_name?.trim();
+              const name = profile.name?.trim();
+              otherPartyName = businessName || name || 'Utilisateur';
+              console.log('[usePendingRatings] Resolved name:', otherPartyName, 'from', { businessName, name });
             } else if (profileError) {
               console.error('[usePendingRatings] Error fetching profile:', profileError);
+            } else {
+              console.warn('[usePendingRatings] No profile data returned for order:', order.id, 'user:', otherPartyId);
             }
           }
 
