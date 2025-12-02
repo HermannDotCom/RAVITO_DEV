@@ -48,22 +48,20 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
         return;
       }
       const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name, business_name, phone, rating, address')
-        .eq('id', clientCurrentOrder.supplierId)
-        .maybeSingle();
+        .rpc('get_public_profile_info', { user_ids: [clientCurrentOrder.supplierId] });
       if (error) {
         console.error('Error loading supplier profile:', error);
         return;
       }
-      if (data) {
+      if (data && data.length > 0) {
+        const profile = data[0];
         setSupplierProfile({
-          id: data.id,
-          name: data.name,
-          business_name: data.business_name,
-          phone: data.phone,
-          rating: data.rating,
-          address: data.address
+          id: profile.id,
+          name: profile.name,
+          business_name: profile.business_name,
+          phone: profile.phone,
+          rating: profile.rating,
+          address: profile.address
         });
       }
     };

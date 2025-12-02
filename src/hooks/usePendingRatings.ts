@@ -91,9 +91,7 @@ export function usePendingRatings(userId: string | null, userRole?: 'client' | '
       ).filter(Boolean);
 
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, name, business_name')
-        .in('id', otherPartyIds);
+        .rpc('get_public_profile_info', { user_ids: otherPartyIds });
 
       if (profilesError) {
         console.error('[usePendingRatings] Error fetching profiles:', profilesError);

@@ -58,11 +58,9 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
       
       if (supplierIds.length === 0) return;
 
-      // Charger les profils en batch directement depuis Supabase
+      // Charger les profils en batch via la fonction RPC sécurisée
       const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('id, name, business_name, phone, rating')
-        .in('id', supplierIds);
+        .rpc('get_public_profile_info', { user_ids: supplierIds });
 
       if (error) {
         console.error('Error loading supplier profiles:', error);
