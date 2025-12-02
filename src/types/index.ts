@@ -148,6 +148,7 @@ export interface Order {
   estimatedDeliveryTime?: number;
   paymentStatus?: PaymentStatus;
   deliveryConfirmationCode?: string;
+  clientRating?: number;
   paidAt?: Date;
   transferredAt?: Date;
   createdAt: Date;

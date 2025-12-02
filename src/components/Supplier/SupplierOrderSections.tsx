@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Package, MapPin, CheckCircle, Loader } from 'lucide-react';
+import { Clock, Package, MapPin, CheckCircle, Loader, Star } from 'lucide-react';
 import { Order } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { getOffersBySupplier, SupplierOffer } from '../../services/supplierOfferService';
@@ -94,7 +94,16 @@ export const SupplierOrderSections: React.FC<SupplierOrderSectionsProps> = ({
                 <h3 className="text-lg font-bold text-gray-900">
                   Commande #{order.id.slice(0, 8)}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <div className="flex items-center space-x-2 mt-1">
+                  <span className="text-sm text-gray-600">Note moyenne reçue du client :</span>
+                  <div className="flex items-center space-x-1">
+                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                    <span className={`text-sm font-semibold ${order.clientRating ? 'text-gray-900' : 'text-gray-500'}`}>
+                      {order.clientRating?.toFixed(1) || 'Nouveau'}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 mt-1">
                   {formatDate(order.createdAt)}
                 </p>
               </div>
