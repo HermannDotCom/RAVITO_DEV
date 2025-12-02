@@ -11,6 +11,8 @@ import { supabase } from '../../lib/supabase';
 interface DeliveryHistoryProps {
   onNavigate?: (section: string) => void;
   onClaimRequest?: (claimData: ClaimData) => void;
+  initialOrderIdToRate?: string | null;
+  onOrderRated?: () => void;
 }
 
 export interface ClaimData {
@@ -45,7 +47,7 @@ interface ClientProfile {
   rating?: number;
 }
 
-export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, onClaimRequest }) => {
+export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, onClaimRequest, initialOrderIdToRate, onOrderRated }) => {
   const { allOrders } = useOrder();
   const { getOrderRatings, needsRating, submitRating } = useRating();
   const { user } = useAuth();
@@ -107,6 +109,22 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
 
     loadClientProfiles();
   }, [supplierCompletedDeliveries]);
+
+  // Auto-open rating modal when initialOrderIdToRate is provided
+  useEffect(() => {
+    if (initialOrderIdToRate) {
+      const order = supplierCompletedDeliveries.find(o => o.id === initialOrderIdToRate);
+      if (order && order.clientId) {
+        console.log('[DeliveryHistory] Auto-opening rating modal for order:', initialOrderIdToRate);
+        setSelectedOrderForRating(order);
+        setShowRatingModal(true);
+        // Clear the initialOrderIdToRate after opening
+        if (onOrderRated) {
+          onOrderRated();
+        }
+      }
+    }
+  }, [initialOrderIdToRate, supplierCompletedDeliveries, onOrderRated]);
 
   // Helper function to get client display name
   const getClientName = (clientId: string): string => {

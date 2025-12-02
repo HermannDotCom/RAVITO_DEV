@@ -5,11 +5,13 @@ import { PendingOrder } from '../../hooks/usePendingRatings';
 interface RatingReminderProps {
   pendingOrders: PendingOrder[];
   onRateOrder: (orderId: string) => void;
+  userRole?: 'client' | 'supplier';
 }
 
 export const RatingReminder: React.FC<RatingReminderProps> = ({
   pendingOrders,
-  onRateOrder
+  onRateOrder,
+  userRole
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -93,7 +95,10 @@ export const RatingReminder: React.FC<RatingReminderProps> = ({
                           </span>
                         </div>
                         <p className="text-sm text-gray-600">
-                          {order.otherPartyName}
+                          <span className="text-gray-500">
+                            {userRole === 'client' ? 'Fournisseur: ' : userRole === 'supplier' ? 'Client: ' : ''}
+                          </span>
+                          <span className="font-medium">{order.otherPartyName}</span>
                         </p>
                         <p className="text-xs text-gray-400 mt-1">
                           Livré le {formatDate(order.deliveredAt)}

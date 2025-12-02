@@ -13,6 +13,8 @@ import { supabase } from '../../lib/supabase';
 
 interface OrderHistoryProps {
   onNavigate: (section: string) => void;
+  initialOrderIdToRate?: string | null;
+  onOrderRated?: () => void;
 }
 
 interface SupplierProfile {
@@ -23,7 +25,7 @@ interface SupplierProfile {
   rating?: number;
 }
 
-export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
+export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialOrderIdToRate, onOrderRated }) => {
   const { user } = useAuth();
   const { cart } = useCart();
   const { currentOrder: clientCurrentOrder, allOrders, updateOrderStatus, refreshOrders } = useOrder();
@@ -125,6 +127,27 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
 
     reloadOrderDetails();
   }, [showOrderDetails, selectedOrder?.id]);
+
+  // Auto-open rating modal when initialOrderIdToRate is provided
+  useEffect(() => {
+    if (initialOrderIdToRate) {
+      // Combine all orders to search from
+      const searchOrders = clientCurrentOrder 
+        ? [clientCurrentOrder, ...allOrders.filter(o => o.clientId === user?.id)]
+        : allOrders.filter(o => o.clientId === user?.id);
+      
+      const order = searchOrders.find(o => o.id === initialOrderIdToRate);
+      if (order && order.supplierId && order.status === 'delivered') {
+        console.log('[OrderHistory] Auto-opening rating modal for order:', initialOrderIdToRate);
+        setSelectedOrderForRating(order);
+        setShowRatingModal(true);
+        // Clear the initialOrderIdToRate after opening
+        if (onOrderRated) {
+          onOrderRated();
+        }
+      }
+    }
+  }, [initialOrderIdToRate, allOrders, clientCurrentOrder, user?.id, onOrderRated]);
 
   // Filtrer les commandes de l'utilisateur connecté
   const userOrders = allOrders.filter(order => 
