@@ -11,6 +11,10 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<boolean>;
   isLoading: boolean;
   isInitializing: boolean;
+  sessionError: string | null;
+  refreshSession: () => Promise<boolean>;
+  clearSessionError: () => void;
+  setSessionError: (error: string | null) => void;
 }
 
 export interface RegisterData {
@@ -44,7 +48,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [sessionError, setSessionError] = useState<string | null>(null);
   const initStartedRef = React.useRef(false);
+  const refreshAttemptsRef = React.useRef(0);
+  const MAX_REFRESH_ATTEMPTS = 2;
 
   const fetchUserProfile = useCallback(async (userId: string): Promise<boolean> => {
     try {
@@ -387,13 +394,91 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
+      setSessionError(null);
+      refreshAttemptsRef.current = 0;
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
+  /**
+   * Attempts to refresh the session
+   * Returns true if successful, false otherwise
+   */
+  const refreshSession = useCallback(async (): Promise<boolean> => {
+    // Check if we've exceeded max attempts
+    if (refreshAttemptsRef.current >= MAX_REFRESH_ATTEMPTS) {
+      console.log('[AuthContext] Max refresh attempts reached');
+      setSessionError('La récupération de session a échoué. Veuillez vous reconnecter.');
+      return false;
+    }
+
+    refreshAttemptsRef.current += 1;
+
+    try {
+      console.log(`[AuthContext] Attempting session refresh (attempt ${refreshAttemptsRef.current}/${MAX_REFRESH_ATTEMPTS})`);
+      
+      const { data, error } = await supabase.auth.refreshSession();
+
+      if (error) {
+        console.error('[AuthContext] Session refresh failed:', error);
+        
+        if (refreshAttemptsRef.current >= MAX_REFRESH_ATTEMPTS) {
+          setSessionError('La récupération de session a échoué. Veuillez vous reconnecter.');
+        } else {
+          setSessionError('Erreur lors de la récupération de session. Réessayez ou reconnectez-vous.');
+        }
+        
+        return false;
+      }
+
+      if (data.session) {
+        console.log('[AuthContext] Session refreshed successfully');
+        setSession(data.session);
+        setSessionError(null);
+        refreshAttemptsRef.current = 0;
+        
+        // Re-fetch user profile with new session
+        if (data.session.user) {
+          await fetchUserProfile(data.session.user.id);
+        }
+        
+        return true;
+      }
+
+      console.warn('[AuthContext] No session returned after refresh');
+      setSessionError('Session non trouvée. Veuillez vous reconnecter.');
+      return false;
+
+    } catch (error) {
+      console.error('[AuthContext] Unexpected error during session refresh:', error);
+      setSessionError('Une erreur inattendue s\'est produite. Veuillez vous reconnecter.');
+      return false;
+    }
+  }, [fetchUserProfile]);
+
+  /**
+   * Clears the session error and resets refresh attempts
+   */
+  const clearSessionError = useCallback(() => {
+    setSessionError(null);
+    refreshAttemptsRef.current = 0;
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, session, login, logout, register, isLoading, isInitializing }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      login, 
+      logout, 
+      register, 
+      isLoading, 
+      isInitializing,
+      sessionError,
+      refreshSession,
+      clearSessionError,
+      setSessionError
+    }}>
       {children}
     </AuthContext.Provider>
   );
