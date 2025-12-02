@@ -9,6 +9,10 @@
   - Order tracking (supplier location)
   
   Security: Only returns public, non-sensitive information
+  
+  Note: Phone numbers are included as they are needed for delivery coordination
+  in this B2B delivery application. This is consistent with existing functions
+  like get_supplier_info_for_order and get_client_info_for_order.
 */
 
 -- Function to get public profile info for multiple users
