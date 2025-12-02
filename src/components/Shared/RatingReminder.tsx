@@ -139,24 +139,6 @@ export const RatingReminder: React.FC<RatingReminderProps> = ({
           </div>
         </div>
       )}
-
-      {/* CSS for slow pulse animation */}
-      <style>{`
-        @keyframes pulse-slow {
-          0%, 100% {
-            opacity: 1;
-            box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4);
-          }
-          50% {
-            opacity: 0.95;
-            box-shadow: 0 0 0 10px rgba(249, 115, 22, 0);
-          }
-        }
-        
-        .animate-pulse-slow {
-          animation: pulse-slow 2s ease-in-out infinite;
-        }
-      `}</style>
     </>
   );
 };

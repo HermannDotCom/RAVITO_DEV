@@ -197,8 +197,7 @@ const AppContent: React.FC = () => {
   };
 
   // Handle rating from reminder
-  const handleRateFromReminder = (orderId: string) => {
-    setSelectedOrderIdForRating(orderId);
+  const handleRateFromReminder = (_orderId: string) => {
     // Navigate to the appropriate history section
     if (user?.role === 'client') {
       setActiveSection('orders');

@@ -333,54 +333,6 @@ export const UnifiedRatingForm: React.FC<UnifiedRatingFormProps> = ({
           ⭐ Veuillez noter tous les critères pour valider
         </p>
       )}
-
-      {/* CSS for animations */}
-      <style>{`
-        @keyframes confetti-fall {
-          0% {
-            transform: translateY(0) rotate(0deg);
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(400px) rotate(720deg);
-            opacity: 0;
-          }
-        }
-        
-        @keyframes bounce-slow {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-        
-        @keyframes star-pop {
-          0% {
-            transform: scale(0);
-          }
-          50% {
-            transform: scale(1.2);
-          }
-          100% {
-            transform: scale(1);
-          }
-        }
-        
-        .animate-confetti {
-          animation: confetti-fall 2.5s ease-out forwards;
-          border-radius: 2px;
-        }
-        
-        .animate-bounce-slow {
-          animation: bounce-slow 2s ease-in-out infinite;
-        }
-        
-        .animate-star-pop {
-          animation: star-pop 0.3s ease-out forwards;
-        }
-      `}</style>
     </div>
   );
 };

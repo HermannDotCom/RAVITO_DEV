@@ -67,7 +67,7 @@ const RatingCard: React.FC<RatingCardProps> = ({ rating, title, subtitle, color 
               <Star
                 key={star}
                 className={`h-4 w-4 ${
-                  star <= Math.round(rating.overall)
+                  star <= Math.round(Number(rating.overall))
                     ? 'text-yellow-400 fill-yellow-400'
                     : 'text-gray-300'
                 }`}
@@ -75,7 +75,7 @@ const RatingCard: React.FC<RatingCardProps> = ({ rating, title, subtitle, color 
             ))}
           </div>
           <p className={`text-sm font-semibold ${colors.text} mt-1`}>
-            {typeof rating.overall === 'number' ? rating.overall.toFixed(1) : rating.overall}/5
+            {Number(rating.overall).toFixed(1)}/5
           </p>
         </div>
       </div>
@@ -130,24 +130,6 @@ const RatingCard: React.FC<RatingCardProps> = ({ rating, title, subtitle, color 
           </p>
         </div>
       )}
-
-      {/* CSS for fade-in animation */}
-      <style>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out forwards;
-        }
-      `}</style>
     </div>
   );
 };
@@ -248,7 +230,7 @@ export const MutualRatingsDisplay: React.FC<MutualRatingsDisplayProps> = ({
             <span className="text-gray-500">Moyenne globale:</span>
             <div className="flex items-center space-x-1">
               {[1, 2, 3, 4, 5].map(star => {
-                const avgOverall = ((clientRating.overall as number) + (supplierRating.overall as number)) / 2;
+                const avgOverall = (Number(clientRating.overall) + Number(supplierRating.overall)) / 2;
                 return (
                   <Star
                     key={star}
@@ -262,7 +244,7 @@ export const MutualRatingsDisplay: React.FC<MutualRatingsDisplayProps> = ({
               })}
             </div>
             <span className="font-semibold text-gray-900">
-              {(((clientRating.overall as number) + (supplierRating.overall as number)) / 2).toFixed(1)}/5
+              {((Number(clientRating.overall) + Number(supplierRating.overall)) / 2).toFixed(1)}/5
             </span>
           </div>
         </div>
