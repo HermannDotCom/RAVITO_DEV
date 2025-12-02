@@ -44,38 +44,39 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   // Statuts post-paiement où l'identité du fournisseur est révélée
   const REVEALED_STATUSES: OrderStatus[] = ['paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating', 'completed'];
 
-  // Load supplier profiles for paid orders via secure RPC function
+  // Load supplier profiles for ALL orders with a supplier (for statistics and frequent suppliers)
   useEffect(() => {
     const loadSupplierProfiles = async () => {
-      // Filtrer les commandes avec un fournisseur dont le statut révèle l'identité
-      const ordersWithRevealedSupplier = allOrders.filter(
-        order => order.supplierId && REVEALED_STATUSES.includes(order.status)
-      );
+      // Collecter tous les supplier IDs uniques de toutes les commandes
+      const supplierIds = [...new Set(
+        allOrders
+          .filter(order => order.supplierId)
+          .map(order => order.supplierId!)
+      )];
       
-      if (ordersWithRevealedSupplier.length === 0) return;
+      if (supplierIds.length === 0) return;
+
+      // Charger les profils en batch directement depuis Supabase
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('id, name, business_name, phone, rating')
+        .in('id', supplierIds);
+
+      if (error) {
+        console.error('Error loading supplier profiles:', error);
+        return;
+      }
 
       const profilesMap: Record<string, SupplierProfile> = {};
       
-      // Charger les profils via la fonction RPC sécurisée
-      for (const order of ordersWithRevealedSupplier) {
-        if (profilesMap[order.supplierId!]) continue; // Déjà chargé
-        
-        const { data, error } = await supabase.rpc('get_supplier_info_for_order', {
-          p_order_id: order.id
-        });
-
-        if (error) {
-          console.error('Error loading supplier profile for order:', order.id, error);
-          continue;
-        }
-
-        if (data) {
-          profilesMap[data.id] = {
-            id: data.id,
-            name: data.name,
-            business_name: data.business_name,
-            phone: data.phone,
-            rating: data.rating
+      if (profiles) {
+        for (const profile of profiles) {
+          profilesMap[profile.id] = {
+            id: profile.id,
+            name: profile.name,
+            business_name: profile.business_name,
+            phone: profile.phone,
+            rating: profile.rating
           };
         }
       }
@@ -199,7 +200,9 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
+    return new Intl.NumberFormat('fr-FR', { 
+      maximumFractionDigits: 0 
+    }).format(Math.round(price)) + ' FCFA';
   };
 
   const formatDate = (date: Date | string) => {
@@ -256,7 +259,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   const completedOrders = filteredOrders.filter(order => order.status === 'delivered').length;
   const cancelledOrders = filteredOrders.filter(order => order.status === 'cancelled').length;
   const totalSpent = filteredOrders.reduce((sum, order) => sum + order.totalAmount, 0);
-  const averageOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
+  const averageOrderValue = totalOrders > 0 ? Math.round(totalSpent / totalOrders) : 0;
 
   // Calculer les statistiques de la semaine
   const ordersThisWeek = filteredOrders.filter(order => {
@@ -899,11 +902,14 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                 const topSuppliers = Object.entries(supplierCounts)
                   .sort(([,a], [,b]) => b - a)
                   .slice(0, 3)
-                  .map(([supplierId, count]) => ({
-                    name: getSupplierName(supplierId),
-                    orders: count,
-                    rating: 4.5 // Note par défaut, à remplacer par les vraies notes si disponibles
-                  }));
+                  .map(([supplierId, count]) => {
+                    const profile = supplierProfiles[supplierId];
+                    return {
+                      name: getSupplierName(supplierId),
+                      orders: count,
+                      rating: profile?.rating ?? null
+                    };
+                  });
                 
                 return topSuppliers.map((supplier, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -911,10 +917,12 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                       <p className="font-medium text-gray-900">{supplier.name}</p>
                       <p className="text-sm text-gray-600">{supplier.orders} commande(s)</p>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-sm font-semibold">{supplier.rating}</span>
-                    </div>
+                    {supplier.rating !== null && supplier.rating > 0 && (
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="text-sm font-semibold">{supplier.rating.toFixed(1)}</span>
+                      </div>
+                    )}
                   </div>
                 ));
               })()}
