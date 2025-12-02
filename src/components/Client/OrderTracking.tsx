@@ -7,6 +7,9 @@ import { PaymentFlow } from './PaymentFlow';
 import { DeliveryTracking } from './DeliveryTracking';
 import { supabase } from '../../lib/supabase';
 
+// Statuts post-paiement où l'identité du fournisseur est révélée
+const REVEALED_STATUSES: OrderStatus[] = ['paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating', 'completed'];
+
 interface OrderTrackingProps {
   onComplete: () => void;
 }
@@ -37,10 +40,10 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
     clientCurrentOrder?.status === 'awaiting-client-validation' &&
     clientCurrentOrder?.payment_status !== 'completed';
 
-  // Charger les infos fournisseur si commande a un supplierId
+  // Charger les infos fournisseur si commande a un supplierId et statut révèle l'identité
   useEffect(() => {
     const loadSupplierProfile = async () => {
-      if (!clientCurrentOrder?.supplierId) {
+      if (!clientCurrentOrder?.supplierId || !REVEALED_STATUSES.includes(clientCurrentOrder.status)) {
         setSupplierProfile(null);
         return;
       }
@@ -65,7 +68,7 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
       }
     };
     loadSupplierProfile();
-  }, [clientCurrentOrder?.supplierId]);
+  }, [clientCurrentOrder?.supplierId, clientCurrentOrder?.status]);
 
   useEffect(() => {
     return () => {
@@ -373,6 +376,7 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                 </div>
                 {supplierProfile.rating && supplierProfile.rating > 0 && (
                   <div className="text-right">
+                    <p className="text-xs text-gray-500 mb-1">Note moyenne reçue du fournisseur :</p>
                     <div className="flex items-center space-x-1">
                       <span className="text-yellow-400">★</span>
                       <span className="text-sm font-semibold">{supplierProfile.rating.toFixed(1)}</span>

@@ -41,20 +41,23 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
   const [orderForPayment, setOrderForPayment] = useState<Order | null>(null);
   const [supplierProfiles, setSupplierProfiles] = useState<Record<string, SupplierProfile>>({});
 
+  // Statuts post-paiement où l'identité du fournisseur est révélée
+  const REVEALED_STATUSES: OrderStatus[] = ['paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating', 'completed'];
+
   // Load supplier profiles for paid orders via secure RPC function
   useEffect(() => {
     const loadSupplierProfiles = async () => {
-      // Filtrer les commandes payées avec un fournisseur
-      const paidOrdersWithSupplier = allOrders.filter(
-        order => order.supplierId && order.paymentStatus === 'paid'
+      // Filtrer les commandes avec un fournisseur dont le statut révèle l'identité
+      const ordersWithRevealedSupplier = allOrders.filter(
+        order => order.supplierId && REVEALED_STATUSES.includes(order.status)
       );
       
-      if (paidOrdersWithSupplier.length === 0) return;
+      if (ordersWithRevealedSupplier.length === 0) return;
 
       const profilesMap: Record<string, SupplierProfile> = {};
       
       // Charger les profils via la fonction RPC sécurisée
-      for (const order of paidOrdersWithSupplier) {
+      for (const order of ordersWithRevealedSupplier) {
         if (profilesMap[order.supplierId!]) continue; // Déjà chargé
         
         const { data, error } = await supabase.rpc('get_supplier_info_for_order', {
@@ -237,6 +240,15 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
       return profile.business_name || profile.name || 'Fournisseur inconnu';
     }
     return 'Fournisseur inconnu';
+  };
+
+  const getSupplierProfile = (supplierId?: string): SupplierProfile | null => {
+    if (!supplierId) return null;
+    return supplierProfiles[supplierId] || null;
+  };
+
+  const isSupplierRevealed = (orderStatus: OrderStatus): boolean => {
+    return REVEALED_STATUSES.includes(orderStatus);
   };
 
   // Calculer les statistiques réelles
@@ -453,7 +465,9 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                           <CheckCircle className="h-4 w-4 text-green-600" />
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">Acceptée par {getSupplierName(order.supplierId)}</p>
+                          <p className="font-medium text-gray-900">
+                            Acceptée par {isSupplierRevealed(order.status) ? getSupplierName(order.supplierId) : 'le fournisseur'}
+                          </p>
                           <p className="text-sm text-gray-600">{formatDate(order.acceptedAt)}</p>
                         </div>
                       </div>
@@ -493,10 +507,46 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                       <span className="text-gray-600 block mb-1">Adresse:</span>
                       <span className="font-medium text-gray-900">{order.deliveryAddress}</span>
                     </div>
-                    {order.supplierId && (
+                    {order.supplierId && isSupplierRevealed(order.status) && (
+                      <>
+                        <div>
+                          <span className="text-gray-600 block mb-1">Fournisseur:</span>
+                          <span className="font-medium text-gray-900">{getSupplierName(order.supplierId)}</span>
+                        </div>
+                        {(() => {
+                          const supplierProfile = getSupplierProfile(order.supplierId);
+                          return supplierProfile ? (
+                            <>
+                              {supplierProfile.phone && (
+                                <div>
+                                  <span className="text-gray-600 block mb-1">Téléphone:</span>
+                                  <a 
+                                    href={`tel:${supplierProfile.phone}`}
+                                    className="font-medium text-blue-600 hover:text-blue-800 flex items-center"
+                                  >
+                                    <Phone className="h-4 w-4 mr-1" />
+                                    {supplierProfile.phone}
+                                  </a>
+                                </div>
+                              )}
+                              {supplierProfile.rating && supplierProfile.rating > 0 && (
+                                <div>
+                                  <span className="text-gray-600 block mb-1">Note moyenne reçue du fournisseur :</span>
+                                  <div className="flex items-center">
+                                    <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
+                                    <span className="font-medium text-gray-900">{supplierProfile.rating.toFixed(1)}</span>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          ) : null;
+                        })()}
+                      </>
+                    )}
+                    {order.supplierId && !isSupplierRevealed(order.status) && (
                       <div>
                         <span className="text-gray-600 block mb-1">Fournisseur:</span>
-                        <span className="font-medium text-gray-900">{getSupplierName(order.supplierId)}</span>
+                        <span className="font-medium text-gray-500 italic">Révélé après paiement</span>
                       </div>
                     )}
                     {order.estimatedDeliveryTime && (
@@ -1006,7 +1056,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                               Consigne: {formatPrice(order.consigneTotal)}
                             </span>
                           )}
-                          {order.supplierId && (
+                          {order.supplierId && isSupplierRevealed(order.status) && (
                             <span className="text-sm text-gray-500">
                               par {getSupplierName(order.supplierId)}
                             </span>
