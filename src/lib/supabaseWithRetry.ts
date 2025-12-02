@@ -115,14 +115,16 @@ export async function executeWithRetry<T>(
         };
       }
       
-      // If we shouldn't refresh (e.g., invalid JWT), don't retry
+      // If we shouldn't refresh (e.g., invalid JWT), don't retry but still show UI
+      // For invalid JWT/unauthorized, user needs to log out and re-authenticate
       if (!authError.shouldRefresh) {
         console.log('[supabaseWithRetry] Auth error that should not be retried:', authError.errorType);
         return {
           data: null,
           error: authError,
           success: false,
-          shouldRefresh: true // Still indicate UI should show recovery option
+          // Show the banner so user can choose to log out, even if auto-refresh won't help
+          shouldRefresh: authError.isAuthError
         };
       }
       

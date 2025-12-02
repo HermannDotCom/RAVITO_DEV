@@ -41,9 +41,14 @@ const AUTH_ERROR_PATTERNS = {
 } as const;
 
 /**
+ * Defined error types for better type safety
+ */
+type ErrorType = 'rls_violation' | 'jwt_expired' | 'jwt_invalid' | 'unauthorized' | 'unknown';
+
+/**
  * User-friendly error messages in French
  */
-const ERROR_MESSAGES: Record<string, string> = {
+const ERROR_MESSAGES: Record<ErrorType, string> = {
   rls_violation: 'Votre session semble désynchronisée. Veuillez actualiser la page ou vous reconnecter.',
   jwt_expired: 'Votre session a expiré. Veuillez vous reconnecter.',
   jwt_invalid: 'Votre session n\'est plus valide. Veuillez vous reconnecter.',
