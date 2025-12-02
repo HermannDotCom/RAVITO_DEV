@@ -85,34 +85,38 @@ export function usePendingRatings(userId: string | null, userRole?: 'client' | '
         return;
       }
 
-      // Get other party names
-      const otherPartyIds = unratedOrders.map(o => 
-        userRole === 'client' ? o.supplier_id : o.client_id
-      ).filter(Boolean);
+      // Get other party names using get_profile_for_rating
+      // This ensures we only get names for delivered orders (where identities should be revealed)
+      const pending: PendingOrder[] = await Promise.all(
+        unratedOrders.map(async (order) => {
+          const otherPartyId = userRole === 'client' ? order.supplier_id : order.client_id;
+          let otherPartyName = 'Utilisateur';
 
-      const { data: profiles, error: profilesError } = await supabase
-        .rpc('get_public_profile_info', { user_ids: otherPartyIds });
+          if (otherPartyId) {
+            // Use get_profile_for_rating which only works for delivered orders
+            const { data: profileData, error: profileError } = await supabase
+              .rpc('get_profile_for_rating', {
+                p_order_id: order.id,
+                p_user_id: otherPartyId
+              });
 
-      if (profilesError) {
-        console.error('[usePendingRatings] Error fetching profiles:', profilesError);
-      }
+            if (!profileError && profileData && profileData.length > 0) {
+              const profile = profileData[0];
+              otherPartyName = profile.business_name || profile.name || 'Utilisateur';
+            } else if (profileError) {
+              console.error('[usePendingRatings] Error fetching profile:', profileError);
+            }
+          }
 
-      const profilesMap = new Map(
-        (profiles || []).map(p => [p.id, p.business_name || p.name || 'Utilisateur'])
+          return {
+            orderId: order.id,
+            orderNumber: order.id.substring(0, 8).toUpperCase(),
+            otherPartyName,
+            otherPartyId: otherPartyId || '',
+            deliveredAt: new Date(order.delivered_at)
+          };
+        })
       );
-
-      const pending: PendingOrder[] = unratedOrders.map(order => {
-        const otherPartyId = userRole === 'client' ? order.supplier_id : order.client_id;
-        const otherPartyName = profilesMap.get(otherPartyId) || 'Utilisateur';
-        
-        return {
-          orderId: order.id,
-          orderNumber: order.id.substring(0, 8).toUpperCase(),
-          otherPartyName,
-          otherPartyId: otherPartyId || '',
-          deliveredAt: new Date(order.delivered_at)
-        };
-      });
 
       setHasPendingRatings(pending.length > 0);
       setPendingOrders(pending);
