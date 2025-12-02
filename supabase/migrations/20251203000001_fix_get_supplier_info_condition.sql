@@ -5,9 +5,6 @@
   After delivery, payment_status becomes 'completed' or 'transferred', so those
   statuses must also be allowed.
   
-  Additionally, we also check order status as a secondary condition to cover
-  all cases where the supplier identity should be revealed (post-payment stages).
-  
   This fixes issues where:
   - "Fournisseur inconnu" appears in completed orders
   - "Fournisseur inconnu" appears in statistics  
@@ -34,10 +31,7 @@ BEGIN
   JOIN orders o ON o.supplier_id = p.id
   WHERE o.id = p_order_id
     AND o.client_id = auth.uid()
-    AND (
-      o.payment_status IN ('paid', 'completed', 'transferred')
-      OR o.status IN ('paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating', 'completed')
-    );
+    AND o.payment_status IN ('paid', 'completed', 'transferred');
   
   RETURN result;
 END;
