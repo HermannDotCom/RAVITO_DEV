@@ -41,6 +41,8 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
     return 0;
   };
 
+  const parsedCustomAmount = customAmount ? parseInt(customAmount, 10) : 0;
+
   const isValidAmount = (amount: number) => {
     return amount >= MINIMUM_RECHARGE_AMOUNT && amount <= MAXIMUM_RECHARGE_AMOUNT;
   };
@@ -114,14 +116,12 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
           ) : (
             <>
               {/* Current Balance Card */}
-              {currentBalance > 0 && (
-                <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
-                  <div className="flex items-center justify-between">
-                    <span className="text-orange-700 text-sm">Solde actuel</span>
-                    <span className="text-lg font-bold text-orange-600">{formatPrice(currentBalance)}</span>
-                  </div>
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-orange-700 text-sm">Solde actuel</span>
+                  <span className="text-lg font-bold text-orange-600">{formatPrice(currentBalance)}</span>
                 </div>
-              )}
+              </div>
 
               {/* Predefined Amounts */}
               <div className="mb-6">
@@ -173,12 +173,12 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
                     FCFA
                   </span>
                 </div>
-                {customAmount && parseInt(customAmount, 10) < MINIMUM_RECHARGE_AMOUNT && (
+                {customAmount && parsedCustomAmount < MINIMUM_RECHARGE_AMOUNT && (
                   <p className="text-red-600 text-sm mt-1">
                     Le montant minimum est de {formatPrice(MINIMUM_RECHARGE_AMOUNT)}
                   </p>
                 )}
-                {customAmount && parseInt(customAmount, 10) > MAXIMUM_RECHARGE_AMOUNT && (
+                {customAmount && parsedCustomAmount > MAXIMUM_RECHARGE_AMOUNT && (
                   <p className="text-red-600 text-sm mt-1">
                     Le montant maximum est de {formatPrice(MAXIMUM_RECHARGE_AMOUNT)}
                   </p>
@@ -207,20 +207,16 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
                       <span className="text-gray-600">Montant à recharger</span>
                       <span className="font-medium text-gray-900">{formatPrice(finalAmount)}</span>
                     </div>
-                    {currentBalance > 0 && (
-                      <>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Solde actuel</span>
-                          <span className="font-medium text-gray-900">{formatPrice(currentBalance)}</span>
-                        </div>
-                        <div className="pt-2 border-t border-gray-200">
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-900 font-medium">Nouveau solde</span>
-                            <span className="text-xl font-bold text-orange-600">{formatPrice(newBalance)}</span>
-                          </div>
-                        </div>
-                      </>
-                    )}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Solde actuel</span>
+                      <span className="font-medium text-gray-900">{formatPrice(currentBalance)}</span>
+                    </div>
+                    <div className="pt-2 border-t border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-900 font-medium">Nouveau solde</span>
+                        <span className="text-xl font-bold text-orange-600">{formatPrice(newBalance)}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
