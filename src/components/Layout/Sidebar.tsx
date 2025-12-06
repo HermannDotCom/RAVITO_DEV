@@ -1,3 +1,24 @@
+/**
+ * MVP NOTE: Premium subscription functionality is temporarily disabled.
+ * Business model for MVP focuses on commission-based revenue only:
+ * - Client commission: 8%
+ * - Supplier commission: 2%
+ * 
+ * To reactivate subscriptions post-MVP:
+ * 1. Uncomment the 'subscription' menu items for client and supplier roles
+ * 2. Uncomment the 'premium' menu item for admin role
+ * 3. Uncomment the corresponding routes in App.tsx
+ * 
+ * Related files (kept for future use):
+ * - src/services/premiumTierService.ts
+ * - src/services/subscriptionService.ts
+ * - src/components/Supplier/PremiumTierDashboard.tsx
+ * - src/components/Supplier/SubscriptionManagement.tsx
+ * - src/components/Admin/PremiumTierManagement.tsx
+ * - src/pages/Subscription/SubscriptionPage.tsx
+ * - src/config/subscriptionPlans.ts
+ */
+
 import React from 'react';
 import {
   Home,
@@ -37,7 +58,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'treasury', label: 'Trésorerie', icon: Wallet },
           { id: 'catalog', label: 'Catalogue', icon: Package },
           { id: 'cart', label: 'Panier', icon: ShoppingCart },
-          { id: 'subscription', label: 'Abonnement', icon: Crown },
+          // MVP: Subscription feature disabled - Reactivate post-MVP
+          // { id: 'subscription', label: 'Abonnement', icon: Crown },
           { id: 'support', label: 'Nous contacter', icon: MessageSquare },
           { id: 'profile', label: 'Mon Profil', icon: Settings }
         ];
@@ -49,7 +71,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'deliveries', label: 'Livraisons en cours', icon: Truck },
           { id: 'history', label: 'Historique', icon: Clock },
           { id: 'treasury', label: 'Trésorerie', icon: Wallet },
-          { id: 'subscription', label: 'Abonnement', icon: Crown },
+          // MVP: Subscription feature disabled - Reactivate post-MVP
+          // { id: 'subscription', label: 'Abonnement', icon: Crown },
           { id: 'support', label: 'Nous contacter', icon: MessageSquare },
           { id: 'profile', label: 'Mon Profil', icon: Settings }
         ];
@@ -61,7 +84,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag },
           { id: 'treasury', label: 'Trésorerie', icon: CreditCard },
           { id: 'zones', label: 'Zones de Livraison', icon: MapPin },
-          { id: 'premium', label: 'Abonnements Premium', icon: Crown },
+          // MVP: Premium subscription management disabled - Reactivate post-MVP
+          // { id: 'premium', label: 'Abonnements Premium', icon: Crown },
           { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare },
           { id: 'data', label: 'Gestion des Données', icon: Settings },
           { id: 'settings', label: 'Paramètres', icon: Settings }
