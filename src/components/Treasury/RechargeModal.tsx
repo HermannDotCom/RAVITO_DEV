@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
-import { X, CreditCard, Wallet, CheckCircle } from 'lucide-react';
+import { X, CreditCard, CheckCircle, Plus } from 'lucide-react';
+import { DEFAULT_RECHARGE_AMOUNTS, MINIMUM_RECHARGE_AMOUNT, MAXIMUM_RECHARGE_AMOUNT } from '../../types/treasury';
 
 interface RechargeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (amount: number) => void;
+  currentBalance?: number;
   formatPrice?: (price: number) => string;
 }
-
-const predefinedAmounts = [10000, 20000, 50000, 100000]; // In FCFA
 
 export const RechargeModal: React.FC<RechargeModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
+  currentBalance = 0,
   formatPrice = (price) => new Intl.NumberFormat('fr-FR').format(Math.round(price)) + ' FCFA'
 }) => {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
@@ -40,9 +41,13 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
     return 0;
   };
 
+  const isValidAmount = (amount: number) => {
+    return amount >= MINIMUM_RECHARGE_AMOUNT && amount <= MAXIMUM_RECHARGE_AMOUNT;
+  };
+
   const handleConfirm = async () => {
     const amount = getFinalAmount();
-    if (amount <= 0) return;
+    if (amount <= 0 || !isValidAmount(amount)) return;
 
     setIsProcessing(true);
     
@@ -72,6 +77,7 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
   };
 
   const finalAmount = getFinalAmount();
+  const newBalance = currentBalance + finalAmount;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -80,7 +86,7 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <div className="h-10 w-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-              <Wallet className="h-5 w-5 text-white" />
+              <Plus className="h-5 w-5 text-white" />
             </div>
             <h2 className="text-xl font-bold text-gray-900">Recharger mon compte</h2>
           </div>
@@ -107,25 +113,40 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
             </div>
           ) : (
             <>
+              {/* Current Balance Card */}
+              {currentBalance > 0 && (
+                <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <span className="text-orange-700 text-sm">Solde actuel</span>
+                    <span className="text-lg font-bold text-orange-600">{formatPrice(currentBalance)}</span>
+                  </div>
+                </div>
+              )}
+
               {/* Predefined Amounts */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Choisissez un montant
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  {predefinedAmounts.map((amount) => (
+                  {DEFAULT_RECHARGE_AMOUNTS.map((option) => (
                     <button
-                      key={amount}
-                      onClick={() => handleAmountSelect(amount)}
+                      key={option.id}
+                      onClick={() => handleAmountSelect(option.amount)}
                       disabled={isProcessing}
-                      className={`p-4 rounded-xl border-2 transition-all ${
-                        selectedAmount === amount
+                      className={`relative p-4 rounded-xl border-2 transition-all ${
+                        selectedAmount === option.amount
                           ? 'border-orange-500 bg-orange-50'
                           : 'border-gray-200 hover:border-orange-300 hover:bg-orange-50/50'
                       } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
+                      {option.isPopular && (
+                        <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                          Populaire
+                        </span>
+                      )}
                       <span className="text-lg font-bold text-gray-900">
-                        {formatPrice(amount)}
+                        {option.label}
                       </span>
                     </button>
                   ))}
@@ -152,6 +173,16 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
                     FCFA
                   </span>
                 </div>
+                {customAmount && parseInt(customAmount, 10) < MINIMUM_RECHARGE_AMOUNT && (
+                  <p className="text-red-600 text-sm mt-1">
+                    Le montant minimum est de {formatPrice(MINIMUM_RECHARGE_AMOUNT)}
+                  </p>
+                )}
+                {customAmount && parseInt(customAmount, 10) > MAXIMUM_RECHARGE_AMOUNT && (
+                  <p className="text-red-600 text-sm mt-1">
+                    Le montant maximum est de {formatPrice(MAXIMUM_RECHARGE_AMOUNT)}
+                  </p>
+                )}
               </div>
 
               {/* Payment Method Info */}
@@ -169,11 +200,27 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
               </div>
 
               {/* Summary */}
-              {finalAmount > 0 && (
+              {finalAmount > 0 && isValidAmount(finalAmount) && (
                 <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Montant à recharger</span>
-                    <span className="text-xl font-bold text-gray-900">{formatPrice(finalAmount)}</span>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Montant à recharger</span>
+                      <span className="font-medium text-gray-900">{formatPrice(finalAmount)}</span>
+                    </div>
+                    {currentBalance > 0 && (
+                      <>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Solde actuel</span>
+                          <span className="font-medium text-gray-900">{formatPrice(currentBalance)}</span>
+                        </div>
+                        <div className="pt-2 border-t border-gray-200">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-900 font-medium">Nouveau solde</span>
+                            <span className="text-xl font-bold text-orange-600">{formatPrice(newBalance)}</span>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
@@ -194,7 +241,7 @@ export const RechargeModal: React.FC<RechargeModalProps> = ({
               </button>
               <button
                 onClick={handleConfirm}
-                disabled={isProcessing || finalAmount <= 0}
+                disabled={isProcessing || finalAmount <= 0 || !isValidAmount(finalAmount)}
                 className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
               >
                 {isProcessing ? (

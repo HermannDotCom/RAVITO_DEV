@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Banknote, Building2, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { MINIMUM_WITHDRAWAL_AMOUNT } from '../../types/treasury';
 
 interface WithdrawModalProps {
   isOpen: boolean;
@@ -13,8 +14,6 @@ interface WithdrawModalProps {
   };
   formatPrice?: (price: number) => string;
 }
-
-const MIN_WITHDRAWAL = 50000; // 50,000 FCFA minimum
 
 export const WithdrawModal: React.FC<WithdrawModalProps> = ({
   isOpen,
@@ -37,7 +36,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
   // Parse amount as integer (FCFA doesn't have decimal places)
   // Use Math.floor to ensure we don't have any floating point precision issues
   const parsedAmount = Math.floor(Number(amount.replace(/\D/g, '')) || 0);
-  const isValidAmount = parsedAmount >= MIN_WITHDRAWAL && parsedAmount <= availableBalance;
+  const isValidAmount = parsedAmount >= MINIMUM_WITHDRAWAL_AMOUNT && parsedAmount <= availableBalance;
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '');
@@ -127,7 +126,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                 <div className="flex items-start space-x-3">
                   <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
                   <p className="text-sm text-yellow-800">
-                    Montant minimum de retrait: <strong>{formatPrice(MIN_WITHDRAWAL)}</strong>
+                    Montant minimum de retrait: <strong>{formatPrice(MINIMUM_WITHDRAWAL_AMOUNT)}</strong>
                   </p>
                 </div>
               </div>
@@ -156,15 +155,15 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                     FCFA
                   </span>
                 </div>
-                {parsedAmount > 0 && parsedAmount < MIN_WITHDRAWAL && (
-                  <p className="text-red-600 text-sm mt-1">Le montant minimum est de {formatPrice(MIN_WITHDRAWAL)}</p>
+                {parsedAmount > 0 && parsedAmount < MINIMUM_WITHDRAWAL_AMOUNT && (
+                  <p className="text-red-600 text-sm mt-1">Le montant minimum est de {formatPrice(MINIMUM_WITHDRAWAL_AMOUNT)}</p>
                 )}
                 {parsedAmount > availableBalance && (
                   <p className="text-red-600 text-sm mt-1">Montant supérieur au solde disponible</p>
                 )}
                 <button
                   onClick={handleWithdrawAll}
-                  disabled={isProcessing || availableBalance < MIN_WITHDRAWAL}
+                  disabled={isProcessing || availableBalance < MINIMUM_WITHDRAWAL_AMOUNT}
                   className="mt-2 text-sm text-green-600 hover:text-green-700 font-medium disabled:opacity-50"
                 >
                   Retirer tout ({formatPrice(availableBalance)})

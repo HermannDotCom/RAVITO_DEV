@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCommission } from '../../context/CommissionContext';
+import { MINIMUM_WITHDRAWAL_AMOUNT } from '../../types/treasury';
 import {
   getSupplierFinancialSummary,
   getSupplierTransactionHistory,
@@ -220,7 +221,7 @@ export const SupplierTreasury: React.FC = () => {
           </div>
           <button
             onClick={() => setShowWithdrawModal(true)}
-            disabled={(summary?.totalNet || 0) < 50000}
+            disabled={(summary?.totalNet || 0) < MINIMUM_WITHDRAWAL_AMOUNT}
             className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Banknote className="h-4 w-4" />
