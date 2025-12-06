@@ -5,12 +5,16 @@
  * - Supplier commission: 2%
  * 
  * To reactivate subscriptions post-MVP:
- * 1. Uncomment the PremiumTierDashboard and SubscriptionManagement imports
- * 2. Uncomment the 'subscription' cases for client and supplier in renderSectionContent
- * 3. Uncomment the 'premium' case for supplier in renderSectionContent
- * 4. Uncomment the 'premium' case for admin in renderSectionContent
- * 5. Uncomment the PremiumTierManagement import
- * 6. Uncomment the SubscriptionPage import
+ * 1. Uncomment the imports:
+ *    - PremiumTierDashboard
+ *    - SubscriptionManagement (if needed)
+ *    - PremiumTierManagement
+ *    - SubscriptionPage
+ * 2. Uncomment the route cases:
+ *    - Client: 'subscription' case
+ *    - Supplier: 'subscription' and 'premium' cases
+ *    - Admin: 'premium' case
+ * 3. Uncomment the corresponding menu items in Sidebar.tsx
  * 
  * Related files (kept for future use):
  * - src/services/premiumTierService.ts

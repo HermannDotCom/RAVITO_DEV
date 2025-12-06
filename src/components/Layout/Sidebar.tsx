@@ -5,9 +5,12 @@
  * - Supplier commission: 2%
  * 
  * To reactivate subscriptions post-MVP:
- * 1. Uncomment the 'subscription' menu items for client and supplier roles
- * 2. Uncomment the 'premium' menu item for admin role
- * 3. Uncomment the corresponding routes in App.tsx
+ * 1. Uncomment the 'subscription' menu items for client and supplier roles (Sidebar.tsx)
+ * 2. Uncomment the 'premium' menu item for admin role (Sidebar.tsx)
+ * 3. Uncomment the corresponding routes in App.tsx:
+ *    - Client 'subscription' case
+ *    - Supplier 'subscription' and 'premium' cases
+ *    - Admin 'premium' case
  * 
  * Related files (kept for future use):
  * - src/services/premiumTierService.ts
