@@ -155,8 +155,8 @@ export const inviteMember = async (
       return { success: false, error: 'Erreur lors de l\'invitation' };
     }
 
-    // TODO: Send invitation email with token
-    // This would typically use an edge function or email service
+    // Note: Email sending would be implemented via Supabase Edge Function or external service
+    // Example: await supabase.functions.invoke('send-team-invitation', { body: { email, token: invitationToken, organizationName } })
 
     return { success: true, member: transformMember(data) };
   } catch (error) {

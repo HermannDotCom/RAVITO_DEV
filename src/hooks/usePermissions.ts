@@ -52,7 +52,9 @@ export const usePermissions = (organizationId: string | null): UsePermissionsRet
       const sectionPerms = permissions[section as keyof Permissions];
       if (!sectionPerms || typeof sectionPerms !== 'object') return false;
 
-      return !!(sectionPerms as any)[action];
+      // Type-safe access to permission action
+      const hasPermission = sectionPerms[action as keyof typeof sectionPerms];
+      return typeof hasPermission === 'boolean' ? hasPermission : false;
     },
     [permissions]
   );

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, UserPlus, AlertCircle } from 'lucide-react';
 import type { MemberRole, OrganizationType } from '../../types/team';
 import { RoleSelector } from './RoleSelector';
+import { isValidEmail } from '../../utils/validation';
 
 interface InviteMemberModalProps {
   isOpen: boolean;
@@ -36,7 +37,7 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
       return;
     }
 
-    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    if (!isValidEmail(email)) {
       setError('Adresse email invalide');
       return;
     }
