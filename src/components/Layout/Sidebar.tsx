@@ -61,6 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'treasury', label: 'Trésorerie', icon: Wallet },
           { id: 'catalog', label: 'Catalogue', icon: Package },
           { id: 'cart', label: 'Panier', icon: ShoppingCart },
+          { id: 'team', label: 'Mon Équipe', icon: Users },
           // MVP: Subscription feature disabled - Reactivate post-MVP
           // { id: 'subscription', label: 'Abonnement', icon: Crown },
           { id: 'support', label: 'Nous contacter', icon: MessageSquare },
@@ -74,6 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'deliveries', label: 'Livraisons en cours', icon: Truck },
           { id: 'history', label: 'Historique', icon: Clock },
           { id: 'treasury', label: 'Trésorerie', icon: Wallet },
+          { id: 'team', label: 'Mon Équipe', icon: Users },
           // MVP: Subscription feature disabled - Reactivate post-MVP
           // { id: 'subscription', label: 'Abonnement', icon: Crown },
           { id: 'support', label: 'Nous contacter', icon: MessageSquare },
@@ -87,6 +89,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag },
           { id: 'treasury', label: 'Trésorerie', icon: CreditCard },
           { id: 'zones', label: 'Zones de Livraison', icon: MapPin },
+          { id: 'team', label: 'Mon Équipe', icon: Users },
           // MVP: Premium subscription management disabled - Reactivate post-MVP
           // { id: 'premium', label: 'Abonnements Premium', icon: Crown },
           { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare },
