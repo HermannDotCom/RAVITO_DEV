@@ -69,6 +69,7 @@ import { ClientTreasury } from './components/Client/ClientTreasury';
 import { ContactSupport } from './components/Client/ContactSupport';
 import { SupplierContactSupport } from './components/Supplier/ContactSupport';
 import { TicketManagement } from './components/Admin/TicketManagement';
+import { TeamPage } from './components/Team';
 import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusIndicator';
 import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
 import { RatingReminder } from './components/Shared/RatingReminder';
@@ -171,6 +172,8 @@ const AppContent: React.FC = () => {
             return <OrderHistory onNavigate={setActiveSection} initialOrderIdToRate={orderIdToRate} onOrderRated={handleOrderRated} />;
           case 'treasury':
             return <ClientTreasury />;
+          case 'team':
+            return <TeamPage />;
           // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
           // case 'subscription':
           //   return <SubscriptionPage onNavigate={setActiveSection} />;
@@ -196,6 +199,8 @@ const AppContent: React.FC = () => {
             return <SupplierProfile />;
           case 'treasury':
             return <SupplierTreasury />;
+          case 'team':
+            return <TeamPage />;
           // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
           // case 'subscription':
           //   return <SubscriptionPage onNavigate={setActiveSection} />;
@@ -232,6 +237,8 @@ const AppContent: React.FC = () => {
             return <Treasury />;
           case 'zones':
             return <ZoneManagement />;
+          case 'team':
+            return <TeamPage />;
           // MVP: Premium tier management disabled - Uncomment to reactivate post-MVP
           // case 'premium':
           //   return <PremiumTierManagement />;

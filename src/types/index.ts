@@ -332,3 +332,35 @@ export interface Subscription {
   expiresAt: Date;
   autoRenew: boolean;
 }
+
+// ============================================
+// TEAM MANAGEMENT TYPES - Re-export from team.ts
+// ============================================
+export type {
+  OrganizationType,
+  MemberStatus,
+  MemberRole,
+  Organization,
+  OrganizationMember,
+  RolePermission,
+  Permissions,
+  SectionPermissions,
+  TreasuryPermissions,
+  TeamPermissions,
+  SettingsPermissions,
+  DeliveryPermissions,
+  AnalyticsPermissions,
+  SupportPermissions,
+  PermissionAction,
+  TeamStats
+} from './team';
+
+export {
+  ROLE_LABELS,
+  ROLE_DESCRIPTIONS,
+  ROLES_BY_ORG_TYPE,
+  MAX_MEMBERS_BY_TYPE,
+  ROLE_COLORS,
+  STATUS_COLORS,
+  STATUS_LABELS
+} from './team';
