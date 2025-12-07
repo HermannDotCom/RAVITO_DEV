@@ -1,3 +1,31 @@
+/**
+ * MVP NOTE: Premium subscription functionality is temporarily disabled.
+ * Business model for MVP focuses on commission-based revenue only:
+ * - Client commission: 8%
+ * - Supplier commission: 2%
+ * 
+ * To reactivate subscriptions post-MVP:
+ * 1. Uncomment the imports:
+ *    - PremiumTierDashboard
+ *    - SubscriptionManagement (if needed)
+ *    - PremiumTierManagement
+ *    - SubscriptionPage
+ * 2. Uncomment the route cases:
+ *    - Client: 'subscription' case
+ *    - Supplier: 'subscription' and 'premium' cases
+ *    - Admin: 'premium' case
+ * 3. Uncomment the corresponding menu items in Sidebar.tsx
+ * 
+ * Related files (kept for future use):
+ * - src/services/premiumTierService.ts
+ * - src/services/subscriptionService.ts
+ * - src/components/Supplier/PremiumTierDashboard.tsx
+ * - src/components/Supplier/SubscriptionManagement.tsx
+ * - src/components/Admin/PremiumTierManagement.tsx
+ * - src/pages/Subscription/SubscriptionPage.tsx
+ * - src/config/subscriptionPlans.ts
+ */
+
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -22,7 +50,8 @@ import { DeliveryHistory, ClaimData } from './components/Supplier/DeliveryHistor
 import { SupplierProfile } from './components/Supplier/SupplierProfile';
 import { ZoneRegistration } from './components/Supplier/ZoneRegistration';
 import { SupplierIntelligenceDashboard } from './components/Supplier/SupplierIntelligenceDashboard';
-import { SubscriptionManagement } from './components/Supplier/SubscriptionManagement';
+// MVP: Subscription management disabled - Uncomment to reactivate post-MVP
+// import { SubscriptionManagement } from './components/Supplier/SubscriptionManagement';
 import { SupplierTreasury } from './components/Supplier/SupplierTreasury';
 import { UserManagement } from './components/Admin/UserManagement';
 import { OrderManagement } from './components/Admin/OrderManagement';
@@ -32,7 +61,8 @@ import { SystemSettings } from './components/Admin/SystemSettings';
 import { ProductManagement } from './components/Admin/ProductManagement';
 import { Treasury } from './components/Admin/Treasury';
 import { DataManagement } from './components/Admin/DataManagement';
-import { PremiumTierManagement } from './components/Admin/PremiumTierManagement';
+// MVP: Premium tier management disabled - Uncomment to reactivate post-MVP
+// import { PremiumTierManagement } from './components/Admin/PremiumTierManagement';
 import { ClientProfile } from './components/Client/ClientProfile';
 import { OrderHistory } from './components/Client/OrderHistory';
 import { ClientTreasury } from './components/Client/ClientTreasury';
@@ -43,8 +73,10 @@ import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusI
 import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
 import { RatingReminder } from './components/Shared/RatingReminder';
 import { SessionErrorBanner } from './components/Shared/SessionErrorBanner';
-import { PremiumTierDashboard } from './components/Supplier/PremiumTierDashboard';
-import { SubscriptionPage } from './pages/Subscription/SubscriptionPage';
+// MVP: Premium tier dashboard disabled - Uncomment to reactivate post-MVP
+// import { PremiumTierDashboard } from './components/Supplier/PremiumTierDashboard';
+// MVP: Subscription page disabled - Uncomment to reactivate post-MVP
+// import { SubscriptionPage } from './pages/Subscription/SubscriptionPage';
 import { useRealtimeOrders } from './hooks/useRealtimeOrders';
 import { usePendingRatings } from './hooks/usePendingRatings';
 
@@ -139,8 +171,9 @@ const AppContent: React.FC = () => {
             return <OrderHistory onNavigate={setActiveSection} initialOrderIdToRate={orderIdToRate} onOrderRated={handleOrderRated} />;
           case 'treasury':
             return <ClientTreasury />;
-          case 'subscription':
-            return <SubscriptionPage onNavigate={setActiveSection} />;
+          // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
+          // case 'subscription':
+          //   return <SubscriptionPage onNavigate={setActiveSection} />;
           case 'support':
             return <ContactSupport />;
           default:
@@ -163,10 +196,12 @@ const AppContent: React.FC = () => {
             return <SupplierProfile />;
           case 'treasury':
             return <SupplierTreasury />;
-          case 'subscription':
-            return <SubscriptionPage onNavigate={setActiveSection} />;
-          case 'premium':
-            return <PremiumTierDashboard />;
+          // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
+          // case 'subscription':
+          //   return <SubscriptionPage onNavigate={setActiveSection} />;
+          // MVP: Premium tier dashboard disabled - Uncomment to reactivate post-MVP
+          // case 'premium':
+          //   return <PremiumTierDashboard />;
           case 'support':
             return (
               <SupplierContactSupport
@@ -197,8 +232,9 @@ const AppContent: React.FC = () => {
             return <Treasury />;
           case 'zones':
             return <ZoneManagement />;
-          case 'premium':
-            return <PremiumTierManagement />;
+          // MVP: Premium tier management disabled - Uncomment to reactivate post-MVP
+          // case 'premium':
+          //   return <PremiumTierManagement />;
           case 'data':
             return <DataManagement />;
           case 'settings':
