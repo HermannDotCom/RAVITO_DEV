@@ -26,7 +26,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NI
           <div className="flex items-center">
             <button
               onClick={onMenuToggle}
-              className="lg:hidden p-2 rounded-md text-gray-600 hover:text-orange-600 hover:bg-orange-50 transition-colors"
+              className="lg:hidden p-2 min-h-[44px] min-w-[44px] rounded-md text-gray-600 hover:text-orange-600 hover:bg-orange-50 transition-colors"
+              aria-label="Menu"
             >
               <Menu className="h-6 w-6" />
             </button>
@@ -37,19 +38,19 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NI
                   <span className="text-white font-bold text-sm">DN</span>
                 </div>
               </div>
-              <h1 className="ml-3 text-xl font-bold text-gray-900 hidden sm:block">{title}</h1>
+              <h1 className="ml-3 text-lg sm:text-xl font-bold text-gray-900 hidden sm:block">{title}</h1>
             </div>
           </div>
 
           {user && (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               {user.role === 'client' && (
                 <button
                   onClick={onCartClick}
-                  className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-colors relative"
+                  className="p-2 min-h-[44px] min-w-[44px] text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-colors relative"
                   aria-label="Panier"
                 >
-                  <ShoppingCart className="h-5 w-5" />
+                  <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
                   {cartItemsCount > 0 && (
                     <span className="absolute -top-1 -right-1 h-5 w-5 bg-orange-500 rounded-full flex items-center justify-center">
                       <span className="text-xs text-white font-bold">{cartItemsCount > 9 ? '9+' : cartItemsCount}</span>
@@ -60,9 +61,10 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NI
 
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-colors relative"
+                className="p-2 min-h-[44px] min-w-[44px] text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-colors relative"
+                aria-label="Notifications"
               >
-                <Bell className="h-5 w-5" />
+                <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center">
                     <span className="text-xs text-white font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
@@ -70,8 +72,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NI
                 )}
               </button>
               
-              <div className="flex items-center space-x-3">
-                <div className="hidden sm:block text-right">
+              <div className="hidden sm:flex items-center space-x-3">
+                <div className="hidden md:block text-right">
                   <p className="text-sm font-medium text-gray-900">
                     {(user as any)?.businessName || user.name}
                   </p>
@@ -85,6 +87,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NI
                 <button
                   onClick={logout}
                   className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                  aria-label="Déconnexion"
                 >
                   <LogOut className="h-4 w-4" />
                 </button>

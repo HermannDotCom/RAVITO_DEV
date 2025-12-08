@@ -78,6 +78,7 @@ import { SessionErrorBanner } from './components/Shared/SessionErrorBanner';
 // import { PremiumTierDashboard } from './components/Supplier/PremiumTierDashboard';
 // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
 // import { SubscriptionPage } from './pages/Subscription/SubscriptionPage';
+import { BottomNavigation } from './components/Navigation/BottomNavigation';
 import { useRealtimeOrders } from './hooks/useRealtimeOrders';
 import { usePendingRatings } from './hooks/usePendingRatings';
 
@@ -302,10 +303,18 @@ const AppContent: React.FC = () => {
           onSectionChange={setActiveSection}
         />
 
-        <main id="main-content" className={`flex-1 lg:ml-0 ${sessionError ? 'pt-16 sm:pt-14' : ''}`}>
+        <main id="main-content" className={`flex-1 lg:ml-0 pb-16 lg:pb-0 ${sessionError ? 'pt-16 sm:pt-14' : ''}`}>
           {renderMainContent()}
         </main>
       </div>
+      
+      {/* Bottom Navigation (Mobile Only - Client) */}
+      {user?.role === 'client' && (
+        <BottomNavigation
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+        />
+      )}
       
       {/* Connection Status Indicator */}
       <ConnectionStatusIndicator />
