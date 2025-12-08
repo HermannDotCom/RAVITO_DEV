@@ -72,11 +72,11 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
 
   if (cart.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-20 lg:pb-6">
         <div className="text-center py-12">
           <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">Votre panier est vide</h3>
-          <p className="text-gray-500">Ajoutez des produits depuis le catalogue pour commencer</p>
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-600 mb-2">Votre panier est vide</h3>
+          <p className="text-sm sm:text-base text-gray-500">Ajoutez des produits depuis le catalogue pour commencer</p>
         </div>
       </div>
     );

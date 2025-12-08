@@ -14,16 +14,16 @@ export const ProductCatalog: React.FC = () => {
   // Restriction d'accès sécurisée
   if (!accessRestrictions.canAccessCatalog) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-          <div className="h-16 w-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Package className="h-8 w-8 text-white" />
+      <div className="max-w-4xl mx-auto p-4 sm:p-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 sm:p-8 text-center">
+          <div className="h-12 w-12 sm:h-16 sm:w-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Package className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-red-900 mb-4">Accès restreint</h2>
-          <p className="text-red-800 mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-red-900 mb-4">Accès restreint</h2>
+          <p className="text-sm sm:text-base text-red-800 mb-4">
             {accessRestrictions.restrictionReason}
           </p>
-          <p className="text-sm text-red-700">
+          <p className="text-xs sm:text-sm text-red-700">
             {user?.role === 'client' 
               ? 'Votre demande est en cours d\'examen. Vous recevrez une notification dès l\'approbation.'
               : 'Accès non autorisé au catalogue produits.'
@@ -78,7 +78,7 @@ export const ProductCatalog: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-4 sm:p-6">
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
         </div>
