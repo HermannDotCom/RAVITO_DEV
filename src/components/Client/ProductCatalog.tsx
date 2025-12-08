@@ -205,7 +205,7 @@ export const ProductCatalog: React.FC = () => {
                       {product.crateType}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+                  <p className="text-sm text-gray-600 overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{product.description}</p>
                 </div>
 
                 <div className="space-y-4">

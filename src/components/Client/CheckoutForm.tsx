@@ -277,7 +277,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
       </div>
 
       {/* Mobile fixed bottom buttons */}
-      <div className="fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-gray-200 lg:hidden space-y-2">
+      <div className="fixed bottom-20 lg:bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 lg:hidden space-y-2">
         <button
           onClick={handleConfirmOrder}
           disabled={!deliveryZone || !deliveryAddress.trim() || isProcessing}

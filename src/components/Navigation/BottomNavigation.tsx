@@ -23,10 +23,10 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   const navItems = [
-    { id: 'orders', label: 'Accueil', icon: Home },
+    { id: 'orders', label: 'Accueil', icon: Home },  // Dashboard/Home
     { id: 'catalog', label: 'Catalogue', icon: Package },
     { id: 'cart', label: 'Panier', icon: ShoppingCart, badge: cartItemsCount },
-    { id: 'orders', label: 'Commandes', icon: FileText },
+    { id: 'orders', label: 'Commandes', icon: FileText },  // Orders list
     { id: 'profile', label: 'Profil', icon: User }
   ];
 

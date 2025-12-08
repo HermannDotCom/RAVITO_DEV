@@ -104,7 +104,7 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1 min-w-0 pr-2">
                       <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">{item.product.name}</h3>
-                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-1">{item.product.description}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 truncate">{item.product.description}</p>
                       <span className={`inline-block mt-1 px-2 py-1 text-xs font-medium rounded ${
                         item.product.brand === 'Flag' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
                       }`}>
@@ -259,7 +259,7 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
       </div>
 
       {/* Fixed bottom checkout button for mobile */}
-      <div className="fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-gray-200 lg:hidden">
+      <div className="fixed bottom-20 lg:bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 lg:hidden">
         <button
           onClick={onCheckout}
           className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all text-base min-h-[48px] shadow-lg"
