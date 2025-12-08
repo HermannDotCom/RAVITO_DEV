@@ -304,6 +304,7 @@ const AppContent: React.FC = () => {
         />
 
         <main id="main-content" className={`flex-1 lg:ml-0 pb-16 lg:pb-0 ${sessionError ? 'pt-16 sm:pt-14' : ''}`}>
+        <main id="main-content" className={`flex-1 pt-16 lg:pl-64 ${sessionError ? 'sm:pt-14' : ''}`}>
           {renderMainContent()}
         </main>
       </div>

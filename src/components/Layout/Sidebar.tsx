@@ -108,7 +108,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-40"
+          className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-30"
           onClick={onClose}
           aria-label="Fermer le menu"
         />
@@ -119,8 +119,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         fixed lg:static inset-y-0 left-0 z-50 w-full sm:w-80 lg:w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="flex flex-col h-full">
-          <div className="flex items-center justify-center h-16 border-b border-gray-200">
+        <div className="flex flex-col h-full lg:h-[calc(100vh-4rem)]">
+          <div className="flex items-center justify-center h-16 border-b border-gray-200 lg:hidden">
             <div className="flex items-center">
               <div className="h-10 w-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold">DN</span>
