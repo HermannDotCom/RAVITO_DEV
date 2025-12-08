@@ -42,6 +42,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [orderForPayment, setOrderForPayment] = useState<Order | null>(null);
   const [supplierProfiles, setSupplierProfiles] = useState<Record<string, SupplierProfile>>({});
+  const [orderRatings, setOrderRatings] = useState<Record<string, number | null>>({});
 
   // Statuts post-paiement où l'identité du fournisseur est révélée
   const REVEALED_STATUSES: OrderStatus[] = ['paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating', 'completed'];
@@ -79,6 +80,35 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
 
     loadSupplierProfiles();
   }, [allOrders, user]);
+
+  // Load order-specific ratings where the client is the recipient
+  useEffect(() => {
+    const loadOrderRatings = async () => {
+      if (!user || allUserOrders.length === 0) return;
+
+      const orderIds = allUserOrders.map(o => o.id);
+
+      // Fetch ratings where the client is the recipient (to_user_id)
+      const { data, error } = await supabase
+        .from('ratings')
+        .select('order_id, overall')
+        .in('order_id', orderIds)
+        .eq('to_user_id', user.id);
+
+      if (error) {
+        console.error('Error loading order ratings:', error);
+        return;
+      }
+
+      const ratingsMap: Record<string, number> = {};
+      data?.forEach(r => {
+        ratingsMap[r.order_id] = r.overall;
+      });
+      setOrderRatings(ratingsMap);
+    };
+
+    loadOrderRatings();
+  }, [allUserOrders, user]);
 
   // Synchroniser les commandes sélectionnées avec les mises à jour du contexte
   useEffect(() => {
@@ -1029,12 +1059,20 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                               En cours
                             </span>
                           )}
-                          {order.status === 'delivered' && (
-                            <div className="flex items-center space-x-1">
-                              <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                              <span className="text-sm font-semibold">4.5</span>
-                            </div>
-                          )}
+                          {order.status === 'delivered' && (() => {
+                            const rating = orderRatings[order.id];
+                            return rating !== undefined && rating !== null ? (
+                              <div className="flex items-center space-x-1">
+                                <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                                <span className="text-sm font-semibold">{rating.toFixed(1)}</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center space-x-1 text-gray-400">
+                                <Star className="h-4 w-4" />
+                                <span className="text-sm">—</span>
+                              </div>
+                            );
+                          })()}
                         </div>
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">

@@ -31,7 +31,7 @@ interface DeliveryRecord {
   items: number;
   total: number;
   deliveredAt: Date;
-  rating: number;
+  rating: number | null;
   distance: string;
   duration: number;
   paymentMethod: string;
@@ -59,6 +59,7 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
   const [clientProfiles, setClientProfiles] = useState<Record<string, ClientProfile>>({});
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryRecord | null>(null);
+  const [orderRatings, setOrderRatings] = useState<Record<string, number | null>>({});
 
   // Filter completed deliveries for current supplier
   const supplierCompletedDeliveries = allOrders.filter(order => 
@@ -100,6 +101,35 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
     loadClientProfiles();
   }, [supplierCompletedDeliveries, user]);
 
+  // Load order-specific ratings where the supplier is the recipient
+  useEffect(() => {
+    const loadOrderRatings = async () => {
+      if (!user || supplierCompletedDeliveries.length === 0) return;
+
+      const orderIds = supplierCompletedDeliveries.map(o => o.id);
+
+      // Fetch ratings where the supplier is the recipient (to_user_id)
+      const { data, error } = await supabase
+        .from('ratings')
+        .select('order_id, overall')
+        .in('order_id', orderIds)
+        .eq('to_user_id', user.id);
+
+      if (error) {
+        console.error('Error loading order ratings:', error);
+        return;
+      }
+
+      const ratingsMap: Record<string, number> = {};
+      data?.forEach(r => {
+        ratingsMap[r.order_id] = r.overall;
+      });
+      setOrderRatings(ratingsMap);
+    };
+
+    loadOrderRatings();
+  }, [supplierCompletedDeliveries, user]);
+
   // Auto-open rating modal when initialOrderIdToRate is provided
   useEffect(() => {
     if (initialOrderIdToRate) {
@@ -131,7 +161,7 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
     items: order.items.length,
     total: order.totalAmount,
     deliveredAt: order.deliveredAt || new Date(),
-    rating: clientProfiles[order.clientId]?.rating || 4.5, // Use client's rating or default
+    rating: orderRatings[order.id] ?? null, // Use order-specific rating or null if not rated
     distance: '2.3 km', // Mock distance
     duration: order.estimatedDeliveryTime || 25,
     paymentMethod: order.paymentMethod === 'orange' ? 'Orange Money' : 
@@ -175,7 +205,10 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
   };
 
   const totalEarnings = filteredDeliveries.reduce((sum, delivery) => sum + delivery.total, 0);
-  const averageRating = filteredDeliveries.reduce((sum, delivery) => sum + delivery.rating, 0) / filteredDeliveries.length;
+  const deliveriesWithRatings = filteredDeliveries.filter(delivery => delivery.rating !== null);
+  const averageRating = deliveriesWithRatings.length > 0
+    ? deliveriesWithRatings.reduce((sum, delivery) => sum + (delivery.rating || 0), 0) / deliveriesWithRatings.length
+    : 0;
 
   const handleRateClient = async (order: Order) => {
     if (!order.clientId) {
@@ -369,10 +402,17 @@ Décrivez votre problème en détail...`,
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-lg font-bold text-gray-900">{delivery.clientName}</h3>
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-sm font-semibold">{delivery.rating}</span>
-                      </div>
+                      {delivery.rating !== null ? (
+                        <div className="flex items-center space-x-1">
+                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                          <span className="text-sm font-semibold">{delivery.rating.toFixed(1)}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-1 text-gray-400">
+                          <Star className="h-4 w-4" />
+                          <span className="text-sm">—</span>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
@@ -495,12 +535,20 @@ Décrivez votre problème en détail...`,
                       <span className="text-gray-600">Contact</span>
                       <span className="font-medium">{selectedDelivery.clientEmail || 'Non disponible'}</span>
                     </div>
-                    {selectedDelivery.rating > 0 && (
+                    {selectedDelivery.rating !== null ? (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Note client</span>
+                        <span className="text-gray-600">Note reçue pour cette commande</span>
                         <div className="flex items-center space-x-1">
                           <Star className="h-3 w-3 text-yellow-400 fill-current" />
                           <span className="font-medium">{selectedDelivery.rating.toFixed(1)}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Note reçue pour cette commande</span>
+                        <div className="flex items-center space-x-1 text-gray-400">
+                          <Star className="h-3 w-3" />
+                          <span className="font-medium">Non évalué</span>
                         </div>
                       </div>
                     )}
