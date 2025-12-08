@@ -104,18 +104,18 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
 
   return (
     <>
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Finaliser la commande</h1>
-        <p className="text-gray-600">Vérifiez les détails et confirmez votre commande</p>
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-20 lg:pb-6">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Finaliser la commande</h1>
+        <p className="text-sm sm:text-base text-gray-600">Vérifiez les détails et confirmez votre commande</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Order Details */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Delivery Zone */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 flex items-center">
               <MapPin className="h-5 w-5 mr-2 text-orange-600" />
               Zone de livraison
             </h3>
@@ -126,15 +126,15 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
               error={zoneError}
             />
             <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-sm text-blue-800">
+              <p className="text-xs sm:text-sm text-blue-800">
                 💡 <strong>Important :</strong> Seuls les fournisseurs inscrits dans votre zone pourront voir et accepter votre commande.
               </p>
             </div>
           </div>
 
           {/* Delivery Address */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 flex items-center">
               <MapPin className="h-5 w-5 mr-2 text-orange-600" />
               Adresse de livraison
             </h3>
@@ -142,7 +142,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
               value={deliveryAddress}
               onChange={(e) => setDeliveryAddress(e.target.value)}
               rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
+              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
               placeholder="Entrez votre adresse précise de livraison avec points de repère..."
               required
             />
@@ -150,18 +150,18 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
 
           {/* Crate Return Information */}
           {totalCratesToReturn > 0 && (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 flex items-center">
                 <Archive className="h-5 w-5 mr-2 text-blue-600" />
                 Casiers vides à rendre (interchangeables par type)
               </h3>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-3">
                   {Object.entries(crateSummary).map(([crateType, count]) => (
                     count > 0 && (
-                      <div key={crateType} className="bg-white rounded p-3 text-center">
-                        <div className="text-lg font-bold text-blue-700">{count}</div>
-                        <div className="text-blue-600 text-sm">{crateType}</div>
+                      <div key={crateType} className="bg-white rounded p-2 sm:p-3 text-center">
+                        <div className="text-base sm:text-lg font-bold text-blue-700">{count}</div>
+                        <div className="text-blue-600 text-xs sm:text-sm">{crateType}</div>
                         <div className="text-blue-500 text-xs mt-1">
                           {crateType === 'C24' ? '24×33cl' : 
                            crateType === 'C12' ? '12×66cl' : 
@@ -171,8 +171,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
                     )
                   ))}
                 </div>
-                <div className="bg-white border border-blue-300 rounded-lg p-3">
-                  <p className="text-sm text-blue-800 font-medium mb-2">
+                <div className="bg-white border border-blue-300 rounded-lg p-2 sm:p-3">
+                  <p className="text-xs sm:text-sm text-blue-800 font-medium mb-2">
                     ⚠️ <strong>Total : {totalCratesToReturn} casier(s) vide(s) à rendre obligatoirement</strong>
                   </p>
                   <p className="text-xs text-blue-700">
@@ -185,18 +185,18 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
           )}
 
           {/* Payment Method */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Mode de paiement (après acceptation)</h3>
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4">Mode de paiement (après acceptation)</h3>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
               <div className="flex items-start space-x-2">
-                <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
-                <div className="text-sm text-yellow-800">
+                <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div className="text-xs sm:text-sm text-yellow-800">
                   <p className="font-medium">Paiement différé</p>
                   <p>Le paiement sera demandé uniquement après qu'un fournisseur ait accepté votre commande.</p>
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               {paymentMethods.map((method) => {
                 const MethodIcon = method.icon;
                 return (
@@ -204,16 +204,16 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
                     key={method.value}
                     type="button"
                     onClick={() => setPaymentMethod(method.value)}
-                    className={`p-4 border-2 rounded-lg text-left transition-all flex items-center space-x-3 ${
+                    className={`p-4 border-2 rounded-lg text-left transition-all flex items-center space-x-3 min-h-[56px] ${
                       paymentMethod === method.value
                         ? 'border-orange-500 bg-orange-50'
                         : 'border-gray-200 hover:border-orange-300'
                     }`}
                   >
-                    <MethodIcon className={`h-5 w-5 ${
+                    <MethodIcon className={`h-6 w-6 sm:h-5 sm:w-5 flex-shrink-0 ${
                       paymentMethod === method.value ? 'text-orange-600' : 'text-gray-500'
                     }`} />
-                    <span className={`font-medium ${
+                    <span className={`font-medium text-base ${
                       paymentMethod === method.value ? 'text-orange-700' : 'text-gray-700'
                     }`}>
                       {method.label}
@@ -225,12 +225,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
           </div>
         </div>
 
-        {/* Order Summary */}
-        <div>
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sticky top-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Récapitulatif</h3>
+        {/* Order Summary - Desktop sticky, mobile at bottom */}
+        <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4">Récapitulatif</h3>
             
-            <div className="space-y-3 mb-6">
+            <div className="space-y-2 sm:space-y-3 mb-6 text-sm sm:text-base">
               <div className="flex justify-between text-gray-600">
                 <span>Sous-total produits</span>
                 <span>{formatPrice(subtotal)}</span>
@@ -256,24 +256,42 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 hidden lg:block">
               <button
                 onClick={handleConfirmOrder}
                 disabled={!deliveryZone || !deliveryAddress.trim() || isProcessing}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px]"
               >
                 {isProcessing ? 'Traitement...' : 'Confirmer la commande'}
               </button>
               
               <button
                 onClick={onBack}
-                className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors min-h-[48px]"
               >
                 Retour au panier
               </button>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Mobile fixed bottom buttons */}
+      <div className="fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-gray-200 lg:hidden space-y-2">
+        <button
+          onClick={handleConfirmOrder}
+          disabled={!deliveryZone || !deliveryAddress.trim() || isProcessing}
+          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-base min-h-[48px] shadow-lg"
+        >
+          {isProcessing ? 'Traitement...' : `Confirmer - ${formatPrice(total)}`}
+        </button>
+        
+        <button
+          onClick={onBack}
+          className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors min-h-[48px]"
+        >
+          Retour au panier
+        </button>
       </div>
     </div>
 
