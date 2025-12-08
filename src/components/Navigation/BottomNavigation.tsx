@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, ShoppingBag, ShoppingCart, Package, User } from 'lucide-react';
+import { Home, ShoppingBag, ShoppingCart, Wallet, User } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 
 interface BottomNavigationProps {
@@ -17,7 +17,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
     { id: 'orders', label: 'Accueil', icon: Home },
     { id: 'catalog', label: 'Catalogue', icon: ShoppingBag },
     { id: 'cart', label: 'Panier', icon: ShoppingCart, badge: cart.length },
-    { id: 'orders', label: 'Commandes', icon: Package },
+    { id: 'treasury', label: 'Trésorerie', icon: Wallet },
     { id: 'profile', label: 'Profil', icon: User }
   ];
 
