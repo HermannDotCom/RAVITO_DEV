@@ -14,16 +14,16 @@ export const ProductCatalog: React.FC = () => {
   // Restriction d'accès sécurisée
   if (!accessRestrictions.canAccessCatalog) {
     return (
-      <div className="max-w-4xl mx-auto p-4 sm:p-6">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 sm:p-8 text-center">
-          <div className="h-12 w-12 sm:h-16 sm:w-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Package className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+          <div className="h-16 w-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Package className="h-8 w-8 text-white" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-red-900 mb-4">Accès restreint</h2>
-          <p className="text-sm sm:text-base text-red-800 mb-4">
+          <h2 className="text-2xl font-bold text-red-900 mb-4">Accès restreint</h2>
+          <p className="text-red-800 mb-4">
             {accessRestrictions.restrictionReason}
           </p>
-          <p className="text-xs sm:text-sm text-red-700">
+          <p className="text-sm text-red-700">
             {user?.role === 'client' 
               ? 'Votre demande est en cours d\'examen. Vous recevrez une notification dès l\'approbation.'
               : 'Accès non autorisé au catalogue produits.'
@@ -78,7 +78,7 @@ export const ProductCatalog: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto p-4 sm:p-6">
+      <div className="max-w-6xl mx-auto p-6">
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
         </div>
@@ -136,21 +136,21 @@ export const ProductCatalog: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4 sm:p-6">
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Catalogue Produits</h1>
-        <p className="text-sm sm:text-base text-gray-600">Sélectionnez vos boissons pour la nuit</p>
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Catalogue Produits</h1>
+        <p className="text-gray-600">Sélectionnez vos boissons pour la nuit</p>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value as ProductCategory | 'all')}
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             >
               {categories.map(cat => (
                 <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -163,7 +163,7 @@ export const ProductCatalog: React.FC = () => {
             <select
               value={brandFilter}
               onChange={(e) => setBrandFilter(e.target.value)}
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             >
               <option value="all">Toutes les marques</option>
               {brands.map(brand => (
@@ -174,7 +174,7 @@ export const ProductCatalog: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => {
           const selection = selectedProducts[product.id] || { quantity: 0, withConsigne: false };
           
@@ -184,41 +184,41 @@ export const ProductCatalog: React.FC = () => {
                 <img
                   src={product.imageUrl}
                   alt={product.name}
-                  className="w-full h-40 sm:h-48 object-cover"
+                  className="w-full h-48 object-cover"
                 />
               </div>
               
-              <div className="p-4 sm:p-6">
+              <div className="p-6">
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`px-2 sm:px-3 py-1 text-xs font-semibold rounded-full ${getCategoryColor(product.category)}`}>
+                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getCategoryColor(product.category)}`}>
                       {product.category.toUpperCase()}
                     </span>
                     <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
                       {product.brand}
                     </span>
                   </div>
-                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">{product.name}</h3>
-                  <div className="flex items-center justify-between text-xs sm:text-sm text-gray-600 mb-2">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">{product.name}</h3>
+                  <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
                     <span>{product.reference}</span>
                     <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-medium">
                       {product.crateType}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{product.description}</p>
+                  <p className="text-sm text-gray-600">{product.description}</p>
                 </div>
 
                 <div className="space-y-4">
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm font-medium text-gray-700">Prix du casier</span>
-                      <span className="text-base sm:text-lg font-bold text-orange-600">{formatPrice(product.cratePrice)}</span>
+                      <span className="text-lg font-bold text-orange-600">{formatPrice(product.cratePrice)}</span>
                     </div>
-                    <div className="flex justify-between items-center text-xs sm:text-sm">
+                    <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600">Prix unitaire:</span>
                       <span className="text-gray-900 font-medium">{formatPrice(product.unitPrice)}</span>
                     </div>
-                    <div className="flex justify-between items-center text-xs sm:text-sm">
+                    <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600">Consigne</span>
                       <span className="text-gray-900 font-medium">{formatPrice(product.consignPrice)}</span>
                     </div>
@@ -230,15 +230,15 @@ export const ProductCatalog: React.FC = () => {
                     <div className="flex items-center space-x-3">
                       <button
                         onClick={() => updateQuantity(product.id, -1)}
-                        className="h-10 w-10 sm:h-8 sm:w-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
+                        className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
                         disabled={selection.quantity <= 0}
                       >
                         <Minus className="h-4 w-4 text-gray-600" />
                       </button>
-                      <span className="w-8 text-center font-semibold text-base">{selection.quantity}</span>
+                      <span className="w-8 text-center font-semibold">{selection.quantity}</span>
                       <button
                         onClick={() => updateQuantity(product.id, 1)}
-                        className="h-10 w-10 sm:h-8 sm:w-8 rounded-full bg-orange-100 flex items-center justify-center hover:bg-orange-200 transition-colors min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
+                        className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center hover:bg-orange-200 transition-colors"
                       >
                         <Plus className="h-4 w-4 text-orange-600" />
                       </button>
@@ -248,12 +248,12 @@ export const ProductCatalog: React.FC = () => {
                   {/* Consigne Option */}
                   {selection.quantity > 0 && (
                     <div className="border-t pt-4">
-                      <label className="flex items-start space-x-3 cursor-pointer">
+                      <label className="flex items-center space-x-3 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={selection.withConsigne}
                           onChange={() => toggleConsigne(product.id)}
-                          className="h-5 w-5 sm:h-4 sm:w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded mt-0.5"
+                          className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
                         />
                         <div className="flex-1">
                           <span className="text-sm font-medium text-gray-900">Avec consigne</span>
@@ -275,7 +275,7 @@ export const ProductCatalog: React.FC = () => {
                   <button
                     onClick={() => handleAddToCart(product)}
                     disabled={selection.quantity === 0}
-                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2 min-h-[44px] text-base"
+                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
                   >
                     <ShoppingCart className="h-4 w-4" />
                     <span>Ajouter au panier</span>
