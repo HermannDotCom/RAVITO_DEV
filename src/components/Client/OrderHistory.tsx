@@ -81,11 +81,8 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
     loadSupplierProfiles();
   }, [allOrders, user]);
 
-  // Memoize order IDs to prevent unnecessary re-renders when only the array reference changes
-  const orderIds = useMemo(() => {
-    const ids = allUserOrders.map(o => o.id).sort();
-    return ids;
-  }, [allUserOrders.map(o => o.id).join(',')]);
+  // Memoize order IDs to prevent unnecessary re-renders
+  const orderIds = useMemo(() => allUserOrders.map(o => o.id), [allUserOrders]);
 
   // Load order-specific ratings where the client is the recipient
   useEffect(() => {

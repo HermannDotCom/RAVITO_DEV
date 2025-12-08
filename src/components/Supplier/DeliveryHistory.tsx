@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Calendar, Package, Star, MapPin, Clock, Filter, Search, X, Navigation, Archive, CheckCircle, MessageSquare } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
 import { useRating } from '../../context/RatingContext';
@@ -61,10 +61,13 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryRecord | null>(null);
   const [orderRatings, setOrderRatings] = useState<Record<string, number | null>>({});
 
-  // Filter completed deliveries for current supplier
-  const supplierCompletedDeliveries = allOrders.filter(order => 
-    order.status === 'delivered' && 
-    order.supplierId === user?.id
+  // Memoize completed deliveries to prevent unnecessary re-renders
+  const supplierCompletedDeliveries = useMemo(() => 
+    allOrders.filter(order => 
+      order.status === 'delivered' && 
+      order.supplierId === user?.id
+    ),
+    [allOrders, user?.id]
   );
 
   // Load client profiles and order ratings ONLY for paid deliveries (respects anonymity rules)
