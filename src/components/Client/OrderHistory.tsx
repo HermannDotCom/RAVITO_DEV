@@ -81,36 +81,6 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
     loadSupplierProfiles();
   }, [allOrders, user]);
 
-  // Memoize order IDs to prevent unnecessary re-renders
-  const orderIds = useMemo(() => allUserOrders.map(o => o.id), [allUserOrders]);
-
-  // Load order-specific ratings where the client is the recipient
-  useEffect(() => {
-    const loadOrderRatings = async () => {
-      if (!user || orderIds.length === 0) return;
-
-      // Fetch ratings where the client is the recipient (to_user_id)
-      const { data, error } = await supabase
-        .from('ratings')
-        .select('order_id, overall')
-        .in('order_id', orderIds)
-        .eq('to_user_id', user.id);
-
-      if (error) {
-        console.error('Error loading order ratings:', error);
-        return;
-      }
-
-      const ratingsMap: Record<string, number | null> = {};
-      data?.forEach(r => {
-        ratingsMap[r.order_id] = r.overall;
-      });
-      setOrderRatings(ratingsMap);
-    };
-
-    loadOrderRatings();
-  }, [orderIds, user]);
-
   // Synchroniser les commandes sélectionnées avec les mises à jour du contexte
   useEffect(() => {
     if (selectedOrder) {
@@ -177,9 +147,39 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
   );
 
   // Combiner la commande en cours avec l'historique
-  const allUserOrders = clientCurrentOrder 
-    ? [clientCurrentOrder, ...userOrders] 
+  const allUserOrders = clientCurrentOrder
+    ? [clientCurrentOrder, ...userOrders]
     : userOrders;
+
+  // Memoize order IDs to prevent unnecessary re-renders
+  const orderIds = useMemo(() => allUserOrders.map(o => o.id), [allUserOrders]);
+
+  // Load order-specific ratings where the client is the recipient
+  useEffect(() => {
+    const loadOrderRatings = async () => {
+      if (!user || orderIds.length === 0) return;
+
+      // Fetch ratings where the client is the recipient (to_user_id)
+      const { data, error } = await supabase
+        .from('ratings')
+        .select('order_id, overall')
+        .in('order_id', orderIds)
+        .eq('to_user_id', user.id);
+
+      if (error) {
+        console.error('Error loading order ratings:', error);
+        return;
+      }
+
+      const ratingsMap: Record<string, number | null> = {};
+      data?.forEach(r => {
+        ratingsMap[r.order_id] = r.overall;
+      });
+      setOrderRatings(ratingsMap);
+    };
+
+    loadOrderRatings();
+  }, [orderIds, user]);
 
   // Appliquer les filtres
   const filteredOrders = allUserOrders.filter(order => {
