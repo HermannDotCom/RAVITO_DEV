@@ -287,43 +287,45 @@ const AppContent: React.FC = () => {
         />
       )}
       
-	      <SkipLink />
-	      <Header
-	        onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-	        title={showRating ? 'Évaluation' : undefined}
-	        onCartClick={() => setActiveSection('cart')}
-	      />
-	
-	      <div className="flex-1 flex">
-	        <Sidebar
-	          activeSection={activeSection}
-	          onSectionChange={setActiveSection}
-	        />
-	
-	        <main id="main-content" className={`flex-1 pt-16 lg:pl-64 ${sessionError ? 'sm:pt-14' : ''}`}>
-	          {renderMainContent()}
-	        </main>
-	      </div>
-	      
-	      {/* Connection Status Indicator */}
-	      <ConnectionStatusIndicator />
-	      
-	      {/* Notification Permission Prompt */}
-	      <NotificationPermissionPrompt />
-	
-	      {/* Rating Reminder for pending ratings */}
-	      {user && (user.role === 'client' || user.role === 'supplier') && pendingOrders.length > 0 && (
-	        <RatingReminder
-	          pendingOrders={pendingOrders}
-	          onRateOrder={handleRateFromReminder}
-	          userRole={user.role as 'client' | 'supplier'}
-	        />
-	      )}
-	    </div>
-	  );
-	};
-	
-	function App() {
+      <SkipLink />
+      <Header
+        onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+        title={showRating ? 'Évaluation' : undefined}
+        onCartClick={() => setActiveSection('cart')}
+      />
+
+      <div className="flex">
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+        />
+
+        <main id="main-content" className={`flex-1 pt-16 lg:pl-64 ${sessionError ? 'sm:pt-14' : ''}`}>
+          {renderMainContent()}
+        </main>
+      </div>
+      
+      {/* Connection Status Indicator */}
+      <ConnectionStatusIndicator />
+      
+      {/* Notification Permission Prompt */}
+      <NotificationPermissionPrompt />
+
+      {/* Rating Reminder for pending ratings */}
+      {user && (user.role === 'client' || user.role === 'supplier') && pendingOrders.length > 0 && (
+        <RatingReminder
+          pendingOrders={pendingOrders}
+          onRateOrder={handleRateFromReminder}
+          userRole={user.role as 'client' | 'supplier'}
+        />
+      )}
+    </div>
+  );
+};
+
+function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
