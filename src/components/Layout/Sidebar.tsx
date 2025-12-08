@@ -110,12 +110,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         <div
           className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-30"
           onClick={onClose}
+          aria-label="Fermer le menu"
         />
       )}
 
       {/* Sidebar */}
       <div className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:top-16
+        fixed lg:static inset-y-0 left-0 z-50 w-full sm:w-80 lg:w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="flex flex-col h-full lg:h-[calc(100vh-4rem)]">
@@ -139,15 +140,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
                     onClose();
                   }}
                   className={`
-                    w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors
+                    w-full flex items-center px-4 py-3 min-h-[48px] text-left rounded-lg transition-colors
                     ${activeSection === item.id
                       ? 'bg-orange-50 text-orange-700 border-l-4 border-orange-500'
                       : 'text-gray-700 hover:bg-gray-50 hover:text-orange-600'
                     }
                   `}
                 >
-                  <Icon className="h-5 w-5 mr-3" />
-                  <span className="font-medium">{item.label}</span>
+                  <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                  <span className="font-medium text-base">{item.label}</span>
                 </button>
               );
             })}
@@ -161,8 +162,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
                     {((user as any)?.businessName || user.name).charAt(0)}
                   </span>
                 </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900">
+                <div className="ml-3 flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
                     {(user as any)?.businessName || user.name}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">{user.role}</p>
