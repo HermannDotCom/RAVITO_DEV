@@ -100,7 +100,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
         return;
       }
 
-      const ratingsMap: Record<string, number> = {};
+      const ratingsMap: Record<string, number | null> = {};
       data?.forEach(r => {
         ratingsMap[r.order_id] = r.overall;
       });
@@ -1061,7 +1061,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                           )}
                           {order.status === 'delivered' && (() => {
                             const rating = orderRatings[order.id];
-                            return rating !== undefined && rating !== null ? (
+                            return rating !== null && rating !== undefined ? (
                               <div className="flex items-center space-x-1">
                                 <Star className="h-4 w-4 text-yellow-400 fill-current" />
                                 <span className="text-sm font-semibold">{rating.toFixed(1)}</span>

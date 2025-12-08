@@ -120,7 +120,7 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
         return;
       }
 
-      const ratingsMap: Record<string, number> = {};
+      const ratingsMap: Record<string, number | null> = {};
       data?.forEach(r => {
         ratingsMap[r.order_id] = r.overall;
       });
@@ -207,7 +207,7 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
   const totalEarnings = filteredDeliveries.reduce((sum, delivery) => sum + delivery.total, 0);
   const deliveriesWithRatings = filteredDeliveries.filter(delivery => delivery.rating !== null);
   const averageRating = deliveriesWithRatings.length > 0
-    ? deliveriesWithRatings.reduce((sum, delivery) => sum + (delivery.rating || 0), 0) / deliveriesWithRatings.length
+    ? deliveriesWithRatings.reduce((sum, delivery) => sum + delivery.rating!, 0) / deliveriesWithRatings.length
     : 0;
 
   const handleRateClient = async (order: Order) => {
