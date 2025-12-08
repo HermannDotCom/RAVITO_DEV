@@ -400,34 +400,35 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
     }, 0);
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-8">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-0 sm:p-4 z-50">
+        <div className="bg-white h-full w-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl sm:max-w-4xl overflow-y-auto">
+          <div className="p-4 sm:p-8">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center space-x-4">
-                <div className={`h-16 w-16 rounded-full flex items-center justify-center bg-gradient-to-br from-${statusInfo.textColor.split('-')[1]}-400 to-${statusInfo.textColor.split('-')[1]}-500`}>
-                  <StatusIcon className="h-8 w-8 text-white" />
+            <div className="flex items-start sm:items-center justify-between mb-6 sm:mb-8">
+              <div className="flex items-start sm:items-center space-x-3 sm:space-x-4">
+                <div className={`h-12 w-12 sm:h-16 sm:w-16 rounded-full flex items-center justify-center bg-gradient-to-br from-${statusInfo.textColor.split('-')[1]}-400 to-${statusInfo.textColor.split('-')[1]}-500`}>
+                  <StatusIcon className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Commande #{order.id}</h2>
-                  <div className="flex items-center space-x-3">
-                    <span className={`px-3 py-1 text-sm font-semibold rounded-full ${statusInfo.color}`}>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Commande #{order.id}</h2>
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <span className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-full ${statusInfo.color}`}>
                       {statusInfo.label}
                     </span>
-                    <span className="text-gray-600">{formatDate(order.createdAt)}</span>
+                    <span className="text-sm sm:text-base text-gray-600">{formatDate(order.createdAt)}</span>
                   </div>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+                aria-label="Fermer"
               >
                 <XCircle className="h-6 w-6" />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
               {/* Order Information */}
               <div className="space-y-6">
                 {/* Order Status */}
@@ -743,61 +744,61 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
 
   return (
     <>
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Historique des Commandes</h1>
-          <p className="text-gray-600">Consultez l'historique complet de vos commandes et leur statut</p>
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 pb-20 lg:pb-6">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Historique des Commandes</h1>
+          <p className="text-sm sm:text-base text-gray-600">Consultez l'historique complet de vos commandes et leur statut</p>
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Total commandes</p>
-                <p className="text-2xl font-bold text-gray-900">{totalOrders}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between">
+              <div className="mb-2 sm:mb-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Total commandes</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{totalOrders}</p>
               </div>
-              <Package className="h-8 w-8 text-blue-600" />
+              <Package className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Livrées</p>
-                <p className="text-2xl font-bold text-green-600">{completedOrders}</p>
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between">
+              <div className="mb-2 sm:mb-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Livrées</p>
+                <p className="text-xl sm:text-2xl font-bold text-green-600">{completedOrders}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Annulées</p>
-                <p className="text-2xl font-bold text-red-600">{cancelledOrders}</p>
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between">
+              <div className="mb-2 sm:mb-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Annulées</p>
+                <p className="text-xl sm:text-2xl font-bold text-red-600">{cancelledOrders}</p>
               </div>
-              <XCircle className="h-8 w-8 text-red-600" />
+              <XCircle className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Total dépensé</p>
-                <p className="text-xl font-bold text-gray-900">{formatPrice(totalSpent)}</p>
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between">
+              <div className="mb-2 sm:mb-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Total dépensé</p>
+                <p className="text-base sm:text-xl font-bold text-gray-900">{formatPrice(totalSpent)}</p>
               </div>
-              <Calendar className="h-8 w-8 text-purple-600" />
+              <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600" />
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Panier moyen</p>
-                <p className="text-xl font-bold text-gray-900">{formatPrice(averageOrderValue)}</p>
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between">
+              <div className="mb-2 sm:mb-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Panier moyen</p>
+                <p className="text-base sm:text-xl font-bold text-gray-900">{formatPrice(averageOrderValue)}</p>
               </div>
-              <Star className="h-8 w-8 text-yellow-600" />
+              <Star className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-600" />
             </div>
           </div>
         </div>
@@ -805,18 +806,18 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
         {/* Current Order Alert */}
         {clientCurrentOrder && (
           <div className="mb-6">
-            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <Clock className="h-8 w-8 text-orange-600" />
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600 flex-shrink-0" />
                   <div>
-                    <h3 className="text-lg font-bold text-orange-900">Commande en cours</h3>
-                    <p className="text-orange-700">Commande #{clientCurrentOrder.id} - {getStatusInfo(clientCurrentOrder.status).label}</p>
+                    <h3 className="text-base sm:text-lg font-bold text-orange-900">Commande en cours</h3>
+                    <p className="text-sm sm:text-base text-orange-700">Commande #{clientCurrentOrder.id} - {getStatusInfo(clientCurrentOrder.status).label}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => onNavigate('tracking')}
-                  className="bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+                  className="w-full sm:w-auto bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors min-h-[44px]"
                 >
                   Suivre
                 </button>
@@ -826,7 +827,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
         )}
 
         {/* Quick Actions, Personal Stats, and Frequent Suppliers */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Actions rapides</h3>
             <div className="space-y-3">
@@ -944,8 +945,8 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
               <input
@@ -953,7 +954,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Rechercher par ID ou adresse..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="w-full pl-10 pr-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
             </div>
             
@@ -962,7 +963,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as OrderStatus | 'all')}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none"
+                className="w-full pl-10 pr-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none"
               >
                 <option value="all">Tous les statuts</option>
                 <option value="pending">En attente</option>
@@ -984,7 +985,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
               <select
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value as 'all' | 'today' | 'week' | 'month')}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none"
+                className="w-full pl-10 pr-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none"
               >
                 <option value="all">Toutes les dates</option>
                 <option value="today">Aujourd'hui</option>
@@ -1016,12 +1017,12 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                 const StatusIcon = statusInfo.icon;
 
                 return (
-                  <div key={order.id} className="p-6 hover:bg-gray-50 transition-colors">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                  <div key={order.id} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
+                    <div className="flex flex-col space-y-4">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <h3 className="text-lg font-bold text-gray-900">#{order.id}</h3>
-                          <span className={`px-3 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                          <h3 className="text-base sm:text-lg font-bold text-gray-900">#{order.id}</h3>
+                          <span className={`px-2 sm:px-3 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
                             {statusInfo.label}
                           </span>
                           {order === clientCurrentOrder && (
@@ -1037,28 +1038,28 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                           )}
                         </div>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-3">
                           <div className="flex items-center space-x-2">
-                            <MapPin className="h-4 w-4 text-gray-400" />
-                            <span>{order.deliveryAddress.split(',')[0]}</span>
+                            <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            <span className="truncate">{order.deliveryAddress.split(',')[0]}</span>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <Package className="h-4 w-4 text-gray-400" />
+                            <Package className="h-4 w-4 text-gray-400 flex-shrink-0" />
                             <span>{order.items.length} article(s)</span>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <Clock className="h-4 w-4 text-gray-400" />
+                            <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
                             <span>{formatDateShort(order.createdAt)}</span>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <CreditCard className="h-4 w-4 text-gray-400" />
-                            <span>{getPaymentMethodLabel(order.paymentMethod)}</span>
+                            <CreditCard className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            <span className="truncate">{getPaymentMethodLabel(order.paymentMethod)}</span>
                           </div>
                         </div>
 
                         {/* Order Items Summary */}
                         <div className="mb-3">
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap gap-1 sm:gap-2">
                             {order.items.map((item, index) => (
                               <span key={index} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
                                 {item.quantity}x {item.product.name} ({item.product.crateType})
@@ -1068,32 +1069,32 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                           </div>
                         </div>
 
-                        <div className="flex items-center space-x-6">
-                          <span className="text-xl font-bold text-gray-900">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-6">
+                          <span className="text-lg sm:text-xl font-bold text-gray-900">
                             {formatPrice(order.totalAmount)}
                           </span>
                           {order.consigneTotal > 0 && (
-                            <span className="text-sm text-orange-600 font-medium">
+                            <span className="text-xs sm:text-sm text-orange-600 font-medium">
                               Consigne: {formatPrice(order.consigneTotal)}
                             </span>
                           )}
                           {order.supplierId && isSupplierRevealed(order.status) && (
-                            <span className="text-sm text-gray-500">
+                            <span className="text-xs sm:text-sm text-gray-500 truncate">
                               par {getSupplierName(order.supplierId)}
                             </span>
                           )}
                           {order.deliveredAt && (
-                            <span className="text-sm text-green-600 font-medium">
+                            <span className="text-xs sm:text-sm text-green-600 font-medium">
                               Livrée le {formatDate(order.deliveredAt)}
                             </span>
                           )}
                         </div>
                       </div>
 
-                      <div className="flex space-x-2">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => handleViewDetails(order)}
-                          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                          className="flex-1 sm:flex-none px-4 py-2.5 min-h-[44px] border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
                         >
                           <Eye className="h-4 w-4" />
                           <span>Détails</span>
@@ -1105,24 +1106,24 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                               setOrderForPayment(order);
                               setShowPaymentModal(true);
                             }}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                            className="flex-1 sm:flex-none px-4 py-2.5 min-h-[44px] bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
                           >
                             <CreditCard className="h-4 w-4" />
-                            <span>Payer maintenant</span>
+                            <span>Payer</span>
                           </button>
                         )}
 
                         {order === clientCurrentOrder && (
                           <button 
                             onClick={() => onNavigate('tracking')}
-                            className="px-4 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors"
+                            className="flex-1 sm:flex-none px-4 py-2.5 min-h-[44px] bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors"
                           >
                             Suivre
                           </button>
                         )}
                         
                         {order.status === 'delivered' && (
-                          <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center space-x-2">
+                          <button className="flex-1 sm:flex-none px-4 py-2.5 min-h-[44px] bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center space-x-2">
                             <Download className="h-4 w-4" />
                             <span>Reçu</span>
                           </button>
@@ -1135,7 +1136,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                             return (
                               <button
                                 onClick={() => handleRateSupplier(order)}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                                className="flex-1 sm:flex-none px-4 py-2.5 min-h-[44px] bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
                               >
                                 <Star className="h-4 w-4" />
                                 <span>Évaluer</span>
@@ -1144,7 +1145,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                           }
 
                           return (
-                            <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center space-x-2">
+                            <button className="flex-1 sm:flex-none px-4 py-2.5 min-h-[44px] bg-green-600 text-white rounded-lg font-medium flex items-center justify-center space-x-2">
                               <CheckCircle className="h-4 w-4" />
                               <span>Évalué</span>
                             </button>
@@ -1154,7 +1155,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                         {(order.status === 'pending' || order.status === 'accepted') && order !== clientCurrentOrder && (
                           <button 
                             onClick={() => handleCancelOrder(order.id)}
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                            className="flex-1 sm:flex-none px-4 py-2.5 min-h-[44px] bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
                           >
                             Annuler
                           </button>
