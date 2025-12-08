@@ -67,67 +67,58 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
     order.supplierId === user?.id
   );
 
-  // Load client profiles ONLY for paid deliveries (respects anonymity rules)
+  // Load client profiles and order ratings ONLY for paid deliveries (respects anonymity rules)
   useEffect(() => {
-    const loadClientProfiles = async () => {
+    const loadClientProfilesAndRatings = async () => {
       if (!user) return;
 
-      // Use the new function that filters by payment status
-      const { data: profiles, error } = await supabase
+      // Load client profiles
+      const { data: profiles, error: profilesError } = await supabase
         .rpc('get_client_profiles_for_supplier', { supplier_user_id: user.id });
 
-      if (error) {
-        console.error('Error loading client profiles:', error);
-        return;
+      if (profilesError) {
+        console.error('Error loading client profiles:', profilesError);
+      } else {
+        const profilesMap: Record<string, ClientProfile> = {};
+
+        if (profiles) {
+          for (const profile of profiles) {
+            profilesMap[profile.id] = {
+              id: profile.id,
+              name: profile.name,
+              business_name: profile.business_name,
+              phone: profile.phone,
+              rating: profile.rating
+            };
+          }
+        }
+
+        setClientProfiles(profilesMap);
       }
 
-      const profilesMap: Record<string, ClientProfile> = {};
+      // Load order-specific ratings where the supplier is the recipient
+      if (supplierCompletedDeliveries.length > 0) {
+        const orderIds = supplierCompletedDeliveries.map(o => o.id);
 
-      if (profiles) {
-        for (const profile of profiles) {
-          profilesMap[profile.id] = {
-            id: profile.id,
-            name: profile.name,
-            business_name: profile.business_name,
-            phone: profile.phone,
-            rating: profile.rating
-          };
+        const { data, error } = await supabase
+          .from('ratings')
+          .select('order_id, overall')
+          .in('order_id', orderIds)
+          .eq('to_user_id', user.id);
+
+        if (error) {
+          console.error('Error loading order ratings:', error);
+        } else {
+          const ratingsMap: Record<string, number | null> = {};
+          data?.forEach(r => {
+            ratingsMap[r.order_id] = r.overall;
+          });
+          setOrderRatings(ratingsMap);
         }
       }
-
-      setClientProfiles(profilesMap);
     };
 
-    loadClientProfiles();
-  }, [supplierCompletedDeliveries, user]);
-
-  // Load order-specific ratings where the supplier is the recipient
-  useEffect(() => {
-    const loadOrderRatings = async () => {
-      if (!user || supplierCompletedDeliveries.length === 0) return;
-
-      const orderIds = supplierCompletedDeliveries.map(o => o.id);
-
-      // Fetch ratings where the supplier is the recipient (to_user_id)
-      const { data, error } = await supabase
-        .from('ratings')
-        .select('order_id, overall')
-        .in('order_id', orderIds)
-        .eq('to_user_id', user.id);
-
-      if (error) {
-        console.error('Error loading order ratings:', error);
-        return;
-      }
-
-      const ratingsMap: Record<string, number | null> = {};
-      data?.forEach(r => {
-        ratingsMap[r.order_id] = r.overall;
-      });
-      setOrderRatings(ratingsMap);
-    };
-
-    loadOrderRatings();
+    loadClientProfilesAndRatings();
   }, [supplierCompletedDeliveries, user]);
 
   // Auto-open rating modal when initialOrderIdToRate is provided
@@ -535,23 +526,20 @@ Décrivez votre problème en détail...`,
                       <span className="text-gray-600">Contact</span>
                       <span className="font-medium">{selectedDelivery.clientEmail || 'Non disponible'}</span>
                     </div>
-                    {selectedDelivery.rating !== null ? (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Note reçue pour cette commande</span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Note reçue pour cette commande</span>
+                      {selectedDelivery.rating !== null ? (
                         <div className="flex items-center space-x-1">
                           <Star className="h-3 w-3 text-yellow-400 fill-current" />
                           <span className="font-medium">{selectedDelivery.rating.toFixed(1)}</span>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Note reçue pour cette commande</span>
+                      ) : (
                         <div className="flex items-center space-x-1 text-gray-400">
                           <Star className="h-3 w-3" />
                           <span className="font-medium">Non évalué</span>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
 

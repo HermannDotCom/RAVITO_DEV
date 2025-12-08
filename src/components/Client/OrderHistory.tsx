@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Package, Clock, Star, MapPin, Filter, Search, CheckCircle, XCircle, Truck, Calendar, Eye, Download, Phone, Archive, CreditCard } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -81,12 +81,13 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
     loadSupplierProfiles();
   }, [allOrders, user]);
 
+  // Memoize order IDs to prevent unnecessary re-renders
+  const orderIds = useMemo(() => allUserOrders.map(o => o.id), [allUserOrders.length]);
+
   // Load order-specific ratings where the client is the recipient
   useEffect(() => {
     const loadOrderRatings = async () => {
-      if (!user || allUserOrders.length === 0) return;
-
-      const orderIds = allUserOrders.map(o => o.id);
+      if (!user || orderIds.length === 0) return;
 
       // Fetch ratings where the client is the recipient (to_user_id)
       const { data, error } = await supabase
@@ -108,7 +109,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
     };
 
     loadOrderRatings();
-  }, [allUserOrders, user]);
+  }, [orderIds, user]);
 
   // Synchroniser les commandes sélectionnées avec les mises à jour du contexte
   useEffect(() => {
