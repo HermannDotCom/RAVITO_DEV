@@ -174,7 +174,7 @@ export const ProductCatalog: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {products.map((product) => {
           const selection = selectedProducts[product.id] || { quantity: 0, withConsigne: false };
           
@@ -184,7 +184,7 @@ export const ProductCatalog: React.FC = () => {
                 <img
                   src={product.imageUrl}
                   alt={product.name}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-48 lg:h-48 object-cover"
                 />
               </div>
               
@@ -230,7 +230,7 @@ export const ProductCatalog: React.FC = () => {
                     <div className="flex items-center space-x-3">
                       <button
                         onClick={() => updateQuantity(product.id, -1)}
-                        className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                        className="h-10 w-10 lg:h-8 lg:w-8 min-h-[44px] lg:min-h-0 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
                         disabled={selection.quantity <= 0}
                       >
                         <Minus className="h-4 w-4 text-gray-600" />
@@ -238,7 +238,7 @@ export const ProductCatalog: React.FC = () => {
                       <span className="w-8 text-center font-semibold">{selection.quantity}</span>
                       <button
                         onClick={() => updateQuantity(product.id, 1)}
-                        className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center hover:bg-orange-200 transition-colors"
+                        className="h-10 w-10 lg:h-8 lg:w-8 min-h-[44px] lg:min-h-0 rounded-full bg-orange-100 flex items-center justify-center hover:bg-orange-200 transition-colors"
                       >
                         <Plus className="h-4 w-4 text-orange-600" />
                       </button>
@@ -275,7 +275,7 @@ export const ProductCatalog: React.FC = () => {
                   <button
                     onClick={() => handleAddToCart(product)}
                     disabled={selection.quantity === 0}
-                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
+                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 min-h-[44px] rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
                   >
                     <ShoppingCart className="h-4 w-4" />
                     <span>Ajouter au panier</span>

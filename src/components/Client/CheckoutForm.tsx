@@ -142,7 +142,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
               value={deliveryAddress}
               onChange={(e) => setDeliveryAddress(e.target.value)}
               rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none text-base"
               placeholder="Entrez votre adresse précise de livraison avec points de repère..."
               required
             />
@@ -204,7 +204,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
                     key={method.value}
                     type="button"
                     onClick={() => setPaymentMethod(method.value)}
-                    className={`p-4 border-2 rounded-lg text-left transition-all flex items-center space-x-3 ${
+                    className={`p-4 min-h-[44px] border-2 rounded-lg text-left transition-all flex items-center space-x-3 ${
                       paymentMethod === method.value
                         ? 'border-orange-500 bg-orange-50'
                         : 'border-gray-200 hover:border-orange-300'
@@ -260,14 +260,14 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
               <button
                 onClick={handleConfirmOrder}
                 disabled={!deliveryZone || !deliveryAddress.trim() || isProcessing}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 min-h-[44px] rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {isProcessing ? 'Traitement...' : 'Confirmer la commande'}
               </button>
               
               <button
                 onClick={onBack}
-                className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                className="w-full border border-gray-300 text-gray-700 py-3 min-h-[44px] rounded-lg font-semibold hover:bg-gray-50 transition-colors"
               >
                 Retour au panier
               </button>

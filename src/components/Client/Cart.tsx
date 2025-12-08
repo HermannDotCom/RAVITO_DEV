@@ -124,14 +124,14 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => updateCartItem(item.product.id, Math.max(1, item.quantity - 1))}
-                          className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                          className="h-11 w-11 lg:h-8 lg:w-8 min-h-[44px] min-w-[44px] lg:min-h-0 lg:min-w-0 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
                         >
                           -
                         </button>
                         <span className="w-8 text-center font-semibold">{item.quantity}</span>
                         <button
                           onClick={() => updateCartItem(item.product.id, item.quantity + 1)}
-                          className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center hover:bg-orange-200 transition-colors"
+                          className="h-11 w-11 lg:h-8 lg:w-8 min-h-[44px] min-w-[44px] lg:min-h-0 lg:min-w-0 rounded-full bg-orange-100 flex items-center justify-center hover:bg-orange-200 transition-colors"
                         >
                           +
                         </button>
@@ -248,7 +248,7 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
 
           <button
             onClick={onCheckout}
-            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all text-lg"
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 min-h-[44px] rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all text-lg"
           >
             Confirmer la commande
           </button>

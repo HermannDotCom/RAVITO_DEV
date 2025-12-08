@@ -74,6 +74,7 @@ import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusI
 import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
 import { RatingReminder } from './components/Shared/RatingReminder';
 import { SessionErrorBanner } from './components/Shared/SessionErrorBanner';
+import { BottomNavigation } from './components/Navigation/BottomNavigation';
 // MVP: Premium tier dashboard disabled - Uncomment to reactivate post-MVP
 // import { PremiumTierDashboard } from './components/Supplier/PremiumTierDashboard';
 // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
@@ -302,10 +303,18 @@ const AppContent: React.FC = () => {
           onSectionChange={setActiveSection}
         />
 
-        <main id="main-content" className={`flex-1 pt-16 lg:pl-64 ${sessionError ? 'sm:pt-14' : ''}`}>
+        <main id="main-content" className={`flex-1 pt-16 lg:pl-64 pb-20 lg:pb-0 ${sessionError ? 'sm:pt-14' : ''}`}>
           {renderMainContent()}
         </main>
       </div>
+      
+      {/* Bottom Navigation - Mobile Only - Client Role Only */}
+      {user?.role === 'client' && (
+        <BottomNavigation
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+        />
+      )}
       
       {/* Connection Status Indicator */}
       <ConnectionStatusIndicator />
