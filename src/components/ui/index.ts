@@ -22,6 +22,11 @@ export type { EmptyStateProps } from './EmptyState';
 export { Avatar } from './Avatar';
 export type { AvatarProps } from './Avatar';
 
+export { FloatingActionButton } from './FloatingActionButton';
+export type { FloatingActionButtonProps } from './FloatingActionButton';
+
+export { MoreMenu } from './MoreMenu';
+export type { MoreMenuProps } from './MoreMenu';
 export { PageHeader } from './PageHeader';
 export type { PageHeaderProps } from './PageHeader';
 
