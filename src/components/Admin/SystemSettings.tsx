@@ -5,10 +5,10 @@ import { Settings, Bell, CreditCard, Package, Clock, Shield, Save, AlertTriangle
 export const SystemSettings: React.FC = () => {
   const [settings, setSettings] = useState({
     // General Settings
-    platformName: 'DISTRI-NIGHT',
-    supportEmail: 'support@distri-night.ci',
+    platformName: 'RAVITO',
+    supportEmail: 'support@ravito.ci',
     supportPhone: '+225 27 20 30 40 50',
-    operatingHours: '18h00 - 06h00',
+    operatingHours: '24h/24',
     
     // Order Settings
     maxDeliveryDistance: 15, // km
@@ -104,7 +104,7 @@ export const SystemSettings: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Paramètres Système</h1>
-            <p className="text-gray-600">Configuration globale de la plateforme DISTRI-NIGHT</p>
+            <p className="text-gray-600">Configuration globale de la plateforme RAVITO</p>
           </div>
           
           {hasChanges && (
@@ -276,7 +276,7 @@ export const SystemSettings: React.FC = () => {
                     <span>100.000 FCFA</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Frais DISTRI-NIGHT ({settings.clientCommission}%) :</span>
+                    <span>Frais RAVITO ({settings.clientCommission}%) :</span>
                     <span>+{formatPrice(100000 * (settings.clientCommission / 100))}</span>
                   </div>
                   <div className="flex justify-between font-semibold border-t pt-1 mt-1">
@@ -294,7 +294,7 @@ export const SystemSettings: React.FC = () => {
                     <span>100.000 FCFA</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Commission DISTRI-NIGHT ({settings.supplierCommission}%) :</span>
+                    <span>Commission RAVITO ({settings.supplierCommission}%) :</span>
                     <span>-{formatPrice(100000 * (settings.supplierCommission / 100))}</span>
                   </div>
                   <div className="flex justify-between font-semibold border-t pt-1 mt-1">

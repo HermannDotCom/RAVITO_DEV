@@ -1,7 +1,7 @@
 /**
  * Subscription Plans Configuration
  * 
- * Defines the 4 subscription plans available in DISTRI-NIGHT:
+ * Defines the 4 subscription plans available in RAVITO:
  * FREE, SILVER, GOLD, PLATINUM
  */
 
