@@ -14,6 +14,7 @@ import { BillingHistory } from '../../components/Subscription/BillingHistory';
 import { SubscribeModal } from '../../components/Subscription/SubscribeModal';
 import { SUBSCRIPTION_PLANS, formatPrice } from '../../config/subscriptionPlans';
 import type { PlanType, Invoice, PaymentMethod, Subscription } from '../../types';
+import { KenteLoader } from '../../components/ui/KenteLoader';
 
 // Date calculation constants
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -164,10 +165,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ onNavigate }
     return (
       <div className="max-w-7xl mx-auto p-6">
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin h-12 w-12 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-gray-600">Chargement de votre abonnement...</p>
-          </div>
+          <KenteLoader size="md" text="Chargement de votre abonnement..." />
         </div>
       </div>
     );
