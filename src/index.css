@@ -143,4 +143,14 @@
   .animate-fade-in {
     animation: fade-in 0.3s ease-out forwards;
   }
+
+  /* Hide scrollbar for horizontal scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

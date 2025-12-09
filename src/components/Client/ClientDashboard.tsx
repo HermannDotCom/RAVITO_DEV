@@ -1,8 +1,17 @@
 import React from 'react';
-import { ShoppingCart, Package, Clock, TrendingUp, Star } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { useCart } from '../../context/CartContext';
 import { useOrder } from '../../context/OrderContext';
+import {
+  WelcomeHeader,
+  QuickOrderCard,
+  ActiveOrderCard,
+  PopularProductsCarousel,
+  MonthlyStats,
+  RecentOrdersList,
+} from './Dashboard';
+import { Product } from '../../types';
 
 interface ClientDashboardProps {
   onNavigate: (section: string) => void;
@@ -10,10 +19,14 @@ interface ClientDashboardProps {
 
 export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
-  const { cart } = useCart();
+  const { cart, addToCart } = useCart();
   const { clientCurrentOrder } = useOrder();
 
   const accessRestrictions = getAccessRestrictions();
+
+  const handleAddToCart = (product: Product) => {
+    addToCart(product, 1, false);
+  };
 
   // Vérification sécurisée de l'accès
   if (!accessRestrictions.canPlaceOrders) {
@@ -47,173 +60,38 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) 
     );
   }
 
-  const stats = [
-    {
-      label: 'Articles dans le panier',
-      value: cart.length,
-      icon: ShoppingCart,
-      color: 'orange',
-      action: () => onNavigate('cart')
-    },
-    {
-      label: 'Commandes totales',
-      value: user?.totalOrders || 0,
-      icon: Package,
-      color: 'blue'
-    },
-    {
-      label: 'Note moyenne',
-      value: user?.rating || 5,
-      icon: Star,
-      color: 'yellow'
-    },
-    {
-      label: 'En cours',
-      value: clientCurrentOrder ? 1 : 0,
-      icon: Clock,
-      color: 'green',
-      action: clientCurrentOrder ? () => onNavigate('tracking') : undefined
-    }
-  ];
-
-  const quickActions = [
-    {
-      title: 'Nouvelle commande',
-      description: 'Parcourez notre catalogue',
-      icon: Package,
-      color: 'from-orange-500 to-orange-600',
-      action: () => onNavigate('catalog')
-    },
-    {
-      title: 'Mon panier',
-      description: `${cart.length} article(s)`,
-      icon: ShoppingCart,
-      color: 'from-blue-500 to-blue-600',
-      action: () => onNavigate('cart')
-    }
-  ];
+  const userName = (user as any)?.businessName || user?.name || 'Utilisateur';
+  const zone = (user as any)?.zoneId || user?.address?.split(',')[0];
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Bienvenue chez {(user as any)?.businessName || user?.name}
-        </h1>
-        <p className="text-gray-600">
-          Responsable: {user?.name} • Gérez vos commandes et approvisionnements nocturnes
-        </p>
-      </div>
+    <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
+      <WelcomeHeader userName={userName} zone={zone} />
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat) => {
-          const StatIcon = stat.icon;
-          return (
-            <div 
-              key={stat.label} 
-              className={`bg-white rounded-xl shadow-lg border border-gray-200 p-6 ${
-                stat.action ? 'cursor-pointer hover:shadow-xl transition-shadow' : ''
-              }`}
-              onClick={stat.action}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">{stat.label}</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {stat.icon === Star ? `${stat.value}/5` : stat.value}
-                  </p>
-                </div>
-                <div className={`h-12 w-12 rounded-lg bg-${stat.color}-100 flex items-center justify-center`}>
-                  <StatIcon className={`h-6 w-6 text-${stat.color}-600`} />
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <QuickOrderCard onOrderClick={() => onNavigate('catalog')} />
 
-      {/* Current Order Alert */}
       {clientCurrentOrder && (
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Clock className="h-8 w-8 text-orange-600" />
-                <div>
-                  <h3 className="text-lg font-bold text-orange-900">Commande en cours</h3>
-                  <p className="text-orange-700">Commande #{clientCurrentOrder.id} - {clientCurrentOrder.status}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => onNavigate('tracking')}
-                className="bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
-              >
-                Suivre
-              </button>
-            </div>
-          </div>
-        </div>
+        <ActiveOrderCard 
+          order={clientCurrentOrder} 
+          onViewDetails={() => onNavigate('tracking')} 
+        />
       )}
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {quickActions.map((action) => {
-          const ActionIcon = action.icon;
-          return (
-            <div
-              key={action.title}
-              onClick={action.action}
-              className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 cursor-pointer hover:shadow-xl transition-all group"
-            >
-              <div className="flex items-center space-x-4">
-                <div className={`h-12 w-12 rounded-lg bg-gradient-to-r ${action.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                  <ActionIcon className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
-                    {action.title}
-                  </h3>
-                  <p className="text-gray-600">{action.description}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <div className="border-b border-gray-100" />
 
-      {/* Recent Activity */}
-      <div className="mt-8">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Activité récente</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <Package className="h-4 w-4 text-green-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Commande livrée</p>
-                  <p className="text-sm text-gray-600">Il y a 2 jours</p>
-                </div>
-              </div>
-              <span className="text-sm text-green-600 font-medium">Complétée</span>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Star className="h-4 w-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Évaluation reçue</p>
-                  <p className="text-sm text-gray-600">Il y a 3 jours</p>
-                </div>
-              </div>
-              <span className="text-sm text-blue-600 font-medium">4.5/5</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PopularProductsCarousel onAddToCart={handleAddToCart} />
+
+      <div className="border-b border-gray-100" />
+
+      {user && <MonthlyStats userId={user.id} />}
+
+      <div className="border-b border-gray-100" />
+
+      {user && (
+        <RecentOrdersList 
+          userId={user.id} 
+          onViewAll={() => onNavigate('history')} 
+        />
+      )}
     </div>
   );
 };
