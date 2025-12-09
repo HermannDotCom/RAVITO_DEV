@@ -87,23 +87,11 @@ export const ProductCatalog: React.FC = () => {
     );
   }
 
-  const updateQuantity = (productId: string, delta: number) => {
-    // Not needed anymore - handled by ProductCard
-  };
-
-  const toggleConsigne = (productId: string) => {
-    // Not needed anymore - handled by ProductCard
-  };
-
   const handleAddToCart = (productId: string, quantity: number, withConsigne: boolean) => {
     const product = products.find(p => p.id === productId);
     if (product) {
       addToCart(product, quantity, withConsigne);
     }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
   };
 
   const getCartQuantity = (productId: string) => {

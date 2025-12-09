@@ -20,7 +20,7 @@ export const StatCard: React.FC<StatCardProps> = ({
 }) => {
   const colorStyles = {
     orange: 'bg-orange-100 text-orange-600',
-    green: 'bg-emerald-100 text-emerald-600',
+    green: 'bg-green-100 text-green-600',
     blue: 'bg-blue-100 text-blue-600',
     purple: 'bg-purple-100 text-purple-600',
   };

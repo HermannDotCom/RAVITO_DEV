@@ -252,14 +252,9 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
             </div>
           </div>
 
-          <button
-            onClick={onCheckout}
-            className="w-full"
-          >
-            <Button variant="primary" size="lg" fullWidth>
-              Confirmer la commande
-            </Button>
-          </button>
+          <Button variant="primary" size="lg" fullWidth onClick={onCheckout}>
+            Confirmer la commande
+          </Button>
         </div>
       </Card>
     </div>
