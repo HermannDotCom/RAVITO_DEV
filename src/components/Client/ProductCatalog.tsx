@@ -4,6 +4,10 @@ import { useCart } from '../../context/CartContext';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { Product, ProductCategory } from '../../types';
 import { getProducts, getUniqueBrands } from '../../services/productService';
+import { PRODUCT_IMAGES } from '../../data/mockData';
+
+// Placeholder image for products without images or when image loading fails
+const FALLBACK_IMAGE = PRODUCT_IMAGES.placeholder;
 
 export const ProductCatalog: React.FC = () => {
   const { user, getAccessRestrictions } = useProfileSecurity();
@@ -39,6 +43,11 @@ export const ProductCatalog: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [imageErrors, setImageErrors] = useState<{ [key: string]: boolean }>({});
+
+  const handleImageError = (productId: string) => {
+    setImageErrors(prev => ({ ...prev, [productId]: true }));
+  };
 
   useEffect(() => {
     loadProducts();
@@ -182,9 +191,11 @@ export const ProductCatalog: React.FC = () => {
             <div key={product.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow">
               <div className="aspect-w-16 aspect-h-9 bg-gray-100">
                 <img
-                  src={product.imageUrl}
+                  src={imageErrors[product.id] ? FALLBACK_IMAGE : product.imageUrl}
                   alt={product.name}
                   className="w-full h-48 lg:h-48 object-cover"
+                  onError={() => handleImageError(product.id)}
+                  loading="lazy"
                 />
               </div>
               
