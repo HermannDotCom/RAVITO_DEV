@@ -82,6 +82,7 @@ import { BottomNavigation } from './components/Navigation/BottomNavigation';
 // import { SubscriptionPage } from './pages/Subscription/SubscriptionPage';
 import { useRealtimeOrders } from './hooks/useRealtimeOrders';
 import { usePendingRatings } from './hooks/usePendingRatings';
+import { useOrder } from './context/OrderContext';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing, sessionError, refreshSession, logout, clearSessionError } = useAuth();
@@ -92,6 +93,9 @@ const AppContent: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [orderIdToRate, setOrderIdToRate] = useState<string | null>(null);
 
+  // Get order data for badge counts
+  const { clientOrders, availableOrders, supplierActiveDeliveries } = useOrder();
+
   // Hook for pending ratings
   const { pendingOrders } = usePendingRatings(
     user?.id || null, 
@@ -100,6 +104,13 @@ const AppContent: React.FC = () => {
 
   // Enable realtime order notifications
   useRealtimeOrders();
+
+  // Calculate badge counts
+  const pendingClientOrders = clientOrders.filter(o => 
+    ['pending', 'paid', 'accepted', 'preparing', 'delivering'].includes(o.status)
+  ).length;
+  const availableOrdersCount = availableOrders.length;
+  const activeDeliveriesCount = supplierActiveDeliveries.length;
 
   // Handler for session refresh
   const handleSessionRefresh = async () => {
@@ -313,11 +324,14 @@ const AppContent: React.FC = () => {
         </main>
       </div>
       
-      {/* Bottom Navigation - Mobile Only - Client Role Only */}
-      {user?.role === 'client' && (
+      {/* Bottom Navigation - Mobile Only - Client and Supplier Roles */}
+      {(user?.role === 'client' || user?.role === 'supplier') && (
         <BottomNavigation
           activeSection={activeSection}
           onSectionChange={setActiveSection}
+          pendingOrdersCount={user.role === 'client' ? pendingClientOrders : 0}
+          availableOrdersCount={user.role === 'supplier' ? availableOrdersCount : 0}
+          activeDeliveriesCount={user.role === 'supplier' ? activeDeliveriesCount : 0}
         />
       )}
       

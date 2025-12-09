@@ -1,34 +1,9 @@
-/**
- * MVP NOTE: Premium subscription functionality is temporarily disabled.
- * Business model for MVP focuses on commission-based revenue only:
- * - Client commission: 8%
- * - Supplier commission: 2%
- * 
- * To reactivate subscriptions post-MVP:
- * 1. Uncomment the 'subscription' menu items for client and supplier roles (Sidebar.tsx)
- * 2. Uncomment the 'premium' menu item for admin role (Sidebar.tsx)
- * 3. Uncomment the corresponding routes in App.tsx:
- *    - Client 'subscription' case
- *    - Supplier 'subscription' and 'premium' cases
- *    - Admin 'premium' case
- * 
- * Related files (kept for future use):
- * - src/services/premiumTierService.ts
- * - src/services/subscriptionService.ts
- * - src/components/Supplier/PremiumTierDashboard.tsx
- * - src/components/Supplier/SubscriptionManagement.tsx
- * - src/components/Admin/PremiumTierManagement.tsx
- * - src/pages/Subscription/SubscriptionPage.tsx
- * - src/config/subscriptionPlans.ts
- */
-
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Home,
   ShoppingCart,
   Package,
   Truck,
-  BarChart3,
   Settings,
   Users,
   MapPin,
@@ -36,10 +11,12 @@ import {
   Clock,
   ShoppingBag,
   MessageSquare,
-  Crown,
-  Wallet
+  Wallet,
+  MoreHorizontal,
+  BarChart3
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { MoreMenu } from '../ui/MoreMenu';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -50,38 +27,30 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection, onSectionChange }) => {
   const { user } = useAuth();
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
-  const getMenuItems = () => {
+  const getMainMenuItems = () => {
     if (!user) return [];
 
     switch (user.role) {
       case 'client':
         return [
-          { id: 'orders', label: 'Mes Commandes', icon: Package },
-          { id: 'treasury', label: 'Trésorerie', icon: Wallet },
-          { id: 'catalog', label: 'Catalogue', icon: Package },
+          { id: 'dashboard', label: 'Accueil', icon: Home },
+          { id: 'catalog', label: 'Catalogue', icon: ShoppingBag },
           { id: 'cart', label: 'Panier', icon: ShoppingCart },
-          { id: 'team', label: 'Mon Équipe', icon: Users },
-          // MVP: Subscription feature disabled - Reactivate post-MVP
-          // { id: 'subscription', label: 'Abonnement', icon: Crown },
-          { id: 'support', label: 'Nous contacter', icon: MessageSquare },
-          { id: 'profile', label: 'Mon Profil', icon: Settings }
+          { id: 'orders', label: 'Mes Commandes', icon: Package },
+          { id: 'more', label: 'Plus...', icon: MoreHorizontal },
         ];
       case 'supplier':
         return [
-          { id: 'dashboard', label: 'Tableau de Bord', icon: Home },
-          { id: 'zones', label: 'Mes Zones', icon: MapPin },
-          { id: 'orders', label: 'Commandes Actives', icon: Package },
-          { id: 'deliveries', label: 'Livraisons en cours', icon: Truck },
-          { id: 'history', label: 'Historique', icon: Clock },
-          { id: 'treasury', label: 'Trésorerie', icon: Wallet },
-          { id: 'team', label: 'Mon Équipe', icon: Users },
-          // MVP: Subscription feature disabled - Reactivate post-MVP
-          // { id: 'subscription', label: 'Abonnement', icon: Crown },
-          { id: 'support', label: 'Nous contacter', icon: MessageSquare },
-          { id: 'profile', label: 'Mon Profil', icon: Settings }
+          { id: 'dashboard', label: 'Accueil', icon: Home },
+          { id: 'orders', label: 'Commandes', icon: Package },
+          { id: 'deliveries', label: 'Livraisons', icon: Truck },
+          { id: 'treasury', label: 'Revenus', icon: Wallet },
+          { id: 'more', label: 'Plus...', icon: MoreHorizontal },
         ];
       case 'admin':
+        // Admin keeps the complex menu unchanged
         return [
           { id: 'analytics', label: 'Analyses', icon: BarChart3 },
           { id: 'users', label: 'Utilisateurs', icon: Users },
@@ -90,8 +59,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'treasury', label: 'Trésorerie', icon: CreditCard },
           { id: 'zones', label: 'Zones de Livraison', icon: MapPin },
           { id: 'team', label: 'Mon Équipe', icon: Users },
-          // MVP: Premium subscription management disabled - Reactivate post-MVP
-          // { id: 'premium', label: 'Abonnements Premium', icon: Crown },
           { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare },
           { id: 'data', label: 'Gestion des Données', icon: Settings },
           { id: 'settings', label: 'Paramètres', icon: Settings }
@@ -101,7 +68,47 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
     }
   };
 
-  const menuItems = getMenuItems();
+  const getSecondaryMenuItems = () => {
+    if (!user) return [];
+
+    switch (user.role) {
+      case 'client':
+        return [
+          { id: 'profile', label: 'Mon Profil', icon: Settings },
+          { id: 'treasury', label: 'Trésorerie', icon: Wallet },
+          { id: 'team', label: 'Mon Équipe', icon: Users },
+          { id: 'support', label: 'Support', icon: MessageSquare },
+        ];
+      case 'supplier':
+        return [
+          { id: 'zones', label: 'Mes Zones', icon: MapPin },
+          { id: 'team', label: 'Mon Équipe', icon: Users },
+          { id: 'history', label: 'Historique', icon: Clock },
+          { id: 'support', label: 'Support', icon: MessageSquare },
+          { id: 'profile', label: 'Mon Profil', icon: Settings },
+        ];
+      default:
+        return [];
+    }
+  };
+
+  const mainMenuItems = getMainMenuItems();
+  const secondaryMenuItems = getSecondaryMenuItems();
+
+  const handleMenuItemClick = (itemId: string) => {
+    if (itemId === 'more') {
+      setShowMoreMenu(true);
+    } else {
+      onSectionChange(itemId);
+      onClose();
+    }
+  };
+
+  const handleSecondaryMenuClick = (itemId: string) => {
+    onSectionChange(itemId);
+    setShowMoreMenu(false);
+    onClose();
+  };
 
   return (
     <>
@@ -129,15 +136,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           </div>
 
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            {menuItems.map((item) => {
+            {mainMenuItems.map((item) => {
               const Icon = item.icon;
               return (
                 <button
                   key={item.id}
-                  onClick={() => {
-                    onSectionChange(item.id);
-                    onClose();
-                  }}
+                  onClick={() => handleMenuItemClick(item.id)}
                   className={`
                     w-full flex items-center px-4 py-3 text-left rounded-lg transition-colors
                     ${activeSection === item.id
@@ -172,6 +176,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           )}
         </div>
       </div>
+
+      {/* More Menu - only for client and supplier */}
+      {(user?.role === 'client' || user?.role === 'supplier') && (
+        <MoreMenu
+          isOpen={showMoreMenu}
+          onClose={() => setShowMoreMenu(false)}
+          items={secondaryMenuItems.map(item => ({
+            ...item,
+            onClick: () => handleSecondaryMenuClick(item.id)
+          }))}
+        />
+      )}
     </>
   );
 };
