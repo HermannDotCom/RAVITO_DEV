@@ -1,0 +1,73 @@
+:root {
+  /* Primary - Orange Soleil */
+  --ravito-orange-50: #FFF7ED;
+  --ravito-orange-100: #FFEDD5;
+  --ravito-orange-200: #FED7AA;
+  --ravito-orange-300: #FDBA74;
+  --ravito-orange-400: #FB923C;
+  --ravito-orange-500: #F97316;
+  --ravito-orange-600: #EA580C;
+  --ravito-orange-700: #C2410C;
+  
+  /* Secondary - Vert Émeraude */
+  --ravito-emerald-400: #34D399;
+  --ravito-emerald-500: #10B981;
+  --ravito-emerald-600: #059669;
+  
+  /* Accent - Or Soleil */
+  --ravito-amber-400: #FBBF24;
+  --ravito-amber-500: #F59E0B;
+  --ravito-amber-600: #D97706;
+  
+  /* Neutral - Slate */
+  --ravito-slate-50: #F8FAFC;
+  --ravito-slate-100: #F1F5F9;
+  --ravito-slate-200: #E2E8F0;
+  --ravito-slate-400: #94A3B8;
+  --ravito-slate-500: #64748B;
+  --ravito-slate-800: #1E293B;
+  --ravito-slate-900: #0F172A;
+  
+  /* Gradients */
+  --ravito-gradient-primary: linear-gradient(135deg, var(--ravito-orange-500), var(--ravito-orange-600));
+  --ravito-gradient-kente: linear-gradient(90deg, var(--ravito-orange-500), var(--ravito-emerald-500), var(--ravito-amber-500));
+  --ravito-gradient-hero: linear-gradient(135deg, var(--ravito-orange-500) 0%, var(--ravito-amber-500) 100%);
+  
+  /* Shadows */
+  --ravito-shadow-sm: 0 1px 2px 0 rgb(249 115 22 / 0.05);
+  --ravito-shadow-md: 0 4px 6px -1px rgb(249 115 22 / 0.1), 0 2px 4px -2px rgb(249 115 22 / 0.1);
+  --ravito-shadow-lg: 0 10px 15px -3px rgb(249 115 22 / 0.1), 0 4px 6px -4px rgb(249 115 22 / 0.1);
+  --ravito-shadow-glow: 0 0 20px rgb(249 115 22 / 0.3);
+  
+  /* Spacing */
+  --ravito-radius-sm: 0.5rem;
+  --ravito-radius-md: 0.75rem;
+  --ravito-radius-lg: 1rem;
+  --ravito-radius-xl: 1.5rem;
+  
+  /* Typography */
+  --ravito-font-display: 'Plus Jakarta Sans', sans-serif;
+  --ravito-font-body: 'Inter', sans-serif;
+  --ravito-font-mono: ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Animations Kente */
+@keyframes kente-weave {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.5); }
+}
+
+@keyframes kente-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-kente-weave {
+  animation: kente-weave 0.8s ease-in-out infinite;
+}
+
+.animate-kente-shimmer {
+  background: linear-gradient(90deg, var(--ravito-orange-500), var(--ravito-emerald-500), var(--ravito-amber-500), var(--ravito-orange-500));
+  background-size: 200% 100%;
+  animation: kente-shimmer 2s linear infinite;
+}

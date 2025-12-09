@@ -9,6 +9,7 @@ import {
   TicketPriority,
   CreateTicketData
 } from '../../services/ticketService';
+import { KenteLoader } from '../ui/KenteLoader';
 
 interface SupplierContactSupportProps {
   initialSubject?: string;
@@ -143,7 +144,7 @@ export const SupplierContactSupport: React.FC<SupplierContactSupportProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <KenteLoader size="md" text="Chargement..." />
       </div>
     );
   }

@@ -21,3 +21,15 @@ export type { EmptyStateProps } from './EmptyState';
 
 export { Avatar } from './Avatar';
 export type { AvatarProps } from './Avatar';
+
+export { PageHeader } from './PageHeader';
+export type { PageHeaderProps } from './PageHeader';
+
+export { KenteLoader } from './KenteLoader';
+export type { KenteLoaderProps } from './KenteLoader';
+
+export { KenteDivider } from './KenteDivider';
+export type { KenteDividerProps } from './KenteDivider';
+
+export { PriceTag } from './PriceTag';
+export type { PriceTagProps } from './PriceTag';

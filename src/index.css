@@ -1,6 +1,9 @@
 /* RAVITO Design System - Custom Animations */
 @import './styles/animations.css';
 
+/* RAVITO Design System - Theme Variables */
+@import './styles/ravito-theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
