@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Users, Package, DollarSign, Activity, Clock, Star, AlertTriangle } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Package, DollarSign, Activity, Clock, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { StatCard } from '../ui/StatCard';
 
 export const Analytics: React.FC = () => {
   const [timeRange, setTimeRange] = useState('month');
@@ -36,7 +37,7 @@ export const Analytics: React.FC = () => {
     setIsLoading(true);
     try {
       const now = new Date();
-      let startDate = new Date();
+      const startDate = new Date();
 
       switch (timeRange) {
         case 'day':
@@ -162,69 +163,34 @@ export const Analytics: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 bg-blue-200 rounded-full flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-blue-600" />
-              </div>
-              <span className="text-xs font-medium text-blue-600 bg-blue-200 px-2 py-1 rounded-full">
-                {getTimeRangeLabel()}
-              </span>
-            </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Revenu Total</h3>
-            <p className="text-2xl font-bold text-gray-900 mb-1">{formatCompactPrice(analytics.revenue.total)}</p>
-            <p className="text-xs text-gray-600">{analytics.revenue.orders} commandes</p>
-          </div>
+          <StatCard
+            title="Revenu Total"
+            value={formatCompactPrice(analytics.revenue.total)}
+            icon={<DollarSign className="h-6 w-6" />}
+            color="blue"
+            trend={{ value: analytics.revenue.growth, isPositive: analytics.revenue.growth >= 0 }}
+          />
 
-          <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 bg-green-200 rounded-full flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-green-600" />
-              </div>
-              <span className="text-xs font-medium text-green-600 bg-green-200 px-2 py-1 rounded-full">
-                Commission
-              </span>
-            </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Commission Totale</h3>
-            <p className="text-2xl font-bold text-gray-900 mb-1">{formatCompactPrice(analytics.revenue.commission)}</p>
-            <p className="text-xs text-gray-600">
-              {analytics.revenue.total > 0
-                ? ((analytics.revenue.commission / analytics.revenue.total) * 100).toFixed(1)
-                : 0}% du CA
-            </p>
-          </div>
+          <StatCard
+            title="Commission Totale"
+            value={formatCompactPrice(analytics.revenue.commission)}
+            icon={<TrendingUp className="h-6 w-6" />}
+            color="green"
+          />
 
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 bg-purple-200 rounded-full flex items-center justify-center">
-                <Package className="h-6 w-6 text-purple-600" />
-              </div>
-              <span className="text-xs font-medium text-purple-600 bg-purple-200 px-2 py-1 rounded-full">
-                Commandes
-              </span>
-            </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Total Commandes</h3>
-            <p className="text-2xl font-bold text-gray-900 mb-1">{analytics.orders.total}</p>
-            <p className="text-xs text-gray-600">
-              {analytics.orders.completionRate.toFixed(0)}% complétées
-            </p>
-          </div>
+          <StatCard
+            title="Commandes Complétées"
+            value={analytics.orders.completed}
+            icon={<Package className="h-6 w-6" />}
+            color="purple"
+          />
 
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl border border-orange-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 bg-orange-200 rounded-full flex items-center justify-center">
-                <Users className="h-6 w-6 text-orange-600" />
-              </div>
-              <span className="text-xs font-medium text-orange-600 bg-orange-200 px-2 py-1 rounded-full">
-                Utilisateurs
-              </span>
-            </div>
-            <h3 className="text-gray-600 text-sm font-medium mb-1">Utilisateurs Actifs</h3>
-            <p className="text-2xl font-bold text-gray-900 mb-1">{analytics.users.activeUsers}</p>
-            <p className="text-xs text-gray-600">
-              {analytics.users.totalClients} clients, {analytics.users.totalSuppliers} fournisseurs
-            </p>
-          </div>
+          <StatCard
+            title="Utilisateurs Actifs"
+            value={analytics.users.activeUsers}
+            icon={<Users className="h-6 w-6" />}
+            color="orange"
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

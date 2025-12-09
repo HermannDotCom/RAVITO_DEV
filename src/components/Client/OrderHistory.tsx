@@ -10,6 +10,9 @@ import { MutualRatingsDisplay } from '../Shared/MutualRatingsDisplay';
 import { OrderDetailsWithOffers } from './OrderDetailsWithOffers';
 import { PaymentInterface } from './PaymentInterface';
 import { supabase } from '../../lib/supabase';
+import { StatCard } from '../ui/StatCard';
+import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
 
 interface OrderHistoryProps {
   onNavigate: (section: string) => void;
@@ -211,36 +214,22 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
   });
 
   const getStatusInfo = (status: OrderStatus) => {
-    switch (status) {
-      case 'pending':
-        return { label: 'En attente', color: 'bg-yellow-100 text-yellow-700', icon: Clock, textColor: 'text-yellow-600' };
-      case 'pending-offers':
-        return { label: 'En attente d\'offres', color: 'bg-yellow-100 text-yellow-700', icon: Clock, textColor: 'text-yellow-600' };
-      case 'offers-received':
-        return { label: 'Offres reçues', color: 'bg-blue-100 text-blue-700', icon: Package, textColor: 'text-blue-600' };
-      case 'awaiting-payment':
-        return { label: 'En attente de paiement', color: 'bg-orange-100 text-orange-700', icon: CreditCard, textColor: 'text-orange-600' };
-      case 'paid':
-        return { label: 'Payée', color: 'bg-green-100 text-green-700', icon: CheckCircle, textColor: 'text-green-600' };
-      case 'awaiting-client-validation':
-        return { label: 'En attente de validation', color: 'bg-orange-100 text-orange-700', icon: Clock, textColor: 'text-orange-600' };
-      case 'accepted':
-        return { label: 'Acceptée', color: 'bg-blue-100 text-blue-700', icon: CheckCircle, textColor: 'text-blue-600' };
-      case 'preparing':
-        return { label: 'En préparation', color: 'bg-purple-100 text-purple-700', icon: Package, textColor: 'text-purple-600' };
-      case 'delivering':
-        return { label: 'En livraison', color: 'bg-orange-100 text-orange-700', icon: Truck, textColor: 'text-orange-600' };
-      case 'delivered':
-        return { label: 'Livrée', color: 'bg-green-100 text-green-700', icon: CheckCircle, textColor: 'text-green-600' };
-      case 'awaiting-rating':
-        return { label: 'En attente d\'évaluation', color: 'bg-yellow-100 text-yellow-700', icon: Star, textColor: 'text-yellow-600' };
-      case 'completed':
-        return { label: 'Terminée', color: 'bg-green-100 text-green-700', icon: CheckCircle, textColor: 'text-green-600' };
-      case 'cancelled':
-        return { label: 'Annulée', color: 'bg-red-100 text-red-700', icon: XCircle, textColor: 'text-red-600' };
-      default:
-        return { label: 'Inconnu', color: 'bg-gray-100 text-gray-700', icon: Package, textColor: 'text-gray-600' };
-    }
+    const configs = {
+      'pending': { label: 'En attente', variant: 'warning' as const, icon: Clock, textColor: 'text-yellow-600' },
+      'pending-offers': { label: 'En attente d\'offres', variant: 'warning' as const, icon: Clock, textColor: 'text-yellow-600' },
+      'offers-received': { label: 'Offres reçues', variant: 'info' as const, icon: Package, textColor: 'text-blue-600' },
+      'awaiting-payment': { label: 'En attente de paiement', variant: 'warning' as const, icon: CreditCard, textColor: 'text-orange-600' },
+      'paid': { label: 'Payée', variant: 'success' as const, icon: CheckCircle, textColor: 'text-green-600' },
+      'awaiting-client-validation': { label: 'En attente de validation', variant: 'warning' as const, icon: Clock, textColor: 'text-orange-600' },
+      'accepted': { label: 'Acceptée', variant: 'info' as const, icon: CheckCircle, textColor: 'text-blue-600' },
+      'preparing': { label: 'En préparation', variant: 'info' as const, icon: Package, textColor: 'text-purple-600' },
+      'delivering': { label: 'En livraison', variant: 'warning' as const, icon: Truck, textColor: 'text-orange-600' },
+      'delivered': { label: 'Livrée', variant: 'success' as const, icon: CheckCircle, textColor: 'text-green-600' },
+      'awaiting-rating': { label: 'En attente d\'évaluation', variant: 'warning' as const, icon: Star, textColor: 'text-yellow-600' },
+      'completed': { label: 'Terminée', variant: 'success' as const, icon: CheckCircle, textColor: 'text-green-600' },
+      'cancelled': { label: 'Annulée', variant: 'danger' as const, icon: XCircle, textColor: 'text-red-600' },
+    };
+    return configs[status] || { label: 'Inconnu', variant: 'default' as const, icon: Package, textColor: 'text-gray-600' };
   };
 
   const formatPrice = (price: number) => {
@@ -776,61 +765,46 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
     <>
       <div className="max-w-7xl mx-auto p-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Historique des Commandes</h1>
+          <h1 className="text-3xl font-bold font-display text-gray-900 mb-2">Historique des Commandes</h1>
           <p className="text-gray-600">Consultez l'historique complet de vos commandes et leur statut</p>
         </div>
 
         {/* Summary Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Total commandes</p>
-                <p className="text-2xl font-bold text-gray-900">{totalOrders}</p>
-              </div>
-              <Package className="h-8 w-8 text-blue-600" />
-            </div>
-          </div>
+          <StatCard
+            title="Total commandes"
+            value={totalOrders}
+            icon={<Package className="h-6 w-6" />}
+            color="blue"
+          />
 
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Livrées</p>
-                <p className="text-2xl font-bold text-green-600">{completedOrders}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-          </div>
+          <StatCard
+            title="Livrées"
+            value={completedOrders}
+            icon={<CheckCircle className="h-6 w-6" />}
+            color="green"
+          />
 
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Annulées</p>
-                <p className="text-2xl font-bold text-red-600">{cancelledOrders}</p>
-              </div>
-              <XCircle className="h-8 w-8 text-red-600" />
-            </div>
-          </div>
+          <StatCard
+            title="Annulées"
+            value={cancelledOrders}
+            icon={<XCircle className="h-6 w-6" />}
+            color="orange"
+          />
 
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Total dépensé</p>
-                <p className="text-xl font-bold text-gray-900">{formatPrice(totalSpent)}</p>
-              </div>
-              <Calendar className="h-8 w-8 text-purple-600" />
-            </div>
-          </div>
+          <StatCard
+            title="Total dépensé"
+            value={formatPrice(totalSpent)}
+            icon={<Calendar className="h-6 w-6" />}
+            color="purple"
+          />
 
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Panier moyen</p>
-                <p className="text-xl font-bold text-gray-900">{formatPrice(averageOrderValue)}</p>
-              </div>
-              <Star className="h-8 w-8 text-yellow-600" />
-            </div>
-          </div>
+          <StatCard
+            title="Panier moyen"
+            value={formatPrice(averageOrderValue)}
+            icon={<Star className="h-6 w-6" />}
+            color="orange"
+          />
         </div>
 
         {/* Current Order Alert */}
@@ -1052,13 +1026,13 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-3">
                           <h3 className="text-lg font-bold text-gray-900">#{order.id}</h3>
-                          <span className={`px-3 py-1 text-xs font-semibold rounded-full ${statusInfo.color}`}>
+                          <Badge variant={statusInfo.variant}>
                             {statusInfo.label}
-                          </span>
+                          </Badge>
                           {order === clientCurrentOrder && (
-                            <span className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded-full font-medium">
+                            <Badge variant="warning" size="sm">
                               En cours
-                            </span>
+                            </Badge>
                           )}
                           {order.status === 'delivered' && (() => {
                             const rating = orderRatings[order.id];
