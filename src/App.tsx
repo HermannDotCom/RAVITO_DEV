@@ -183,6 +183,7 @@ const AppContent: React.FC = () => {
             }} />;
           case 'profile':
             return <ClientProfile />;
+          case 'dashboard':
           case 'orders':
             return <OrderHistory onNavigate={setActiveSection} initialOrderIdToRate={orderIdToRate} onOrderRated={handleOrderRated} />;
           case 'treasury':

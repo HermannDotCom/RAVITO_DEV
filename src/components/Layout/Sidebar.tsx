@@ -162,12 +162,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
               <div className="flex items-center">
                 <div className="h-10 w-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-bold">
-                    {((user as any)?.businessName || user.name).charAt(0)}
+                    {('businessName' in user ? user.businessName : user.name).charAt(0)}
                   </span>
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-900">
-                    {(user as any)?.businessName || user.name}
+                    {'businessName' in user ? user.businessName : user.name}
                   </p>
                   <p className="text-xs text-gray-500 capitalize">{user.role}</p>
                 </div>
