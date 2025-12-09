@@ -152,7 +152,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
         </p>
       </div>
 
-      {/* Intelligence Dashboard CTA */}
+      {/* Intelligence Dashboard CTA - MVP: Feature disabled for launch */}
+      {/* Uncomment to reactivate post-MVP
       <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-lg p-6 mb-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -175,6 +176,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
           </button>
         </div>
       </div>
+      */}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

@@ -71,7 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         return [
           { id: 'dashboard', label: 'Tableau de Bord', icon: Home },
           { id: 'zones', label: 'Mes Zones', icon: MapPin },
-          { id: 'orders', label: 'Commandes Disponibles', icon: Package },
+          { id: 'orders', label: 'Commandes Actives', icon: Package },
           { id: 'deliveries', label: 'Livraisons en cours', icon: Truck },
           { id: 'history', label: 'Historique', icon: Clock },
           { id: 'treasury', label: 'Trésorerie', icon: Wallet },

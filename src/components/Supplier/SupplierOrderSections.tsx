@@ -7,7 +7,7 @@ import { getOrdersBySupplier } from '../../services/orderService';
 
 interface SupplierOrderSectionsProps {
   availableOrders: Order[];
-  onSelectOrder: (order: Order) => void;
+  onSelectOrder: (order: Order, activeTab: 'available' | 'pending' | 'active') => void;
 }
 
 export const SupplierOrderSections: React.FC<SupplierOrderSectionsProps> = ({
@@ -141,7 +141,7 @@ export const SupplierOrderSections: React.FC<SupplierOrderSectionsProps> = ({
           </div>
 
           <button
-            onClick={() => onSelectOrder(order)}
+            onClick={() => onSelectOrder(order, activeTab)}
             className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
           >
             Voir détails

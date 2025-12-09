@@ -49,7 +49,8 @@ import { ActiveDeliveries } from './components/Supplier/ActiveDeliveries';
 import { DeliveryHistory, ClaimData } from './components/Supplier/DeliveryHistory';
 import { SupplierProfile } from './components/Supplier/SupplierProfile';
 import { ZoneRegistration } from './components/Supplier/ZoneRegistration';
-import { SupplierIntelligenceDashboard } from './components/Supplier/SupplierIntelligenceDashboard';
+// MVP: Intelligence Dashboard disabled - Uncomment to reactivate post-MVP
+// import { SupplierIntelligenceDashboard } from './components/Supplier/SupplierIntelligenceDashboard';
 // MVP: Subscription management disabled - Uncomment to reactivate post-MVP
 // import { SubscriptionManagement } from './components/Supplier/SubscriptionManagement';
 import { SupplierTreasury } from './components/Supplier/SupplierTreasury';
@@ -220,8 +221,13 @@ const AppContent: React.FC = () => {
                 onClaimDataClear={() => setClaimData(null)}
               />
             );
+          // MVP: Intelligence Dashboard disabled - Uncomment to reactivate post-MVP
+          // case 'intelligence':
+          //   return <SupplierIntelligenceDashboard supplierId={user.id} onNavigate={setActiveSection} />;
           case 'intelligence':
-            return <SupplierIntelligenceDashboard supplierId={user.id} onNavigate={setActiveSection} />;
+            // Redirect to dashboard if intelligence route is accessed
+            setActiveSection('dashboard');
+            return <SupplierDashboard onNavigate={setActiveSection} />;
           default:
             return <SupplierDashboard onNavigate={setActiveSection} />;
         }
