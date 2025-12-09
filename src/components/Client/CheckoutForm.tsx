@@ -242,7 +242,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
                 </div>
               )}
               <div className="flex justify-between text-blue-600">
-                <span>Frais DISTRI-NIGHT ({commissionSettings.clientCommission}%)</span>
+                <span>Frais RAVITO ({commissionSettings.clientCommission}%)</span>
                 <span>{formatPrice(clientCommission)}</span>
               </div>
               <div className="text-xs text-blue-500 -mt-1">

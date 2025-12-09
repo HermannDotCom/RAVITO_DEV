@@ -1,5 +1,5 @@
 /**
- * Gestionnaire de données pour DISTRI-NIGHT
+ * Gestionnaire de données pour RAVITO
  * Gère la purge sécurisée des commandes et la séparation des profils
  * 
  * Note: Transfers are now stored in Supabase database and no longer in localStorage

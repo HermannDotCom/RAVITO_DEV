@@ -29,11 +29,13 @@ export const LoginForm: React.FC = () => {
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white rounded-2xl shadow-2xl p-10">
         <div className="text-center mb-10">
-          <div className="h-20 w-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <span className="text-white font-bold text-2xl">DN</span>
+          <div className="h-20 w-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <span className="text-white font-bold text-3xl">R</span>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">Connexion</h1>
-          <p className="text-gray-600 text-lg">Accédez à votre compte DISTRI-NIGHT</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">RAVITO</h1>
+          <div className="h-1 w-24 bg-gradient-to-r from-orange-500 to-orange-400 rounded-full mx-auto mb-4"></div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Connexion</h2>
+          <p className="text-gray-600 text-base">Le ravitaillement qui ne dort jamais</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

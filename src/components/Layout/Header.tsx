@@ -11,7 +11,7 @@ interface HeaderProps {
   onCartClick?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NIGHT', onCartClick }) => {
+export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'RAVITO', onCartClick }) => {
   const { user, logout } = useAuth();
   const { cart } = useCart();
   const { unreadCount } = useNotifications();
@@ -34,10 +34,13 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NI
             <div className="flex items-center ml-2 lg:ml-0">
               <div className="flex-shrink-0">
                 <div className="h-8 w-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">DN</span>
+                  <span className="text-white font-bold text-sm">R</span>
                 </div>
               </div>
-              <h1 className="ml-3 text-xl font-bold text-gray-900 hidden sm:block">{title}</h1>
+              <div className="ml-2 hidden sm:block">
+                <span className="text-xl font-bold text-gray-900">{title}</span>
+                <div className="h-0.5 w-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full"></div>
+              </div>
             </div>
           </div>
 

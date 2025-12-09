@@ -76,11 +76,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onBackToLogin }) => 
     <div className="w-full max-w-2xl">
       <div className="bg-white rounded-2xl shadow-2xl p-8">
         <div className="text-center mb-8">
-          <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <UserIcon className="h-8 w-8 text-white" />
+          <div className="h-16 w-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <span className="text-white font-bold text-2xl">R</span>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">Inscription</h2>
-          <p className="text-gray-600 mt-2">Rejoignez le réseau DISTRI-NIGHT</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">RAVITO</h1>
+          <div className="h-1 w-24 bg-gradient-to-r from-orange-500 to-orange-400 rounded-full mx-auto mb-4"></div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Inscription</h2>
+          <p className="text-gray-600">Le ravitaillement qui ne dort jamais</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">

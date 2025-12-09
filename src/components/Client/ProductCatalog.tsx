@@ -6,6 +6,7 @@ import { Product, ProductCategory } from '../../types';
 import { getProducts, getUniqueBrands } from '../../services/productService';
 import { ProductCard } from '../ui/ProductCard';
 import { Card } from '../ui/Card';
+import { PRODUCT_IMAGES } from '../../data/mockData';
 
 export const ProductCatalog: React.FC = () => {
   const { user, getAccessRestrictions } = useProfileSecurity();
@@ -14,7 +15,7 @@ export const ProductCatalog: React.FC = () => {
   const accessRestrictions = getAccessRestrictions();
 
   // Restriction d'accès sécurisée
-  if (!accessRestrictions.canAccessCatalog) {
+  if (! accessRestrictions.canAccessCatalog) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
@@ -27,7 +28,7 @@ export const ProductCatalog: React.FC = () => {
           </p>
           <p className="text-sm text-red-700">
             {user?.role === 'client' 
-              ? 'Votre demande est en cours d\'examen. Vous recevrez une notification dès l\'approbation.'
+              ? 'Votre demande est en cours d\'examen.  Vous recevrez une notification dès l\'approbation.'
               : 'Accès non autorisé au catalogue produits.'
             }
           </p>
@@ -40,6 +41,11 @@ export const ProductCatalog: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [imageErrors, setImageErrors] = useState<{ [key: string]: boolean }>({});
+
+  const handleImageError = (productId: string) => {
+    setImageErrors(prev => ({ ...prev, [productId]: true }));
+  };
 
   useEffect(() => {
     loadProducts();
@@ -48,7 +54,7 @@ export const ProductCatalog: React.FC = () => {
 
   const loadProducts = async () => {
     setIsLoading(true);
-    const filters: any = { isActive: true };
+    const filters:  any = { isActive: true };
 
     if (categoryFilter !== 'all') {
       filters.category = categoryFilter;
@@ -70,7 +76,7 @@ export const ProductCatalog: React.FC = () => {
 
   const categories = [
     { value: 'all' as const, label: 'Tous les produits' },
-    { value: 'biere' as const, label: 'Bières' },
+    { value:  'biere' as const, label: 'Bières' },
     { value: 'soda' as const, label: 'Sodas' },
     { value: 'vin' as const, label: 'Vins' },
     { value: 'eau' as const, label: 'Eaux' },
@@ -108,7 +114,7 @@ export const ProductCatalog: React.FC = () => {
 
       {/* Filters */}
       <Card className="mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md: grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
             <select
@@ -116,7 +122,7 @@ export const ProductCatalog: React.FC = () => {
               onChange={(e) => setCategoryFilter(e.target.value as ProductCategory | 'all')}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
             >
-              {categories.map(cat => (
+              {categories. map(cat => (
                 <option key={cat.value} value={cat.value}>{cat.label}</option>
               ))}
             </select>
@@ -127,7 +133,7 @@ export const ProductCatalog: React.FC = () => {
             <select
               value={brandFilter}
               onChange={(e) => setBrandFilter(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus: ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
             >
               <option value="all">Toutes les marques</option>
               {brands.map(brand => (

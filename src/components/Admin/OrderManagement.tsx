@@ -409,7 +409,7 @@ export const OrderManagement: React.FC = () => {
                       </div>
                     )}
                     <div className="flex justify-between text-blue-600">
-                      <span>Commission DISTRI-NIGHT:</span>
+                      <span>Commission RAVITO:</span>
                       <span className="font-medium">
                         {formatPrice(Math.round(order.totalAmount * (commissionSettings.clientCommission + commissionSettings.supplierCommission) / 100))}
                       </span>

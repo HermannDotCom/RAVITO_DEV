@@ -227,7 +227,7 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
               </div>
             )}
             <div className="flex justify-between text-blue-600">
-              <span>Frais DISTRI-NIGHT</span>
+              <span>Frais RAVITO</span>
               <span>{formatPrice(clientCommission)}</span>
             </div>
             <div className="text-xs text-blue-500 -mt-1 text-right">
