@@ -119,10 +119,12 @@ const AppContent: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="h-20 w-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg animate-pulse">
-            <span className="text-white font-bold text-2xl">DN</span>
+          <div className="h-20 w-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse">
+            <span className="text-white font-bold text-3xl">R</span>
           </div>
-          <p className="text-gray-600 text-lg">Chargement...</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">RAVITO</h1>
+          <div className="h-1 w-24 bg-gradient-to-r from-orange-500 to-orange-400 rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-500 text-sm">Chargement...</p>
         </div>
       </div>
     );

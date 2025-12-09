@@ -122,9 +122,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           <div className="flex items-center justify-center h-16 border-b border-gray-200 lg:hidden">
             <div className="flex items-center">
               <div className="h-10 w-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">DN</span>
+                <span className="text-white font-bold">R</span>
               </div>
-              <span className="ml-2 text-xl font-bold text-gray-900">DISTRI-NIGHT</span>
+              <span className="ml-2 text-xl font-bold text-gray-900">RAVITO</span>
             </div>
           </div>
 

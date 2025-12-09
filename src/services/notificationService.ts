@@ -37,7 +37,7 @@ export const createAccountApprovedNotification = async (userId: string, userName
     userId,
     type: 'account_approved',
     title: 'Compte approuvé !',
-    message: `Félicitations ${userName} ! Votre compte ${roleLabel} a été approuvé. Vous avez maintenant accès à toutes les fonctionnalités de DISTRI-NIGHT.`,
+    message: `Félicitations ${userName} ! Votre compte ${roleLabel} a été approuvé. Vous avez maintenant accès à toutes les fonctionnalités de RAVITO.`,
     data: { role: userRole }
   });
 };
@@ -47,7 +47,7 @@ export const createAccountRejectedNotification = async (userId: string, userName
     userId,
     type: 'account_rejected',
     title: 'Compte non approuvé',
-    message: `Bonjour ${userName}, votre demande de compte n'a pas été approuvée. Raison: ${reason}. Veuillez contacter DISTRI-NIGHT au +225 27 20 30 40 50 ou support@distri-night.ci pour plus d'informations.`,
+    message: `Bonjour ${userName}, votre demande de compte n'a pas été approuvée. Raison: ${reason}. Veuillez contacter RAVITO au +225 27 20 30 40 50 ou support@ravito.ci pour plus d'informations.`,
     data: { reason }
   });
 };
@@ -65,7 +65,7 @@ export const createZoneApprovedNotification = async (userId: string, zoneName: s
 export const createZoneRejectedNotification = async (userId: string, zoneName: string, reason?: string) => {
   const messageBase = `Votre demande pour couvrir la zone "${zoneName}" n'a pas été approuvée.`;
   const messageReason = reason ? ` Raison: ${reason}.` : '';
-  const messageContact = ' Veuillez contacter DISTRI-NIGHT au +225 27 20 30 40 50 ou partenaires@distri-night.ci pour plus d\'informations.';
+  const messageContact = ' Veuillez contacter RAVITO au +225 27 20 30 40 50 ou partenaires@ravito.ci pour plus d\'informations.';
 
   await createNotification({
     userId,

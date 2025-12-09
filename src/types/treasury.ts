@@ -1,5 +1,5 @@
 /**
- * Treasury Types for DISTRI-NIGHT Platform
+ * Treasury Types for RAVITO Platform
  */
 
 export type TransactionType = 'credit' | 'debit' | 'withdrawal' | 'commission' | 'recharge';
