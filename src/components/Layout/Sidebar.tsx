@@ -166,7 +166,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
                 <div className="flex items-center">
                   <div className="h-10 w-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-bold">
-                      {displayName?.charAt(0)?.toUpperCase() || 'U'}
+                      {displayName.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="ml-3">

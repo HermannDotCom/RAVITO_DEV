@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Sidebar } from '../Sidebar';
 import * as AuthContext from '../../../context/AuthContext';
-import { User } from '../../../types';
+import { User, Client, Supplier } from '../../../types';
 
 // Mock the useAuth hook
 const mockUseAuth = vi.fn();
@@ -24,11 +24,11 @@ describe('Sidebar', () => {
   });
 
   it('should handle user with undefined businessName and name', () => {
-    const userWithNoNames: User = {
+    // Create a minimal user that simulates missing name field
+    const userWithNoNames: Partial<User> = {
       id: '1',
       email: 'test@example.com',
       role: 'client',
-      name: undefined as any, // Simulating undefined name
       phone: '1234567890',
       address: '123 Test St',
       isActive: true,
@@ -38,7 +38,7 @@ describe('Sidebar', () => {
     };
 
     mockUseAuth.mockReturnValue({
-      user: userWithNoNames,
+      user: userWithNoNames as User,
       session: null,
       login: vi.fn(),
       logout: vi.fn(),
@@ -60,7 +60,7 @@ describe('Sidebar', () => {
   });
 
   it('should handle supplier with businessName defined', () => {
-    const supplierUser: User & { businessName: string } = {
+    const supplierUser: Supplier = {
       id: '1',
       email: 'supplier@example.com',
       role: 'supplier',
@@ -72,6 +72,13 @@ describe('Sidebar', () => {
       isApproved: true,
       approvalStatus: 'approved',
       createdAt: new Date(),
+      coverageZone: 'Abidjan',
+      availableProducts: ['biere', 'soda'],
+      deliveryCapacity: 'truck',
+      businessHours: '8h-18h',
+      acceptedPayments: ['orange', 'mtn'],
+      isAvailable: true,
+      communes: [],
     };
 
     mockUseAuth.mockReturnValue({
@@ -97,18 +104,21 @@ describe('Sidebar', () => {
   });
 
   it('should handle client with undefined businessName but defined name', () => {
-    const clientUser: User & { businessName?: string } = {
+    const clientUser: Client = {
       id: '1',
       email: 'client@example.com',
       role: 'client',
       name: 'Jane Smith',
-      businessName: undefined,
+      businessName: undefined as any, // Simulating missing businessName
       phone: '1234567890',
       address: '123 Test St',
       isActive: true,
       isApproved: true,
       approvalStatus: 'approved',
       createdAt: new Date(),
+      businessHours: '9h-17h',
+      preferredPayments: ['orange'],
+      responsiblePerson: 'Jane Smith',
     };
 
     mockUseAuth.mockReturnValue({
@@ -134,7 +144,7 @@ describe('Sidebar', () => {
   });
 
   it('should handle client with empty businessName', () => {
-    const clientUser: User & { businessName: string } = {
+    const clientUser: Client = {
       id: '1',
       email: 'client@example.com',
       role: 'client',
@@ -146,6 +156,9 @@ describe('Sidebar', () => {
       isApproved: true,
       approvalStatus: 'approved',
       createdAt: new Date(),
+      businessHours: '9h-17h',
+      preferredPayments: ['mtn'],
+      responsiblePerson: 'Bob Johnson',
     };
 
     mockUseAuth.mockReturnValue({
