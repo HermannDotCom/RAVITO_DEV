@@ -224,10 +224,7 @@ const AppContent: React.FC = () => {
           // MVP: Intelligence Dashboard disabled - Uncomment to reactivate post-MVP
           // case 'intelligence':
           //   return <SupplierIntelligenceDashboard supplierId={user.id} onNavigate={setActiveSection} />;
-          case 'intelligence':
-            // Redirect to dashboard if intelligence route is accessed
-            setActiveSection('dashboard');
-            return <SupplierDashboard onNavigate={setActiveSection} />;
+          // Note: Intelligence route now falls through to default (dashboard)
           default:
             return <SupplierDashboard onNavigate={setActiveSection} />;
         }
