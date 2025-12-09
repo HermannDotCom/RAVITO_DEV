@@ -69,6 +69,7 @@ import { OrderHistory } from './components/Client/OrderHistory';
 import { ClientTreasury } from './components/Client/ClientTreasury';
 import { ContactSupport } from './components/Client/ContactSupport';
 import { SupplierContactSupport } from './components/Supplier/ContactSupport';
+import { KenteLoader } from './components/ui/KenteLoader';
 import { TicketManagement } from './components/Admin/TicketManagement';
 import { TeamPage } from './components/Team';
 import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusIndicator';
@@ -125,7 +126,7 @@ const AppContent: React.FC = () => {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">RAVITO</h1>
           <div className="h-1 w-24 bg-gradient-to-r from-orange-500 to-orange-400 rounded-full mx-auto mb-4"></div>
-          <p className="text-gray-500 text-sm">Chargement...</p>
+          <KenteLoader size="md" text="Chargement..." />
         </div>
       </div>
     );

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Minus, ShoppingCart, Package2 } from 'lucide-react';
 import { Product } from '../../types';
+import { PriceTag } from './PriceTag';
 
 export interface ProductCardProps {
   product: Product;
@@ -17,10 +18,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [quantity, setQuantity] = useState(cartQuantity || 1);
   const [withConsigne, setWithConsigne] = useState(false);
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
-  };
 
   const getCrateTypeDescription = (crateType: string) => {
     const descriptions: { [key: string]: string } = {
@@ -84,13 +81,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Prix */}
         <div className="mb-4">
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold font-mono text-orange-600 tabular-nums">
-              {formatPrice(product.cratePrice)}
-            </span>
+            <PriceTag amount={product.cratePrice} size="lg" />
             <span className="text-sm text-gray-500">/ casier</span>
           </div>
           <div className="text-sm text-gray-600 mt-1">
-            <span className="font-mono tabular-nums">{formatPrice(product.unitPrice)}</span>
+            <PriceTag amount={product.unitPrice} size="sm" variant="muted" />
             <span className="text-gray-500"> / unité</span>
           </div>
         </div>
@@ -127,7 +122,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             />
             <span className="text-sm text-gray-700 flex items-center gap-1">
               <Package2 size={14} />
-              Avec consigne (+{formatPrice(product.consignPrice)})
+              Avec consigne (+<PriceTag amount={product.consignPrice} size="sm" variant="muted" />)
             </span>
           </label>
         )}
