@@ -19,10 +19,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const [quantity, setQuantity] = useState(cartQuantity || 1);
   const [withConsigne, setWithConsigne] = useState(false);
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
-  };
-
   const getCrateTypeDescription = (crateType: string) => {
     const descriptions: { [key: string]: string } = {
       C24: '24 x 33cl',
