@@ -4,6 +4,10 @@ import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { useCart } from '../../context/CartContext';
 import { useCommission } from '../../context/CommissionContext';
 import { CrateType } from '../../types';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { Badge } from '../ui/Badge';
+import { EmptyState } from '../ui/EmptyState';
 
 interface CartProps {
   onCheckout: () => void;
@@ -73,11 +77,11 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
   if (cart.length === 0) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <div className="text-center py-12">
-          <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">Votre panier est vide</h3>
-          <p className="text-gray-500">Ajoutez des produits depuis le catalogue pour commencer</p>
-        </div>
+        <EmptyState
+          icon={<Package className="h-16 w-16" />}
+          title="Votre panier est vide"
+          description="Ajoutez des produits depuis le catalogue pour commencer"
+        />
       </div>
     );
   }
@@ -85,11 +89,11 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Mon Panier</h1>
+        <h1 className="text-3xl font-bold font-display text-gray-900 mb-2">Mon Panier</h1>
         <p className="text-gray-600">Vérifiez vos articles et options de consigne</p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+      <Card variant="elevated">
         <div className="divide-y divide-gray-200">
           {cart.map((item) => (
             <div key={item.product.id} className="p-6">
@@ -105,11 +109,13 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">{item.product.name}</h3>
                       <p className="text-sm text-gray-600">{item.product.description}</p>
-                      <span className={`inline-block mt-1 px-2 py-1 text-xs font-medium rounded ${
-                        item.product.brand === 'Flag' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
-                      }`}>
+                      <Badge 
+                        variant="default" 
+                        size="sm" 
+                        className="mt-1"
+                      >
                         {item.product.brand} - {item.product.crateType}
-                      </span>
+                      </Badge>
                     </div>
                     <button
                       onClick={() => removeFromCart(item.product.id)}
@@ -248,12 +254,14 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
 
           <button
             onClick={onCheckout}
-            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 min-h-[44px] rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all text-lg"
+            className="w-full"
           >
-            Confirmer la commande
+            <Button variant="primary" size="lg" fullWidth>
+              Confirmer la commande
+            </Button>
           </button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
