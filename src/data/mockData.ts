@@ -1,5 +1,23 @@
 import { Product } from '../types';
 
+// Image URLs by category for better visual consistency
+const PRODUCT_IMAGES = {
+  beer: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=300&fit=crop&q=80',
+  beer_dark: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=400&h=300&fit=crop&q=80',
+  soda_cola: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=400&h=300&fit=crop&q=80',
+  soda_orange: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=400&h=300&fit=crop&q=80',
+  soda_lemon: 'https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?w=400&h=300&fit=crop&q=80',
+  water: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400&h=300&fit=crop&q=80',
+  wine_red: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&h=300&fit=crop&q=80',
+  wine_white: 'https://images.unsplash.com/photo-1547595628-c61a29f496f0?w=400&h=300&fit=crop&q=80',
+  champagne: 'https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=400&h=300&fit=crop&q=80',
+  whisky: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=400&h=300&fit=crop&q=80',
+  vodka: 'https://images.unsplash.com/photo-1614313913007-2b4ae8ce32d6?w=400&h=300&fit=crop&q=80',
+  rum: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=400&h=300&fit=crop&q=80',
+  gin: 'https://images.unsplash.com/photo-1602320235808-52629105b8b6?w=400&h=300&fit=crop&q=80',
+  placeholder: 'https://images.unsplash.com/photo-1574096079513-d8259312b785?w=400&h=300&fit=crop&q=80'
+};
+
 export const mockProducts: Product[] = [
   // BIÈRES SOLIBRA
   {
@@ -16,7 +34,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 5.2,
     volume: '33cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/1267696/pexels-photo-1267696.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.beer,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -34,7 +52,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 5.2,
     volume: '66cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/1267696/pexels-photo-1267696.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.beer,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -52,7 +70,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 4.8,
     volume: '33cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/1267696/pexels-photo-1267696.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.beer_dark,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -70,7 +88,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 5.0,
     volume: '33cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/1267696/pexels-photo-1267696.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.beer,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -90,7 +108,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 5.0,
     volume: '33cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/5947044/pexels-photo-5947044.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.beer,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -108,7 +126,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 5.0,
     volume: '66cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/5947044/pexels-photo-5947044.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.beer,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -126,7 +144,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 5.5,
     volume: '33cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/5947044/pexels-photo-5947044.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.beer,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -145,7 +163,7 @@ export const mockProducts: Product[] = [
     description: 'Boisson gazeuse rafraîchissante',
     volume: '33cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/50593/coca-cola-cold-drink-soft-drink-coke-50593.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.soda_cola,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -162,7 +180,7 @@ export const mockProducts: Product[] = [
     description: 'Boisson gazeuse à l\'orange',
     volume: '33cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/8105/drinks-orange-juice-orange-vitamins.jpg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.soda_orange,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -179,7 +197,7 @@ export const mockProducts: Product[] = [
     description: 'Boisson gazeuse citron-lime',
     volume: '33cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/2775860/pexels-photo-2775860.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.soda_lemon,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -199,7 +217,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 12.5,
     volume: '75cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/434311/pexels-photo-434311.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.wine_red,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -217,7 +235,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 11.5,
     volume: '75cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/434311/pexels-photo-434311.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.wine_white,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -236,7 +254,7 @@ export const mockProducts: Product[] = [
     description: 'Eau minérale naturelle de Côte d\'Ivoire',
     volume: '1.5L',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/416528/pexels-photo-416528.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.water,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -253,7 +271,7 @@ export const mockProducts: Product[] = [
     description: 'Eau de source pure',
     volume: '1.5L',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/416528/pexels-photo-416528.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.water,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -273,7 +291,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 40.0,
     volume: '70cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/602750/pexels-photo-602750.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.whisky,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -291,7 +309,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 40.0,
     volume: '70cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/602750/pexels-photo-602750.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.gin,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -311,7 +329,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 5.0,
     volume: '33cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/1267696/pexels-photo-1267696.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.beer,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -329,7 +347,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 5.0,
     volume: '66cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/1267696/pexels-photo-1267696.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.beer,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -347,7 +365,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 4.5,
     volume: '33cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/1267696/pexels-photo-1267696.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.beer,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -366,7 +384,7 @@ export const mockProducts: Product[] = [
     description: 'Boisson gazeuse locale à l\'orange',
     volume: '33cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/8105/drinks-orange-juice-orange-vitamins.jpg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.soda_orange,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -383,7 +401,7 @@ export const mockProducts: Product[] = [
     description: 'Boisson gazeuse au cola',
     volume: '33cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/50593/coca-cola-cold-drink-soft-drink-coke-50593.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.soda_cola,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -403,7 +421,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 13.0,
     volume: '75cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/434311/pexels-photo-434311.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.wine_red,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -421,7 +439,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 12.0,
     volume: '75cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/434311/pexels-photo-434311.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.champagne,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -441,7 +459,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 40.0,
     volume: '70cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/602750/pexels-photo-602750.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.vodka,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -459,7 +477,7 @@ export const mockProducts: Product[] = [
     alcoholContent: 37.5,
     volume: '70cl',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/602750/pexels-photo-602750.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.rum,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   },
@@ -478,7 +496,7 @@ export const mockProducts: Product[] = [
     description: 'Eau minérale naturelle',
     volume: '1.5L',
     isActive: true,
-    imageUrl: 'https://images.pexels.com/photos/416528/pexels-photo-416528.jpeg?auto=compress&cs=tinysrgb&w=400',
+    imageUrl: PRODUCT_IMAGES.water,
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01')
   }
