@@ -14,7 +14,7 @@ interface CartProps {
 }
 
 export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
-  const { user, getAccessRestrictions } = useProfileSecurity();
+  const { getAccessRestrictions } = useProfileSecurity();
   const { cart, removeFromCart, updateCartItem, getCartTotal } = useCart();
   const { getCartTotalWithCommission, commissionSettings } = useCommission();
 
@@ -37,7 +37,7 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
     );
   }
   const { subtotal, consigneTotal } = getCartTotal();
-  const { subtotal: _, consigneTotal: __, clientCommission, total } = getCartTotalWithCommission(cart, subtotal, consigneTotal);
+  const { clientCommission, total } = getCartTotalWithCommission(cart, subtotal, consigneTotal);
 
   // Calculate crate summary
   const getCrateSummary = () => {
