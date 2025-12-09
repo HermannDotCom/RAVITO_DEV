@@ -34,8 +34,22 @@ export const MonthlyStats: React.FC<MonthlyStatsProps> = ({ userId }) => {
         // Assume 5% savings on average vs retail prices
         const savings = Math.round(totalSpent * 0.05);
 
-        // Calculate trend (mock: random for now, should compare with previous month)
-        const trend = Math.floor(Math.random() * 30) - 10;
+        // Calculate trend compared to previous month
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const startOfLastMonth = lastMonth;
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+        
+        const lastMonthOrders = orders.filter(order => {
+          const orderDate = new Date(order.createdAt);
+          return orderDate >= startOfLastMonth && 
+                 orderDate <= endOfLastMonth && 
+                 ['delivered', 'completed'].includes(order.status);
+        });
+
+        const lastMonthCount = lastMonthOrders.length;
+        const trend = lastMonthCount > 0 
+          ? Math.round(((ordersCount - lastMonthCount) / lastMonthCount) * 100)
+          : ordersCount > 0 ? 100 : 0;
 
         setStats({ ordersCount, totalSpent, savings, trend });
       } catch (error) {

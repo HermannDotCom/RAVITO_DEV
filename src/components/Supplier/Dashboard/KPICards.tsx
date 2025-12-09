@@ -1,4 +1,5 @@
 import React from 'react';
+import { Bell, Truck, CheckCircle, Wallet } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 
 interface KPICardsProps {
@@ -35,9 +36,6 @@ export const KPICards: React.FC<KPICardsProps> = ({
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR').format(price) + 'F';
   };
-
-  // Import icons dynamically to avoid issues
-  const { Bell, Truck, CheckCircle, Wallet } = require('lucide-react');
 
   const kpis: KPICardData[] = [
     {

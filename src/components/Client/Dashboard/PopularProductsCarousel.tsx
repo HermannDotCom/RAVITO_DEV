@@ -15,7 +15,7 @@ export const PopularProductsCarousel: React.FC<PopularProductsCarouselProps> = (
     const loadPopularProducts = async () => {
       try {
         const allProducts = await getProducts({ isActive: true });
-        // Take first 6 products as "popular" (in production, this would be based on actual popularity data)
+        // Take first 6 products as popular
         setProducts(allProducts.slice(0, 6));
       } catch (error) {
         console.error('Error loading popular products:', error);

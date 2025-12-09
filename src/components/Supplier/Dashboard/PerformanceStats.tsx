@@ -1,37 +1,114 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Clock, Star } from 'lucide-react';
+import { getOrdersBySupplier } from '../../../services/orderService';
 
 interface PerformanceStatsProps {
   supplierId: string;
   rating?: number;
 }
 
+// Performance benchmarks for supplier ratings
+const PERFORMANCE_BENCHMARKS = {
+  acceptanceRate: {
+    excellent: 90,
+    good: 75,
+  },
+  avgDeliveryTime: {
+    fast: 30,
+    acceptable: 45,
+  },
+  customerRating: {
+    topTier: 4.5,
+    good: 4.0,
+  },
+};
+
 export const PerformanceStats: React.FC<PerformanceStatsProps> = ({ supplierId, rating }) => {
-  // Mock data - in production, fetch from database
-  const [stats] = useState({
-    acceptanceRate: 92,
-    avgDeliveryTime: 28,
-    customerRating: rating || 4.8,
+  const [stats, setStats] = useState({
+    acceptanceRate: 0,
+    avgDeliveryTime: 0,
+    customerRating: rating || 5,
   });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadPerformanceStats = async () => {
+      try {
+        const orders = await getOrdersBySupplier(supplierId);
+        
+        // Calculate acceptance rate (orders accepted vs total orders)
+        const totalOrders = orders.length;
+        const acceptedOrders = orders.filter(o => 
+          !['cancelled', 'rejected'].includes(o.status)
+        ).length;
+        const acceptanceRate = totalOrders > 0 
+          ? Math.round((acceptedOrders / totalOrders) * 100) 
+          : 0;
+
+        // Calculate average delivery time (mock calculation)
+        const completedOrders = orders.filter(o => o.status === 'delivered');
+        const avgDeliveryTime = completedOrders.length > 0 
+          ? Math.round(completedOrders.reduce((sum, order) => {
+              const created = new Date(order.createdAt).getTime();
+              const delivered = order.deliveredAt 
+                ? new Date(order.deliveredAt).getTime() 
+                : created;
+              return sum + ((delivered - created) / (1000 * 60)); // minutes
+            }, 0) / completedOrders.length)
+          : 0;
+
+        setStats({
+          acceptanceRate,
+          avgDeliveryTime,
+          customerRating: rating || 5,
+        });
+      } catch (error) {
+        console.error('Error loading performance stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPerformanceStats();
+  }, [supplierId, rating]);
 
   const getBenchmark = (value: number, type: 'rate' | 'time' | 'rating') => {
     if (type === 'rate') {
-      if (value >= 90) return { label: 'Excellent', color: 'text-emerald-600' };
-      if (value >= 75) return { label: 'Bon', color: 'text-blue-600' };
+      if (value >= PERFORMANCE_BENCHMARKS.acceptanceRate.excellent) 
+        return { label: 'Excellent', color: 'text-emerald-600' };
+      if (value >= PERFORMANCE_BENCHMARKS.acceptanceRate.good) 
+        return { label: 'Bon', color: 'text-blue-600' };
       return { label: 'À améliorer', color: 'text-orange-600' };
     }
     if (type === 'time') {
-      if (value <= 30) return { label: 'Rapide', color: 'text-emerald-600' };
-      if (value <= 45) return { label: 'Correct', color: 'text-blue-600' };
+      if (value <= PERFORMANCE_BENCHMARKS.avgDeliveryTime.fast) 
+        return { label: 'Rapide', color: 'text-emerald-600' };
+      if (value <= PERFORMANCE_BENCHMARKS.avgDeliveryTime.acceptable) 
+        return { label: 'Correct', color: 'text-blue-600' };
       return { label: 'Lent', color: 'text-orange-600' };
     }
     if (type === 'rating') {
-      if (value >= 4.5) return { label: 'Top 10%', color: 'text-emerald-600' };
-      if (value >= 4.0) return { label: 'Top 30%', color: 'text-blue-600' };
+      if (value >= PERFORMANCE_BENCHMARKS.customerRating.topTier) 
+        return { label: 'Top 10%', color: 'text-emerald-600' };
+      if (value >= PERFORMANCE_BENCHMARKS.customerRating.good) 
+        return { label: 'Top 30%', color: 'text-blue-600' };
       return { label: 'Moyen', color: 'text-orange-600' };
     }
     return { label: '', color: '' };
   };
+
+  if (loading) {
+    return (
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-slate-800 mb-3">📊 Performance du mois</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-gray-100 rounded-xl h-24 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mb-6">
