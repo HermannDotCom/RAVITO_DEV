@@ -59,8 +59,9 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
   const [offerItems, setOfferItems] = useState<OfferItem[]>([]);
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedOrderTab, setSelectedOrderTab] = useState<'available' | 'pending' | 'active'>('available');
 
-  const handleViewDetails = (order: Order) => {
+  const handleViewDetails = (order: Order, activeTab: 'available' | 'pending' | 'active') => {
     if (hasPendingRatings) {
       setShowRatingModal(true);
       return;
@@ -78,6 +79,7 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
 
     setOfferItems(items);
     setSelectedOrder(order);
+    setSelectedOrderTab(activeTab);
     setMessage('');
     setShowDetailsModal(true);
   };
@@ -238,11 +240,13 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
 
               <div className="mb-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Produits demandés</h3>
-                <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                  <p className="text-sm text-blue-800">
-                    <strong>Note:</strong> Vous pouvez modifier les quantités selon vos disponibilités. Les produits avec une quantité de 0 seront retirés de l'offre.
-                  </p>
-                </div>
+                {selectedOrderTab === 'available' && (
+                  <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-blue-800">
+                      <strong>Note:</strong> Vous pouvez modifier les quantités selon vos disponibilités. Les produits avec une quantité de 0 seront retirés de l'offre.
+                    </p>
+                  </div>
+                )}
 
                 <div className="space-y-3">
                   {offerItems.map((item) => (
@@ -260,37 +264,39 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                       <div className="flex items-center justify-between">
                         <div className="text-sm">
                           <p className="text-gray-600">
-                            Demandé: <span className="font-semibold">{item.requestedQuantity} caisses</span>
+                            {selectedOrderTab === 'available' ? 'Demandé' : 'Quantité'}: <span className="font-semibold">{item.requestedQuantity} caisses</span>
                           </p>
-                          {item.offeredQuantity !== item.requestedQuantity && (
+                          {selectedOrderTab === 'available' && item.offeredQuantity !== item.requestedQuantity && (
                             <p className="text-orange-600 font-medium">
                               Vous proposez: {item.offeredQuantity} caisses
                             </p>
                           )}
                         </div>
 
-                        <div className="flex items-center space-x-3">
-                          <button
-                            onClick={() => updateQuantity(item.productId, item.offeredQuantity - 1)}
-                            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
-                            disabled={item.offeredQuantity === 0}
-                          >
-                            <Minus className="h-4 w-4" />
-                          </button>
-                          <input
-                            type="number"
-                            value={item.offeredQuantity}
-                            onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 0)}
-                            className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center font-semibold"
-                            min="0"
-                          />
-                          <button
-                            onClick={() => updateQuantity(item.productId, item.offeredQuantity + 1)}
-                            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </button>
-                        </div>
+                        {selectedOrderTab === 'available' && (
+                          <div className="flex items-center space-x-3">
+                            <button
+                              onClick={() => updateQuantity(item.productId, item.offeredQuantity - 1)}
+                              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+                              disabled={item.offeredQuantity === 0}
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
+                            <input
+                              type="number"
+                              value={item.offeredQuantity}
+                              onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 0)}
+                              className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center font-semibold"
+                              min="0"
+                            />
+                            <button
+                              onClick={() => updateQuantity(item.productId, item.offeredQuantity + 1)}
+                              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       <div className="mt-2 text-right">
@@ -304,16 +310,18 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                 </div>
               </div>
 
-              <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-2">Message au client (optionnel)</h3>
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Ex: Certains produits sont en stock limité..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={3}
-                />
-              </div>
+              {selectedOrderTab === 'available' && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-900 mb-2">Message au client (optionnel)</h3>
+                  <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Ex: Certains produits sont en stock limité..."
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+              )}
 
               {totals && (
                 <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-6 mb-6">
@@ -356,25 +364,27 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                   className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50"
                   disabled={isSubmitting}
                 >
-                  Annuler
+                  {selectedOrderTab === 'available' ? 'Annuler' : 'Fermer'}
                 </button>
-                <button
-                  onClick={handleSubmitOffer}
-                  disabled={isSubmitting || offerItems.every(item => item.offeredQuantity === 0)}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>Envoi en cours...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="h-5 w-5" />
-                      <span>Envoyer l'offre</span>
-                    </>
-                  )}
-                </button>
+                {selectedOrderTab === 'available' && (
+                  <button
+                    onClick={handleSubmitOffer}
+                    disabled={isSubmitting || offerItems.every(item => item.offeredQuantity === 0)}
+                    className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <span>Envoi en cours...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-5 w-5" />
+                        <span>Envoyer l'offre</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </div>
