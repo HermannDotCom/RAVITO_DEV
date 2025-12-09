@@ -4,9 +4,10 @@ import { useCart } from '../../context/CartContext';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { Product, ProductCategory } from '../../types';
 import { getProducts, getUniqueBrands } from '../../services/productService';
+import { PRODUCT_IMAGES } from '../../data/mockData';
 
 // Placeholder image for products without images or when image loading fails
-const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1574096079513-d8259312b785?w=400&h=300&fit=crop&q=80';
+const FALLBACK_IMAGE = PRODUCT_IMAGES.placeholder;
 
 export const ProductCatalog: React.FC = () => {
   const { user, getAccessRestrictions } = useProfileSecurity();

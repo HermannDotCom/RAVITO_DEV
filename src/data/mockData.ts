@@ -1,7 +1,7 @@
 import { Product } from '../types';
 
 // Image URLs by category for better visual consistency
-const PRODUCT_IMAGES = {
+export const PRODUCT_IMAGES = {
   beer: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400&h=300&fit=crop&q=80',
   beer_dark: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=400&h=300&fit=crop&q=80',
   soda_cola: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=400&h=300&fit=crop&q=80',
