@@ -8,21 +8,21 @@ interface WelcomeHeaderProps {
 
 const getGreeting = () => {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return { greeting: 'Bonjour', message: 'Prêt pour les commandes du jour ?' };
-  if (hour >= 12 && hour < 18) return { greeting: 'Bon après-midi', message: 'Besoin de réapprovisionner ?' };
-  if (hour >= 18 && hour < 22) return { greeting: 'Bonsoir', message: 'La soirée commence ! 🌙' };
-  return { greeting: 'Bonne nuit', message: 'On est là 24h/24 ! 🦉' };
+  if (hour >= 5 && hour < 12) return { emoji: '🌅', greeting: 'Bonjour', message: 'Prêt pour une nouvelle journée ?' };
+  if (hour >= 12 && hour < 18) return { emoji: '☀️', greeting: 'Bon après-midi', message: 'Les commandes vous attendent !' };
+  if (hour >= 18 && hour < 22) return { emoji: '🌆', greeting: 'Bonsoir', message: 'La soirée commence !' };
+  return { emoji: '🌙', greeting: 'Bonne nuit', message: 'RAVITO ne dort jamais !' };
 };
 
 export const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, zone }) => {
-  const { greeting, message } = getGreeting();
+  const { emoji, greeting, message } = getGreeting();
 
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
-            🌅 {greeting}, {userName} !
+            {emoji} {greeting}, {userName} !
           </h1>
           <p className="text-sm text-slate-600 mt-1">{message}</p>
         </div>

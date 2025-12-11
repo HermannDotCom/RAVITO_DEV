@@ -60,7 +60,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) 
     );
   }
 
-  const userName = (user as any)?.businessName || user?.name || 'Utilisateur';
+  const userName = user?.name || (user as any)?.businessName || 'Utilisateur';
   const zone = (user as any)?.zoneId || user?.address?.split(',')[0];
 
   return (

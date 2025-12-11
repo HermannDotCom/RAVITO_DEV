@@ -2,21 +2,31 @@ import React from 'react';
 import { MapPin, Star } from 'lucide-react';
 
 interface SupplierHeaderProps {
-  businessName: string;
+  supplierName: string;
   rating: number;
   zone?: string;
 }
 
-export const SupplierHeader: React.FC<SupplierHeaderProps> = ({ businessName, rating, zone }) => {
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return { emoji: '🌅', greeting: 'Bonjour', message: 'Prêt pour une nouvelle journée ?' };
+  if (hour >= 12 && hour < 18) return { emoji: '☀️', greeting: 'Bon après-midi', message: 'Les commandes vous attendent !' };
+  if (hour >= 18 && hour < 22) return { emoji: '🌆', greeting: 'Bonsoir', message: 'La soirée commence !' };
+  return { emoji: '🌙', greeting: 'Bonne nuit', message: 'RAVITO ne dort jamais !' };
+};
+
+export const SupplierHeader: React.FC<SupplierHeaderProps> = ({ supplierName, rating, zone }) => {
+  const { emoji, greeting, message } = getGreeting();
+
   return (
     <div className="mb-6">
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-slate-900 mb-1">
-            👋 {businessName}
+            {emoji} {greeting}, {supplierName} !
           </h1>
           <p className="text-sm text-slate-600">
-            Gérez vos livraisons et commandes
+            {message}
           </p>
         </div>
         <div className="flex items-center gap-4">

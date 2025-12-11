@@ -142,13 +142,13 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
     }
   };
 
-  const businessName = (user as any)?.businessName || 'Dépôt';
+  const supplierName = user?.name || (user as any)?.businessName || 'Partenaire';
   const zone = (user as any)?.coverageZone || (user as any)?.zoneId;
   const rating = user?.rating || 5;
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
-      <SupplierHeader businessName={businessName} rating={rating} zone={zone} />
+      <SupplierHeader supplierName={supplierName} rating={rating} zone={zone} />
 
       <KPICards
         availableOrders={availableOrders.length}
