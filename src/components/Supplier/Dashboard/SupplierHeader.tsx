@@ -1,19 +1,12 @@
 import React from 'react';
 import { MapPin, Star } from 'lucide-react';
+import { getGreeting } from '../../../utils/greeting';
 
 interface SupplierHeaderProps {
   supplierName: string;
   rating: number;
   zone?: string;
 }
-
-const getGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return { emoji: '🌅', greeting: 'Bonjour', message: 'Prêt pour une nouvelle journée ?' };
-  if (hour >= 12 && hour < 18) return { emoji: '☀️', greeting: 'Bon après-midi', message: 'Les commandes vous attendent !' };
-  if (hour >= 18 && hour < 22) return { emoji: '🌆', greeting: 'Bonsoir', message: 'La soirée commence !' };
-  return { emoji: '🌙', greeting: 'Bonne nuit', message: 'RAVITO ne dort jamais !' };
-};
 
 export const SupplierHeader: React.FC<SupplierHeaderProps> = ({ supplierName, rating, zone }) => {
   const { emoji, greeting, message } = getGreeting();

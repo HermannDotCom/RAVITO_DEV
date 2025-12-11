@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Wallet, Clock } from 'lucide-react';
 import { getOrdersByClient } from '../../../services/orderService';
+import { COMPLETED_ORDER_STATUSES, PENDING_ORDER_STATUSES } from '../../../constants/orderStatuses';
 
 interface MonthlyStatsProps {
   userId: string;
@@ -24,16 +25,16 @@ export const MonthlyStats: React.FC<MonthlyStatsProps> = ({ userId }) => {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const thisMonthOrders = orders.filter(order => 
           new Date(order.createdAt) >= startOfMonth && 
-          ['delivered', 'completed'].includes(order.status)
+          COMPLETED_ORDER_STATUSES.includes(order.status)
         );
 
         // Calculate stats
         const ordersCount = thisMonthOrders.length;
         const totalSpent = thisMonthOrders.reduce((sum, order) => sum + order.totalAmount, 0);
         
-        // Count pending orders (all statuses except delivered, completed, cancelled)
+        // Count pending orders (using consistent status constants)
         const pendingCount = orders.filter(order => 
-          !['delivered', 'completed', 'cancelled'].includes(order.status)
+          PENDING_ORDER_STATUSES.includes(order.status)
         ).length;
 
         setStats({ ordersCount, totalSpent, pendingCount });

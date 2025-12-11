@@ -13,6 +13,7 @@ import {
 } from './Dashboard';
 import { getOrdersBySupplier } from '../../services/orderService';
 import { Order } from '../../types';
+import { ACTIVE_DELIVERY_STATUSES, COMPLETED_ORDER_STATUSES } from '../../constants/orderStatuses';
 
 interface SupplierDashboardProps {
   onNavigate: (section: string) => void;
@@ -87,9 +88,9 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
       try {
         const orders = await getOrdersBySupplier(user.id);
         
-        // Find active delivery
+        // Find active delivery using consistent status constants
         const active = orders.find(o => 
-          ['accepted', 'preparing', 'delivering'].includes(o.status)
+          ACTIVE_DELIVERY_STATUSES.includes(o.status)
         );
         setActiveDelivery(active || null);
 
@@ -100,7 +101,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
         const todayOrders = orders.filter(o => {
           const orderDate = new Date(o.createdAt);
           orderDate.setHours(0, 0, 0, 0);
-          return orderDate.getTime() === today.getTime() && o.status === 'delivered';
+          return orderDate.getTime() === today.getTime() && 
+                 COMPLETED_ORDER_STATUSES.includes(o.status);
         });
 
         const delivered = todayOrders.length;
