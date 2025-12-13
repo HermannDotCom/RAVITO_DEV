@@ -65,6 +65,7 @@ import { DataManagement } from './components/Admin/DataManagement';
 // MVP: Premium tier management disabled - Uncomment to reactivate post-MVP
 // import { PremiumTierManagement } from './components/Admin/PremiumTierManagement';
 import { ClientProfile } from './components/Client/ClientProfile';
+import { ClientDashboard } from './components/Client/ClientDashboard';
 import { OrderHistory } from './components/Client/OrderHistory';
 import { ClientTreasury } from './components/Client/ClientTreasury';
 import { ContactSupport } from './components/Client/ContactSupport';
@@ -185,6 +186,7 @@ const AppContent: React.FC = () => {
           case 'profile':
             return <ClientProfile />;
           case 'dashboard':
+            return <ClientDashboard onNavigate={setActiveSection} />;
           case 'orders':
             return <OrderHistory onNavigate={setActiveSection} initialOrderIdToRate={orderIdToRate} onOrderRated={handleOrderRated} />;
           case 'treasury':
