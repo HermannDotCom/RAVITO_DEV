@@ -8,7 +8,7 @@ interface SupplierHeaderProps {
   zone?: string;
 }
 
-export const SupplierHeader: React.FC<SupplierHeaderProps> = ({ supplierName, rating, zone }) => {
+export const SupplierHeader: React. FC<SupplierHeaderProps> = ({ supplierName, rating, zone }) => {
   const { emoji, greeting, message } = getGreeting();
 
   return (
@@ -26,7 +26,7 @@ export const SupplierHeader: React.FC<SupplierHeaderProps> = ({ supplierName, ra
           {rating && (
             <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg border border-amber-100">
               <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-              <span className="text-sm font-bold text-amber-900">{rating.toFixed(1)}</span>
+              <span className="text-sm font-bold text-amber-900">{rating. toFixed(1)}</span>
             </div>
           )}
           {zone && (

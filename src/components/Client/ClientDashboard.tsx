@@ -17,7 +17,7 @@ interface ClientDashboardProps {
   onNavigate: (section: string) => void;
 }
 
-export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) => {
+export const ClientDashboard:  React.FC<ClientDashboardProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
   const { cart, addToCart } = useCart();
   const { clientCurrentOrder } = useOrder();
@@ -29,7 +29,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) 
   };
 
   // Vérification sécurisée de l'accès
-  if (!accessRestrictions.canPlaceOrders) {
+  if (!accessRestrictions. canPlaceOrders) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-8 text-center">
@@ -46,20 +46,21 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) 
             <h3 className="font-semibold text-yellow-900 mb-2">Informations soumises :</h3>
             <div className="text-sm text-yellow-800 space-y-1 text-left">
               <p><strong>Établissement :</strong> {(user as any)?.businessName || 'Non renseigné'}</p>
-              <p><strong>Responsable :</strong> {user.name}</p>
+              <p><strong>Responsable :</strong> {user. name}</p>
               <p><strong>Téléphone :</strong> {user.phone}</p>
               <p><strong>Adresse :</strong> {user.address}</p>
             </div>
           </div>
           <div className="text-sm text-yellow-700">
             <p className="mb-2"><strong>Délai d'approbation habituel :</strong> 24-48 heures</p>
-            <p>Pour toute question : <strong>support@distri-night.ci</strong> ou <strong>+225 27 20 30 40 50</strong></p>
+            <p>Pour toute question :  <strong>support@distri-night.ci</strong> ou <strong>+225 27 20 30 40 50</strong></p>
           </div>
         </div>
       </div>
     );
   }
 
+  // Get the actual name - prefer user. name (person's real name) for personal greeting
   const userName = user?.name || (user as any)?.businessName || 'Utilisateur';
   const zone = (user as any)?.zoneId || user?.address?.split(',')[0];
 

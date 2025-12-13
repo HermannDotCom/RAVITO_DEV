@@ -19,17 +19,18 @@ interface SupplierDashboardProps {
   onNavigate: (section: string) => void;
 }
 
-export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate }) => {
+export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
   const { availableOrders, updateOrderStatus } = useOrder();
   const { commissionSettings, getSupplierNetAmount } = useCommission();
   const [activeDelivery, setActiveDelivery] = useState<Order | null>(null);
   const [todayStats, setTodayStats] = useState({ delivered: 0, revenue: 0 });
+  const [monthlyRevenue, setMonthlyRevenue] = useState(0);
 
   const accessRestrictions = getAccessRestrictions();
 
   // Vérification sécurisée de l'accès
-  if (!accessRestrictions.canAcceptOrders) {
+  if (! accessRestrictions.canAcceptOrders) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 text-center">
@@ -46,12 +47,12 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
             <h3 className="font-semibold text-orange-900 mb-2">Dépôt soumis :</h3>
             <div className="text-sm text-orange-800 space-y-1 text-left">
               <p><strong>Dépôt :</strong> {(user as any)?.businessName || 'Non renseigné'}</p>
-              <p><strong>Responsable :</strong> {user.name}</p>
+              <p><strong>Responsable : </strong> {user.name}</p>
               <p><strong>Zone de couverture :</strong> {(user as any)?.coverageZone || 'Non renseignée'}</p>
               <p><strong>Capacité :</strong> {(user as any)?.deliveryCapacity || 'Non renseignée'}</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md: grid-cols-2 gap-4 mb-6">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h4 className="font-medium text-blue-900 mb-2">Documents requis :</h4>
               <ul className="text-sm text-blue-800 space-y-1 text-left">
@@ -83,7 +84,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
   // Load active delivery and today's stats
   useEffect(() => {
     const loadDashboardData = async () => {
-      if (!user?.id) return;
+      if (! user?. id) return;
 
       try {
         const orders = await getOrdersBySupplier(user.id);
@@ -101,7 +102,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
         const todayOrders = orders.filter(o => {
           const orderDate = new Date(o.createdAt);
           orderDate.setHours(0, 0, 0, 0);
-          return orderDate.getTime() === today.getTime() && 
+          return orderDate. getTime() === today.getTime() && 
                  COMPLETED_ORDER_STATUSES.includes(o.status);
         });
 
@@ -109,6 +110,15 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
         const revenue = todayOrders.reduce((sum, o) => sum + o.totalAmount, 0);
 
         setTodayStats({ delivered, revenue });
+
+        // Calculate monthly revenue
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const monthlyOrders = orders.filter(o => {
+          const orderDate = new Date(o.createdAt);
+          return orderDate >= startOfMonth && o.status === 'delivered';
+        });
+        const monthlyRev = monthlyOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+        setMonthlyRevenue(monthlyRev);
       } catch (error) {
         console.error('Error loading dashboard data:', error);
       }
@@ -117,7 +127,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
     loadDashboardData();
   }, [user]);
 
-  const handleAcceptOrder = async (orderId: string) => {
+  const handleAcceptOrder = async (orderId:  string) => {
     try {
       await updateOrderStatus(orderId, 'accepted');
       // Refresh will happen automatically via context
@@ -144,6 +154,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
     }
   };
 
+  // Get the actual name - prefer user. name (person's real name) over businessName
   const supplierName = user?.name || (user as any)?.businessName || 'Partenaire';
   const zone = (user as any)?.coverageZone || (user as any)?.zoneId;
   const rating = user?.rating || 5;
@@ -153,10 +164,10 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
       <SupplierHeader supplierName={supplierName} rating={rating} zone={zone} />
 
       <KPICards
-        availableOrders={availableOrders.length}
+        availableOrders={availableOrders. length}
         activeDeliveries={activeDelivery ? 1 : 0}
         todayDelivered={todayStats.delivered}
-        monthlyRevenue={todayStats.revenue}
+        monthlyRevenue={monthlyRevenue}
         onAvailableClick={() => onNavigate('orders')}
       />
 
@@ -164,7 +175,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
 
       {availableOrders.length > 0 && (
         <NewOrdersSection
-          orders={availableOrders.slice(0, 3)}
+          orders={availableOrders. slice(0, 3)}
           onViewDetails={(id) => onNavigate('orders')}
           onAccept={handleAcceptOrder}
           onReject={handleRejectOrder}

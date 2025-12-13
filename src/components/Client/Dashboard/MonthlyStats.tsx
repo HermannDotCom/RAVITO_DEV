@@ -7,7 +7,7 @@ interface MonthlyStatsProps {
   userId: string;
 }
 
-export const MonthlyStats: React.FC<MonthlyStatsProps> = ({ userId }) => {
+export const MonthlyStats:  React.FC<MonthlyStatsProps> = ({ userId }) => {
   const [stats, setStats] = useState({
     ordersCount: 0,
     totalSpent: 0,
@@ -22,15 +22,15 @@ export const MonthlyStats: React.FC<MonthlyStatsProps> = ({ userId }) => {
         
         // Filter orders from this month
         const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfMonth = new Date(now. getFullYear(), now.getMonth(), 1);
         const thisMonthOrders = orders.filter(order => 
           new Date(order.createdAt) >= startOfMonth && 
-          COMPLETED_ORDER_STATUSES.includes(order.status)
+          COMPLETED_ORDER_STATUSES. includes(order.status)
         );
 
         // Calculate stats
         const ordersCount = thisMonthOrders.length;
-        const totalSpent = thisMonthOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+        const totalSpent = thisMonthOrders. reduce((sum, order) => sum + order.totalAmount, 0);
         
         // Count pending orders (using consistent status constants)
         const pendingCount = orders.filter(order => 
