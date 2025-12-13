@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import App from '../App';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 // Mock all the context providers and components
 vi.mock('../context/AuthContext', () => ({
@@ -106,10 +106,8 @@ describe('App Routing - Client Section', () => {
 
   it('should have separate routing cases for dashboard and orders', () => {
     // Read the App.tsx file to verify the routing structure
-    const fs = require('fs');
-    const path = require('path');
-    const appContent = fs.readFileSync(
-      path.join(__dirname, '../App.tsx'),
+    const appContent = readFileSync(
+      join(__dirname, '../App.tsx'),
       'utf-8'
     );
 
