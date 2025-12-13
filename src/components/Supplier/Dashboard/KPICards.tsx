@@ -59,7 +59,7 @@ export const KPICards: React.FC<KPICardsProps> = ({
       color: 'green',
     },
     {
-      label: 'Revenus',
+      label: 'Revenus mois',
       value: formatPrice(monthlyRevenue),
       icon: Wallet,
       color: 'emerald',

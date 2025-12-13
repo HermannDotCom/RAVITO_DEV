@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, TrendingUp, Sparkles } from 'lucide-react';
+import { Package, TrendingUp, Clock } from 'lucide-react';
 import { getOrdersByClient } from '../../../services/orderService';
 
 interface MonthlyStatsProps {
@@ -10,7 +10,7 @@ export const MonthlyStats: React.FC<MonthlyStatsProps> = ({ userId }) => {
   const [stats, setStats] = useState({
     ordersCount: 0,
     totalSpent: 0,
-    savings: 0,
+    pendingOrders: 0,
     trend: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -28,11 +28,14 @@ export const MonthlyStats: React.FC<MonthlyStatsProps> = ({ userId }) => {
           ['delivered', 'completed'].includes(order.status)
         );
 
+        // Count pending orders (not completed)
+        const pendingOrders = orders.filter(order => 
+          !['delivered', 'completed', 'cancelled'].includes(order.status)
+        ).length;
+
         // Calculate stats
         const ordersCount = thisMonthOrders.length;
         const totalSpent = thisMonthOrders.reduce((sum, order) => sum + order.totalAmount, 0);
-        // Assume 5% savings on average vs retail prices
-        const savings = Math.round(totalSpent * 0.05);
 
         // Calculate trend compared to previous month
         const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -51,7 +54,7 @@ export const MonthlyStats: React.FC<MonthlyStatsProps> = ({ userId }) => {
           ? Math.round(((ordersCount - lastMonthCount) / lastMonthCount) * 100)
           : ordersCount > 0 ? 100 : 0;
 
-        setStats({ ordersCount, totalSpent, savings, trend });
+        setStats({ ordersCount, totalSpent, pendingOrders, trend });
       } catch (error) {
         console.error('Error loading monthly stats:', error);
       } finally {
@@ -109,25 +112,21 @@ export const MonthlyStats: React.FC<MonthlyStatsProps> = ({ userId }) => {
             <p className="text-2xl font-bold text-slate-900 mb-1 font-mono tabular-nums">
               {formatPrice(stats.totalSpent)}
             </p>
-            {stats.trend !== 0 && (
-              <p className={`text-xs ${stats.trend > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
-                ↗ +{Math.abs(stats.trend)}%
-              </p>
-            )}
+            <p className="text-xs text-slate-500">ce mois</p>
           </div>
         </div>
 
-        {/* Savings */}
+        {/* Pending Orders */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
           <div className="flex items-start justify-between mb-2">
-            <Sparkles className="h-5 w-5 text-emerald-600" />
+            <Clock className="h-5 w-5 text-amber-600" />
           </div>
           <div>
-            <p className="text-sm text-slate-600 mb-1">Économisé</p>
-            <p className="text-2xl font-bold text-emerald-600 mb-1 font-mono tabular-nums">
-              {formatPrice(stats.savings)}
+            <p className="text-sm text-slate-600 mb-1">En attente</p>
+            <p className="text-2xl font-bold text-slate-900 mb-1">
+              {stats.pendingOrders}
             </p>
-            <p className="text-xs text-slate-500">via RAVITO</p>
+            <p className="text-xs text-slate-500">commande{stats.pendingOrders > 1 ? 's' : ''}</p>
           </div>
         </div>
       </div>
