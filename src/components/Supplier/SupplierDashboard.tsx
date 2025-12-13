@@ -24,6 +24,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
   const { commissionSettings, getSupplierNetAmount } = useCommission();
   const [activeDelivery, setActiveDelivery] = useState<Order | null>(null);
   const [todayStats, setTodayStats] = useState({ delivered: 0, revenue: 0 });
+  const [monthlyRevenue, setMonthlyRevenue] = useState(0);
 
   const accessRestrictions = getAccessRestrictions();
 
@@ -107,6 +108,15 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
         const revenue = todayOrders.reduce((sum, o) => sum + o.totalAmount, 0);
 
         setTodayStats({ delivered, revenue });
+
+        // Calculate monthly revenue
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const monthlyOrders = orders.filter(o => {
+          const orderDate = new Date(o.createdAt);
+          return orderDate >= startOfMonth && o.status === 'delivered';
+        });
+        const monthlyRev = monthlyOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+        setMonthlyRevenue(monthlyRev);
       } catch (error) {
         console.error('Error loading dashboard data:', error);
       }
@@ -142,19 +152,20 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
     }
   };
 
-  const businessName = (user as any)?.businessName || 'Dépôt';
+  // Get the actual name - prefer user.name (person's real name) over businessName
+  const supplierName = user?.name || (user as any)?.businessName || 'Fournisseur';
   const zone = (user as any)?.coverageZone || (user as any)?.zoneId;
   const rating = user?.rating || 5;
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
-      <SupplierHeader businessName={businessName} rating={rating} zone={zone} />
+      <SupplierHeader businessName={supplierName} rating={rating} zone={zone} />
 
       <KPICards
         availableOrders={availableOrders.length}
         activeDeliveries={activeDelivery ? 1 : 0}
         todayDelivered={todayStats.delivered}
-        monthlyRevenue={todayStats.revenue}
+        monthlyRevenue={monthlyRevenue}
         onAvailableClick={() => onNavigate('orders')}
       />
 
