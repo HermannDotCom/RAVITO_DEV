@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, Clock, AlertCircle, CheckCircle, X, Eye, MessageCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { MessageSquare, Send, Clock, CheckCircle, X, Eye, MessageCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
   ticketService,
@@ -28,25 +28,42 @@ export const ContactSupport: React.FC = () => {
 
   const [newMessage, setNewMessage] = useState('');
 
+  // Extract userId as a stable primitive dependency
+  const userId = user?.id;
+  
+  // Track if we've loaded tickets at least once
+  const hasLoadedRef = useRef(false);
+
+  const loadTickets = useCallback(async () => {
+    if (!userId) return;
+    
+    // Only show loader on initial load
+    if (!hasLoadedRef.current) {
+      setIsLoading(true);
+    }
+    
+    try {
+      const data = await ticketService.getUserTickets(userId);
+      setTickets(data);
+      hasLoadedRef.current = true;
+    } catch (error) {
+      console.error('Error loading tickets:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId]);
+
   useEffect(() => {
-    if (user) {
+    if (userId) {
       loadTickets();
     }
-  }, [user]);
+  }, [userId, loadTickets]);
 
   useEffect(() => {
     if (selectedTicket) {
       loadTicketMessages(selectedTicket.id);
     }
   }, [selectedTicket]);
-
-  const loadTickets = async () => {
-    if (!user) return;
-    setIsLoading(true);
-    const data = await ticketService.getUserTickets(user.id);
-    setTickets(data);
-    setIsLoading(false);
-  };
 
   const loadTicketMessages = async (ticketId: string) => {
     const messages = await ticketService.getTicketMessages(ticketId);
