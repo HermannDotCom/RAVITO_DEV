@@ -5,7 +5,7 @@ import { OrderStatus } from '../types';
  */
 
 /** Order statuses that represent completed orders */
-export const COMPLETED_ORDER_STATUSES: OrderStatus[] = ['delivered', 'completed'];
+export const COMPLETED_ORDER_STATUSES: OrderStatus[] = ['delivered'];
 
 /** Order statuses that represent pending/active orders */
 export const PENDING_ORDER_STATUSES: OrderStatus[] = [

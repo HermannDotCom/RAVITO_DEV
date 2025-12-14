@@ -33,7 +33,7 @@ export const getSupplierStats = async (supplierId: string): Promise<SupplierStat
       .from('orders')
       .select('id, status, estimated_delivery_time, delivered_at, accepted_at')
       .eq('supplier_id', supplierId)
-      .in('status', ['delivered', 'completed']);
+      .in('status', ['delivered']);
 
     if (ordersError) throw ordersError;
 
@@ -115,7 +115,7 @@ export const getClientStats = async (clientId: string): Promise<SupplierStats> =
       .from('orders')
       .select('id, status')
       .eq('client_id', clientId)
-      .in('status', ['delivered', 'completed']);
+      .in('status', ['delivered']);
 
     if (ordersError) throw ordersError;
 
@@ -212,7 +212,7 @@ export const createRating = async (ratingData: {
 
     console.log('Rating created successfully');
 
-    // Check if both parties have rated and update order status to 'completed'
+    // Check if both parties have rated and send notifications
     await checkAndUpdateOrderToCompleted(ratingData.orderId);
 
     return true;
@@ -224,7 +224,7 @@ export const createRating = async (ratingData: {
 
 /**
  * Check if both client and supplier have rated the order
- * If yes, update the order status to 'completed'
+ * If yes, send notifications to both parties
  */
 export const checkAndUpdateOrderToCompleted = async (orderId: string): Promise<boolean> => {
   try {
@@ -243,18 +243,7 @@ export const checkAndUpdateOrderToCompleted = async (orderId: string): Promise<b
     const hasSupplierRating = allRatings?.some(r => r.from_user_role === 'supplier');
 
     if (hasClientRating && hasSupplierRating) {
-      // Update order status to 'completed'
-      const { error: updateError } = await supabase
-        .from('orders')
-        .update({ status: 'completed' })
-        .eq('id', orderId);
-
-      if (updateError) {
-        console.error('Error updating order to completed:', updateError);
-        return false;
-      }
-
-      console.log(`Order ${orderId} marked as completed - both parties have rated`);
+      console.log(`Order ${orderId} - both parties have rated`);
 
       // Create notifications for both parties
       const { data: orderData } = await supabase

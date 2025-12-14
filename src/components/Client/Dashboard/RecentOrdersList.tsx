@@ -16,9 +16,9 @@ export const RecentOrdersList: React.FC<RecentOrdersListProps> = ({ userId, onVi
     const loadOrders = async () => {
       try {
         const allOrders = await getOrdersByClient(userId);
-        // Get last 3 completed/delivered orders
+        // Get last 3 delivered orders
         const recentOrders = allOrders
-          .filter(order => ['delivered', 'completed'].includes(order.status))
+          .filter(order => order.status === 'delivered')
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           .slice(0, 3);
         setOrders(recentOrders);
