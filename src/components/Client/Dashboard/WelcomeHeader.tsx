@@ -1,12 +1,13 @@
 import React from 'react';
-import { MapPin, Sparkles } from 'lucide-react';
+import { MapPin, Star, TrendingUp } from 'lucide-react';
 
 interface WelcomeHeaderProps {
   userName: string;
   zone?: string;
+  rating?: number;
 }
 
-export const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, zone }) => {
+export const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, zone, rating = 5 }) => {
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Bonjour';
@@ -20,6 +21,14 @@ export const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, zone }) 
     if (hour < 18) return '🌤️';
     return '🌙';
   };
+
+  const getRatingQuality = (rating: number) => {
+    if (rating >= 4.5) return { label: 'Excellent', color: 'bg-emerald-50 border-emerald-200 text-emerald-900' };
+    if (rating >= 4.0) return { label: 'Très bien', color: 'bg-blue-50 border-blue-200 text-blue-900' };
+    return { label: 'Bien', color: 'bg-amber-50 border-amber-200 text-amber-900' };
+  };
+
+  const ratingQuality = getRatingQuality(rating);
 
   return (
     <div className="relative overflow-hidden bg-white border border-slate-200 rounded-3xl p-6 md:p-8">
@@ -45,9 +54,16 @@ export const WelcomeHeader: React.FC<WelcomeHeaderProps> = ({ userName, zone }) 
               </div>
             )}
           </div>
-          <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full">
-            <Sparkles className="h-4 w-4 text-emerald-600" />
-            <span className="text-sm font-semibold text-emerald-900">Disponible 24/7</span>
+          <div className={`hidden md:inline-flex items-center gap-2 px-4 py-2 border ${ratingQuality.color} rounded-full`}>
+            <Star className="h-4 w-4 fill-current" />
+            <div className="flex flex-col">
+              <span className="text-xs font-medium">Votre note</span>
+              <span className="text-sm font-bold">{rating.toFixed(1)}</span>
+            </div>
+            <div className="flex flex-col items-end">
+              <TrendingUp className="h-3 w-3" />
+              <span className="text-xs font-semibold">{ratingQuality.label}</span>
+            </div>
           </div>
         </div>
       </div>

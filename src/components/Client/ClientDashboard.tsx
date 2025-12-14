@@ -61,12 +61,13 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) 
 
   const userName = user?.name || (user as any)?.businessName || 'Utilisateur';
   const zone = (user as any)?.zoneId || user?.address?.split(',')[0];
+  const rating = user?.rating || 5;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
         <div className="space-y-8">
-          <WelcomeHeader userName={userName} zone={zone} />
+          <WelcomeHeader userName={userName} zone={zone} rating={rating} />
 
           <QuickOrderCard onOrderClick={() => onNavigate('catalog')} />
 

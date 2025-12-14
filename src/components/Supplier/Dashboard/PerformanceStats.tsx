@@ -31,6 +31,18 @@ export const PerformanceStats: React.FC<PerformanceStatsProps> = ({ supplierId, 
   });
   const [loading, setLoading] = useState(true);
 
+  const formatDeliveryTime = (minutes: number) => {
+    if (minutes < 60) {
+      return `${minutes} min`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (mins === 0) {
+      return `${hours}h`;
+    }
+    return `${hours}h ${mins}min`;
+  };
+
   useEffect(() => {
     const loadPerformanceStats = async () => {
       try {
@@ -122,7 +134,7 @@ export const PerformanceStats: React.FC<PerformanceStatsProps> = ({ supplierId, 
     },
     {
       label: 'Temps moyen livraison',
-      value: `${stats.avgDeliveryTime} min`,
+      value: formatDeliveryTime(stats.avgDeliveryTime),
       icon: Clock,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
