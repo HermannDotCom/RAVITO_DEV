@@ -1,19 +1,17 @@
 import React from 'react';
-import { Eye, CheckCircle, X, Package, MapPin, Clock } from 'lucide-react';
+import { Eye, Package, MapPin, Clock } from 'lucide-react';
 import { Order } from '../../../types';
 
 interface NewOrdersSectionProps {
   orders: Order[];
   onViewDetails: (orderId: string) => void;
-  onAccept: (orderId: string) => void;
-  onReject: (orderId: string) => void;
+  onViewAll?: () => void;
 }
 
 export const NewOrdersSection: React.FC<NewOrdersSectionProps> = ({
   orders,
   onViewDetails,
-  onAccept,
-  onReject,
+  onViewAll,
 }) => {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
@@ -44,7 +42,14 @@ export const NewOrdersSection: React.FC<NewOrdersSectionProps> = ({
     <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold text-slate-800">🔔 Nouvelles commandes</h3>
-        <span className="text-sm text-orange-600 font-medium">Tout voir &gt;</span>
+        {onViewAll && (
+          <button
+            onClick={onViewAll}
+            className="text-sm text-orange-600 font-medium hover:text-orange-700 transition-colors cursor-pointer"
+          >
+            Tout voir &gt;
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
@@ -71,7 +76,7 @@ export const NewOrdersSection: React.FC<NewOrdersSectionProps> = ({
             <div className="space-y-2 mb-3">
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <MapPin className="h-4 w-4" />
-                <span>{order.deliveryAddress?.split(',')[0] || 'Adresse'}</span>
+                <span>{order.deliveryZone || order.deliveryAddress?.split(',')[0] || 'Zone de livraison'}</span>
               </div>
               <div className="text-sm text-slate-600">
                 {order.items.length} produit{order.items.length > 1 ? 's' : ''} • {formatPrice(order.totalAmount)}
@@ -81,23 +86,10 @@ export const NewOrdersSection: React.FC<NewOrdersSectionProps> = ({
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => onViewDetails(order.id)}
-                className="flex-1 min-w-[120px] px-4 py-2 bg-white border border-gray-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg text-sm font-medium hover:from-orange-600 hover:to-orange-700 transition-colors flex items-center justify-center gap-2"
               >
-                Voir détails
-              </button>
-              <button
-                onClick={() => onAccept(order.id)}
-                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg text-sm font-medium hover:from-emerald-600 hover:to-emerald-700 transition-colors flex items-center gap-1"
-              >
-                <CheckCircle className="h-4 w-4" />
-                Accepter
-              </button>
-              <button
-                onClick={() => onReject(order.id)}
-                className="px-4 py-2 bg-gray-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors flex items-center gap-1"
-              >
-                <X className="h-4 w-4" />
-                Refuser
+                <Eye className="h-4 w-4" />
+                Voir et envoyer une offre
               </button>
             </div>
           </div>
