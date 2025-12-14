@@ -87,31 +87,31 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold font-display text-gray-900 mb-2">Mon Panier</h1>
-        <p className="text-gray-600">Vérifiez vos articles et options de consigne</p>
+    <div className="max-w-4xl mx-auto p-3 sm:p-4 md:p-6">
+      <div className="mb-4 sm:mb-6 md:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold font-display text-gray-900 mb-1 sm:mb-2">Mon Panier</h1>
+        <p className="text-sm sm:text-base text-gray-600">Vérifiez vos articles et options de consigne</p>
       </div>
 
       <Card variant="elevated">
         <div className="divide-y divide-gray-200">
           {cart.map((item) => (
-            <div key={item.product.id} className="p-6">
-              <div className="flex items-start space-x-4">
+            <div key={item.product.id} className="p-3 sm:p-4 md:p-6">
+              <div className="flex items-start space-x-3 sm:space-x-4">
                 <img
                   src={item.product.imageUrl}
                   alt={item.product.name}
-                  className="h-20 w-20 rounded-lg object-cover"
+                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg object-cover flex-shrink-0"
                 />
                 
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{item.product.name}</h3>
-                      <p className="text-sm text-gray-600">{item.product.description}</p>
-                      <Badge 
-                        variant="default" 
-                        size="sm" 
+                    <div className="flex-1 min-w-0 pr-2">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">{item.product.name}</h3>
+                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{item.product.description}</p>
+                      <Badge
+                        variant="default"
+                        size="sm"
                         className="mt-1"
                       >
                         {item.product.brand} - {item.product.crateType}
@@ -119,25 +119,28 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
                     </div>
                     <button
                       onClick={() => removeFromCart(item.product.id)}
-                      className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                      className="p-2 min-h-[44px] min-w-[44px] text-red-500 active:text-red-700 active:bg-red-50 rounded-full transition-colors flex-shrink-0"
+                      aria-label="Retirer du panier"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-5 w-5" />
                     </button>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-                    <div className="flex items-center space-x-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 gap-3">
+                    <div className="flex items-center flex-wrap gap-3 sm:gap-4">
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => updateCartItem(item.product.id, Math.max(1, item.quantity - 1))}
-                          className="h-11 w-11 lg:h-8 lg:w-8 min-h-[44px] min-w-[44px] lg:min-h-0 lg:min-w-0 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                          className="h-11 w-11 min-h-[48px] min-w-[48px] rounded-lg bg-gray-100 flex items-center justify-center active:bg-gray-200 transition-colors text-lg font-semibold"
+                          aria-label="Diminuer la quantité"
                         >
                           -
                         </button>
-                        <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                        <span className="w-10 text-center text-base sm:text-lg font-semibold">{item.quantity}</span>
                         <button
                           onClick={() => updateCartItem(item.product.id, item.quantity + 1)}
-                          className="h-11 w-11 lg:h-8 lg:w-8 min-h-[44px] min-w-[44px] lg:min-h-0 lg:min-w-0 rounded-full bg-orange-100 flex items-center justify-center hover:bg-orange-200 transition-colors"
+                          className="h-11 w-11 min-h-[48px] min-w-[48px] rounded-lg bg-orange-100 flex items-center justify-center active:bg-orange-200 transition-colors text-lg font-semibold"
+                          aria-label="Augmenter la quantité"
                         >
                           +
                         </button>
