@@ -76,6 +76,19 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
     ? getSupplierProfile(order.supplierId)
     : null;
 
+  // Map status text colors to gradient classes (Tailwind needs explicit class names)
+  const statusGradientClasses: Record<string, string> = {
+    'text-yellow-600': 'bg-gradient-to-br from-yellow-400 to-yellow-500',
+    'text-blue-600': 'bg-gradient-to-br from-blue-400 to-blue-500',
+    'text-orange-600': 'bg-gradient-to-br from-orange-400 to-orange-500',
+    'text-green-600': 'bg-gradient-to-br from-green-400 to-green-500',
+    'text-purple-600': 'bg-gradient-to-br from-purple-400 to-purple-500',
+    'text-red-600': 'bg-gradient-to-br from-red-400 to-red-500',
+    'text-gray-600': 'bg-gradient-to-br from-gray-400 to-gray-500',
+  };
+
+  const iconGradientClass = statusGradientClasses[statusInfo.textColor] || 'bg-gradient-to-br from-gray-400 to-gray-500';
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -83,7 +96,7 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center space-x-4">
-              <div className={`h-16 w-16 rounded-full flex items-center justify-center bg-gradient-to-br from-${statusInfo.textColor.split('-')[1]}-400 to-${statusInfo.textColor.split('-')[1]}-500`}>
+              <div className={`h-16 w-16 rounded-full flex items-center justify-center ${iconGradientClass}`}>
                 <StatusIcon className="h-8 w-8 text-white" />
               </div>
               <div>

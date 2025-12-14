@@ -103,7 +103,8 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
         setOrderForPayment(updatedOrder);
       }
     }
-    // Only depend on allOrders and stable IDs to prevent unnecessary re-renders
+    // Depends on allOrders (triggers when orders update) and IDs (stable, prevent infinite loops)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allOrders, selectedOrder?.id, orderForPayment?.id]);
 
   // Reload order details including confirmation code when modal opens for delivering orders
@@ -129,7 +130,9 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
     };
 
     reloadOrderDetails();
-  }, [showOrderDetails, selectedOrder?.id, selectedOrder?.status]);
+    // Dependencies: modal open state and order ID (status/code checked in guard)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showOrderDetails, selectedOrder?.id]);
 
   // Auto-open rating modal when initialOrderIdToRate is provided
   useEffect(() => {
