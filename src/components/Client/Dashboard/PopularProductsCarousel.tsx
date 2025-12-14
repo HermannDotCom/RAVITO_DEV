@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Sparkles } from 'lucide-react';
 import { Product } from '../../../types';
 import { getProducts } from '../../../services/productService';
 
@@ -15,7 +15,6 @@ export const PopularProductsCarousel: React.FC<PopularProductsCarouselProps> = (
     const loadPopularProducts = async () => {
       try {
         const allProducts = await getProducts({ isActive: true });
-        // Take first 6 products as popular
         setProducts(allProducts.slice(0, 6));
       } catch (error) {
         console.error('Error loading popular products:', error);
@@ -44,11 +43,11 @@ export const PopularProductsCarousel: React.FC<PopularProductsCarouselProps> = (
 
   if (loading) {
     return (
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-slate-800 mb-3">🔥 Populaires dans votre zone</h3>
-        <div className="flex gap-4 overflow-x-auto pb-2">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="flex-shrink-0 w-32 h-40 bg-gray-100 rounded-xl animate-pulse" />
+      <div>
+        <h2 className="text-lg font-bold text-slate-900 mb-3">Produits populaires</h2>
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="flex-shrink-0 w-36 h-44 bg-slate-100 rounded-2xl animate-pulse" />
           ))}
         </div>
       </div>
@@ -60,28 +59,40 @@ export const PopularProductsCarousel: React.FC<PopularProductsCarouselProps> = (
   }
 
   return (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold text-slate-800 mb-3">🔥 Populaires dans votre zone</h3>
-      <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <Sparkles className="h-5 w-5 text-orange-600" />
+        <h2 className="text-lg font-bold text-slate-900">Produits populaires</h2>
+      </div>
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
         {products.map(product => (
-          <div 
-            key={product.id} 
-            className="flex-shrink-0 w-32 bg-white rounded-xl border border-gray-100 shadow-sm p-3 hover:shadow-md transition-shadow"
+          <div
+            key={product.id}
+            className="group flex-shrink-0 w-36 bg-white border border-slate-200 rounded-2xl p-4 hover:border-orange-200 hover:shadow-lg transition-all"
           >
-            <div className="text-center mb-2">
-              <div className="text-3xl mb-1">{getProductEmoji(product.category)}</div>
-              <h4 className="text-sm font-medium text-slate-900 truncate">{product.name}</h4>
+            <div className="text-center mb-3">
+              <div className="w-14 h-14 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                <span className="text-3xl">{getProductEmoji(product.category)}</span>
+              </div>
+              <h4 className="text-sm font-semibold text-slate-900 truncate mb-1">
+                {product.name}
+              </h4>
+              <div className="inline-flex items-center px-2 py-0.5 bg-slate-100 rounded-full">
+                <span className="text-xs font-medium text-slate-600">{product.crateType}</span>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="text-sm font-bold text-orange-600 mb-2">
-                {formatPrice(product.cratePrice)}
-              </p>
+            <div className="space-y-2">
+              <div className="text-center">
+                <span className="text-lg font-bold text-slate-900 tabular-nums">
+                  {formatPrice(product.cratePrice)}
+                </span>
+              </div>
               <button
                 onClick={() => onAddToCart(product)}
-                className="w-full bg-orange-100 text-orange-600 rounded-lg py-1.5 px-2 text-xs font-medium hover:bg-orange-200 transition-colors flex items-center justify-center gap-1"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl py-2 px-3 text-xs font-semibold hover:from-orange-600 hover:to-orange-700 transition-all hover:shadow-md flex items-center justify-center gap-1.5 group-hover:scale-105"
               >
-                <Plus className="h-3 w-3" />
-                Ajouter
+                <Plus className="h-3.5 w-3.5" />
+                <span>Ajouter</span>
               </button>
             </div>
           </div>

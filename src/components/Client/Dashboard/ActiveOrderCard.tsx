@@ -1,5 +1,5 @@
 import React from 'react';
-import { Truck, Package, Clock, CheckCircle } from 'lucide-react';
+import { Truck, Package, Clock, CheckCircle, MapPin, Eye } from 'lucide-react';
 import { Order } from '../../../types';
 
 interface ActiveOrderCardProps {
@@ -8,18 +8,18 @@ interface ActiveOrderCardProps {
 }
 
 const statusConfig = {
-  pending: { label: '⏳ En attente', progress: 20, icon: Clock },
-  'pending-offers': { label: '📋 Recherche fournisseur', progress: 30, icon: Package },
-  'offers-received': { label: '📋 Offres reçues', progress: 35, icon: Package },
-  'awaiting-payment': { label: '💳 En attente de paiement', progress: 40, icon: Package },
-  paid: { label: '✅ Payée', progress: 45, icon: CheckCircle },
-  'awaiting-client-validation': { label: '⏳ Validation client', progress: 50, icon: Clock },
-  accepted: { label: '✅ Acceptée', progress: 55, icon: CheckCircle },
-  preparing: { label: '📦 En préparation', progress: 65, icon: Package },
-  delivering: { label: '🚚 En livraison', progress: 85, icon: Truck },
-  delivered: { label: '✅ Livrée', progress: 100, icon: CheckCircle },
-  'awaiting-rating': { label: '⭐ En attente d\'évaluation', progress: 100, icon: CheckCircle },
-  cancelled: { label: '❌ Annulée', progress: 0, icon: Clock },
+  pending: { label: 'En attente', progress: 20, icon: Clock, color: 'text-amber-600', bgColor: 'bg-amber-50', borderColor: 'border-amber-200' },
+  'pending-offers': { label: 'Recherche fournisseur', progress: 30, icon: Package, color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-200' },
+  'offers-received': { label: 'Offres reçues', progress: 35, icon: Package, color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-200' },
+  'awaiting-payment': { label: 'En attente de paiement', progress: 40, icon: Clock, color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-200' },
+  paid: { label: 'Payée', progress: 45, icon: CheckCircle, color: 'text-emerald-600', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-200' },
+  'awaiting-client-validation': { label: 'Validation client', progress: 50, icon: Clock, color: 'text-amber-600', bgColor: 'bg-amber-50', borderColor: 'border-amber-200' },
+  accepted: { label: 'Acceptée', progress: 55, icon: CheckCircle, color: 'text-emerald-600', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-200' },
+  preparing: { label: 'En préparation', progress: 65, icon: Package, color: 'text-violet-600', bgColor: 'bg-violet-50', borderColor: 'border-violet-200' },
+  delivering: { label: 'En livraison', progress: 85, icon: Truck, color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-200' },
+  delivered: { label: 'Livrée', progress: 100, icon: CheckCircle, color: 'text-emerald-600', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-200' },
+  'awaiting-rating': { label: 'En attente d\'évaluation', progress: 100, icon: CheckCircle, color: 'text-emerald-600', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-200' },
+  cancelled: { label: 'Annulée', progress: 0, icon: Clock, color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200' },
 };
 
 export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order, onViewDetails }) => {
@@ -27,52 +27,78 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order, onViewD
   const StatusIcon = config.icon;
 
   const formatTime = (date: Date) => {
-    return new Date(date).toLocaleTimeString('fr-FR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return new Date(date).toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
-  const itemsSummary = order.items.length > 0 
-    ? `${order.items.reduce((acc, item) => acc + item.quantity, 0)} casiers` 
+  const itemsSummary = order.items.length > 0
+    ? `${order.items.reduce((acc, item) => acc + item.quantity, 0)} casiers`
     : 'Articles';
 
   return (
-    <div className="mb-6">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-lg font-semibold text-slate-800">📦 Commande en cours</h3>
+    <div className="relative">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-bold text-slate-900">Commande en cours</h2>
         <button
           onClick={onViewDetails}
-          className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+          className="inline-flex items-center gap-1.5 text-sm text-orange-600 hover:text-orange-700 font-semibold transition-colors group"
         >
-          Voir &gt;
+          <Eye className="h-4 w-4 group-hover:scale-110 transition-transform" />
+          <span>Suivre</span>
         </button>
       </div>
-      
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-mono text-slate-600">#{order.id.slice(0, 8)}</span>
-              <span className="text-sm font-medium text-slate-900">{config.label}</span>
-            </div>
-            <p className="text-sm text-slate-600">
-              {itemsSummary} • {order.deliveryAddress?.split(',')[0] || 'Adresse'}
-            </p>
-          </div>
-          <span className="text-sm text-slate-500">{formatTime(order.createdAt)}</span>
-        </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs text-slate-600">
-            <span>Progression</span>
-            <span>Arrivée {order.status === 'delivering' ? '~15min' : 'bientôt'}</span>
+      <div className={`relative overflow-hidden bg-white border-2 ${config.borderColor} rounded-2xl p-5`}>
+        <div className={`absolute top-0 right-0 w-32 h-32 ${config.bgColor} rounded-full -mr-16 -mt-16 opacity-30`} />
+
+        <div className="relative space-y-4">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-3 flex-1">
+              <div className={`flex-shrink-0 w-12 h-12 ${config.bgColor} rounded-xl flex items-center justify-center`}>
+                <StatusIcon className={`h-6 w-6 ${config.color}`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${config.bgColor} ${config.color}`}>
+                    {config.label}
+                  </span>
+                  <span className="text-xs font-mono text-slate-500">#{order.id.slice(0, 8)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-slate-600 mt-2">
+                  <Package className="h-4 w-4 text-slate-400" />
+                  <span>{itemsSummary}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-slate-600 mt-1">
+                  <MapPin className="h-4 w-4 text-slate-400" />
+                  <span className="truncate">{order.deliveryAddress?.split(',')[0] || 'Adresse'}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex-shrink-0 text-right">
+              <div className="text-xs font-medium text-slate-500">Commandé à</div>
+              <div className="text-sm font-semibold text-slate-900">{formatTime(order.createdAt)}</div>
+            </div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div
-              className="bg-gradient-to-r from-orange-500 to-orange-600 h-2.5 rounded-full transition-all duration-500"
-              style={{ width: `${config.progress}%` }}
-            />
+
+          <div className="space-y-2 pt-2 border-t border-slate-100">
+            <div className="flex items-center justify-between text-xs font-medium text-slate-600">
+              <span>Progression de la commande</span>
+              <span>{config.progress}%</span>
+            </div>
+            <div className="relative w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={`absolute inset-y-0 left-0 ${config.bgColor} border-r-2 ${config.borderColor} rounded-full transition-all duration-700 ease-out`}
+                style={{ width: `${config.progress}%` }}
+              />
+            </div>
+            {order.status === 'delivering' && (
+              <div className="flex items-center gap-2 text-xs font-medium text-orange-600 mt-2">
+                <Clock className="h-3.5 w-3.5" />
+                <span>Arrivée estimée: ~15 minutes</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

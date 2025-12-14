@@ -436,188 +436,146 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
 
   return (
     <>
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold font-display text-gray-900 mb-2">Historique des Commandes</h1>
-          <p className="text-gray-600">Consultez l'historique complet de vos commandes et leur statut</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+        <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+          <div className="mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Mes Commandes</h1>
+            <p className="text-slate-600 text-lg">Analysez vos commandes et suivez vos statistiques</p>
+          </div>
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 mb-8">
-          <StatCard
-            title="Total commandes"
-            value={totalOrders}
-            icon={<Package className="h-6 w-6" />}
-            color="blue"
-          />
+          {/* Summary Stats - Modern Design */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                  <Package className="h-5 w-5 text-blue-600" />
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-slate-600 mb-1">Total commandes</p>
+                <p className="text-2xl font-bold text-slate-900">{totalOrders}</p>
+              </div>
+            </div>
 
-          <StatCard
-            title="Livrées"
-            value={completedOrders}
-            icon={<CheckCircle className="h-6 w-6" />}
-            color="green"
-          />
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
+                  <CheckCircle className="h-5 w-5 text-emerald-600" />
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-slate-600 mb-1">Livrées</p>
+                <p className="text-2xl font-bold text-slate-900">{completedOrders}</p>
+              </div>
+            </div>
 
-          <StatCard
-            title="Annulées"
-            value={cancelledOrders}
-            icon={<XCircle className="h-6 w-6" />}
-            color="orange"
-          />
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
+                  <XCircle className="h-5 w-5 text-red-600" />
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-slate-600 mb-1">Annulées</p>
+                <p className="text-2xl font-bold text-slate-900">{cancelledOrders}</p>
+              </div>
+            </div>
 
-          <StatCard
-            title="Total dépensé"
-            value={formatPrice(totalSpent)}
-            icon={<Calendar className="h-6 w-6" />}
-            color="purple"
-          />
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-10 h-10 bg-violet-50 rounded-xl flex items-center justify-center">
+                  <Calendar className="h-5 w-5 text-violet-600" />
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-slate-600 mb-1">Total dépensé</p>
+                <p className="text-lg font-bold text-slate-900 tabular-nums">{formatPrice(totalSpent)}</p>
+              </div>
+            </div>
 
-          <StatCard
-            title="Panier moyen"
-            value={formatPrice(averageOrderValue)}
-            icon={<Star className="h-6 w-6" />}
-            color="orange"
-          />
-        </div>
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+                  <Star className="h-5 w-5 text-amber-600" />
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-slate-600 mb-1">Panier moyen</p>
+                <p className="text-lg font-bold text-slate-900 tabular-nums">{formatPrice(averageOrderValue)}</p>
+              </div>
+            </div>
+          </div>
 
-        {/* Current Order Alert */}
-        {clientCurrentOrder && (
-          <div className="mb-6">
-            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <Clock className="h-8 w-8 text-orange-600" />
-                  <div>
-                    <h3 className="text-lg font-bold text-orange-900">Commande en cours</h3>
-                    <p className="text-orange-700">Commande #{clientCurrentOrder.id} - {getStatusInfo(clientCurrentOrder.status).label}</p>
+          {/* Analytics Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6">
+              <h3 className="text-lg font-bold text-slate-900 mb-4">Statistiques</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                  <span className="text-sm text-slate-600">Cette semaine</span>
+                  <span className="font-semibold text-slate-900">{ordersThisWeek} commandes</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                  <span className="text-sm text-slate-600">Fournisseur principal</span>
+                  <span className="font-semibold text-slate-900 truncate max-w-[200px]">{getFavoriteSupplier()}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                  <span className="text-sm text-slate-600">Temps moyen livraison</span>
+                  <span className="font-semibold text-slate-900">{getAverageDeliveryTime()} min</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-sm text-slate-600">Votre note moyenne</span>
+                  <div className="flex items-center gap-1.5">
+                    <Star className="h-4 w-4 text-amber-400 fill-current" />
+                    <span className="font-semibold text-slate-900">{user?.rating || 4.5}</span>
                   </div>
                 </div>
-                <button
-                  onClick={() => onNavigate('tracking')}
-                  className="bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
-                >
-                  Suivre
-                </button>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* Quick Actions, Personal Stats, and Frequent Suppliers */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Actions rapides</h3>
-            <div className="space-y-3">
-              <button
-                onClick={() => onNavigate('catalog')}
-                className="w-full flex items-center space-x-3 p-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <div className="h-10 w-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                  <Package className="h-5 w-5 text-white" />
-                </div>
-                <div className="flex-1 text-left">
-                  <span className="font-bold text-white text-lg">Nouvelle commande</span>
-                  <p className="text-orange-100 text-sm">Parcourez notre catalogue</p>
-                </div>
-                <div className="text-white opacity-75">
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </button>
-              <button
-                onClick={() => onNavigate('cart')}
-                className="w-full flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <div className="h-10 w-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center relative">
-                  <Package className="h-5 w-5 text-white" />
-                  {cart.length > 0 && (
-                    <span className="absolute -top-2 -right-2 h-5 w-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                      {cart.length}
-                    </span>
-                  )}
-                </div>
-                <div className="flex-1 text-left">
-                  <span className="font-bold text-white text-lg">Voir mon panier</span>
-                  <p className="text-blue-100 text-sm">
-                    {cart.length > 0 ? `${cart.length} article(s) en attente` : 'Panier vide'}
-                  </p>
-                </div>
-                <div className="text-white opacity-75">
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Statistiques personnelles</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Commandes cette semaine:</span>
-                <span className="font-bold text-gray-900">{ordersThisWeek}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Fournisseur préféré:</span>
-                <span className="font-bold text-gray-900">{getFavoriteSupplier()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Temps moyen livraison:</span>
-                <span className="font-bold text-gray-900">{getAverageDeliveryTime()} min</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Note moyenne reçue:</span>
-                <div className="flex items-center space-x-1">
-                  <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                  <span className="font-bold text-gray-900">{user?.rating || 4.5}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Fournisseurs fréquents</h3>
-            <div className="space-y-3">
-              {topSuppliers.map((supplier, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900">{supplier.name}</p>
-                    <p className="text-sm text-gray-600">{supplier.orders} commande(s)</p>
-                  </div>
-                  {supplier.rating !== null && supplier.rating > 0 && (
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-sm font-semibold">{supplier.rating.toFixed(1)}</span>
+            <div className="bg-white border border-slate-200 rounded-2xl p-6">
+              <h3 className="text-lg font-bold text-slate-900 mb-4">Fournisseurs fréquents</h3>
+              <div className="space-y-3">
+                {topSuppliers.length > 0 ? topSuppliers.map((supplier, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-900 truncate">{supplier.name}</p>
+                      <p className="text-xs text-slate-600">{supplier.orders} commande{supplier.orders > 1 ? 's' : ''}</p>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {supplier.rating !== null && supplier.rating > 0 && (
+                      <div className="flex items-center gap-1.5 ml-3">
+                        <Star className="h-4 w-4 text-amber-400 fill-current" />
+                        <span className="text-sm font-semibold text-slate-900">{supplier.rating.toFixed(1)}</span>
+                      </div>
+                    )}
+                  </div>
+                )) : (
+                  <p className="text-sm text-slate-500 text-center py-4">Aucun fournisseur pour le moment</p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
+        {/* Filters - Modern Design */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Rechercher par ID ou adresse..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm transition-all"
               />
             </div>
-            
+
             <div className="relative">
-              <Filter className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as OrderStatus | 'all')}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none"
+                className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none text-sm transition-all bg-white"
               >
                 <option value="all">Tous les statuts</option>
                 <option value="pending">En attente</option>
@@ -634,11 +592,11 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
             </div>
 
             <div className="relative">
-              <Calendar className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
               <select
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value as 'all' | 'today' | 'week' | 'month')}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none"
+                className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none text-sm transition-all bg-white"
               >
                 <option value="all">Toutes les dates</option>
                 <option value="today">Aujourd'hui</option>
@@ -649,22 +607,18 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
           </div>
         </div>
 
-        {/* Orders List */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        {/* Orders List - Modern Design */}
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
           {filteredOrders.length === 0 ? (
             <div className="p-12 text-center">
-              <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Aucune commande trouvée</h3>
-              <p className="text-gray-500 mb-6">Essayez de modifier vos critères de recherche ou passez votre première commande</p>
-              <button
-                onClick={() => onNavigate('catalog')}
-                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all"
-              >
-                Parcourir le catalogue
-              </button>
+              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Package className="h-10 w-10 text-slate-400" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Aucune commande trouvée</h3>
+              <p className="text-slate-600 mb-6">Essayez de modifier vos critères de recherche</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-slate-100">
               {filteredOrders.map((order) => {
                 const statusInfo = getStatusInfo(order.status);
                 const StatusIcon = statusInfo.icon;
@@ -828,6 +782,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
               })}
             </div>
           )}
+        </div>
         </div>
       </div>
 
