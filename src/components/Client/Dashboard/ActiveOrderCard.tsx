@@ -19,7 +19,6 @@ const statusConfig = {
   delivering: { label: '🚚 En livraison', progress: 85, icon: Truck },
   delivered: { label: '✅ Livrée', progress: 100, icon: CheckCircle },
   'awaiting-rating': { label: '⭐ En attente d\'évaluation', progress: 100, icon: CheckCircle },
-  completed: { label: '✅ Terminée', progress: 100, icon: CheckCircle },
   cancelled: { label: '❌ Annulée', progress: 0, icon: Clock },
 };
 

@@ -8,7 +8,7 @@ import { DeliveryTracking } from './DeliveryTracking';
 import { supabase } from '../../lib/supabase';
 
 // Statuts post-paiement où l'identité du fournisseur est révélée
-const REVEALED_STATUSES: OrderStatus[] = ['paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating', 'completed'];
+const REVEALED_STATUSES: OrderStatus[] = ['paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating'];
 
 interface OrderTrackingProps {
   onComplete: () => void;

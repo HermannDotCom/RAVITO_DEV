@@ -48,7 +48,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
   const [orderRatings, setOrderRatings] = useState<Record<string, number | null>>({});
 
   // Statuts post-paiement où l'identité du fournisseur est révélée
-  const REVEALED_STATUSES: OrderStatus[] = ['paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating', 'completed'];
+  const REVEALED_STATUSES: OrderStatus[] = ['paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating'];
 
   // Load supplier profiles ONLY for paid orders (respects anonymity rules)
   useEffect(() => {
@@ -226,7 +226,6 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
       'delivering': { label: 'En livraison', variant: 'warning' as const, icon: Truck, textColor: 'text-orange-600' },
       'delivered': { label: 'Livrée', variant: 'success' as const, icon: CheckCircle, textColor: 'text-green-600' },
       'awaiting-rating': { label: 'En attente d\'évaluation', variant: 'warning' as const, icon: Star, textColor: 'text-yellow-600' },
-      'completed': { label: 'Terminée', variant: 'success' as const, icon: CheckCircle, textColor: 'text-green-600' },
       'cancelled': { label: 'Annulée', variant: 'danger' as const, icon: XCircle, textColor: 'text-red-600' },
     };
     return configs[status] || { label: 'Inconnu', variant: 'default' as const, icon: Package, textColor: 'text-gray-600' };
@@ -713,8 +712,8 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                   )}
                 </div>
 
-                {/* Mutual Ratings Display - for completed orders */}
-                {(order.status === 'completed' || order.status === 'delivered') && (
+                {/* Mutual Ratings Display - for delivered orders */}
+                {order.status === 'delivered' && (
                   <MutualRatingsDisplay
                     orderId={order.id}
                     currentUserRole="client"
@@ -979,7 +978,6 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                 <option value="preparing">En préparation</option>
                 <option value="delivering">En livraison</option>
                 <option value="delivered">Livrée</option>
-                <option value="completed">Terminée</option>
                 <option value="cancelled">Annulée</option>
               </select>
             </div>
