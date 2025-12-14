@@ -51,26 +51,6 @@ export const TicketManagement: React.FC = () => {
     setStats(data);
   }, []);
 
-  useEffect(() => {
-    loadTickets();
-    loadStats();
-  }, [loadTickets, loadStats]);
-
-  useEffect(() => {
-    filterTickets();
-  }, [tickets, searchTerm, statusFilter, priorityFilter, filterTickets]);
-
-  useEffect(() => {
-    if (selectedTicket) {
-      loadTicketMessages(selectedTicket.id);
-    }
-  }, [selectedTicket]);
-
-  const loadTicketMessages = async (ticketId: string) => {
-    const messages = await ticketService.getTicketMessages(ticketId);
-    setTicketMessages(messages);
-  };
-
   const filterTickets = useCallback(() => {
     let filtered = [...tickets];
 
@@ -92,6 +72,26 @@ export const TicketManagement: React.FC = () => {
 
     setFilteredTickets(filtered);
   }, [tickets, searchTerm, statusFilter, priorityFilter]);
+
+  useEffect(() => {
+    loadTickets();
+    loadStats();
+  }, [loadTickets, loadStats]);
+
+  useEffect(() => {
+    filterTickets();
+  }, [filterTickets]);
+
+  useEffect(() => {
+    if (selectedTicket) {
+      loadTicketMessages(selectedTicket.id);
+    }
+  }, [selectedTicket]);
+
+  const loadTicketMessages = async (ticketId: string) => {
+    const messages = await ticketService.getTicketMessages(ticketId);
+    setTicketMessages(messages);
+  };
 
   const handleUpdateStatus = async (ticketId: string, status: TicketStatus) => {
     if (!user) return;
