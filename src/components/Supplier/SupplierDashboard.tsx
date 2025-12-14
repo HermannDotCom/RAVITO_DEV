@@ -127,23 +127,6 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
     loadDashboardData();
   }, [user]);
 
-  const handleAcceptOrder = async (orderId:  string) => {
-    try {
-      await updateOrderStatus(orderId, 'accepted');
-      // Refresh will happen automatically via context
-    } catch (error) {
-      console.error('Error accepting order:', error);
-    }
-  };
-
-  const handleRejectOrder = async (orderId: string) => {
-    try {
-      await updateOrderStatus(orderId, 'cancelled');
-    } catch (error) {
-      console.error('Error rejecting order:', error);
-    }
-  };
-
   const handleMarkDelivered = async () => {
     if (!activeDelivery) return;
     try {
@@ -175,10 +158,9 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
 
       {availableOrders.length > 0 && (
         <NewOrdersSection
-          orders={availableOrders. slice(0, 3)}
+          orders={availableOrders.slice(0, 3)}
           onViewDetails={(id) => onNavigate('orders')}
-          onAccept={handleAcceptOrder}
-          onReject={handleRejectOrder}
+          onViewAll={() => onNavigate('orders')}
         />
       )}
 

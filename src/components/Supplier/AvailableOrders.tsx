@@ -285,13 +285,19 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                             <input
                               type="number"
                               value={item.offeredQuantity}
-                              onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 0)}
+                              onChange={(e) => updateQuantity(item.productId, Math.min(parseInt(e.target.value) || 0, item.requestedQuantity))}
                               className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center font-semibold"
                               min="0"
+                              max={item.requestedQuantity}
                             />
                             <button
                               onClick={() => updateQuantity(item.productId, item.offeredQuantity + 1)}
-                              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+                              disabled={item.offeredQuantity >= item.requestedQuantity}
+                              className={`p-2 border rounded-lg ${
+                                item.offeredQuantity >= item.requestedQuantity
+                                  ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                                  : 'border-gray-300 hover:bg-gray-100'
+                              }`}
                             >
                               <Plus className="h-4 w-4" />
                             </button>
