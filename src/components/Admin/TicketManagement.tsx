@@ -38,9 +38,11 @@ export const TicketManagement: React.FC = () => {
     try {
       const data = await ticketService.getAllTickets();
       setTickets(data);
+      // Only mark as loaded if successful
       hasLoadedRef.current = true;
     } catch (error) {
       console.error('Error loading tickets:', error);
+      // Don't mark as loaded on error to allow retry
     } finally {
       setIsLoading(false);
     }

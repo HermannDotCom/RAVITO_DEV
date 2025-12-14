@@ -35,7 +35,10 @@ export const ContactSupport: React.FC = () => {
   const hasLoadedRef = useRef(false);
 
   const loadTickets = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
     
     // Only show loader on initial load
     if (!hasLoadedRef.current) {

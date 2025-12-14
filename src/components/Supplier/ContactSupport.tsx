@@ -65,7 +65,10 @@ export const SupplierContactSupport: React.FC<SupplierContactSupportProps> = ({
   }, [initialSubject, initialCategory, initialMessage, initialPriority]);
 
   const loadTickets = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
     
     // Only show loader on initial load
     if (!hasLoadedRef.current) {
