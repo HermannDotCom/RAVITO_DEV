@@ -110,52 +110,76 @@ export const PerformanceStats: React.FC<PerformanceStatsProps> = ({ supplierId, 
     );
   }
 
+  const statCards = [
+    {
+      label: 'Taux d\'acceptation',
+      value: `${stats.acceptanceRate}%`,
+      icon: TrendingUp,
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-100',
+      benchmark: getBenchmark(stats.acceptanceRate, 'rate')
+    },
+    {
+      label: 'Temps moyen livraison',
+      value: `${stats.avgDeliveryTime} min`,
+      icon: Clock,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-100',
+      benchmark: getBenchmark(stats.avgDeliveryTime, 'time')
+    },
+    {
+      label: 'Note moyenne clients',
+      value: stats.customerRating.toFixed(1),
+      icon: Star,
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-100',
+      benchmark: getBenchmark(stats.customerRating, 'rating')
+    }
+  ];
+
   return (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold text-slate-800 mb-3">📊 Performance du mois</h3>
-
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <TrendingUp className="h-5 w-5 text-slate-700" />
+        <h2 className="text-lg font-bold text-slate-900">Performance du mois</h2>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Acceptance Rate */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-          <div className="flex items-start justify-between mb-2">
-            <TrendingUp className="h-5 w-5 text-emerald-600" />
-          </div>
-          <div>
-            <p className="text-sm text-slate-600 mb-1">Taux accept.</p>
-            <p className="text-2xl font-bold text-slate-900 mb-1">{stats.acceptanceRate}%</p>
-            <p className={`text-xs font-medium ${getBenchmark(stats.acceptanceRate, 'rate').color}`}>
-              {getBenchmark(stats.acceptanceRate, 'rate').label}
-            </p>
-          </div>
-        </div>
-
-        {/* Average Delivery Time */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-          <div className="flex items-start justify-between mb-2">
-            <Clock className="h-5 w-5 text-blue-600" />
-          </div>
-          <div>
-            <p className="text-sm text-slate-600 mb-1">Temps moyen</p>
-            <p className="text-2xl font-bold text-slate-900 mb-1">{stats.avgDeliveryTime} min</p>
-            <p className={`text-xs font-medium ${getBenchmark(stats.avgDeliveryTime, 'time').color}`}>
-              {getBenchmark(stats.avgDeliveryTime, 'time').label}
-            </p>
-          </div>
-        </div>
-
-        {/* Customer Rating */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-          <div className="flex items-start justify-between mb-2">
-            <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
-          </div>
-          <div>
-            <p className="text-sm text-slate-600 mb-1">Note clients</p>
-            <p className="text-2xl font-bold text-slate-900 mb-1">⭐ {stats.customerRating.toFixed(1)}</p>
-            <p className={`text-xs font-medium ${getBenchmark(stats.customerRating, 'rating').color}`}>
-              {getBenchmark(stats.customerRating, 'rating').label}
-            </p>
-          </div>
-        </div>
+        {statCards.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={index}
+              className={`relative overflow-hidden bg-white border ${stat.borderColor} rounded-2xl p-5 hover:shadow-md transition-shadow`}
+            >
+              <div className={`absolute top-0 right-0 w-20 h-20 ${stat.bgColor} rounded-full -mr-10 -mt-10 opacity-20`} />
+              <div className="relative">
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`w-11 h-11 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
+                    <Icon className={`h-6 w-6 ${stat.color} ${stat.label.includes('Note') ? 'fill-current' : ''}`} />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-slate-600 mb-1">{stat.label}</p>
+                  <p className="text-2xl font-bold text-slate-900 mb-2 tabular-nums">
+                    {stat.value}
+                  </p>
+                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+                    stat.benchmark.label === 'Excellent' || stat.benchmark.label === 'Rapide' || stat.benchmark.label === 'Top 10%'
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : stat.benchmark.label === 'Bon' || stat.benchmark.label === 'Correct' || stat.benchmark.label === 'Top 30%'
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'bg-amber-50 text-amber-700'
+                  }`}>
+                    {stat.benchmark.label}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

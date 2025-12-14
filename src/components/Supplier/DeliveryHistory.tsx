@@ -302,94 +302,103 @@ Décrivez votre problème en détail...`,
 
   return (
     <>
-      <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Historique des Livraisons</h1>
-        <p className="text-gray-600">Consultez vos performances et revenus</p>
-      </div>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+        <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
+          <div className="mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">Historique des Livraisons</h1>
+            <p className="text-slate-600 text-lg">Analysez vos performances et vos revenus</p>
+          </div>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-1">Livraisons totales</p>
-              <p className="text-2xl font-bold text-gray-900">{filteredDeliveries.length}</p>
+          {/* Summary Stats - Modern Design */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-shadow">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full -mr-12 -mt-12 opacity-30" />
+              <div className="relative flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-slate-600 mb-1">Livraisons totales</p>
+                  <p className="text-3xl font-bold text-slate-900">{filteredDeliveries.length}</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                  <Package className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
             </div>
-            <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
-              <Package className="h-6 w-6 text-blue-600" />
+
+            <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-shadow">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-full -mr-12 -mt-12 opacity-30" />
+              <div className="relative flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-slate-600 mb-1">Revenus totaux</p>
+                  <p className="text-2xl font-bold text-slate-900 tabular-nums">{formatPrice(totalEarnings)}</p>
+                </div>
+                <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+                  <Calendar className="h-6 w-6 text-emerald-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-shadow">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-full -mr-12 -mt-12 opacity-30" />
+              <div className="relative flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-slate-600 mb-1">Note moyenne</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-3xl font-bold text-slate-900">{averageRating.toFixed(1)}</p>
+                    <span className="text-sm text-slate-600">/5</span>
+                  </div>
+                </div>
+                <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
+                  <Star className="h-6 w-6 text-amber-600 fill-current" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Filters - Modern Design */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Rechercher par client ou adresse..."
+                    className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="sm:w-56">
+                <div className="relative">
+                  <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <select
+                    value={filterPeriod}
+                    onChange={(e) => setFilterPeriod(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none text-sm transition-all bg-white"
+                  >
+                    <option value="all">Toutes les périodes</option>
+                    <option value="today">Aujourd'hui</option>
+                    <option value="week">Cette semaine</option>
+                  </select>
+                </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-1">Revenus totaux</p>
-              <p className="text-2xl font-bold text-gray-900">{formatPrice(totalEarnings)}</p>
-            </div>
-            <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-1">Note moyenne</p>
-              <p className="text-2xl font-bold text-gray-900">{averageRating.toFixed(1)}/5</p>
-            </div>
-            <div className="h-12 w-12 rounded-lg bg-yellow-100 flex items-center justify-center">
-              <Star className="h-6 w-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Rechercher par client ou adresse..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              />
-            </div>
-          </div>
-          
-          <div className="sm:w-48">
-            <div className="relative">
-              <Filter className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-              <select
-                value={filterPeriod}
-                onChange={(e) => setFilterPeriod(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none"
-              >
-                <option value="all">Toutes les périodes</option>
-                <option value="today">Aujourd'hui</option>
-                <option value="week">Cette semaine</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Delivery List */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        {/* Delivery List */}
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
         {filteredDeliveries.length === 0 ? (
           <div className="p-12 text-center">
-            <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">Aucune livraison trouvée</h3>
-            <p className="text-gray-500">Essayez de modifier vos critères de recherche</p>
+            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Package className="h-10 w-10 text-slate-400" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Aucune livraison trouvée</h3>
+            <p className="text-slate-600">Essayez de modifier vos critères de recherche</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-slate-100">
             {filteredDeliveries.map((delivery) => (
               <div key={delivery.id} className="p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
@@ -476,7 +485,8 @@ Décrivez votre problème en détail...`,
             ))}
           </div>
         )}
-      </div>
+        </div>
+        </div>
       </div>
 
       {/* Delivery Details Modal */}

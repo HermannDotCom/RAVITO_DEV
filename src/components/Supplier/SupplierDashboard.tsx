@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package } from 'lucide-react';
+import { Package, Clock } from 'lucide-react';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { useOrder } from '../../context/OrderContext';
 import { useCommission } from '../../context/CommissionContext';
@@ -9,7 +9,6 @@ import {
   NewOrdersSection,
   ActiveDeliveryCard,
   PerformanceStats,
-  QuickActions,
 } from './Dashboard';
 import { getOrdersBySupplier } from '../../services/orderService';
 import { Order } from '../../types';
@@ -29,42 +28,49 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
 
   const accessRestrictions = getAccessRestrictions();
 
-  // Vérification sécurisée de l'accès
-  if (! accessRestrictions.canAcceptOrders) {
+  if (!accessRestrictions.canAcceptOrders) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 text-center">
-          <div className="h-16 w-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Package className="h-8 w-8 text-white" />
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-8 text-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Clock className="h-10 w-10 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-orange-900 mb-4">
+          <h2 className="text-2xl font-bold text-amber-900 mb-3">
             {user?.role === 'supplier' ? 'Dépôt en cours de validation' : 'Accès restreint'}
           </h2>
-          <p className="text-orange-800 mb-6">
+          <p className="text-amber-800 mb-6 text-lg">
             {accessRestrictions.restrictionReason}
           </p>
-          <div className="bg-white border border-orange-300 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold text-orange-900 mb-2">Dépôt soumis :</h3>
-            <div className="text-sm text-orange-800 space-y-1 text-left">
-              <p><strong>Dépôt :</strong> {(user as any)?.businessName || 'Non renseigné'}</p>
-              <p><strong>Responsable : </strong> {user.name}</p>
-              <p><strong>Zone de couverture :</strong> {(user as any)?.coverageZone || 'Non renseignée'}</p>
-              <p><strong>Capacité :</strong> {(user as any)?.deliveryCapacity || 'Non renseignée'}</p>
+          <div className="bg-white border border-amber-200 rounded-2xl p-6 mb-6">
+            <h3 className="font-bold text-amber-900 mb-4 text-lg">Informations soumises</h3>
+            <div className="text-sm text-amber-900 space-y-2 text-left">
+              <p><strong>Dépôt:</strong> {(user as any)?.businessName || 'Non renseigné'}</p>
+              <p><strong>Responsable:</strong> {user.name}</p>
+              <p><strong>Zone de couverture:</strong> {(user as any)?.coverageZone || 'Non renseignée'}</p>
+              <p><strong>Capacité:</strong> {(user as any)?.deliveryCapacity || 'Non renseignée'}</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md: grid-cols-2 gap-4 mb-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">Documents requis :</h4>
-              <ul className="text-sm text-blue-800 space-y-1 text-left">
-                <li>✓ Pièce d'identité</li>
-                <li>✓ Justificatif d'adresse</li>
-                <li>⏳ Licence commerciale</li>
-                <li>⏳ Assurance véhicule</li>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+              <h4 className="font-semibold text-blue-900 mb-3">Documents requis</h4>
+              <ul className="text-sm text-blue-800 space-y-2 text-left">
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-600">✓</span> Pièce d'identité
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-600">✓</span> Justificatif d'adresse
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-amber-600">⏳</span> Licence commerciale
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-amber-600">⏳</span> Assurance véhicule
+                </li>
               </ul>
             </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-medium text-green-900 mb-2">Après approbation :</h4>
-              <ul className="text-sm text-green-800 space-y-1 text-left">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+              <h4 className="font-semibold text-emerald-900 mb-3">Après approbation</h4>
+              <ul className="text-sm text-emerald-800 space-y-2 text-left">
                 <li>• Accès aux commandes</li>
                 <li>• Gestion des livraisons</li>
                 <li>• Reversements automatiques</li>
@@ -72,9 +78,9 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
               </ul>
             </div>
           </div>
-          <div className="text-sm text-orange-700">
-            <p className="mb-2"><strong>Délai d'approbation :</strong> 24-72 heures</p>
-            <p>Contact : <strong>partenaires@distri-night.ci</strong> ou <strong>+225 27 20 30 40 50</strong></p>
+          <div className="bg-amber-100 border border-amber-200 rounded-2xl p-4 text-sm text-amber-900">
+            <p className="font-semibold mb-2">Délai d'approbation: 24-72 heures</p>
+            <p>Contact: <strong>partenaires@distri-night.ci</strong> • <strong>+225 27 20 30 40 50</strong></p>
           </div>
         </div>
       </div>
@@ -137,50 +143,47 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
     }
   };
 
-  // Get the actual name - prefer user. name (person's real name) over businessName
   const supplierName = user?.name || (user as any)?.businessName || 'Partenaire';
   const zone = (user as any)?.coverageZone || (user as any)?.zoneId;
   const rating = user?.rating || 5;
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
-      <SupplierHeader supplierName={supplierName} rating={rating} zone={zone} />
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
+        <div className="space-y-8">
+          <SupplierHeader supplierName={supplierName} rating={rating} zone={zone} />
 
-      <KPICards
-        availableOrders={availableOrders. length}
-        activeDeliveries={activeDelivery ? 1 : 0}
-        todayDelivered={todayStats.delivered}
-        monthlyRevenue={monthlyRevenue}
-        onAvailableClick={() => onNavigate('orders')}
-      />
-
-      <div className="border-b border-gray-100" />
-
-      {availableOrders.length > 0 && (
-        <NewOrdersSection
-          orders={availableOrders.slice(0, 3)}
-          onViewDetails={(id) => onNavigate('orders')}
-          onViewAll={() => onNavigate('orders')}
-        />
-      )}
-
-      {activeDelivery && (
-        <>
-          <div className="border-b border-gray-100" />
-          <ActiveDeliveryCard
-            order={activeDelivery}
-            onMarkDelivered={handleMarkDelivered}
+          <KPICards
+            availableOrders={availableOrders.length}
+            activeDeliveries={activeDelivery ? 1 : 0}
+            todayDelivered={todayStats.delivered}
+            monthlyRevenue={monthlyRevenue}
+            onAvailableClick={() => onNavigate('orders')}
           />
-        </>
-      )}
 
-      <div className="border-b border-gray-100" />
+          {availableOrders.length > 0 && (
+            <NewOrdersSection
+              orders={availableOrders.slice(0, 3)}
+              onViewDetails={(id) => onNavigate('orders')}
+              onViewAll={() => onNavigate('orders')}
+            />
+          )}
 
-      {user && <PerformanceStats supplierId={user.id} rating={rating} />}
-
-      <div className="border-b border-gray-100" />
-
-      <QuickActions onNavigate={onNavigate} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-8">
+              {activeDelivery && (
+                <ActiveDeliveryCard
+                  order={activeDelivery}
+                  onMarkDelivered={handleMarkDelivered}
+                />
+              )}
+            </div>
+            <div className="space-y-8">
+              {user && <PerformanceStats supplierId={user.id} rating={rating} />}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -14,17 +14,12 @@ interface KPICardData {
   label: string;
   value: string | number;
   icon: LucideIcon;
-  color: 'orange' | 'blue' | 'green' | 'emerald';
+  color: string;
+  bgColor: string;
+  borderColor: string;
   badge?: boolean;
   onClick?: () => void;
 }
-
-const colorClasses = {
-  orange: 'bg-orange-100 text-orange-600',
-  blue: 'bg-blue-100 text-blue-600',
-  green: 'bg-green-100 text-green-600',
-  emerald: 'bg-emerald-100 text-emerald-600',
-};
 
 export const KPICards: React.FC<KPICardsProps> = ({
   availableOrders,
@@ -39,62 +34,74 @@ export const KPICards: React.FC<KPICardsProps> = ({
 
   const kpis: KPICardData[] = [
     {
-      label: 'Disponibles',
+      label: 'Commandes disponibles',
       value: availableOrders,
       icon: Bell,
-      color: 'orange',
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-100',
       badge: availableOrders > 0,
       onClick: onAvailableClick,
     },
     {
-      label: 'En cours',
+      label: 'Livraisons actives',
       value: activeDeliveries,
       icon: Truck,
-      color: 'blue',
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-100',
     },
     {
-      label: "Aujourd'hui",
+      label: "Livrées aujourd'hui",
       value: todayDelivered,
       icon: CheckCircle,
-      color: 'green',
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-100',
     },
     {
-      label: 'Revenus mois',
+      label: 'Revenus du mois',
       value: formatPrice(monthlyRevenue),
       icon: Wallet,
-      color: 'emerald',
+      color: 'text-violet-600',
+      bgColor: 'bg-violet-50',
+      borderColor: 'border-violet-100',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {kpis.map((kpi) => {
         const Icon = kpi.icon;
         return (
-          <div
+          <button
             key={kpi.label}
             onClick={kpi.onClick}
-            className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-4 ${
-              kpi.onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''
+            disabled={!kpi.onClick}
+            className={`relative overflow-hidden bg-white border ${kpi.borderColor} rounded-2xl p-5 text-left transition-all ${
+              kpi.onClick ? 'cursor-pointer hover:shadow-lg hover:-translate-y-0.5' : 'cursor-default'
             }`}
           >
-            <div className="flex items-start justify-between mb-2">
-              <div className={`p-2 rounded-lg ${colorClasses[kpi.color]}`}>
-                <Icon className="h-5 w-5" />
+            <div className={`absolute top-0 right-0 w-20 h-20 ${kpi.bgColor} rounded-full -mr-10 -mt-10 opacity-20`} />
+            <div className="relative">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-11 h-11 ${kpi.bgColor} rounded-xl flex items-center justify-center`}>
+                  <Icon className={`h-6 w-6 ${kpi.color}`} />
+                </div>
+                {kpi.badge && (
+                  <span className="flex items-center justify-center w-6 h-6 bg-orange-500 text-white text-xs font-bold rounded-full animate-bounce">
+                    {availableOrders}
+                  </span>
+                )}
               </div>
-              {kpi.badge && (
-                <span className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse">
-                  🔔
-                </span>
-              )}
+              <div>
+                <p className="text-xs font-medium text-slate-600 mb-1">{kpi.label}</p>
+                <p className="text-2xl font-bold text-slate-900 tabular-nums">
+                  {kpi.value}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-slate-600 mb-1">{kpi.label}</p>
-              <p className="text-xl font-bold text-slate-900 font-mono tabular-nums">
-                {kpi.value}
-              </p>
-            </div>
-          </div>
+          </button>
         );
       })}
     </div>
