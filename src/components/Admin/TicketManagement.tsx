@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MessageSquare, Search, Filter, Eye, Clock, AlertCircle, CheckCircle, X, Send, User, Calendar, Tag, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { MessageSquare, Search, Eye, Clock, AlertCircle, CheckCircle, X, Send, User, Calendar, Tag, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
   ticketService,
@@ -26,39 +26,34 @@ export const TicketManagement: React.FC = () => {
   const [isInternalNote, setIsInternalNote] = useState(false);
   const [newStatus, setNewStatus] = useState<TicketStatus>('open');
 
-  useEffect(() => {
-    loadTickets();
-    loadStats();
+  // Track if we've loaded tickets at least once
+  const hasLoadedRef = useRef(false);
+
+  const loadTickets = useCallback(async () => {
+    // Only show loader on initial load
+    if (!hasLoadedRef.current) {
+      setIsLoading(true);
+    }
+    
+    try {
+      const data = await ticketService.getAllTickets();
+      setTickets(data);
+      // Only mark as loaded if successful
+      hasLoadedRef.current = true;
+    } catch (error) {
+      console.error('Error loading tickets:', error);
+      // Don't mark as loaded on error to allow retry
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  useEffect(() => {
-    filterTickets();
-  }, [tickets, searchTerm, statusFilter, priorityFilter]);
-
-  useEffect(() => {
-    if (selectedTicket) {
-      loadTicketMessages(selectedTicket.id);
-    }
-  }, [selectedTicket]);
-
-  const loadTickets = async () => {
-    setIsLoading(true);
-    const data = await ticketService.getAllTickets();
-    setTickets(data);
-    setIsLoading(false);
-  };
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     const data = await ticketService.getTicketStats();
     setStats(data);
-  };
+  }, []);
 
-  const loadTicketMessages = async (ticketId: string) => {
-    const messages = await ticketService.getTicketMessages(ticketId);
-    setTicketMessages(messages);
-  };
-
-  const filterTickets = () => {
+  const filterTickets = useCallback(() => {
     let filtered = [...tickets];
 
     if (searchTerm) {
@@ -78,6 +73,26 @@ export const TicketManagement: React.FC = () => {
     }
 
     setFilteredTickets(filtered);
+  }, [tickets, searchTerm, statusFilter, priorityFilter]);
+
+  useEffect(() => {
+    loadTickets();
+    loadStats();
+  }, [loadTickets, loadStats]);
+
+  useEffect(() => {
+    filterTickets();
+  }, [filterTickets]);
+
+  useEffect(() => {
+    if (selectedTicket) {
+      loadTicketMessages(selectedTicket.id);
+    }
+  }, [selectedTicket]);
+
+  const loadTicketMessages = async (ticketId: string) => {
+    const messages = await ticketService.getTicketMessages(ticketId);
+    setTicketMessages(messages);
   };
 
   const handleUpdateStatus = async (ticketId: string, status: TicketStatus) => {
