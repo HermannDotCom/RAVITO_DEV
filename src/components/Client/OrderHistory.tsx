@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Package, Clock, Star, MapPin, Filter, Search, CheckCircle, XCircle, Truck, Calendar, Eye, Download, Phone, Archive, CreditCard } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -9,6 +9,7 @@ import { UnifiedRatingForm } from '../Shared/UnifiedRatingForm';
 import { MutualRatingsDisplay } from '../Shared/MutualRatingsDisplay';
 import { OrderDetailsWithOffers } from './OrderDetailsWithOffers';
 import { PaymentInterface } from './PaymentInterface';
+import { OrderDetailsModal } from './OrderDetailsModal';
 import { supabase } from '../../lib/supabase';
 import { StatCard } from '../ui/StatCard';
 import { Badge } from '../ui/Badge';
@@ -88,6 +89,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
   useEffect(() => {
     if (selectedOrder) {
       const updatedOrder = allOrders.find(o => o.id === selectedOrder.id);
+      // Only update if the order exists and status has actually changed
       if (updatedOrder && updatedOrder.status !== selectedOrder.status) {
         console.log('🔄 Updating selectedOrder status:', selectedOrder.status, '->', updatedOrder.status);
         setSelectedOrder(updatedOrder);
@@ -95,34 +97,39 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
     }
     if (orderForPayment) {
       const updatedOrder = allOrders.find(o => o.id === orderForPayment.id);
+      // Only update if the order exists and status has actually changed
       if (updatedOrder && updatedOrder.status !== orderForPayment.status) {
         console.log('🔄 Updating orderForPayment status:', orderForPayment.status, '->', updatedOrder.status);
         setOrderForPayment(updatedOrder);
       }
     }
-  }, [allOrders, selectedOrder, orderForPayment]);
+    // Only depend on allOrders and stable IDs to prevent unnecessary re-renders
+  }, [allOrders, selectedOrder?.id, orderForPayment?.id]);
 
   // Reload order details including confirmation code when modal opens for delivering orders
   useEffect(() => {
     const reloadOrderDetails = async () => {
-      if (showOrderDetails && selectedOrder && selectedOrder.status === 'delivering') {
-        const { data, error } = await supabase
-          .from('orders')
-          .select('delivery_confirmation_code')
-          .eq('id', selectedOrder.id)
-          .single();
+      // Guard: only reload if all conditions are met and code doesn't already exist
+      if (!showOrderDetails || !selectedOrder || selectedOrder.status !== 'delivering' || selectedOrder.deliveryConfirmationCode) {
+        return;
+      }
 
-        if (!error && data?.delivery_confirmation_code) {
-          setSelectedOrder(prev => prev ? {
-            ...prev,
-            deliveryConfirmationCode: data.delivery_confirmation_code
-          } : null);
-        }
+      const { data, error } = await supabase
+        .from('orders')
+        .select('delivery_confirmation_code')
+        .eq('id', selectedOrder.id)
+        .single();
+
+      if (!error && data?.delivery_confirmation_code) {
+        setSelectedOrder(prev => prev ? {
+          ...prev,
+          deliveryConfirmationCode: data.delivery_confirmation_code
+        } : null);
       }
     };
 
     reloadOrderDetails();
-  }, [showOrderDetails, selectedOrder?.id]);
+  }, [showOrderDetails, selectedOrder?.id, selectedOrder?.status]);
 
   // Auto-open rating modal when initialOrderIdToRate is provided
   useEffect(() => {
@@ -335,22 +342,22 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
     return Math.round(totalMinutes / deliveredOrders.length);
   };
 
-  const handleCancelOrder = (orderId: string) => {
+  const handleCancelOrder = useCallback((orderId: string) => {
     if (confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) {
       updateOrderStatus(orderId, 'cancelled');
     }
-  };
+  }, [updateOrderStatus]);
 
-  const handleViewDetails = (order: Order) => {
+  const handleViewDetails = useCallback((order: Order) => {
     setSelectedOrder(order);
     if (order.status === 'offers-received' || order.status === 'awaiting-payment') {
       setShowOffersModal(true);
     } else {
       setShowOrderDetails(true);
     }
-  };
+  }, []);
 
-  const handleRateSupplier = async (order: Order) => {
+  const handleRateSupplier = useCallback(async (order: Order) => {
     if (!order.supplierId) {
       console.error('No supplier ID for this order');
       return;
@@ -371,9 +378,9 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
 
     setSelectedOrderForRating(order);
     setShowRatingModal(true);
-  };
+  }, [user?.id]);
 
-  const handleSubmitRating = (rating: number, comment: string) => {
+  const handleSubmitRating = useCallback((rating: number, comment: string) => {
     if (selectedOrderForRating && selectedOrderForRating.supplierId) {
       const ratingData = {
         punctuality: rating,
@@ -387,378 +394,42 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
       setShowRatingModal(false);
       setSelectedOrderForRating(null);
     }
-  };
+  }, [selectedOrderForRating, submitRating]);
 
-  const getCrateSummary = (order: Order) => {
-    const crateSummary: { [key in CrateType]: { withConsigne: number; toReturn: number } } = {
-      C24: { withConsigne: 0, toReturn: 0 },
-      C12: { withConsigne: 0, toReturn: 0 },
-      C12V: { withConsigne: 0, toReturn: 0 },
-      C6: { withConsigne: 0, toReturn: 0 }
-    };
-
-    order.items.forEach(item => {
-      if (item.withConsigne) {
-        crateSummary[item.product.crateType].withConsigne += item.quantity;
-      } else {
-        crateSummary[item.product.crateType].toReturn += item.quantity;
+  // Memoize top suppliers calculation to avoid recalculating on every render
+  const topSuppliers = useMemo(() => {
+    const supplierCounts: { [key: string]: number } = {};
+    
+    filteredOrders.forEach(order => {
+      if (order.supplierId) {
+        supplierCounts[order.supplierId] = (supplierCounts[order.supplierId] || 0) + 1;
       }
     });
+    
+    return Object.entries(supplierCounts)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3)
+      .map(([supplierId, count]) => {
+        const profile = supplierProfiles[supplierId];
+        return {
+          name: getSupplierName(supplierId),
+          orders: count,
+          rating: profile?.rating ?? null
+        };
+      });
+  }, [filteredOrders, supplierProfiles, getSupplierName]);
 
-    return crateSummary;
-  };
+  // Memoize order rating checks to avoid calling needsRating on every render
+  const orderRatingStatus = useMemo(() => {
+    const status: Record<string, boolean> = {};
+    filteredOrders.forEach(order => {
+      if (order.status === 'delivered' && order.supplierId) {
+        status[order.id] = needsRating(order.id, 'client');
+      }
+    });
+    return status;
+  }, [filteredOrders, needsRating]);
 
-  const OrderDetailsModal = ({ order, onClose }: { order: Order; onClose: () => void }) => {
-    const statusInfo = getStatusInfo(order.status);
-    const StatusIcon = statusInfo.icon;
-    const crateSummary = getCrateSummary(order);
-    const totalCratesToReturn = Object.values(crateSummary).reduce((sum, crate) => sum + crate.toReturn, 0);
-    const totalConsigneAmount = Object.entries(crateSummary).reduce((sum, [crateType, counts]) => {
-      const consignePrice = crateType === 'C12V' ? 4000 : crateType === 'C6' ? 2000 : 3000;
-      return sum + (counts.withConsigne * consignePrice);
-    }, 0);
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-8">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center space-x-4">
-                <div className={`h-16 w-16 rounded-full flex items-center justify-center bg-gradient-to-br from-${statusInfo.textColor.split('-')[1]}-400 to-${statusInfo.textColor.split('-')[1]}-500`}>
-                  <StatusIcon className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Commande #{order.id}</h2>
-                  <div className="flex items-center space-x-3">
-                    <span className={`px-3 py-1 text-sm font-semibold rounded-full ${statusInfo.color}`}>
-                      {statusInfo.label}
-                    </span>
-                    <span className="text-gray-600">{formatDate(order.createdAt)}</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <XCircle className="h-6 w-6" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Order Information */}
-              <div className="space-y-6">
-                {/* Order Status */}
-                <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-3">Statut de la commande</h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-700 font-medium">Statut actuel:</span>
-                    <span className={`px-4 py-2 text-sm font-semibold rounded-full ${statusInfo.color}`}>
-                      {statusInfo.label}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Delivery Confirmation Code - Displayed when delivering */}
-                {order.status === 'delivering' && order.deliveryConfirmationCode && (
-                  <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl p-6">
-                    <div className="text-center">
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">Code de confirmation de livraison</h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Donnez ce code au livreur pour confirmer la réception de votre commande
-                      </p>
-                      <div className="bg-white rounded-lg p-6 inline-block">
-                        <div className="text-4xl font-bold text-orange-600 tracking-widest font-mono">
-                          {order.deliveryConfirmationCode}
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-4">
-                        Ne partagez ce code qu'au moment de la livraison
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Timeline */}
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Chronologie</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Package className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">Commande créée</p>
-                        <p className="text-sm text-gray-600">{formatDate(order.createdAt)}</p>
-                      </div>
-                    </div>
-                    
-                    {order.acceptedAt && (
-                      <div className="flex items-center space-x-3">
-                        <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            Acceptée par {isSupplierRevealed(order.status) ? getSupplierName(order.supplierId) : 'le fournisseur'}
-                          </p>
-                          <p className="text-sm text-gray-600">{formatDate(order.acceptedAt)}</p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {order.deliveredAt && (
-                      <div className="flex items-center space-x-3">
-                        <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                          <Truck className="h-4 w-4 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">Livraison terminée</p>
-                          <p className="text-sm text-gray-600">{formatDate(order.deliveredAt)}</p>
-                          {order.acceptedAt && (() => {
-                            const deliveredDate = order.deliveredAt instanceof Date ? order.deliveredAt : new Date(order.deliveredAt);
-                            const acceptedDate = order.acceptedAt instanceof Date ? order.acceptedAt : new Date(order.acceptedAt);
-                            return (
-                              <p className="text-xs text-green-600">
-                                Durée totale: {Math.round((deliveredDate.getTime() - acceptedDate.getTime()) / 60000)} minutes
-                              </p>
-                            );
-                          })()}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Delivery Information */}
-                <div className="bg-blue-50 rounded-xl p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                    <MapPin className="h-5 w-5 mr-2 text-blue-600" />
-                    Informations de livraison
-                  </h3>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-gray-600 block mb-1">Adresse:</span>
-                      <span className="font-medium text-gray-900">{order.deliveryAddress}</span>
-                    </div>
-                    {order.supplierId && isSupplierRevealed(order.status) && (
-                      <>
-                        <div>
-                          <span className="text-gray-600 block mb-1">Fournisseur:</span>
-                          <span className="font-medium text-gray-900">{getSupplierName(order.supplierId)}</span>
-                        </div>
-                        {(() => {
-                          const supplierProfile = getSupplierProfile(order.supplierId);
-                          return supplierProfile ? (
-                            <>
-                              {supplierProfile.phone && (
-                                <div>
-                                  <span className="text-gray-600 block mb-1">Téléphone:</span>
-                                  <a 
-                                    href={`tel:${supplierProfile.phone}`}
-                                    className="font-medium text-blue-600 hover:text-blue-800 flex items-center"
-                                  >
-                                    <Phone className="h-4 w-4 mr-1" />
-                                    {supplierProfile.phone}
-                                  </a>
-                                </div>
-                              )}
-                              {supplierProfile.rating && supplierProfile.rating > 0 && (
-                                <div>
-                                  <span className="text-gray-600 block mb-1">Note moyenne reçue du fournisseur :</span>
-                                  <div className="flex items-center">
-                                    <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                                    <span className="font-medium text-gray-900">{supplierProfile.rating.toFixed(1)}</span>
-                                  </div>
-                                </div>
-                              )}
-                            </>
-                          ) : null;
-                        })()}
-                      </>
-                    )}
-                    {order.supplierId && !isSupplierRevealed(order.status) && (
-                      <div>
-                        <span className="text-gray-600 block mb-1">Fournisseur:</span>
-                        <span className="font-medium text-gray-500 italic">Révélé après paiement</span>
-                      </div>
-                    )}
-                    {order.estimatedDeliveryTime && (
-                      <div>
-                        <span className="text-gray-600 block mb-1">Temps estimé:</span>
-                        <span className="font-medium text-gray-900">{order.estimatedDeliveryTime} minutes</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Payment Information */}
-                <div className="bg-green-50 rounded-xl p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                    <CreditCard className="h-5 w-5 mr-2 text-green-600" />
-                    Informations de paiement
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Mode de paiement:</span>
-                      <span className="font-medium text-gray-900">{getPaymentMethodLabel(order.paymentMethod)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Montant total:</span>
-                      <span className="font-bold text-gray-900">{formatPrice(order.totalAmount)}</span>
-                    </div>
-                    {order.consigneTotal > 0 && (
-                      <div className="flex justify-between text-orange-600">
-                        <span>Consignes incluses:</span>
-                        <span className="font-medium">{formatPrice(order.consigneTotal)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Statut paiement:</span>
-                      <span className={`font-medium ${
-                        order.status === 'cancelled' ? 'text-red-600' :
-                        order.paymentStatus === 'paid' ? 'text-green-600' :
-                        'text-orange-600'
-                      }`}>
-                        {order.status === 'cancelled' ? 'Annulé' :
-                         order.paymentStatus === 'paid' ? 'Payé' :
-                         'En attente'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Order Details */}
-              <div className="space-y-6">
-                {/* Items */}
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Articles commandés</h3>
-                  <div className="space-y-4">
-                    {order.items.map((item, index) => (
-                      <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                        <img
-                          src={item.product.imageUrl}
-                          alt={item.product.name}
-                          className="h-16 w-16 rounded-lg object-cover"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <span className="font-semibold text-gray-900">{item.product.name}</span>
-                            <span className={`px-2 py-1 text-xs font-medium rounded ${
-                              item.product.brand === 'Flag' || item.product.brand === 'Solibra' || item.product.brand === 'Beaufort' 
-                                ? 'bg-blue-100 text-blue-700' 
-                                : 'bg-red-100 text-red-700'
-                            }`}>
-                              {item.product.brand}
-                            </span>
-                            <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
-                              {item.product.crateType}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div className="text-sm text-gray-600">
-                              <span>Quantité: {item.quantity}</span>
-                              {item.withConsigne && (
-                                <span className="ml-3 text-orange-600 font-medium">+ Consigne incluse</span>
-                              )}
-                            </div>
-                            <span className="font-bold text-gray-900">
-                              {formatPrice(item.product.pricePerUnit * item.quantity + 
-                                (item.withConsigne ? item.product.consigneAmount * item.quantity : 0))}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Crate Management */}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                    <Archive className="h-5 w-5 mr-2 text-blue-600" />
-                    Gestion des casiers
-                  </h3>
-                  
-                  {totalCratesToReturn > 0 && (
-                    <div className="mb-4">
-                      <p className="text-sm font-medium text-blue-800 mb-3">Casiers vides rendus :</p>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {Object.entries(crateSummary).map(([crateType, counts]) => (
-                          counts.toReturn > 0 && (
-                            <div key={crateType} className="bg-white rounded p-3 text-center">
-                              <div className="text-lg font-bold text-blue-700">{counts.toReturn}</div>
-                              <div className="text-blue-600 text-sm">{crateType}</div>
-                            </div>
-                          )
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {totalConsigneAmount > 0 && (
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-orange-700">Consignes payées (casiers gardés)</span>
-                        <span className="font-bold text-orange-800">{formatPrice(totalConsigneAmount)}</span>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {totalCratesToReturn === 0 && totalConsigneAmount === 0 && (
-                    <p className="text-sm text-blue-700">Aucun casier géré pour cette commande</p>
-                  )}
-                </div>
-
-                {/* Mutual Ratings Display - for delivered orders */}
-                {order.status === 'delivered' && (
-                  <MutualRatingsDisplay
-                    orderId={order.id}
-                    currentUserRole="client"
-                  />
-                )}
-
-                {/* Actions */}
-                <div className="space-y-3">
-                  {order.status === 'delivered' && (
-                    <button className="w-full flex items-center justify-center space-x-2 bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors">
-                      <Download className="h-4 w-4" />
-                      <span>Télécharger le reçu</span>
-                    </button>
-                  )}
-                  
-                  {order.supplierId && order.status === 'delivered' && (
-                    <button 
-                      onClick={() => handleRateSupplier(order)}
-                      className="w-full flex items-center justify-center space-x-2 border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-                    >
-                      <Star className="h-4 w-4" />
-                      <span>Évaluer le fournisseur</span>
-                    </button>
-                  )}
-                  
-                  {(order.status === 'pending' || order.status === 'accepted') && (
-                    <button 
-                      onClick={() => {
-                        handleCancelOrder(order.id);
-                        onClose();
-                      }}
-                      className="w-full flex items-center justify-center space-x-2 bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
-                    >
-                      <XCircle className="h-4 w-4" />
-                      <span>Annuler la commande</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <>
@@ -906,43 +577,20 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Fournisseurs fréquents</h3>
             <div className="space-y-3">
-              {(() => {
-                // Calculer les fournisseurs les plus fréquents
-                const supplierCounts: { [key: string]: number } = {};
-                
-                filteredOrders.forEach(order => {
-                  if (order.supplierId) {
-                    supplierCounts[order.supplierId] = (supplierCounts[order.supplierId] || 0) + 1;
-                  }
-                });
-                
-                const topSuppliers = Object.entries(supplierCounts)
-                  .sort(([,a], [,b]) => b - a)
-                  .slice(0, 3)
-                  .map(([supplierId, count]) => {
-                    const profile = supplierProfiles[supplierId];
-                    return {
-                      name: getSupplierName(supplierId),
-                      orders: count,
-                      rating: profile?.rating ?? null
-                    };
-                  });
-                
-                return topSuppliers.map((supplier, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900">{supplier.name}</p>
-                      <p className="text-sm text-gray-600">{supplier.orders} commande(s)</p>
-                    </div>
-                    {supplier.rating !== null && supplier.rating > 0 && (
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-sm font-semibold">{supplier.rating.toFixed(1)}</span>
-                      </div>
-                    )}
+              {topSuppliers.map((supplier, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">{supplier.name}</p>
+                    <p className="text-sm text-gray-600">{supplier.orders} commande(s)</p>
                   </div>
-                ));
-              })()}
+                  {supplier.rating !== null && supplier.rating > 0 && (
+                    <div className="flex items-center space-x-1">
+                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                      <span className="text-sm font-semibold">{supplier.rating.toFixed(1)}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -1140,7 +788,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                         )}
                         
                         {order.status === 'delivered' && order.supplierId && (() => {
-                          const needsClientRating = needsRating(order.id, 'client');
+                          const needsClientRating = orderRatingStatus[order.id];
 
                           if (needsClientRating) {
                             return (
@@ -1188,6 +836,15 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
             setShowOrderDetails(false);
             setSelectedOrder(null);
           }}
+          formatPrice={formatPrice}
+          formatDate={formatDate}
+          getPaymentMethodLabel={getPaymentMethodLabel}
+          getStatusInfo={getStatusInfo}
+          getSupplierName={getSupplierName}
+          getSupplierProfile={getSupplierProfile}
+          isSupplierRevealed={isSupplierRevealed}
+          handleRateSupplier={handleRateSupplier}
+          handleCancelOrder={handleCancelOrder}
         />
       )}
 
