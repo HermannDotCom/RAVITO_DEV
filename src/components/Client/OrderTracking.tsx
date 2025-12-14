@@ -110,10 +110,10 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
 
   if (!clientCurrentOrder) {
     return (
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="text-center py-12">
-          <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-600">Aucune commande en cours</h3>
+      <div className="max-w-2xl mx-auto p-3 sm:p-4 md:p-6">
+        <div className="text-center py-8 sm:py-12">
+          <Package className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-600">Aucune commande en cours</h3>
         </div>
       </div>
     );

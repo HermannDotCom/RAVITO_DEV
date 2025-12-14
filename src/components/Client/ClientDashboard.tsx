@@ -30,8 +30,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) 
 
   if (!accessRestrictions.canPlaceOrders) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-8 text-center">
+      <div className="max-w-4xl mx-auto p-3 sm:p-4 md:p-6">
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 text-center">
           <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <Clock className="h-10 w-10 text-white" />
           </div>
@@ -65,8 +65,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) 
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
-        <div className="space-y-8">
+      <div className="max-w-6xl mx-auto p-3 sm:p-4 md:p-6 lg:p-8">
+        <div className="space-y-4 sm:space-y-6 md:space-y-8">
           <WelcomeHeader userName={userName} zone={zone} rating={rating} />
 
           <QuickOrderCard onOrderClick={() => onNavigate('catalog')} />
@@ -78,7 +78,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) 
             />
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
             <div className="space-y-8">
               {user && <MonthlyStats userId={user.id} />}
             </div>

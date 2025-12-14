@@ -15,10 +15,10 @@ export const ProductCatalog: React.FC = () => {
   const accessRestrictions = getAccessRestrictions();
 
   // Restriction d'accès sécurisée
-  if (! accessRestrictions.canAccessCatalog) {
+  if (!accessRestrictions.canAccessCatalog) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+      <div className="max-w-4xl mx-auto p-3 sm:p-4 md:p-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 sm:p-6 md:p-8 text-center">
           <div className="h-16 w-16 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <Package className="h-8 w-8 text-white" />
           </div>
@@ -106,34 +106,34 @@ export const ProductCatalog: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Catalogue Produits</h1>
-        <p className="text-gray-600">Sélectionnez vos boissons pour la nuit</p>
+    <div className="max-w-6xl mx-auto p-3 sm:p-4 md:p-6">
+      <div className="mb-4 sm:mb-6 md:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Catalogue Produits</h1>
+        <p className="text-sm sm:text-base text-gray-600">Sélectionnez vos boissons pour la nuit</p>
       </div>
 
       {/* Filters */}
-      <Card className="mb-6">
-        <div className="grid grid-cols-1 md: grid-cols-2 gap-4">
+      <Card className="mb-4 sm:mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Catégorie</label>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value as ProductCategory | 'all')}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
             >
-              {categories. map(cat => (
+              {categories.map(cat => (
                 <option key={cat.value} value={cat.value}>{cat.label}</option>
               ))}
             </select>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Marque</label>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Marque</label>
             <select
               value={brandFilter}
               onChange={(e) => setBrandFilter(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus: ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
             >
               <option value="all">Toutes les marques</option>
               {brands.map(brand => (
@@ -144,7 +144,7 @@ export const ProductCatalog: React.FC = () => {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         {products.map((product) => {
           const cartQuantity = getCartQuantity(product.id);
           const isInCart = cartQuantity > 0;

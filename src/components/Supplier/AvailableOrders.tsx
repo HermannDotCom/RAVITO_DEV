@@ -33,8 +33,8 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
 
   if (!accessRestrictions.canAcceptOrders) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 text-center">
+      <div className="max-w-4xl mx-auto p-3 sm:p-4 md:p-6">
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 sm:p-6 md:p-8 text-center">
           <div className="h-16 w-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <Package className="h-8 w-8 text-white" />
           </div>

@@ -30,8 +30,8 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
 
   if (!accessRestrictions.canAcceptOrders) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-amber-50 border-2 border-amber-200 rounded-3xl p-8 text-center">
+      <div className="max-w-4xl mx-auto p-3 sm:p-4 md:p-6">
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 text-center">
           <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <Clock className="h-10 w-10 text-white" />
           </div>
@@ -50,8 +50,8 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
               <p><strong>Capacité:</strong> {(user as any)?.deliveryCapacity || 'Non renseignée'}</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl p-3 sm:p-4">
               <h4 className="font-semibold text-blue-900 mb-3">Documents requis</h4>
               <ul className="text-sm text-blue-800 space-y-2 text-left">
                 <li className="flex items-center gap-2">
