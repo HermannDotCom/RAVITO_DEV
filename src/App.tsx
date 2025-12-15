@@ -78,6 +78,8 @@ import { NotificationPermissionPrompt } from './components/Shared/NotificationPe
 import { RatingReminder } from './components/Shared/RatingReminder';
 import { SessionErrorBanner } from './components/Shared/SessionErrorBanner';
 import { BottomNavigation } from './components/Navigation/BottomNavigation';
+import { InstallPrompt } from './components/PWA/InstallPrompt';
+import { UpdatePrompt } from './components/PWA/UpdatePrompt';
 // MVP: Premium tier dashboard disabled - Uncomment to reactivate post-MVP
 // import { PremiumTierDashboard } from './components/Supplier/PremiumTierDashboard';
 // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
@@ -353,6 +355,10 @@ const AppContent: React.FC = () => {
           userRole={user.role as 'client' | 'supplier'}
         />
       )}
+      
+      {/* PWA Install and Update Prompts */}
+      <InstallPrompt />
+      <UpdatePrompt />
     </div>
   );
 };
