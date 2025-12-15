@@ -1,18 +1,22 @@
 :root {
-  /* Primary - Orange Soleil */
+  /* Primary - Orange Ravito */
+  --color-primary: #E85D24;
+  --color-primary-dark: #D04D14;
   --ravito-orange-50: #FFF7ED;
   --ravito-orange-100: #FFEDD5;
   --ravito-orange-200: #FED7AA;
   --ravito-orange-300: #FDBA74;
   --ravito-orange-400: #FB923C;
-  --ravito-orange-500: #F97316;
-  --ravito-orange-600: #EA580C;
+  --ravito-orange-500: #E85D24;
+  --ravito-orange-600: #D04D14;
   --ravito-orange-700: #C2410C;
   
-  /* Secondary - Vert Émeraude */
+  /* Secondary - Vert Ravito */
+  --color-secondary: #2D5A47;
+  --color-secondary-dark: #1D4A37;
   --ravito-emerald-400: #34D399;
-  --ravito-emerald-500: #10B981;
-  --ravito-emerald-600: #059669;
+  --ravito-emerald-500: #2D5A47;
+  --ravito-emerald-600: #1D4A37;
   
   /* Accent - Or Soleil */
   --ravito-amber-400: #FBBF24;

@@ -34,9 +34,11 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'RAVITO', 
 
             <div className="flex items-center ml-1 sm:ml-2 lg:ml-0">
               <div className="flex-shrink-0">
-                <div className="h-7 w-7 sm:h-8 sm:w-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-xs sm:text-sm">R</span>
-                </div>
+                <img 
+                  src="/logo/logo.svg" 
+                  alt="Ravito Logo" 
+                  className="h-7 w-7 sm:h-8 sm:w-8"
+                />
               </div>
               <div className="ml-2 hidden sm:block">
                 <span className="text-lg sm:text-xl font-bold text-gray-900">{title}</span>
