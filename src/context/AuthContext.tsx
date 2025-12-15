@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { User as AuthUser, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { User, UserRole } from '../types';
+import { setUser as setSentryUser } from '../lib/sentry';
 
 interface AuthContextType {
   user: User | null;
@@ -122,6 +123,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       setUser(mappedUser);
       console.log('User set successfully:', mappedUser.email);
+      
+      // Définir l'utilisateur dans Sentry pour le tracking
+      setSentryUser({
+        id: mappedUser.id,
+        email: mappedUser.email,
+        role: mappedUser.role,
+      });
+      
       return true;
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
@@ -424,6 +433,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setSession(null);
       setSessionError(null);
       refreshAttemptsRef.current = 0;
+      
+      // Effacer l'utilisateur de Sentry lors de la déconnexion
+      setSentryUser(null);
     } catch (error) {
       console.error('Logout error:', error);
     }
