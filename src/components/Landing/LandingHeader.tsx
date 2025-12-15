@@ -42,9 +42,11 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             onClick={() => onNavigate('/')}
             className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded-lg"
           >
-            <div className="h-10 w-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-xl">R</span>
-            </div>
+            <img 
+              src="/logo/logo.svg" 
+              alt="Ravito Logo" 
+              className="h-10 w-10"
+            />
             <span className="text-xl font-bold text-gray-900">RAVITO</span>
           </button>
 
