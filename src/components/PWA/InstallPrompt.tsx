@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Download, Share } from 'lucide-react';
 import { usePWA } from '../../hooks/usePWA';
 
+const PWA_INSTALL_DISMISSED_KEY = 'pwa-install-dismissed';
+
 export const InstallPrompt: React.FC = () => {
   const { isInstallable, isInstalled, isIOS, isStandalone, promptInstall } = usePWA();
   const [isDismissed, setIsDismissed] = useState(false);
@@ -10,7 +12,7 @@ export const InstallPrompt: React.FC = () => {
 
   useEffect(() => {
     // Check if user has previously dismissed the prompt
-    const dismissed = localStorage.getItem('pwa-install-dismissed');
+    const dismissed = localStorage.getItem(PWA_INSTALL_DISMISSED_KEY);
     if (dismissed) {
       setIsDismissed(true);
     }
@@ -25,7 +27,7 @@ export const InstallPrompt: React.FC = () => {
 
   const handleDismiss = () => {
     setIsDismissed(true);
-    localStorage.setItem('pwa-install-dismissed', 'true');
+    localStorage.setItem(PWA_INSTALL_DISMISSED_KEY, 'true');
   };
 
   const handleInstall = async () => {

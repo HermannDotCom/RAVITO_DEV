@@ -43,7 +43,7 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   // Skip Supabase API requests (always network)
-  if (url.hostname.includes('supabase')) return;
+  if (url.hostname.endsWith('.supabase.co') || url.hostname.includes('supabase')) return;
 
   // For navigation requests, try network first
   if (request.mode === 'navigate') {

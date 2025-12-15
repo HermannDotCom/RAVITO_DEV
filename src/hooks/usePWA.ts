@@ -80,9 +80,14 @@ export const usePWA = () => {
       return false;
     } catch (error) {
       console.error('Error prompting install:', error);
+      console.error('PWA state:', {
+        isInstallable: state.isInstallable,
+        hasPrompt: !!state.installPrompt,
+        isStandalone: state.isStandalone,
+      });
       return false;
     }
-  }, [state.installPrompt]);
+  }, [state.installPrompt, state.isInstallable, state.isStandalone]);
 
   return {
     ...state,

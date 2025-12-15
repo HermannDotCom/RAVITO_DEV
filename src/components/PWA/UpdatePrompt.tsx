@@ -28,11 +28,13 @@ export const UpdatePrompt: React.FC = () => {
     // Send message to service worker to skip waiting
     registration.waiting.postMessage({ type: 'SKIP_WAITING' });
 
-    // Listen for controlling service worker change
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
+    // Listen for controlling service worker change (once)
+    const handleControllerChange = () => {
       // Reload the page to get the new content
       window.location.reload();
-    });
+    };
+    
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange, { once: true });
   };
 
   const handleDismiss = () => {

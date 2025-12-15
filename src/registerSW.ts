@@ -27,6 +27,11 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     return registration;
   } catch (error) {
     console.error('Service Worker registration failed:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      name: error instanceof Error ? error.name : 'Unknown',
+    });
+    console.log('💡 Tip: Check if the browser supports Service Workers and if the app is served over HTTPS');
     return null;
   }
 }
