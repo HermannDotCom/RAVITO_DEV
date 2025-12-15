@@ -48,11 +48,6 @@ export const initSentry = () => {
     
     // Avant d'envoyer l'événement
     beforeSend(event, hint) {
-      // Ne pas envoyer en développement local
-      if (import.meta.env.DEV && !dsn) {
-        return null;
-      }
-      
       // Ajouter des informations contextuelles
       const error = hint.originalException;
       if (error && typeof error === 'object' && 'message' in error) {
