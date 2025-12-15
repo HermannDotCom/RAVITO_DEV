@@ -31,27 +31,27 @@ export const FinancialCard: React.FC<FinancialCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-5 md:p-6">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1 truncate">{title}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{value}</p>
           {subtitle && (
-            <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1 truncate">{subtitle}</p>
           )}
           {trend && (
-            <div className={`flex items-center mt-2 text-sm ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`flex items-center mt-2 text-xs sm:text-sm ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
               {trend.isPositive ? (
-                <TrendingUp className="h-4 w-4 mr-1" />
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
               ) : (
-                <TrendingDown className="h-4 w-4 mr-1" />
+                <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
               )}
               <span>{trend.value}%</span>
             </div>
           )}
         </div>
-        <div className={`h-12 w-12 rounded-lg bg-gradient-to-br ${gradientStyles[gradient]} flex items-center justify-center`}>
-          <Icon className="h-6 w-6 text-white" />
+        <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br ${gradientStyles[gradient]} flex items-center justify-center flex-shrink-0`}>
+          <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
         </div>
       </div>
     </div>
@@ -77,12 +77,12 @@ export const PeriodFilter: React.FC<PeriodFilterProps> = ({
   ]
 }) => {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-1.5 sm:gap-2">
       {periods.map(period => (
         <button
           key={period.value}
           onClick={() => onPeriodChange(period.value)}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
             selectedPeriod === period.value
               ? 'bg-orange-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -108,12 +108,12 @@ export const ViewModeTabs: React.FC<ViewModeTabsProps> = ({
   tabs
 }) => {
   return (
-    <div className="flex border-b border-gray-200">
+    <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide">
       {tabs.map(tab => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
-          className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+          className={`px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
             activeTab === tab.id
               ? 'border-orange-600 text-orange-600'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'

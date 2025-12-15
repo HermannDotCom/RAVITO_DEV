@@ -70,7 +70,7 @@ export const KPICards: React.FC<KPICardsProps> = ({
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {kpis.map((kpi) => {
         const Icon = kpi.icon;
         return (
@@ -78,25 +78,25 @@ export const KPICards: React.FC<KPICardsProps> = ({
             key={kpi.label}
             onClick={kpi.onClick}
             disabled={!kpi.onClick}
-            className={`relative overflow-hidden bg-white border ${kpi.borderColor} rounded-2xl p-5 text-left transition-all ${
+            className={`relative overflow-hidden bg-white border ${kpi.borderColor} rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 text-left transition-all ${
               kpi.onClick ? 'cursor-pointer hover:shadow-lg hover:-translate-y-0.5' : 'cursor-default'
             }`}
           >
             <div className={`absolute top-0 right-0 w-20 h-20 ${kpi.bgColor} rounded-full -mr-10 -mt-10 opacity-20`} />
             <div className="relative">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-11 h-11 ${kpi.bgColor} rounded-xl flex items-center justify-center`}>
-                  <Icon className={`h-6 w-6 ${kpi.color}`} />
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 ${kpi.bgColor} rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0`}>
+                  <Icon className={`h-5 w-5 sm:h-5 sm:w-5 md:h-6 md:w-6 ${kpi.color}`} />
                 </div>
                 {kpi.badge && (
-                  <span className="flex items-center justify-center w-6 h-6 bg-orange-500 text-white text-xs font-bold rounded-full animate-bounce">
+                  <span className="flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 bg-orange-500 text-white text-xs font-bold rounded-full animate-bounce flex-shrink-0">
                     {availableOrders}
                   </span>
                 )}
               </div>
-              <div>
-                <p className="text-xs font-medium text-slate-600 mb-1">{kpi.label}</p>
-                <p className="text-2xl font-bold text-slate-900 tabular-nums">
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-slate-600 mb-0.5 sm:mb-1 truncate">{kpi.label}</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 tabular-nums truncate">
                   {kpi.value}
                 </p>
               </div>
