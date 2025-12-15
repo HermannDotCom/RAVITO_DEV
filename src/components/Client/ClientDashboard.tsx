@@ -65,7 +65,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) 
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-20 lg:pb-0">
-      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
+      <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
         <div className="space-y-4 sm:space-y-5 md:space-y-6">
           <WelcomeHeader userName={userName} zone={zone} rating={rating} />
 
