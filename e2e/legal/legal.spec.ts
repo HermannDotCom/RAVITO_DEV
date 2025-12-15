@@ -24,7 +24,9 @@ test.describe('Pages Légales', () => {
 
   test('devrait pouvoir revenir à la landing depuis CGU', async ({ page }) => {
     await page.goto('/cgu');
-    await page.click('a[href="/"], text=RAVITO, .logo');
+    // Try multiple selectors to find the home link
+    const homeLink = page.locator('a[href="/"]').first();
+    await homeLink.click();
     
     await expect(page.locator('text=Le ravitaillement qui ne dort jamais')).toBeVisible({ timeout: 10000 });
   });

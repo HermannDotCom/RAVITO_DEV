@@ -326,7 +326,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               </div>
 
               <div className="space-y-4 mb-8">
-                {/* Client tarif */}
+                Client tarif
                 <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
                   <div className="flex items-center">
                     <Store className="text-orange-500 mr-3" size={24} />
@@ -338,7 +338,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                   </div>
                 </div>
 
-                {/* Supplier tarif */}
+                Supplier tarif
                 <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                   <div className="flex items-center">
                     <Truck className="text-green-500 mr-3" size={24} />
@@ -351,7 +351,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 </div>
               </div>
 
-              {/* Warning */}
+              Warning
               <div className="bg-amber-50 border-2 border-amber-500 rounded-lg p-6 mb-6">
                 <div className="flex">
                   <AlertTriangle className="text-amber-500 mr-3 flex-shrink-0 mt-1" size={24} />
