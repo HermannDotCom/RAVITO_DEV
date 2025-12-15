@@ -374,6 +374,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                   Voir les Conditions Générales d'Utilisation
                   <ArrowRight className="ml-2" size={18} />
                 </button>
+                </div>
               </div>
             </div>
           </div>
