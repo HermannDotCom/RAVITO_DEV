@@ -199,14 +199,14 @@ export const SupplierTreasury: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
+      <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6">
         <LoadingSpinner message="Chargement de vos données financières..." />
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-20 lg:pb-6">
+    <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-20 lg:pb-6">
       {/* Header */}
       <div className="mb-4 sm:mb-6 md:mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
