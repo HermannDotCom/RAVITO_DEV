@@ -1,5 +1,6 @@
 import React from 'react';
 import { BaseEmailTemplate } from './BaseEmailTemplate';
+import { formatAmount } from '../utils';
 
 interface OrderItem {
   name: string;
@@ -30,12 +31,6 @@ export const NewOrderEmail: React.FC<NewOrderEmailProps> = ({
   totalAmount,
   dashboardUrl,
 }) => {
-  const formatAmount = (amount: number): string => {
-    return new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   return (
     <BaseEmailTemplate recipientEmail={supplierEmail}>
@@ -314,11 +309,5 @@ export const newOrderPreview = (
   clientName: string,
   totalAmount: number
 ): string => {
-  const formatAmount = (amount: number): string => {
-    return new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
   return `Nouvelle commande de ${clientName} - ${formatAmount(totalAmount)} FCFA`;
 };

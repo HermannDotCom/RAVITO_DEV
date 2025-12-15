@@ -1,5 +1,6 @@
 import React from 'react';
 import { BaseEmailTemplate } from './BaseEmailTemplate';
+import { formatAmount } from '../utils';
 
 interface DeliveryConfirmationEmailProps {
   clientName: string;
@@ -22,12 +23,6 @@ export const DeliveryConfirmationEmail: React.FC<
   totalAmount,
   ratingUrl,
 }) => {
-  const formatAmount = (amount: number): string => {
-    return new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   return (
     <BaseEmailTemplate recipientEmail={clientEmail}>
