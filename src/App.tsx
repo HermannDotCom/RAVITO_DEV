@@ -38,6 +38,9 @@ import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AuthScreen } from './components/Auth/AuthScreen';
 import { SkipLink } from './components/Accessibility/SkipLink';
+import { LandingPage } from './pages/Landing';
+import { CGUPage, MentionsLegalesPage } from './pages/Legal';
+import { useSimpleRouter } from './hooks/useSimpleRouter';
 import { SupplierDashboard } from './components/Supplier/SupplierDashboard';
 import { ProductCatalog } from './components/Client/ProductCatalog';
 import { Cart } from './components/Client/Cart';
@@ -90,6 +93,7 @@ import { useOrder } from './context/OrderContext';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing, sessionError, refreshSession, logout, clearSessionError } = useAuth();
+  const { path, navigate } = useSimpleRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showRating, setShowRating] = useState(false);
@@ -131,6 +135,15 @@ const AppContent: React.FC = () => {
     await logout();
   };
 
+  // Public pages routing (accessible without auth)
+  if (path === '/cgu') {
+    return <CGUPage onNavigate={navigate} />;
+  }
+
+  if (path === '/mentions-legales') {
+    return <MentionsLegalesPage onNavigate={navigate} />;
+  }
+
   if (isInitializing) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50 flex items-center justify-center">
@@ -147,7 +160,12 @@ const AppContent: React.FC = () => {
   }
 
   if (!user) {
-    return <AuthScreen />;
+    // Show landing page on root path when not authenticated
+    if (path === '/' || path === '') {
+      return <LandingPage onNavigate={navigate} />;
+    }
+    // For other paths (like /login, /register), show AuthScreen
+    return <AuthScreen initialPath={path} />;
   }
 
   const renderMainContent = () => {
