@@ -216,15 +216,44 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Zones desservies <span className="text-red-500">*</span>
           </label>
-          <div className="border-2 rounded-xl p-4 space-y-2 max-h-64 overflow-y-auto">
+          <p className="text-sm text-gray-500 mb-3">
+            Sélectionnez au moins une zone que vous pouvez desservir. Vous pourrez modifier cette liste plus tard.
+          </p>
+          <div className="space-y-2">
             <ZoneSelector
               value={data.zones[0] || ''}
-              onChange={(zoneId) => toggleZone(zoneId)}
+              onChange={(zoneId) => {
+                if (zoneId && !data.zones.includes(zoneId)) {
+                  toggleZone(zoneId);
+                }
+                handleBlur('zones');
+              }}
               required={false}
             />
-            <p className="text-xs text-gray-500 mt-2">
-              Sélectionnez les zones que vous pouvez desservir
-            </p>
+            {data.zones.length > 0 && (
+              <div className="mt-3 space-y-2">
+                <p className="text-sm font-medium text-gray-700">Zones sélectionnées:</p>
+                <div className="flex flex-wrap gap-2">
+                  {data.zones.map((zoneId) => (
+                    <div
+                      key={zoneId}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-sm"
+                    >
+                      <span>{zoneId}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleZone(zoneId)}
+                        className="hover:bg-orange-200 rounded-full p-0.5 transition-colors"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           {touched.zones && errors.zones && (
             <p className="mt-1 text-sm text-red-600">{errors.zones}</p>
