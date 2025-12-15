@@ -5,6 +5,11 @@ import './index.css';
 import { cleanupObsoleteLocalStorage } from './utils/localStorageCleanup';
 import { runAuthDiagnostics } from './utils/authDiagnostics';
 import { registerServiceWorker } from './registerSW';
+import { initSentry } from './lib/sentry';
+import { SentryErrorBoundary } from './components/ErrorBoundary/SentryErrorBoundary';
+
+// Initialiser Sentry en premier
+initSentry();
 
 // Perform targeted cleanup of obsolete localStorage keys on app startup
 // This only removes known obsolete keys, preserving all legitimate user data
@@ -21,6 +26,8 @@ registerServiceWorker();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <SentryErrorBoundary>
+      <App />
+    </SentryErrorBoundary>
   </StrictMode>
 );
