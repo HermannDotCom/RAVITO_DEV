@@ -25,7 +25,7 @@ export const usePWA = () => {
   useEffect(() => {
     // Check if running in standalone mode
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-      || (window.navigator as any).standalone === true;
+      || (window.navigator as Window['navigator'] & { standalone?: boolean }).standalone === true;
 
     // Check if iOS
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
