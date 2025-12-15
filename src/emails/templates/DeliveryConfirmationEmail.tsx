@@ -23,7 +23,6 @@ export const DeliveryConfirmationEmail: React.FC<
   totalAmount,
   ratingUrl,
 }) => {
-
   return (
     <BaseEmailTemplate recipientEmail={clientEmail}>
       <div style={{ fontFamily: "'Plus Jakarta Sans', Arial, sans-serif" }}>

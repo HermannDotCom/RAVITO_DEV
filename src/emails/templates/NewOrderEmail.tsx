@@ -31,7 +31,6 @@ export const NewOrderEmail: React.FC<NewOrderEmailProps> = ({
   totalAmount,
   dashboardUrl,
 }) => {
-
   return (
     <BaseEmailTemplate recipientEmail={supplierEmail}>
       <div style={{ fontFamily: "'Plus Jakarta Sans', Arial, sans-serif" }}>

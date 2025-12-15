@@ -273,7 +273,7 @@ export const testData = {
       { name: 'Tomates fraîches', quantity: 25, unit: 'kg' },
     ],
     totalAmount: 125000,
-    deliveryTime: 'Aujourd\'hui à 14h30',
+    deliveryTime: "Aujourd'hui à 14h30",
   },
 };
 

@@ -18,6 +18,7 @@ export const BaseEmailTemplate: React.FC<BaseEmailTemplateProps> = ({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <style>{`
+          /* Google Fonts with fallbacks for email clients that support web fonts */
           @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
           
           body {
