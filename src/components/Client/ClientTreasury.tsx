@@ -187,69 +187,69 @@ export const ClientTreasury: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-20 lg:pb-6">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
+      <div className="mb-4 sm:mb-6 md:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center space-x-3">
-            <div className="h-12 w-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
-              <Wallet className="h-6 w-6 text-white" />
+            <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Wallet className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Trésorerie</h1>
-              <p className="text-gray-600">Consultez vos dépenses et commissions</p>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 truncate">Trésorerie</h1>
+              <p className="text-sm sm:text-base text-gray-600 truncate">Consultez vos dépenses et commissions</p>
             </div>
           </div>
           <button
             onClick={() => setShowRechargeModal(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all"
+            className="flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all w-full sm:w-auto"
           >
             <Plus className="h-4 w-4" />
-            <span>Recharger mon compte</span>
+            <span className="text-sm sm:text-base">Recharger mon compte</span>
           </button>
         </div>
       </div>
 
       {/* Balance Card with Variation Indicator */}
-      <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-xl p-6 text-white mb-8">
-        <div className="flex items-start justify-between mb-4">
+      <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 text-white mb-4 sm:mb-6 md:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
           <div className="flex items-center space-x-3">
-            <div className="h-12 w-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <Wallet className="h-6 w-6 text-white" />
+            <div className="h-10 w-10 sm:h-12 sm:w-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Wallet className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
-            <div>
-              <p className="text-orange-100 text-sm font-medium">Total Dépensé</p>
-              <p className="text-3xl font-bold">{formatPrice(summary?.totalAmount || 0)}</p>
+            <div className="min-w-0">
+              <p className="text-orange-100 text-xs sm:text-sm font-medium">Total Dépensé</p>
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold truncate">{formatPrice(summary?.totalAmount || 0)}</p>
             </div>
           </div>
         </div>
         <div className="flex items-center space-x-2 bg-white/10 rounded-full px-3 py-1 w-fit">
           {variationPercent > 0 ? (
-            <TrendingUp className="h-4 w-4 text-white" />
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
           ) : variationPercent < 0 ? (
-            <TrendingDown className="h-4 w-4 text-white" />
+            <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
           ) : (
-            <Minus className="h-4 w-4 text-white" />
+            <Minus className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
           )}
-          <span className="text-sm font-medium text-white">
+          <span className="text-xs sm:text-sm font-medium text-white">
             {variationPercent > 0 ? '+' : ''}{variationPercent.toFixed(1)}% vs mois dernier
           </span>
         </div>
       </div>
 
       {/* Period Filter */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-3 sm:p-4 mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <PeriodFilter
             selectedPeriod={period}
             onPeriodChange={setPeriod}
           />
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">Année:</span>
+            <span className="text-xs sm:text-sm text-gray-600 flex-shrink-0">Année:</span>
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 flex-1 sm:flex-initial"
             >
               {[0, 1, 2].map(offset => {
                 const year = new Date().getFullYear() - offset;
@@ -261,7 +261,7 @@ export const ClientTreasury: React.FC = () => {
       </div>
 
       {/* Financial Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
         <FinancialCard
           title="Total Dépensé"
           value={formatPrice(summary?.totalAmount || 0)}
@@ -293,7 +293,7 @@ export const ClientTreasury: React.FC = () => {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6 mb-4 sm:mb-6 md:mb-8">
         <BalanceChart
           data={balanceChartData}
           title="Évolution des dépenses mensuelles"
@@ -307,10 +307,10 @@ export const ClientTreasury: React.FC = () => {
       </div>
 
       {/* Periodic Summary */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-8">
-        <div className="p-6 border-b border-gray-200">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-4 sm:mb-6 md:mb-8 overflow-hidden">
+        <div className="p-3 sm:p-4 md:p-6 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h2 className="text-lg font-bold text-gray-900">Récapitulatifs Périodiques</h2>
+            <h2 className="text-base sm:text-lg font-bold text-gray-900">Récapitulatifs Périodiques</h2>
             <ViewModeTabs
               activeTab={viewMode}
               onTabChange={setViewMode}
@@ -318,7 +318,7 @@ export const ClientTreasury: React.FC = () => {
             />
           </div>
         </div>
-        <div className="p-6">
+        <div className="p-3 sm:p-4 md:p-6 overflow-x-auto">
           {viewMode === 'monthly' && (
             <StatsTable
               columns={monthlyColumns}
@@ -344,16 +344,16 @@ export const ClientTreasury: React.FC = () => {
       </div>
 
       {/* Transaction History */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">Historique des Transactions</h2>
-              <p className="text-sm text-gray-600">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="p-3 sm:p-4 md:p-6 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 truncate">Historique des Transactions</h2>
+              <p className="text-xs sm:text-sm text-gray-600">
                 {filteredTransactions.length} transaction(s) trouvée(s)
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4">
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -385,7 +385,7 @@ export const ClientTreasury: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="p-6">
+        <div className="p-3 sm:p-4 md:p-6">
           {filteredTransactions.length === 0 ? (
             <EmptyState
               icon={Package}

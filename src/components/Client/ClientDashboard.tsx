@@ -64,9 +64,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) 
   const rating = user?.rating || 5;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="max-w-6xl mx-auto p-3 sm:p-4 md:p-6 lg:p-8">
-        <div className="space-y-4 sm:space-y-6 md:space-y-8">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-20 lg:pb-0">
+      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
+        <div className="space-y-4 sm:space-y-5 md:space-y-6">
           <WelcomeHeader userName={userName} zone={zone} rating={rating} />
 
           <QuickOrderCard onOrderClick={() => onNavigate('catalog')} />
@@ -78,11 +78,11 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) 
             />
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-            <div className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
+            <div className="space-y-4 sm:space-y-5 md:space-y-6">
               {user && <MonthlyStats userId={user.id} />}
             </div>
-            <div className="space-y-8">
+            <div className="space-y-4 sm:space-y-5 md:space-y-6">
               {user && (
                 <RecentOrdersList
                   userId={user.id}
@@ -92,7 +92,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) 
             </div>
           </div>
 
-          <div className="pt-4">
+          <div className="pt-2">
             <PopularProductsCarousel onAddToCart={handleAddToCart} />
           </div>
         </div>

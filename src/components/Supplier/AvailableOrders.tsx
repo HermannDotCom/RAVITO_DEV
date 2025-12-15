@@ -189,10 +189,10 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
   const totals = selectedOrder ? calculateTotals() : null;
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Mes Commandes</h1>
-        <p className="text-gray-600">Gérez vos commandes disponibles, en attente et en cours</p>
+    <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-20 lg:pb-6">
+      <div className="mb-4 sm:mb-6 md:mb-8">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 truncate">Mes Commandes</h1>
+        <p className="text-sm sm:text-base text-gray-600">Gérez vos commandes disponibles, en attente et en cours</p>
       </div>
 
       <SupplierOrderSections
@@ -201,26 +201,26 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
       />
 
       {showDetailsModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Détails de la commande</h2>
-                  <p className="text-gray-600">Commande #{selectedOrder.id.slice(0, 8)}</p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-4xl my-4 max-h-[calc(100vh-2rem)]">
+            <div className="p-4 sm:p-6 md:p-8 overflow-y-auto max-h-[calc(100vh-2rem)]">
+              <div className="flex items-center justify-between mb-4 sm:mb-6 sticky top-0 bg-white pb-3 border-b border-gray-200">
+                <div className="min-w-0 flex-1 mr-2">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">Détails de la commande</h2>
+                  <p className="text-sm sm:text-base text-gray-600">Commande #{selectedOrder.id.slice(0, 8)}</p>
                 </div>
                 <button
                   onClick={() => {
                     setShowDetailsModal(false);
                     setSelectedOrder(null);
                   }}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full flex-shrink-0"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
 
-              <div className="bg-blue-50 rounded-lg p-4 mb-6">
+              <div className="bg-blue-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
                 <h3 className="font-semibold text-gray-900 mb-3">Informations de livraison</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -238,17 +238,17 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                 </p>
               </div>
 
-              <div className="mb-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Produits demandés</h3>
+              <div className="mb-4 sm:mb-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Produits demandés</h3>
                 {selectedOrderTab === 'available' && (
-                  <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-blue-800">
+                  <div className="bg-blue-50 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
+                    <p className="text-xs sm:text-sm text-blue-800">
                       <strong>Note:</strong> Vous pouvez modifier les quantités selon vos disponibilités. Les produits avec une quantité de 0 seront retirés de l'offre.
                     </p>
                   </div>
                 )}
 
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {offerItems.map((item) => (
                     <div key={item.productId} className="bg-gray-50 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
