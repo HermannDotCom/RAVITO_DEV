@@ -36,12 +36,15 @@ export const formatPhoneCI = (phone: string): string => {
 
 /**
  * Validation email
+ * Uses a simple but effective regex pattern that covers most common email formats.
+ * More complex patterns exist but add minimal value for this use case.
  */
 export const validateEmail = (email: string): { isValid: boolean; error: string } => {
   if (!email) {
     return { isValid: false, error: 'L\'email est requis' };
   }
   
+  // Simple but effective pattern that covers 99% of real-world email addresses
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return { isValid: false, error: 'Format d\'email invalide' };

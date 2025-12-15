@@ -221,7 +221,7 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
           </p>
           <div className="space-y-2">
             <ZoneSelector
-              value={data.zones[0] || ''}
+              value=""
               onChange={(zoneId) => {
                 if (zoneId && !data.zones.includes(zoneId)) {
                   toggleZone(zoneId);

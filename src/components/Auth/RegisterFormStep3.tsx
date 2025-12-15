@@ -194,7 +194,7 @@ export const RegisterFormStep3: React.FC<RegisterFormStep3Props> = ({
               </a>{' '}
               et la{' '}
               <a
-                href="/cgu"
+                href="/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-orange-600 hover:text-orange-700 font-medium underline"
