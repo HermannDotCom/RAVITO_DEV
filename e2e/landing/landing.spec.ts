@@ -27,13 +27,13 @@ test.describe('Landing Page', () => {
   test('devrait naviguer vers la page CGU', async ({ page }) => {
     await landing.goto();
     await landing.goToCGU();
-    await expect(page.locator('text=Conditions Générales')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /Conditions Générales/i })).toBeVisible({ timeout: 10000 });
   });
 
   test('devrait naviguer vers les Mentions Légales', async ({ page }) => {
     await landing.goto();
     await landing.goToMentionsLegales();
-    await expect(page.locator('text=Mentions Légales')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /Mentions Légales/i })).toBeVisible({ timeout: 10000 });
   });
 
   test('devrait être responsive sur mobile', async ({ page }) => {

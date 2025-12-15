@@ -6,7 +6,7 @@ export class LandingPage {
   async goto() {
     await this.page.goto('/');
     await expect(
-      this.page.locator('text=Le ravitaillement qui ne dort jamais')
+      this.page.getByRole('heading', { name: /Le ravitaillement qui ne dort jamais/i })
     ).toBeVisible({ timeout: 15000 });
   }
 
@@ -27,11 +27,13 @@ export class LandingPage {
   }
 
   async goToCGU() {
-    await this.page.click('a:has-text("CGU"), a:has-text("Conditions")');
+    // CGU is a button in the footer
+    await this.page.getByRole('button', { name: 'CGU' }).click();
   }
 
   async goToMentionsLegales() {
-    await this.page.click('a:has-text("Mentions légales")');
+    // Mentions légales is a button in the footer
+    await this.page.getByRole('button', { name: /Mentions légales/i }).click();
   }
 }
 

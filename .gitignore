@@ -29,3 +29,5 @@ playwright-report/
 playwright/.cache/
 test-results/
 
+# .env file is for local development only - not to be committed
+.env
