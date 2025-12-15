@@ -1,8 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 test.describe('Authentication', () => {
   // Helper function to navigate to login form from landing page
-  async function goToLoginForm(page) {
+  async function goToLoginForm(page: Page) {
     await page.goto('/');
     // Wait for landing page to load
     await expect(page.locator('text=Le ravitaillement qui ne dort jamais')).toBeVisible({ timeout: 10000 });
@@ -88,9 +88,9 @@ test.describe('Authentication', () => {
     await expect(page.locator('text=Conditions Générales')).toBeVisible({ timeout: 10000 });
     
     // Click on logo to return home
-    await page.click('text=RAVITO, a[href="/"]').catch(() => {
-      // Fallback: click the logo/home link
-      return page.click('header a, .logo');
+    await page.click('a[href="/"]').catch(() => {
+      // Fallback: click the RAVITO text or logo
+      return page.click('text=RAVITO').catch(() => page.click('header a, .logo'));
     });
     
     // Verify we're back on landing
