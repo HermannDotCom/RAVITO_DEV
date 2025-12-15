@@ -14,8 +14,6 @@ import {
   MessageSquare,
   Check,
   ArrowRight,
-  Facebook,
-  Instagram,
 } from 'lucide-react';
 import { LandingHeader } from '../../components/Landing/LandingHeader';
 import { LandingFooter } from '../../components/Landing/LandingFooter';
