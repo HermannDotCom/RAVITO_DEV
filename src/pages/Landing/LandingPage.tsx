@@ -304,7 +304,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* TARIFICATION */}
+      {/*
+        SECTION TARIFICATION - Masquée temporairement pour raisons stratégiques de Go-to-Market
+        La tarification reste visible et valide dans les CGU (Article 4)
+        Commissions actuelles : 8% clients CHR, 2% fournisseurs
+
       <section id="tarifs" className="py-16 md:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
@@ -375,6 +379,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
         </div>
       </section>
+      */}
 
       {/* ZONES COUVERTES */}
       <section className="py-16 md:py-24 bg-white">
