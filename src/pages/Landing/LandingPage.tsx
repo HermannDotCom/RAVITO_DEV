@@ -8,8 +8,6 @@ import {
   UserPlus,
   ShoppingCart,
   CreditCard,
-  Calculator,
-  AlertTriangle,
   MapPin,
   MessageSquare,
   Check,
@@ -22,8 +20,8 @@ interface LandingPageProps {
   onNavigate: (path: string) => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
-  const scrollToSection = (sectionId: string) => {
+export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
+  const scrollToSection = (sectionId:  string) => {
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -52,7 +50,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Livraison de boissons 24h/24 pour bars, maquis et restaurants à Abidjan
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm: flex-row gap-4 justify-center">
               <button
                 onClick={() => onNavigate('/register')}
                 className="px-8 py-4 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-all font-semibold text-lg shadow-orange-lg hover:shadow-orange-md transform hover:scale-105"
@@ -73,7 +71,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       {/* PROPOSITION DE VALEUR */}
       <section id="fonctionnalites" className="py-16 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md: grid-cols-3 gap-8">
             {/* Card 1 */}
             <div className="bg-white border border-gray-200 rounded-xl p-8 hover:shadow-lg transition-shadow">
               <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
@@ -97,25 +95,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             </div>
 
             {/* Card 3 */}
-            <div className="bg-white border border-gray-200 rounded-xl p-8 hover:shadow-lg transition-shadow">
+            <div className="bg-white border border-gray-200 rounded-xl p-8 hover: shadow-lg transition-shadow">
               <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
                 <Smartphone className="text-orange-500" size={24} />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Paiement Mobile</h3>
               <p className="text-gray-600">
-                Orange Money, Wave, MTN Money... Payez comme vous voulez
+                Orange Money, Wave, MTN Money...  Payez comme vous voulez
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* POUR QUI ? */}
+      {/* POUR QUI ?  */}
       <section className="py-16 md:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 font-display">
-              Pour qui ?
+              Pour qui ? 
             </h2>
             <p className="text-xl text-gray-600">
               RAVITO s'adresse aux établissements CHR et aux fournisseurs de boissons
@@ -236,7 +234,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+          <div className="grid grid-cols-1 md: grid-cols-2 lg:grid-cols-4 gap-8 relative">
             {/* Step 1 */}
             <div className="text-center">
               <div className="relative inline-block mb-4">
@@ -304,86 +302,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/*
-        SECTION TARIFICATION - Masquée temporairement pour raisons stratégiques de Go-to-Market
-        La tarification reste visible et valide dans les CGU (Article 4)
-        Commissions actuelles : 8% clients CHR, 2% fournisseurs
-
-      <section id="tarifs" className="py-16 md:py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
-              <div className="text-center mb-8">
-                <div className="h-16 w-16 bg-orange-100 rounded-lg flex items-center justify-center mb-4 mx-auto">
-                  <Calculator className="text-orange-500" size={32} />
-                </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 font-display">
-                  Tarification transparente
-                </h2>
-                <p className="text-lg text-gray-600">
-                  RAVITO est un service payant avec des commissions claires sur chaque transaction
-                </p>
-              </div>
-
-              <div className="space-y-4 mb-8">
-                {/* Client tarif */}
-                <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
-                  <div className="flex items-center">
-                    <Store className="text-orange-500 mr-3" size={24} />
-                    <span className="font-semibold text-gray-900">Clients (CHR)</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-2xl font-bold text-orange-500 mr-2">8%</span>
-                    <span className="text-gray-600">de commission sur chaque commande</span>
-                  </div>
-                </div>
-
-                {/* Supplier tarif */}
-                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                  <div className="flex items-center">
-                    <Truck className="text-green-500 mr-3" size={24} />
-                    <span className="font-semibold text-gray-900">Fournisseurs</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-2xl font-bold text-green-500 mr-2">2%</span>
-                    <span className="text-gray-600">de commission sur chaque livraison</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Warning */}
-              <div className="bg-amber-50 border-2 border-amber-500 rounded-lg p-6 mb-6">
-                <div className="flex">
-                  <AlertTriangle className="text-amber-500 mr-3 flex-shrink-0 mt-1" size={24} />
-                  <div>
-                    <p className="text-gray-900 font-medium mb-2">
-                      ⚠️ Information importante
-                    </p>
-                    <p className="text-gray-700 text-sm">
-                      Les tarifs sont susceptibles d'évoluer. RAVITO se réserve le droit de mettre en place un système d'abonnement mensuel à l'avenir. Consultez régulièrement nos CGU.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-center">
-                <button
-                  onClick={() => onNavigate('/cgu')}
-                  className="text-orange-500 hover:text-orange-600 font-medium inline-flex items-center"
-                >
-                  Voir les Conditions Générales d'Utilisation
-                  <ArrowRight className="ml-2" size={18} />
-                </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      */}
+      {/* SECTION TARIFICATION - Masquée temporairement (voir CGU Article 4 pour les tarifs) */}
 
       {/* ZONES COUVERTES */}
-      <section className="py-16 md:py-24 bg-white">
+      <section className="py-16 md: py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 font-display">
@@ -419,13 +341,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
 
           <p className="text-center text-gray-600">
-            <span className="font-medium">Nouvelles zones ajoutées régulièrement</span> • Votre zone n'est pas listée ? Contactez-nous !
+            <span className="font-medium">Nouvelles zones ajoutées régulièrement</span> • Votre zone n'est pas listée ?  Contactez-nous !
           </p>
         </div>
       </section>
 
       {/* TÉMOIGNAGES */}
-      <section id="temoignages" className="py-16 md:py-24 bg-gray-50">
+      <section id="temoignages" className="py-16 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 font-display">
@@ -452,14 +374,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
 
           <p className="text-center text-gray-600">
-            Vous utilisez RAVITO ? Partagez votre expérience avec nous !
+            Vous utilisez RAVITO ?  Partagez votre expérience avec nous !
           </p>
         </div>
       </section>
 
       {/* CTA FINAL */}
       <section className="py-16 md:py-24 bg-gradient-to-r from-orange-500 to-orange-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-7xl mx-auto px-4 sm: px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 font-display">
             Prêt à révolutionner votre ravitaillement ?
           </h2>
