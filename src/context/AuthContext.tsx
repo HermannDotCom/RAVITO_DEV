@@ -57,24 +57,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       console.log('Fetching profile for user:', userId);
 
-      const { data: profile, error } = await supabase
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Profile fetch timeout after 10s')), 10000);
+      });
+
+      const fetchPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
 
+      const { data: profile, error } = await Promise.race([
+        fetchPromise,
+        timeoutPromise
+      ]) as any;
+
       if (error) {
         console.error('Error fetching profile:', error);
-        console.error('This might be due to RLS policies. Check Supabase dashboard.');
+        console.error('Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
         return false;
       }
 
       if (!profile) {
         console.error('Profile not found for user:', userId);
+        console.error('This usually means the profile does not exist in the database or RLS policies are blocking access');
         return false;
       }
 
-      console.log('Profile found:', profile);
+      console.log('Profile found:', { id: profile.id, role: profile.role, email: profile.email });
       const { data: authUserData } = await supabase.auth.getUser();
 
       let coordinates = undefined;
@@ -214,7 +230,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+      console.log('=== LOGIN START ===');
       console.log('Attempting login for:', email);
+      console.log('Timestamp:', new Date().toISOString());
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -223,21 +241,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) {
         console.error('Login error:', error);
+        console.error('Error code:', error.status);
+        console.error('Error message:', error.message);
         setIsLoading(false);
         return false;
       }
 
       if (data.user) {
-        console.log('Auth successful, fetching profile...');
+        console.log('Auth successful! User ID:', data.user.id);
+        console.log('Session created:', !!data.session);
+        console.log('Now fetching profile...');
+
         const profileSuccess = await fetchUserProfile(data.user.id);
+
+        console.log('Profile fetch result:', profileSuccess);
+        console.log('=== LOGIN END ===');
         setIsLoading(false);
         return profileSuccess;
       }
 
+      console.error('No user returned from signInWithPassword');
       setIsLoading(false);
       return false;
     } catch (error) {
       console.error('Login exception:', error);
+      console.error('Exception stack:', error instanceof Error ? error.stack : 'No stack trace');
       setIsLoading(false);
       return false;
     }
