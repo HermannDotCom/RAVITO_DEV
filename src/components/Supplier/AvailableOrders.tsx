@@ -189,7 +189,8 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
   const totals = selectedOrder ? calculateTotals() : null;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-20 lg:pb-6">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-20 lg:pb-0">
+      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
       <div className="mb-4 sm:mb-6 md:mb-8">
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 truncate">Mes Commandes</h1>
         <p className="text-sm sm:text-base text-gray-600">Gérez vos commandes disponibles, en attente et en cours</p>
@@ -407,6 +408,7 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
           }}
         />
       )}
+      </div>
     </div>
   );
 };

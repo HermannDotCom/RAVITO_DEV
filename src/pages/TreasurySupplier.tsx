@@ -204,94 +204,95 @@ export const TreasurySupplier: React.FC<TreasurySupplierProps> = ({ onBack }) =>
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-20 lg:pb-0">
+      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center space-x-4 mb-4">
+      <div className="mb-4 sm:mb-6 md:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
           {onBack && (
             <button
               onClick={onBack}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors w-fit"
             >
               <ArrowLeft className="h-5 w-5 text-gray-600" />
             </button>
           )}
           <div className="flex items-center space-x-3">
-            <div className="h-12 w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
-              <Wallet className="h-6 w-6 text-white" />
+            <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Wallet className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Trésorerie</h1>
-              <p className="text-gray-600">Gérez vos revenus et retraits</p>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 truncate">Trésorerie</h1>
+              <p className="text-sm sm:text-base text-gray-600">Gérez vos revenus et retraits</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-5 md:p-6">
           <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600 mb-1">Solde Disponible</p>
-              <p className="text-2xl font-bold text-green-600">{formatPrice(stats.availableBalance)}</p>
-              <p className="text-sm text-gray-500 mt-1">Retirable maintenant</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Solde Disponible</p>
+              <p className="text-xl sm:text-2xl font-bold text-green-600 truncate">{formatPrice(stats.availableBalance)}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">Retirable maintenant</p>
             </div>
-            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
-              <Banknote className="h-6 w-6 text-white" />
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
+              <Banknote className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
           </div>
           <button
             onClick={() => setShowWithdrawModal(true)}
             disabled={stats.availableBalance < 50000}
-            className="mt-4 w-full py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="mt-3 sm:mt-4 w-full py-2 bg-green-600 text-white rounded-lg text-sm sm:text-base font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Demander un retrait
           </button>
         </div>
         
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-5 md:p-6">
           <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600 mb-1">En Attente</p>
-              <p className="text-2xl font-bold text-yellow-600">{formatPrice(stats.pendingAmount)}</p>
-              <p className="text-sm text-gray-500 mt-1">Commandes en cours</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">En Attente</p>
+              <p className="text-xl sm:text-2xl font-bold text-yellow-600 truncate">{formatPrice(stats.pendingAmount)}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">Commandes en cours</p>
             </div>
-            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center">
-              <Clock className="h-6 w-6 text-white" />
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center flex-shrink-0">
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-5 md:p-6">
           <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600 mb-1">Total des Gains</p>
-              <p className="text-2xl font-bold text-gray-900">{formatPrice(stats.totalEarned)}</p>
-              <p className="text-sm text-gray-500 mt-1">Depuis inscription</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Total des Gains</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{formatPrice(stats.totalEarned)}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">Depuis inscription</p>
             </div>
-            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-              <DollarSign className="h-6 w-6 text-white" />
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+              <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-5 md:p-6">
           <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600 mb-1">Gains du Mois</p>
-              <p className="text-2xl font-bold text-gray-900">{formatPrice(stats.monthEarned)}</p>
-              <p className="text-sm text-gray-500 mt-1">Ce mois-ci</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Gains du Mois</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{formatPrice(stats.monthEarned)}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">Ce mois-ci</p>
             </div>
-            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-              <TrendingUp className="h-6 w-6 text-white" />
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Revenue Chart */}
-      <div className="mb-8">
+      <div className="mb-4 sm:mb-6 md:mb-8">
         <RevenueChart
           data={mockMonthlyRevenue}
           title="Revenus des 6 derniers mois"
@@ -300,23 +301,25 @@ export const TreasurySupplier: React.FC<TreasurySupplierProps> = ({ onBack }) =>
       </div>
 
       {/* Filters */}
-      <TransactionFilters
-        periodFilter={periodFilter}
-        onPeriodChange={setPeriodFilter}
-        typeFilter={typeFilter}
-        onTypeChange={setTypeFilter}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        transactionTypes={transactionTypes}
-      />
+      <div className="mb-4 sm:mb-6">
+        <TransactionFilters
+          periodFilter={periodFilter}
+          onPeriodChange={setPeriodFilter}
+          typeFilter={typeFilter}
+          onTypeChange={setTypeFilter}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          transactionTypes={transactionTypes}
+        />
+      </div>
 
       {/* Transaction History */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">Historique des Transactions</h2>
-              <p className="text-sm text-gray-600">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-4 sm:mb-6 md:mb-8">
+        <div className="p-3 sm:p-4 md:p-6 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 truncate">Historique des Transactions</h2>
+              <p className="text-xs sm:text-sm text-gray-600">
                 {filteredTransactions.length} transaction(s) trouvée(s)
               </p>
             </div>
@@ -327,7 +330,7 @@ export const TreasurySupplier: React.FC<TreasurySupplierProps> = ({ onBack }) =>
             />
           </div>
         </div>
-        <div className="p-6">
+        <div className="p-3 sm:p-4 md:p-6">
           <TransactionList
             transactions={filteredTransactions}
             isSupplier={true}
@@ -338,12 +341,12 @@ export const TreasurySupplier: React.FC<TreasurySupplierProps> = ({ onBack }) =>
       </div>
 
       {/* Information Box */}
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
-        <h3 className="text-lg font-bold text-blue-900 mb-3 flex items-center">
-          <DollarSign className="h-5 w-5 mr-2" />
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-5 md:p-6">
+        <h3 className="text-base sm:text-lg font-bold text-blue-900 mb-3 flex items-center">
+          <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
           Informations sur les retraits
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm text-blue-800">
           <div>
             <p className="font-medium mb-1">Montant minimum</p>
             <p>Le montant minimum de retrait est de 50 000 FCFA.</p>
@@ -372,6 +375,7 @@ export const TreasurySupplier: React.FC<TreasurySupplierProps> = ({ onBack }) =>
         bankInfo={bankInfo}
         formatPrice={formatPrice}
       />
+      </div>
     </div>
   );
 };
