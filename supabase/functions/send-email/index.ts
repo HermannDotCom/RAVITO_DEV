@@ -3,7 +3,10 @@ import { createClient } from 'npm:@supabase/supabase-js@2.58.0';
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const EMAIL_FROM = Deno.env.get('EMAIL_FROM') || 'RAVITO <noreply@ravito.ci>';
 
+// CORS: Wildcard allowed for Edge Functions called from browser clients
+// Edge Functions are protected by Supabase auth and RLS policies
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -539,7 +542,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'RAVITO <noreply@ravito.ci>',
+        from: EMAIL_FROM,
         to: [to],
         subject: emailContent.subject,
         html: emailContent.html,
@@ -553,15 +556,19 @@ Deno.serve(async (req) => {
 
     const result = await response.json();
 
-    // Log email
-    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-    await supabase.from('email_logs').insert({
-      type,
-      recipient: to,
-      resend_id: result.id,
-      status: 'sent',
-      sent_at: new Date().toISOString(),
-    });
+    // Log email (non-blocking - don't fail if logging fails)
+    try {
+      const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+      await supabase.from('email_logs').insert({
+        type,
+        recipient: to,
+        resend_id: result.id,
+        status: 'sent',
+        sent_at: new Date().toISOString(),
+      });
+    } catch (logError) {
+      console.error('Failed to log email (non-fatal):', logError);
+    }
 
     return new Response(
       JSON.stringify({ success: true, id: result.id }),

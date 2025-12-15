@@ -105,13 +105,16 @@ Resend vous fournira des enregistrements DNS à configurer chez votre registrar 
 3. Cliquez sur **"Verify"** à côté de votre domaine
 4. Statut doit passer à ✅ **Verified**
 
-### Étape 3.4 : Mettre à jour l'Edge Function
+### Étape 3.4 : Mettre à jour le secret Supabase (Optionnel)
 
-Une fois le domaine vérifié, mettez à jour le `from` dans `/supabase/functions/send-email/index.ts` :
+Une fois le domaine vérifié, vous pouvez configurer l'adresse d'expédition via un secret Supabase :
 
-```typescript
-from: 'RAVITO <noreply@ravito.ci>',
+```bash
+# Configurer l'adresse d'expédition personnalisée
+supabase secrets set EMAIL_FROM="RAVITO <noreply@ravito.ci>"
 ```
+
+Si vous ne configurez pas ce secret, l'adresse par défaut `RAVITO <noreply@ravito.ci>` sera utilisée.
 
 ---
 
@@ -128,6 +131,9 @@ supabase link --project-ref your-project-ref
 
 # Configurer les secrets
 supabase secrets set RESEND_API_KEY=re_your_api_key_here
+
+# (Optionnel) Configurer l'adresse d'expédition
+supabase secrets set EMAIL_FROM="RAVITO <noreply@ravito.ci>"
 ```
 
 ### Étape 4.2 : Via Dashboard Supabase
@@ -138,7 +144,10 @@ supabase secrets set RESEND_API_KEY=re_your_api_key_here
 4. Ajoutez le secret :
    - **Name** : `RESEND_API_KEY`
    - **Value** : `re_your_api_key_here` (votre clé API Resend)
-5. Cliquez sur **"Save"**
+5. (Optionnel) Ajoutez le secret pour personnaliser l'expéditeur :
+   - **Name** : `EMAIL_FROM`
+   - **Value** : `RAVITO <noreply@ravito.ci>` (ou votre domaine personnalisé)
+6. Cliquez sur **"Save"**
 
 ### Étape 4.3 : Vérifier les secrets (déjà configurés)
 
