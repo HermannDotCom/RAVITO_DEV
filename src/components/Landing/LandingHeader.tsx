@@ -43,7 +43,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded-lg"
           >
             <img 
-              src="/logo/logo.svg" 
+              src="/logo.svg" 
               alt="Ravito Logo" 
               className="h-10 w-10"
             />

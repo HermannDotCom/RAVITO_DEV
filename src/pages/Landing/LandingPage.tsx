@@ -44,10 +44,10 @@ export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            {/* Logo with tagline */}
+            {/* Logo with slogan */}
             <div className="flex justify-center mb-8">
               <img 
-                src="/logo/logo-with-tagline.svg" 
+                src="/logo-with-slogan.svg" 
                 alt="Ravito - Le ravitaillement qui ne dort jamais" 
                 className="h-48 md:h-56 w-auto"
               />
