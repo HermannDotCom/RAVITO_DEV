@@ -1,30 +1,37 @@
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background Circle -->
-  <circle cx="100" cy="100" r="95" fill="#E85D24"/>
+  <circle cx="100" cy="100" r="90" fill="#E65C1E"/>
   
-  <!-- Stylized R with integrated truck -->
-  <g transform="translate(50, 40)">
-    <!-- Main R body -->
-    <path d="M10 10 L10 120 L25 120 L25 75 L50 75 L75 120 L95 120 L67 72 C82 68 90 56 90 40 C90 20 75 10 55 10 L10 10 Z M25 25 L50 25 C60 25 70 28 70 40 C70 52 60 60 50 60 L25 60 L25 25 Z" fill="white"/>
+  <!-- Stylized R with integrated delivery truck -->
+  <g transform="translate(45, 35)">
+    <!-- Main R letter body -->
+    <path d="M15 15 L15 135 L32 135 L32 85 L58 85 L88 135 L110 135 L78 82 C95 77 105 63 105 45 C105 22 87 15 65 15 L15 15 Z M32 30 L60 30 C72 30 88 32 88 45 C88 58 72 65 60 65 L32 65 L32 30 Z" fill="white"/>
     
-    <!-- Truck integration in the R -->
-    <g transform="translate(25, 70)">
-      <!-- Truck body -->
-      <rect x="5" y="0" width="30" height="15" rx="2" fill="#FFE5D9" opacity="0.8"/>
+    <!-- Integrated delivery truck inside R -->
+    <g transform="translate(32, 80)">
+      <!-- Truck container/body -->
+      <rect x="6" y="2" width="35" height="18" rx="2" fill="#FFE5D9" opacity="0.9"/>
       <!-- Truck cabin -->
-      <rect x="0" y="5" width="8" height="10" rx="1" fill="#FFE5D9" opacity="0.8"/>
-      <!-- Wheels -->
-      <circle cx="10" cy="17" r="3" fill="#FFE5D9"/>
-      <circle cx="28" cy="17" r="3" fill="#FFE5D9"/>
+      <rect x="0" y="7" width="10" height="13" rx="1.5" fill="#FFE5D9" opacity="0.9"/>
+      <!-- Front wheel -->
+      <circle cx="12" cy="22" r="4" fill="#FFFFFF"/>
+      <circle cx="12" cy="22" r="2.5" fill="#E65C1E"/>
+      <!-- Back wheel -->
+      <circle cx="33" cy="22" r="4" fill="#FFFFFF"/>
+      <circle cx="33" cy="22" r="2.5" fill="#E65C1E"/>
+      <!-- Truck details -->
+      <line x1="10" y1="10" x2="10" y2="17" stroke="#E65C1E" stroke-width="1"/>
+      <rect x="12" y="6" width="23" height="8" rx="1" fill="#FFFFFF" opacity="0.3"/>
     </g>
   </g>
   
-  <!-- Speed lines (green) -->
-  <g opacity="0.9">
-    <path d="M140 60 L170 60" stroke="#2D5A47" stroke-width="4" stroke-linecap="round"/>
-    <path d="M145 75 L175 75" stroke="#2D5A47" stroke-width="4" stroke-linecap="round"/>
-    <path d="M140 90 L170 90" stroke="#2D5A47" stroke-width="4" stroke-linecap="round"/>
-    <path d="M145 105 L175 105" stroke="#2D5A47" stroke-width="3" stroke-linecap="round"/>
-    <path d="M140 120 L165 120" stroke="#2D5A47" stroke-width="3" stroke-linecap="round"/>
+  <!-- Speed lines (green) indicating motion -->
+  <g opacity="0.95">
+    <path d="M145 55 L180 55" stroke="#10B981" stroke-width="5" stroke-linecap="round"/>
+    <path d="M150 70 L185 70" stroke="#10B981" stroke-width="5" stroke-linecap="round"/>
+    <path d="M145 85 L180 85" stroke="#10B981" stroke-width="5" stroke-linecap="round"/>
+    <path d="M150 100 L185 100" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+    <path d="M145 115 L180 115" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+    <path d="M150 130 L175 130" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
   </g>
 </svg>
