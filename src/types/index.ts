@@ -363,3 +363,39 @@ export {
   STATUS_COLORS,
   STATUS_LABELS
 } from './team';
+
+// ============================================
+// WALLET SYSTEM TYPES - Re-export from wallet.ts
+// ============================================
+export type {
+  Wallet,
+  Transaction,
+  TransactionType,
+  TransactionStatus,
+  WithdrawalRequest,
+  WithdrawalMethod,
+  WithdrawalStatus,
+  WithdrawalAccountDetails,
+  DepositRequest,
+  WithdrawalRequestInput,
+  PaymentRequest,
+  EarningRequest,
+  WalletStats,
+  DailyActivity,
+  CommissionSettings,
+  TransactionFilters,
+  WithdrawalFilters,
+  PaginationParams,
+  PaginatedResponse,
+  WalletOperationResult,
+  WithdrawalRequestResult
+} from './wallet';
+
+export {
+  TRANSACTION_TYPE_LABELS,
+  TRANSACTION_STATUS_LABELS,
+  WITHDRAWAL_METHOD_LABELS,
+  WITHDRAWAL_STATUS_LABELS,
+  DEFAULT_COMMISSION_SETTINGS,
+  WALLET_LIMITS
+} from './wallet';

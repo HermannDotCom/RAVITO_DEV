@@ -35,6 +35,7 @@ import { RatingProvider } from './context/RatingContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ToastProvider } from './context/ToastContext';
 import { PricingProvider } from './context/PricingContext';
+import { WalletProvider } from './context/WalletContext';
 import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AuthScreen } from './components/Auth/AuthScreen';
@@ -397,11 +398,13 @@ function App() {
           <CartProvider>
             <CommissionProvider>
               <PricingProvider>
-                <OrderProvider>
-                  <RatingProvider>
-                    <AppContent />
-                  </RatingProvider>
-                </OrderProvider>
+                <WalletProvider>
+                  <OrderProvider>
+                    <RatingProvider>
+                      <AppContent />
+                    </RatingProvider>
+                  </OrderProvider>
+                </WalletProvider>
               </PricingProvider>
             </CommissionProvider>
           </CartProvider>
