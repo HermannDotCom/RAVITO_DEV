@@ -144,6 +144,8 @@ export async function getSupplierPriceGrid(id: string): Promise<SupplierPriceGri
 
 /**
  * Récupère la grille active pour un fournisseur/produit/zone
+ * Note: This uses an RPC function that returns price data but not the full record.
+ * For full record access with ID, use getSupplierPriceGrids() with filters instead.
  */
 export async function getActiveSupplierPriceGrid(
   supplierId: string,
@@ -151,6 +153,19 @@ export async function getActiveSupplierPriceGrid(
   zoneId?: string
 ): Promise<SupplierPriceGrid | null> {
   try {
+    // Try to fetch the full record first
+    const grids = await getSupplierPriceGrids(supplierId, {
+      productId,
+      zoneId,
+      isActive: true,
+    });
+
+    if (grids.length > 0) {
+      // Return the most recent active grid
+      return grids[0];
+    }
+
+    // Fallback to RPC if direct query doesn't work
     const { data, error } = await supabase.rpc('get_supplier_price_grid', {
       p_supplier_id: supplierId,
       p_product_id: productId,
@@ -166,9 +181,10 @@ export async function getActiveSupplierPriceGrid(
       return null;
     }
 
+    // RPC returns limited data without ID - construct a minimal object
     const priceData = Array.isArray(data) ? data[0] : data;
     return {
-      id: '',
+      id: '', // Note: ID not available from RPC, use getSupplierPriceGrids for full record
       supplierId,
       productId,
       zoneId,

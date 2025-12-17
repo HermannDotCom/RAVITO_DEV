@@ -386,6 +386,11 @@ export async function upsertPriceAnalytics(
 
     const median = appliedPrices[Math.floor(appliedPrices.length / 2)];
 
+    // TODO: Calculate actual total quantity from order_items
+    // For now, we use snapshots.length as an approximation
+    // This should be improved to join with order_items and sum quantities
+    const totalQuantity = snapshots.length;
+
     // Marquer les anciennes analytics comme non-current
     await supabase
       .from('price_analytics')
@@ -415,7 +420,7 @@ export async function upsertPriceAnalytics(
           ? Math.max(...variances.map(Math.abs))
           : 0,
         total_orders: snapshots.length,
-        total_quantity: snapshots.length, // Simplification, à améliorer avec vraies quantités
+        total_quantity: totalQuantity,
         total_suppliers: uniqueSuppliers.size,
         is_current: true,
       });
