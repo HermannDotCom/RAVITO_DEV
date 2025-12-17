@@ -261,7 +261,7 @@ const AppContent: React.FC = () => {
             );
           case 'pricing':
             return <SupplierPricingDashboard />;
-            );
+    
           // MVP: Intelligence Dashboard disabled - Uncomment to reactivate post-MVP
           // case 'intelligence':
           //   return <SupplierIntelligenceDashboard supplierId={user.id} onNavigate={setActiveSection} />;
