@@ -10,9 +10,7 @@ import {
   Wallet,
   Transaction,
   WithdrawalRequest,
-  WalletStats,
-  TransactionStatus,
-  WithdrawalStatus
+  WalletStats
 } from '../types/wallet';
 import {
   getOrCreateWallet,

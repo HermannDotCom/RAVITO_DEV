@@ -124,7 +124,8 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ onClose }) => 
       } else {
         setError(result.error || 'Erreur lors de la demande de retrait');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Error in requestWithdrawal:', error);
       setError('Une erreur est survenue. Veuillez réessayer.');
     } finally {
       setIsProcessing(false);

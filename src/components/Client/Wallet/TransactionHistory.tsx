@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { Download, Filter, ArrowUpCircle, ArrowDownCircle, CreditCard, TrendingUp, Search, Calendar } from 'lucide-react';
+import { Download, Filter, ArrowUpCircle, ArrowDownCircle, CreditCard, TrendingUp, Search } from 'lucide-react';
 import {
   Transaction,
   TransactionType,

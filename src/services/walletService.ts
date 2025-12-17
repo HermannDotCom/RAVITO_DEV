@@ -339,7 +339,7 @@ export async function getTransactionHistory(
 /**
  * Calculate withdrawal fee
  */
-export function calculateWithdrawalFee(amount: number, method: string): number {
+export function calculateWithdrawalFee(amount: number, _method: string): number {
   const feePercentage = DEFAULT_COMMISSION_SETTINGS.withdrawalCommission / 100;
   let fee = Math.round(amount * feePercentage);
   
@@ -559,70 +559,70 @@ function generateTransactionReference(): string {
 /**
  * Map database wallet to app format
  */
-function mapDatabaseWalletToApp(dbWallet: any): Wallet {
+function mapDatabaseWalletToApp(dbWallet: Record<string, unknown>): Wallet {
   return {
-    id: dbWallet.id,
-    userId: dbWallet.user_id,
-    balance: parseFloat(dbWallet.balance) || 0,
-    currency: dbWallet.currency,
-    isActive: dbWallet.is_active,
-    createdAt: new Date(dbWallet.created_at),
-    updatedAt: new Date(dbWallet.updated_at)
+    id: dbWallet.id as string,
+    userId: dbWallet.user_id as string,
+    balance: parseFloat(dbWallet.balance as string) || 0,
+    currency: dbWallet.currency as string,
+    isActive: dbWallet.is_active as boolean,
+    createdAt: new Date(dbWallet.created_at as string),
+    updatedAt: new Date(dbWallet.updated_at as string)
   };
 }
 
 /**
  * Map database transaction to app format
  */
-function mapDatabaseTransactionToApp(dbTx: any): Transaction {
+function mapDatabaseTransactionToApp(dbTx: Record<string, unknown>): Transaction {
   return {
-    id: dbTx.id,
-    walletId: dbTx.wallet_id,
-    userId: dbTx.user_id,
+    id: dbTx.id as string,
+    walletId: dbTx.wallet_id as string,
+    userId: dbTx.user_id as string,
     type: dbTx.type as TransactionType,
-    amount: parseFloat(dbTx.amount) || 0,
-    commission: dbTx.commission ? parseFloat(dbTx.commission) : undefined,
-    balanceBefore: parseFloat(dbTx.balance_before) || 0,
-    balanceAfter: parseFloat(dbTx.balance_after) || 0,
+    amount: parseFloat(dbTx.amount as string) || 0,
+    commission: dbTx.commission ? parseFloat(dbTx.commission as string) : undefined,
+    balanceBefore: parseFloat(dbTx.balance_before as string) || 0,
+    balanceAfter: parseFloat(dbTx.balance_after as string) || 0,
     status: dbTx.status as TransactionStatus,
-    description: dbTx.description || '',
-    metadata: dbTx.metadata,
-    relatedOrderId: dbTx.related_order_id,
-    relatedWithdrawalId: dbTx.related_withdrawal_id,
-    paymentMethod: dbTx.payment_method,
-    transactionReference: dbTx.transaction_reference,
-    createdAt: new Date(dbTx.created_at),
-    updatedAt: new Date(dbTx.updated_at),
-    completedAt: dbTx.completed_at ? new Date(dbTx.completed_at) : undefined
+    description: (dbTx.description as string) || '',
+    metadata: dbTx.metadata as Record<string, unknown>,
+    relatedOrderId: dbTx.related_order_id as string | undefined,
+    relatedWithdrawalId: dbTx.related_withdrawal_id as string | undefined,
+    paymentMethod: dbTx.payment_method as string | undefined,
+    transactionReference: dbTx.transaction_reference as string | undefined,
+    createdAt: new Date(dbTx.created_at as string),
+    updatedAt: new Date(dbTx.updated_at as string),
+    completedAt: dbTx.completed_at ? new Date(dbTx.completed_at as string) : undefined
   };
 }
 
 /**
  * Map database withdrawal to app format
  */
-function mapDatabaseWithdrawalToApp(dbWithdrawal: any): WithdrawalRequest {
+function mapDatabaseWithdrawalToApp(dbWithdrawal: Record<string, unknown>): WithdrawalRequest {
   return {
-    id: dbWithdrawal.id,
-    walletId: dbWithdrawal.wallet_id,
-    userId: dbWithdrawal.user_id,
-    amount: parseFloat(dbWithdrawal.amount) || 0,
-    fee: parseFloat(dbWithdrawal.fee) || 0,
-    netAmount: parseFloat(dbWithdrawal.net_amount) || 0,
-    method: dbWithdrawal.method,
-    accountDetails: dbWithdrawal.account_details || {},
-    status: dbWithdrawal.status as WithdrawalStatus,
-    requestDate: new Date(dbWithdrawal.request_date),
-    approvedDate: dbWithdrawal.approved_date ? new Date(dbWithdrawal.approved_date) : undefined,
-    approvedBy: dbWithdrawal.approved_by,
-    processedDate: dbWithdrawal.processed_date ? new Date(dbWithdrawal.processed_date) : undefined,
-    processedBy: dbWithdrawal.processed_by,
-    completedDate: dbWithdrawal.completed_date ? new Date(dbWithdrawal.completed_date) : undefined,
-    estimatedDate: new Date(dbWithdrawal.estimated_date),
-    cancellationReason: dbWithdrawal.cancellation_reason,
-    failureReason: dbWithdrawal.failure_reason,
-    notes: dbWithdrawal.notes,
-    metadata: dbWithdrawal.metadata,
-    createdAt: new Date(dbWithdrawal.created_at),
-    updatedAt: new Date(dbWithdrawal.updated_at)
+    id: dbWithdrawal.id as string,
+    walletId: dbWithdrawal.wallet_id as string,
+    userId: dbWithdrawal.user_id as string,
+    amount: parseFloat(dbWithdrawal.amount as string) || 0,
+    fee: parseFloat(dbWithdrawal.fee as string) || 0,
+    netAmount: parseFloat(dbWithdrawal.net_amount as string) || 0,
+    method: dbWithdrawal.method as WithdrawalRequest['method'],
+    accountDetails: (dbWithdrawal.account_details as Record<string, unknown>) || {},
+    status: dbWithdrawal.status as WithdrawalRequest['status'],
+    requestDate: new Date(dbWithdrawal.request_date as string),
+    approvedDate: dbWithdrawal.approved_date ? new Date(dbWithdrawal.approved_date as string) : undefined,
+    approvedBy: dbWithdrawal.approved_by as string | undefined,
+    processedDate: dbWithdrawal.processed_date ? new Date(dbWithdrawal.processed_date as string) : undefined,
+    processedBy: dbWithdrawal.processed_by as string | undefined,
+    completedDate: dbWithdrawal.completed_date ? new Date(dbWithdrawal.completed_date as string) : undefined,
+    estimatedDate: new Date(dbWithdrawal.estimated_date as string),
+    cancellationReason: dbWithdrawal.cancellation_reason as string | undefined,
+    failureReason: dbWithdrawal.failure_reason as string | undefined,
+    notes: dbWithdrawal.notes as string | undefined,
+    metadata: dbWithdrawal.metadata as Record<string, unknown>,
+    createdAt: new Date(dbWithdrawal.created_at as string),
+    updatedAt: new Date(dbWithdrawal.updated_at as string)
   };
 }
