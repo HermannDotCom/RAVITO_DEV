@@ -13,7 +13,8 @@ import {
   MessageSquare,
   Wallet,
   MoreHorizontal,
-  BarChart3
+  BarChart3,
+  DollarSign
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { MoreMenu } from '../ui/MoreMenu';
@@ -56,6 +57,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'users', label: 'Utilisateurs', icon: Users },
           { id: 'orders', label: 'Commandes', icon: Package },
           { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag },
+          { id: 'pricing', label: 'Prix de Référence', icon: DollarSign },
           { id: 'treasury', label: 'Trésorerie', icon: CreditCard },
           { id: 'zones', label: 'Zones de Livraison', icon: MapPin },
           { id: 'team', label: 'Mon Équipe', icon: Users },
@@ -82,6 +84,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
       case 'supplier':
         return [
           { id: 'zones', label: 'Mes Zones', icon: MapPin },
+          { id: 'pricing', label: 'Mes Prix', icon: DollarSign },
           { id: 'team', label: 'Mon Équipe', icon: Users },
           { id: 'history', label: 'Historique', icon: Clock },
           { id: 'support', label: 'Support', icon: MessageSquare },
