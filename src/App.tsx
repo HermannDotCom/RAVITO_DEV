@@ -34,6 +34,7 @@ import { CommissionProvider } from './context/CommissionContext';
 import { RatingProvider } from './context/RatingContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ToastProvider } from './context/ToastContext';
+import { PricingProvider } from './context/PricingContext';
 import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AuthScreen } from './components/Auth/AuthScreen';
@@ -67,6 +68,8 @@ import { Treasury } from './components/Admin/Treasury';
 import { DataManagement } from './components/Admin/DataManagement';
 // MVP: Premium tier management disabled - Uncomment to reactivate post-MVP
 // import { PremiumTierManagement } from './components/Admin/PremiumTierManagement';
+import { AdminReferencePricingDashboard } from './components/Admin/Pricing/AdminReferencePricingDashboard';
+import { SupplierPricingDashboard } from './components/Supplier/Pricing/SupplierPricingDashboard';
 import { ClientProfile } from './components/Client/ClientProfile';
 import { ClientDashboard } from './components/Client/ClientDashboard';
 import { OrderHistory } from './components/Client/OrderHistory';
@@ -256,6 +259,9 @@ const AppContent: React.FC = () => {
                 onClaimDataClear={() => setClaimData(null)}
               />
             );
+          case 'pricing':
+            return <SupplierPricingDashboard />;
+            );
           // MVP: Intelligence Dashboard disabled - Uncomment to reactivate post-MVP
           // case 'intelligence':
           //   return <SupplierIntelligenceDashboard supplierId={user.id} onNavigate={setActiveSection} />;
@@ -287,6 +293,8 @@ const AppContent: React.FC = () => {
             return <DataManagement />;
           case 'settings':
             return <SystemSettings />;
+          case 'pricing':
+            return <AdminReferencePricingDashboard />;
           case 'tickets':
             return <TicketManagement />;
           default:
@@ -388,11 +396,13 @@ function App() {
         <ToastProvider>
           <CartProvider>
             <CommissionProvider>
-              <OrderProvider>
-                <RatingProvider>
-                  <AppContent />
-                </RatingProvider>
-              </OrderProvider>
+              <PricingProvider>
+                <OrderProvider>
+                  <RatingProvider>
+                    <AppContent />
+                  </RatingProvider>
+                </OrderProvider>
+              </PricingProvider>
             </CommissionProvider>
           </CartProvider>
         </ToastProvider>

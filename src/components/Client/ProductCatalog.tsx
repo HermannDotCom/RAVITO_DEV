@@ -108,15 +108,30 @@ export const ProductCatalog: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto p-3 sm:p-4 md:p-6">
       <div className="mb-4 sm:mb-6 md:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Catalogue Produits</h1>
-        <p className="text-sm sm:text-base text-gray-600">Sélectionnez vos boissons pour la nuit</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">Catalogue Produits</h1>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Sélectionnez vos boissons pour la nuit</p>
+      </div>
+
+      {/* Pricing Info Banner */}
+      <div className="mb-4 sm:mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 sm:p-4">
+        <div className="flex items-start gap-2">
+          <Package className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm text-blue-900 dark:text-blue-300 font-medium mb-1">
+              Prix de référence RAVITO
+            </p>
+            <p className="text-xs text-blue-800 dark:text-blue-400">
+              Les prix affichés sont nos prix de référence. Les prix finaux vous seront proposés par les fournisseurs lors de leurs offres.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Filters */}
       <Card className="mb-4 sm:mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Catégorie</label>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Catégorie</label>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value as ProductCategory | 'all')}
@@ -129,7 +144,7 @@ export const ProductCatalog: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">Marque</label>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Marque</label>
             <select
               value={brandFilter}
               onChange={(e) => setBrandFilter(e.target.value)}
