@@ -107,7 +107,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({ onClose }) => {
       }
     } catch (error) {
       console.error('Error in deposit:', error);
-      return { success: false, error: 'Erreur lors du dépôt' };
+      setError('Erreur lors du dépôt');
     } finally {
       setIsProcessing(false);
     }

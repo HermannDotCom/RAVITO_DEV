@@ -339,8 +339,25 @@ export async function getTransactionHistory(
 /**
  * Calculate withdrawal fee
  */
-export function calculateWithdrawalFee(amount: number, _method: string): number {
-  const feePercentage = DEFAULT_COMMISSION_SETTINGS.withdrawalCommission / 100;
+export function calculateWithdrawalFee(amount: number, method: string): number {
+  let feePercentage: number;
+  
+  // Match database function logic
+  switch (method) {
+    case 'mobile_money':
+    case 'orange':
+    case 'mtn':
+    case 'moov':
+    case 'wave':
+      feePercentage = 0.02; // 2% for mobile money
+      break;
+    case 'bank_transfer':
+      feePercentage = 0.015; // 1.5% for bank transfers
+      break;
+    default:
+      feePercentage = 0.02; // Default 2%
+  }
+  
   let fee = Math.round(amount * feePercentage);
   
   // Apply minimum fee
