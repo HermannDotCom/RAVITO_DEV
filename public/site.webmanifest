@@ -1,0 +1,32 @@
+{
+  "name": "RAVITO - Le ravitaillement qui ne dort jamais",
+  "short_name": "Ravito",
+  "description": "Livraison de boissons 24h/24 pour bars, maquis et restaurants à Abidjan",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#E85D24",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["business", "food", "lifestyle"],
+  "lang": "fr-CI"
+}

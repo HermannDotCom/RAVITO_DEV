@@ -5,9 +5,11 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/offline.html',
-  '/manifest.json',
-  '/icon-192x192.png',
-  '/icon-512x512.png'
+  '/site.webmanifest',
+  '/web-app-manifest-192x192.png',
+  '/web-app-manifest-512x512.png',
+  '/logo_sans_slogan.png',
+  '/Logo_Ravito_avec_slogan.png'
 ];
 
 // Install event - cache static assets

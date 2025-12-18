@@ -130,12 +130,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
       `}>
         <div className="flex flex-col h-full lg:h-[calc(100vh-4rem)]">
           <div className="flex items-center justify-center h-16 border-b border-gray-200 lg:hidden">
-            <div className="flex items-center">
-              <div className="h-10 w-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">R</span>
-              </div>
-              <span className="ml-2 text-xl font-bold text-gray-900">RAVITO</span>
-            </div>
+            <img 
+              src="/logo_sans_slogan.png" 
+              alt="Ravito Logo" 
+              className="h-10"
+            />
           </div>
 
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">

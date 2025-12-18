@@ -43,11 +43,10 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded-lg"
           >
             <img 
-              src="/logo/logo.svg" 
+              src="/logo_sans_slogan.png" 
               alt="Ravito Logo" 
-              className="h-10 w-10"
+              className="h-10"
             />
-            <span className="text-xl font-bold text-gray-900">RAVITO</span>
           </button>
 
           {/* Desktop Navigation */}
