@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { LandingHeader } from '../../components/Landing/LandingHeader';
 import { LandingFooter } from '../../components/Landing/LandingFooter';
+import { PricingSection } from '../../components/Landing/PricingSection';
+import { useCommission } from '../../context/CommissionContext';
 
 interface LandingPageProps {
   onNavigate: (path: string) => void;
@@ -307,7 +309,8 @@ export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* SECTION TARIFICATION - Masquée temporairement (voir CGU Article 4 pour les tarifs) */}
+	      {/* SECTION TARIFICATION */}
+	      <PricingSection />
 
       {/* ZONES COUVERTES */}
       <section className="py-16 md: py-24 bg-gray-50">

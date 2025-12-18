@@ -22,7 +22,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onNavigate }) => {
           <div>
             <div className="mb-4">
               <img 
-                src="/Logo_Ravito_avec_slogan.png" 
+                src="/logo_with_slogan_transparent.png" 
                 alt="Ravito - Le ravitaillement qui ne dort jamais" 
                 className="h-20"
               />
