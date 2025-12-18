@@ -74,29 +74,13 @@ CREATE TRIGGER on_auth_user_created
 
 -- Step 4: Drop ALL INSERT policies on profiles
 -- These policies were blocking the trigger from working
+-- Explicitly dropping all known INSERT policies by name
 DROP POLICY IF EXISTS "Users can create own profile" ON profiles;
 DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
 DROP POLICY IF EXISTS "Allow authenticated users to insert their own profile" ON profiles;
 DROP POLICY IF EXISTS "profiles_insert_policy" ON profiles;
 
--- Step 5: Verify no other INSERT policies exist
--- (This will fail silently if they don't exist, which is fine)
-DO $$
-DECLARE
-  policy_record RECORD;
-BEGIN
-  FOR policy_record IN 
-    SELECT policyname 
-    FROM pg_policies 
-    WHERE tablename = 'profiles' 
-    AND cmd = 'INSERT'
-  LOOP
-    EXECUTE format('DROP POLICY IF EXISTS %I ON profiles', policy_record.policyname);
-    RAISE NOTICE 'Dropped INSERT policy: %', policy_record.policyname;
-  END LOOP;
-END $$;
-
--- Step 6: Keep SELECT, UPDATE, DELETE policies for normal operations
+-- Step 5: Keep SELECT, UPDATE, DELETE policies for normal operations
 -- Users need to be able to read and update their profiles after creation
 
 -- Ensure SELECT policies exist
