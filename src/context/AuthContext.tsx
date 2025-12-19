@@ -331,13 +331,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           console.log('Profile exists, updating with full data...');
           profileFound = true;
 
-          const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
           const updateData: any = {
             role: userData.role,
             name: userData.name,
             phone: userData.phone,
             address: userData.address,
-            coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
           };
 
           if (userData.role === 'client' && userData.zoneId) {
@@ -369,7 +367,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else {
           console.log('Profile not found yet, will try to create it...');
 
-          const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
           const profileData: any = {
             id: authData.user.id,
             email: userData.email,
@@ -377,7 +374,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             name: userData.name,
             phone: userData.phone,
             address: userData.address,
-            coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
             zone_id: (userData.role === 'client' && userData.zoneId) ? userData.zoneId : null,
             business_name: userData.businessName || null,
             business_hours: userData.businessHours || null,
