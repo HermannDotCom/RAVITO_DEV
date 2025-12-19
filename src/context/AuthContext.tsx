@@ -291,7 +291,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         options: {
           data: {
             name: userData.name,
-            role: userData.role
+            role: userData.role as 'client' | 'supplier'
           }
         }
       });
@@ -331,7 +331,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
           const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
           const updateData: any = {
-            role: userData.role,
+            role: userData.role as 'client' | 'supplier',
             name: userData.name,
             phone: userData.phone,
             address: userData.address,
@@ -371,7 +371,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const profileData: any = {
             id: authData.user.id,
             email: userData.email,
-            role: userData.role,
+            role: userData.role as 'client' | 'supplier',
             name: userData.name,
             phone: userData.phone,
             address: userData.address,
