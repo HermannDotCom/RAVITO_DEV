@@ -291,7 +291,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         options: {
           data: {
             name: userData.name,
-            role: userData.role as 'client' | 'supplier'
+            role: userData.role as 'client' | 'supplier',
+            phone: userData.phone,
+            address: userData.address
           }
         }
       });
