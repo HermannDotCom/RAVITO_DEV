@@ -65,6 +65,7 @@ import { ZoneManagement } from './components/Admin/ZoneManagement';
 import { SystemSettings } from './components/Admin/SystemSettings';
 import { ProductManagement } from './components/Admin/ProductManagement';
 import { Treasury } from './components/Admin/Treasury';
+import { CommissionsDashboard } from './components/Admin/CommissionsDashboard';
 import { DataManagement } from './components/Admin/DataManagement';
 // MVP: Premium tier management disabled - Uncomment to reactivate post-MVP
 // import { PremiumTierManagement } from './components/Admin/PremiumTierManagement';
@@ -284,13 +285,12 @@ const AppContent: React.FC = () => {
             return <ProductManagement />;
           case 'treasury':
             return <Treasury />;
+          case 'commissions':
+            return <CommissionsDashboard />;
           case 'zones':
             return <ZoneManagement />;
           case 'team':
             return <TeamPage />;
-          // MVP: Premium tier management disabled - Uncomment to reactivate post-MVP
-          // case 'premium':
-          //   return <PremiumTierManagement />;
           case 'data':
             return <DataManagement />;
           case 'settings':

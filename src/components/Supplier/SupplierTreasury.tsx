@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Wallet, 
-  CreditCard, 
+import {
+  Wallet,
+  CreditCard,
   TrendingUp,
   TrendingDown,
   Package,
@@ -10,12 +10,10 @@ import {
   DollarSign,
   AlertCircle,
   Search,
-  X,
-  Banknote
+  X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCommission } from '../../context/CommissionContext';
-import { MINIMUM_WITHDRAWAL_AMOUNT } from '../../types/treasury';
 import {
   getSupplierFinancialSummary,
   getSupplierTransactionHistory,
@@ -39,7 +37,6 @@ import {
   EmptyState
 } from '../shared/TreasuryComponents';
 import { RevenueChart } from '../Treasury/RevenueChart';
-import { WithdrawModal } from '../Treasury/WithdrawModal';
 
 export const SupplierTreasury: React.FC = () => {
   const { user } = useAuth();
@@ -51,7 +48,6 @@ export const SupplierTreasury: React.FC = () => {
   const [viewMode, setViewMode] = useState('monthly');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [searchQuery, setSearchQuery] = useState('');
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   const [summary, setSummary] = useState<FinancialSummary | null>(null);
   const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
@@ -105,12 +101,6 @@ export const SupplierTreasury: React.FC = () => {
     }
   };
 
-  const handleWithdraw = (amount: number) => {
-    // In production, would call API to process withdrawal
-    console.log('Withdrawal requested:', amount);
-    loadData();
-  };
-
   // Filter transactions by search query
   const filteredTransactions = useMemo(() => {
     if (!searchQuery) return transactions;
@@ -130,12 +120,6 @@ export const SupplierTreasury: React.FC = () => {
     }));
   }, [monthlyStats]);
 
-  // Mock bank info (in production, would come from user profile)
-  const bankInfo = {
-    iban: 'CI** **** **** 7890',
-    bankName: 'SGBCI',
-    accountHolder: user?.name || 'Titulaire du compte'
-  };
 
   const getQuarterlyStats = () => {
     return aggregateToQuarterly(monthlyStats).map(q => ({
@@ -207,26 +191,15 @@ export const SupplierTreasury: React.FC = () => {
 
   return (
     <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 pb-20 lg:pb-6">
-      {/* Header */}
       <div className="mb-4 sm:mb-6 md:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Wallet className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 truncate">Trésorerie</h1>
-              <p className="text-sm sm:text-base text-gray-600 truncate">Consultez vos revenus et virements</p>
-            </div>
+        <div className="flex items-center space-x-3">
+          <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Wallet className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
           </div>
-          <button
-            onClick={() => setShowWithdrawModal(true)}
-            disabled={(summary?.totalNet || 0) < MINIMUM_WITHDRAWAL_AMOUNT}
-            className="flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
-          >
-            <Banknote className="h-4 w-4" />
-            <span className="text-sm sm:text-base">Demander un retrait</span>
-          </button>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 truncate">Tresorerie</h1>
+            <p className="text-sm sm:text-base text-gray-600 truncate">Consultez vos revenus et virements</p>
+          </div>
         </div>
       </div>
 
@@ -453,15 +426,6 @@ export const SupplierTreasury: React.FC = () => {
         </div>
       </div>
 
-      {/* Withdraw Modal */}
-      <WithdrawModal
-        isOpen={showWithdrawModal}
-        onClose={() => setShowWithdrawModal(false)}
-        onConfirm={handleWithdraw}
-        availableBalance={summary?.totalNet || 0}
-        bankInfo={bankInfo}
-        formatPrice={formatPrice}
-      />
     </div>
   );
 };

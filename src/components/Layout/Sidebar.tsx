@@ -51,19 +51,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'more', label: 'Plus...', icon: MoreHorizontal },
         ];
       case 'admin':
-        // Admin keeps the complex menu unchanged
         return [
           { id: 'analytics', label: 'Analyses', icon: BarChart3 },
           { id: 'users', label: 'Utilisateurs', icon: Users },
           { id: 'orders', label: 'Commandes', icon: Package },
           { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag },
-          { id: 'pricing', label: 'Prix de Référence', icon: DollarSign },
-          { id: 'treasury', label: 'Trésorerie', icon: CreditCard },
+          { id: 'pricing', label: 'Prix de Reference', icon: DollarSign },
+          { id: 'treasury', label: 'Tresorerie', icon: CreditCard },
+          { id: 'commissions', label: 'Mes Commissions', icon: Wallet },
           { id: 'zones', label: 'Zones de Livraison', icon: MapPin },
-          { id: 'team', label: 'Mon Équipe', icon: Users },
+          { id: 'team', label: 'Mon Equipe', icon: Users },
           { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare },
-          { id: 'data', label: 'Gestion des Données', icon: Settings },
-          { id: 'settings', label: 'Paramètres', icon: Settings }
+          { id: 'data', label: 'Gestion des Donnees', icon: Settings },
+          { id: 'settings', label: 'Parametres', icon: Settings }
         ];
       default:
         return [];
