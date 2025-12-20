@@ -40,6 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'catalog', label: 'Catalogue', icon: ShoppingBag },
           { id: 'cart', label: 'Panier', icon: ShoppingCart },
           { id: 'orders', label: 'Mes Commandes', icon: Package },
+          { id: 'wallet', label: 'Portefeuille', icon: Wallet },
           { id: 'more', label: 'Plus...', icon: MoreHorizontal },
         ];
       case 'supplier':
@@ -47,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'dashboard', label: 'Accueil', icon: Home },
           { id: 'orders', label: 'Commandes', icon: Package },
           { id: 'deliveries', label: 'Livraisons', icon: Truck },
-          { id: 'treasury', label: 'Revenus', icon: Wallet },
+          { id: 'wallet', label: 'Portefeuille', icon: Wallet },
           { id: 'more', label: 'Plus...', icon: MoreHorizontal },
         ];
       case 'admin':
@@ -77,7 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
       case 'client':
         return [
           { id: 'profile', label: 'Mon Profil', icon: Settings },
-          { id: 'treasury', label: 'Trésorerie', icon: Wallet },
+          { id: 'treasury', label: 'Trésorerie', icon: CreditCard },
           { id: 'team', label: 'Mon Équipe', icon: Users },
           { id: 'support', label: 'Support', icon: MessageSquare },
         ];
@@ -85,6 +86,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         return [
           { id: 'zones', label: 'Mes Zones', icon: MapPin },
           { id: 'pricing', label: 'Mes Prix', icon: DollarSign },
+          { id: 'treasury', label: 'Revenus', icon: CreditCard },
           { id: 'team', label: 'Mon Équipe', icon: Users },
           { id: 'history', label: 'Historique', icon: Clock },
           { id: 'support', label: 'Support', icon: MessageSquare },

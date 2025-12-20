@@ -35,6 +35,7 @@ import { RatingProvider } from './context/RatingContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ToastProvider } from './context/ToastContext';
 import { PricingProvider } from './context/PricingContext';
+import { WalletProvider } from './context/WalletContext';
 import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AuthScreen } from './components/Auth/AuthScreen';
@@ -77,6 +78,8 @@ import { OrderHistory } from './components/Client/OrderHistory';
 import { ClientTreasury } from './components/Client/ClientTreasury';
 import { ContactSupport } from './components/Client/ContactSupport';
 import { SupplierContactSupport } from './components/Supplier/ContactSupport';
+import { ClientWalletDashboard } from './components/Client/Wallet/ClientWalletDashboard';
+import { SupplierWalletDashboard } from './components/Supplier/Wallet/SupplierWalletDashboard';
 import { KenteLoader } from './components/ui/KenteLoader';
 import { TicketManagement } from './components/Admin/TicketManagement';
 import { TeamPage } from './components/Team';
@@ -217,6 +220,8 @@ const AppContent: React.FC = () => {
             return <OrderHistory onNavigate={setActiveSection} initialOrderIdToRate={orderIdToRate} onOrderRated={handleOrderRated} />;
           case 'treasury':
             return <ClientTreasury />;
+          case 'wallet':
+            return <ClientWalletDashboard />;
           case 'team':
             return <TeamPage />;
           // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
@@ -244,6 +249,8 @@ const AppContent: React.FC = () => {
             return <SupplierProfile />;
           case 'treasury':
             return <SupplierTreasury />;
+          case 'wallet':
+            return <SupplierWalletDashboard />;
           case 'team':
             return <TeamPage />;
           // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
@@ -399,11 +406,13 @@ function App() {
           <CartProvider>
             <CommissionProvider>
               <PricingProvider>
-                <OrderProvider>
-                  <RatingProvider>
-                    <AppContent />
-                  </RatingProvider>
-                </OrderProvider>
+                <WalletProvider>
+                  <OrderProvider>
+                    <RatingProvider>
+                      <AppContent />
+                    </RatingProvider>
+                  </OrderProvider>
+                </WalletProvider>
               </PricingProvider>
             </CommissionProvider>
           </CartProvider>
