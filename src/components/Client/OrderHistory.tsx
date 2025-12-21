@@ -155,13 +155,13 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
   }, [initialOrderIdToRate, allOrders, clientCurrentOrder, user?.id, onOrderRated]);
 
   // Filtrer les commandes de l'utilisateur connecté
-  const userOrders = allOrders.filter(order => 
+  const userOrders = allOrders.filter(order =>
     order.clientId === user?.id
   );
 
-  // Combiner la commande en cours avec l'historique
+  // Combiner la commande en cours avec l'historique (éviter les doublons)
   const allUserOrders = clientCurrentOrder
-    ? [clientCurrentOrder, ...userOrders]
+    ? [clientCurrentOrder, ...userOrders.filter(o => o.id !== clientCurrentOrder.id)]
     : userOrders;
 
   // Memoize order IDs to prevent unnecessary re-renders

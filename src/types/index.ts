@@ -1,7 +1,7 @@
 export type UserRole = 'client' | 'supplier' | 'admin';
 
 export type ProductCategory = 'biere' | 'soda' | 'vin' | 'eau' | 'spiritueux';
-export type CrateType = 'C24' | 'C12' | 'C12V' | 'C6';
+export type CrateType = 'C24' | 'C12' | 'C12V' | 'C6' | 'CARTON24' | 'PACK6' | 'PACK12' | 'C20';
 
 export interface User {
   id: string;

@@ -31,18 +31,19 @@ interface OrderDetailsModalProps {
 }
 
 const getCrateSummary = (order: Order) => {
-  const crateSummary: { [key in CrateType]: { withConsigne: number; toReturn: number } } = {
-    C24: { withConsigne: 0, toReturn: 0 },
-    C12: { withConsigne: 0, toReturn: 0 },
-    C12V: { withConsigne: 0, toReturn: 0 },
-    C6: { withConsigne: 0, toReturn: 0 }
-  };
+  const crateSummary: Record<string, { withConsigne: number; toReturn: number }> = {};
 
   order.items.forEach(item => {
+    const crateType = item.product.crateType;
+
+    if (!crateSummary[crateType]) {
+      crateSummary[crateType] = { withConsigne: 0, toReturn: 0 };
+    }
+
     if (item.withConsigne) {
-      crateSummary[item.product.crateType].withConsigne += item.quantity;
+      crateSummary[crateType].withConsigne += item.quantity;
     } else {
-      crateSummary[item.product.crateType].toReturn += item.quantity;
+      crateSummary[crateType].toReturn += item.quantity;
     }
   });
 
