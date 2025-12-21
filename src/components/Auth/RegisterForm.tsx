@@ -54,7 +54,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onBackToLogin }) => 
         <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
             <img 
-              src="/Logo_Ravito_avec_slogan.png" 
+              src="/images/logos/logo-with-slogan.png" 
               alt="Ravito - Le ravitaillement qui ne dort jamais" 
               className="h-28 w-auto"
             />

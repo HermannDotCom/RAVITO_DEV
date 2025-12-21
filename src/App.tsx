@@ -154,7 +154,7 @@ const AppContent: React.FC = () => {
         <div className="text-center">
           <div className="flex justify-center mb-6 animate-pulse">
             <img 
-              src="/Logo_Ravito_avec_slogan.png" 
+              src="/images/logos/logo-with-slogan.png" 
               alt="Ravito - Le ravitaillement qui ne dort jamais" 
               className="h-32 w-auto"
             />

@@ -49,7 +49,7 @@ export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
             {/* Logo with tagline */}
             <div className="flex justify-center mb-8">
               <img 
-                src="/Logo_Ravito_avec_slogan.png" 
+                src="/images/logos/logo-with-slogan.png" 
                 alt="Ravito - Le ravitaillement qui ne dort jamais" 
                 className="h-48 md:h-56 w-auto"
               />

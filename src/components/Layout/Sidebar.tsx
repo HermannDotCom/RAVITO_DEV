@@ -131,7 +131,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         <div className="flex flex-col h-full lg:h-[calc(100vh-4rem)]">
           <div className="flex items-center justify-center h-16 border-b border-gray-200 lg:hidden">
             <img 
-              src="/logo_sans_slogan.png" 
+              src="/images/logos/logo-without-slogan.png" 
               alt="Ravito Logo" 
               className="h-10"
             />

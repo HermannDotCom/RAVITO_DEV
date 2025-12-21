@@ -35,7 +35,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'RAVITO', 
             <div className="flex items-center ml-1 sm:ml-2 lg:ml-0">
               <div className="flex-shrink-0">
                 <img 
-                  src="/logo_sans_slogan.png" 
+                  src="/images/logos/logo-without-slogan.png" 
                   alt="Ravito Logo" 
                   className="h-8 sm:h-10"
                 />
