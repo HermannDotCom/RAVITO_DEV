@@ -88,10 +88,11 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
 
     if (result.success) {
       clearCart();
+      alert('Commande créée avec succès!\n\nVotre commande a été transmise aux fournisseurs de votre zone.\nVous recevrez une notification dès qu\'un fournisseur proposera une offre.');
       setTimeout(() => {
         setIsProcessing(false);
         onConfirm();
-      }, 1000);
+      }, 500);
     } else {
       alert('Erreur lors de la création de la commande: ' + (result.error || 'Erreur inconnue'));
       setIsProcessing(false);
