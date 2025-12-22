@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Edit, Save, X, Search, Download, Upload, RefreshCw } from 'lucide-react';
+import { Edit, Save, X, Search, Download, Upload, RefreshCw, CheckCircle } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import { usePricing } from '../../../context/PricingContext';
 import { useSupplierPriceGridManagement, usePriceFormatter, usePriceComparison } from '../../../hooks/usePricing';
@@ -37,6 +37,7 @@ export const PriceGridTable: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showImportExport, setShowImportExport] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<{
     supplierPrice: number;
@@ -208,7 +209,8 @@ export const PriceGridTable: React.FC = () => {
       await refreshSupplierGrids();
       await loadProducts();
       
-      alert('Les quantités vendues ont été réinitialisées avec succès');
+      setSuccessMessage('Les quantités vendues ont été réinitialisées avec succès');
+      setTimeout(() => setSuccessMessage(null), 5000);
     } catch (error) {
       console.error('Error resetting quantities:', error);
       throw error;
@@ -256,6 +258,14 @@ export const PriceGridTable: React.FC = () => {
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
             <p className="text-red-800 dark:text-red-300">{error}</p>
+          </div>
+        )}
+
+        {/* Success Display */}
+        {successMessage && (
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <p className="text-green-800 dark:text-green-300">{successMessage}</p>
           </div>
         )}
 

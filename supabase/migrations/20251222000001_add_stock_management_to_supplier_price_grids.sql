@@ -52,7 +52,8 @@ RETURNS trigger AS $$
 BEGIN
   -- Mettre à jour les quantités vendues pour chaque produit de la commande
   -- Uniquement pour les commandes livrées
-  IF NEW.status = 'delivered' AND (OLD.status IS NULL OR OLD.status != 'delivered') THEN
+  -- Pour INSERT: OLD.status sera NULL, pour UPDATE: OLD.status existera
+  IF NEW.status = 'delivered' AND (TG_OP = 'INSERT' OR (TG_OP = 'UPDATE' AND OLD.status != 'delivered')) THEN
     -- Incrémenter sold_quantity pour chaque produit dans order_items
     UPDATE supplier_price_grids spg
     SET sold_quantity = sold_quantity + oi.quantity

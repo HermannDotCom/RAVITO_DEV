@@ -29,6 +29,7 @@ export const BulkImportExport: React.FC<BulkImportExportProps> = ({ onClose, onI
   } | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleExportInventory = async () => {
     try {
@@ -64,7 +65,8 @@ export const BulkImportExport: React.FC<BulkImportExportProps> = ({ onClose, onI
         exportDate: new Date(),
       });
 
-      alert('Inventaire exporté avec succès !');
+      setSuccessMessage('Inventaire exporté avec succès !');
+      setTimeout(() => setSuccessMessage(null), 5000);
     } catch (error) {
       console.error('Error exporting inventory:', error);
       alert('Erreur lors de l\'export de l\'inventaire');
@@ -86,7 +88,8 @@ export const BulkImportExport: React.FC<BulkImportExportProps> = ({ onClose, onI
       const supplierName = user?.businessName || user?.name || 'Fournisseur';
       exportPriceImportTemplate(supplierName, productList);
 
-      alert('Template téléchargé avec succès !');
+      setSuccessMessage('Template téléchargé avec succès !');
+      setTimeout(() => setSuccessMessage(null), 5000);
     } catch (error) {
       console.error('Error downloading template:', error);
       alert('Erreur lors du téléchargement du template');
@@ -220,6 +223,14 @@ export const BulkImportExport: React.FC<BulkImportExportProps> = ({ onClose, onI
 
         {/* Content */}
         <div className="p-6 space-y-6">
+          {/* Success Message */}
+          {successMessage && (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <p className="text-green-800 dark:text-green-300">{successMessage}</p>
+            </div>
+          )}
+
           {/* Export Inventory Section */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">

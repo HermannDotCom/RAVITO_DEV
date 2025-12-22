@@ -30,25 +30,30 @@ const validateRow = (
   row: any,
   rowIndex: number
 ): { isValid: boolean; error?: string; data?: ImportedPriceData } => {
-  // Vérifier que les champs obligatoires sont présents
-  const reference = row['Référence*'] || row['Reference*'] || row['Référence'] || row['Reference'];
-  const priceField = Object.keys(row).find(key => 
-    key.includes('Prix') && (key.includes('*') || key.toLowerCase().includes('prix'))
+  // Vérifier que les champs obligatoires sont présents avec correspondance flexible
+  const referenceKeys = Object.keys(row).filter(key => 
+    key.toLowerCase().replace(/\s+/g, '').includes('reference') || 
+    key.toLowerCase().replace(/\s+/g, '').includes('référence')
   );
-  const supplierPrice = priceField ? row[priceField] : undefined;
+  const reference = referenceKeys.length > 0 ? row[referenceKeys[0]] : undefined;
+  
+  const priceKeys = Object.keys(row).filter(key => 
+    key.toLowerCase().replace(/\s+/g, '').includes('prix')
+  );
+  const supplierPrice = priceKeys.length > 0 ? row[priceKeys[0]] : undefined;
 
-  if (!reference) {
+  if (!reference || String(reference).trim() === '') {
     return {
       isValid: false,
       error: `Ligne ${rowIndex}: Référence produit manquante`,
     };
   }
 
-  if (supplierPrice === undefined || supplierPrice === null || supplierPrice === '') {
+  if (supplierPrice === undefined || supplierPrice === null || String(supplierPrice).trim() === '') {
     return {
       isValid: false,
       error: `Ligne ${rowIndex}: Prix fournisseur manquant pour ${reference}`,
-      reference,
+      reference: String(reference).trim(),
     };
   }
 
@@ -61,15 +66,18 @@ const validateRow = (
     return {
       isValid: false,
       error: `Ligne ${rowIndex}: Prix invalide pour ${reference} (${supplierPrice})`,
-      reference,
+      reference: String(reference).trim(),
     };
   }
 
-  // Traiter le stock initial (optionnel)
-  const initialStockField = row['Stock Initial'] || row['Stock initial'] || row['stock_initial'];
+  // Traiter le stock initial (optionnel) avec recherche flexible
+  const stockKeys = Object.keys(row).filter(key => 
+    key.toLowerCase().replace(/\s+/g, '').includes('stock')
+  );
+  const initialStockField = stockKeys.length > 0 ? row[stockKeys[0]] : undefined;
   let initialStock = 0;
 
-  if (initialStockField !== undefined && initialStockField !== null && initialStockField !== '') {
+  if (initialStockField !== undefined && initialStockField !== null && String(initialStockField).trim() !== '') {
     const parsedStock = typeof initialStockField === 'number'
       ? initialStockField
       : parseInt(String(initialStockField).replace(/[^\d]/g, ''));
@@ -79,11 +87,17 @@ const validateRow = (
     }
   }
 
+  // Récupérer le nom du produit avec recherche flexible
+  const productKeys = Object.keys(row).filter(key => 
+    key.toLowerCase().replace(/\s+/g, '').includes('produit')
+  );
+  const productName = productKeys.length > 0 ? row[productKeys[0]] : undefined;
+
   return {
     isValid: true,
     data: {
       reference: String(reference).trim(),
-      productName: row['Produit'] || undefined,
+      productName: productName ? String(productName).trim() : undefined,
       supplierPrice: Math.round(parsedPrice * 100) / 100, // Arrondir à 2 décimales
       initialStock,
     },
