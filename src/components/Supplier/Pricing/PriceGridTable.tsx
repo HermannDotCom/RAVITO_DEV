@@ -1,51 +1,50 @@
 /**
- * PriceGridTable - Tableau de gestion des grilles tarifaires
- * Permet au fournisseur de créer, modifier et gérer ses prix
+ * PriceGridTable - Tableau de gestion des produits vendus
+ * Affiche TOUS les produits avec la possibilité de saisir les prix et stocks
  */
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Save, X, Search, History, Download, Upload } from 'lucide-react';
+import { Edit, Save, X, Search, Download, Upload, RefreshCw, CheckCircle } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import { usePricing } from '../../../context/PricingContext';
 import { useSupplierPriceGridManagement, usePriceFormatter, usePriceComparison } from '../../../hooks/usePricing';
 import { getProducts } from '../../../services/productService';
 import { Product } from '../../../types';
-import { CreateSupplierPriceGridInput, UpdateSupplierPriceGridInput } from '../../../services/pricing/supplierPriceService';
-import { PriceHistoryModal } from './PriceHistoryModal';
+import { useAuth } from '../../../context/AuthContext';
+import { supabase } from '../../../lib/supabase';
 import { BulkImportExport } from './BulkImportExport';
+import { ResetQuantitiesModal } from './ResetQuantitiesModal';
+
+interface ProductWithPricing extends Product {
+  supplierPrice?: number;
+  initialStock?: number;
+  soldQuantity?: number;
+  stockFinal?: number;
+  gridId?: string;
+}
 
 export const PriceGridTable: React.FC = () => {
+  const { user } = useAuth();
   const { supplierPriceGrids, refreshSupplierGrids, getReferencePrice } = usePricing();
-  const { create, update, remove, isLoading: isSaving, error } = useSupplierPriceGridManagement();
+  const { update, isLoading: isSaving, error } = useSupplierPriceGridManagement();
   const { formatPrice } = usePriceFormatter();
   const { compareToReference, getPriceStatus, getPriceStatusColor } = usePriceComparison();
 
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithPricing[]>([]);
   const [referencePrices, setReferencePrices] = useState<Map<string, number>>(new Map());
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const [selectedGridId, setSelectedGridId] = useState<string | null>(null);
   const [showImportExport, setShowImportExport] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<{
-    productId: string;
-    unitPrice: number;
-    cratePrice: number;
-    consignPrice: number;
-    discountPercentage: number;
-    minimumOrderQuantity: number;
-    notes: string;
+    supplierPrice: number;
+    initialStock: number;
   }>({
-    productId: '',
-    unitPrice: 0,
-    cratePrice: 0,
-    consignPrice: 0,
-    discountPercentage: 0,
-    minimumOrderQuantity: 1,
-    notes: '',
+    supplierPrice: 0,
+    initialStock: 0,
   });
 
   useEffect(() => {
@@ -53,13 +52,23 @@ export const PriceGridTable: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    loadReferencePrices();
-  }, [products]);
+    mergeProductsWithGrids();
+  }, [products, supplierPriceGrids]);
 
   const loadProducts = async () => {
     try {
       setIsLoadingProducts(true);
       const fetchedProducts = await getProducts({ isActive: true });
+      
+      // Charger les prix de référence
+      const priceMap = new Map<string, number>();
+      for (const product of fetchedProducts) {
+        const refPrice = await getReferencePrice(product.id);
+        if (refPrice) {
+          priceMap.set(product.id, refPrice.referenceCratePrice);
+        }
+      }
+      setReferencePrices(priceMap);
       setProducts(fetchedProducts);
     } catch (error) {
       console.error('Error loading products:', error);
@@ -68,117 +77,111 @@ export const PriceGridTable: React.FC = () => {
     }
   };
 
-  const loadReferencePrices = async () => {
-    const priceMap = new Map<string, number>();
-    for (const product of products) {
-      const refPrice = await getReferencePrice(product.id);
-      if (refPrice) {
-        priceMap.set(product.id, refPrice.referenceCratePrice);
+  const mergeProductsWithGrids = () => {
+    const mergedProducts: ProductWithPricing[] = products.map(product => {
+      const grid = supplierPriceGrids.find(g => g.productId === product.id && g.isActive);
+      
+      if (grid) {
+        const initialStock = grid.initialStock || 0;
+        const soldQuantity = grid.soldQuantity || 0;
+        const stockFinal = initialStock - soldQuantity;
+
+        return {
+          ...product,
+          supplierPrice: grid.cratePrice,
+          initialStock,
+          soldQuantity,
+          stockFinal,
+          gridId: grid.id,
+        };
       }
-    }
-    setReferencePrices(priceMap);
+
+      return {
+        ...product,
+        supplierPrice: undefined,
+        initialStock: 0,
+        soldQuantity: 0,
+        stockFinal: 0,
+        gridId: undefined,
+      };
+    });
+
+    setProducts(mergedProducts);
   };
 
-  const filteredGrids = supplierPriceGrids.filter((grid) => {
+  const filteredProducts = products.filter((product) => {
     if (!searchTerm) return true;
-    const product = products.find((p) => p.id === grid.productId);
-    return product?.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           product.brand.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  const handleCreate = async () => {
-    if (!formData.productId) {
-      alert('Veuillez sélectionner un produit');
-      return;
-    }
+  const handleUpdate = async (productId: string, gridId?: string) => {
+    try {
+      if (!gridId) {
+        // Créer une nouvelle grille si elle n'existe pas
+        const { data: newGrid, error: createError } = await supabase
+          .from('supplier_price_grids')
+          .insert({
+            supplier_id: user?.id,
+            product_id: productId,
+            unit_price: 0,
+            crate_price: formData.supplierPrice,
+            consign_price: 0,
+            initial_stock: formData.initialStock,
+            sold_quantity: 0,
+            is_active: true,
+          })
+          .select()
+          .single();
 
-    const input: CreateSupplierPriceGridInput = {
-      productId: formData.productId,
-      unitPrice: formData.unitPrice,
-      cratePrice: formData.cratePrice,
-      consignPrice: formData.consignPrice,
-      discountPercentage: formData.discountPercentage,
-      minimumOrderQuantity: formData.minimumOrderQuantity,
-      notes: formData.notes,
-    };
+        if (createError) throw createError;
+      } else {
+        // Mettre à jour la grille existante
+        const updateResult = await update(gridId, {
+          cratePrice: formData.supplierPrice,
+          // Note: On ne met à jour que le prix et le stock initial via cette interface
+          // Le sold_quantity est géré automatiquement par le trigger
+        });
 
-    const result = await create(input);
-    if (result) {
-      setShowCreateForm(false);
-      resetForm();
-      await refreshSupplierGrids();
-    }
-  };
+        // Mettre à jour le stock initial séparément
+        await supabase
+          .from('supplier_price_grids')
+          .update({ initial_stock: formData.initialStock })
+          .eq('id', gridId);
+      }
 
-  const handleUpdate = async (id: string) => {
-    const input: UpdateSupplierPriceGridInput = {
-      unitPrice: formData.unitPrice,
-      cratePrice: formData.cratePrice,
-      consignPrice: formData.consignPrice,
-      discountPercentage: formData.discountPercentage,
-      minimumOrderQuantity: formData.minimumOrderQuantity,
-      notes: formData.notes,
-    };
-
-    const result = await update(id, input);
-    if (result) {
       setEditingId(null);
-      resetForm();
       await refreshSupplierGrids();
+      await loadProducts();
+    } catch (error) {
+      console.error('Error updating grid:', error);
+      alert('Erreur lors de la mise à jour');
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette grille tarifaire ?')) {
-      return;
-    }
-
-    const success = await remove(id);
-    if (success) {
-      await refreshSupplierGrids();
-    }
-  };
-
-  const startEdit = (grid: any) => {
-    setEditingId(grid.id);
+  const startEdit = (product: ProductWithPricing) => {
+    setEditingId(product.id);
     setFormData({
-      productId: grid.productId,
-      unitPrice: grid.unitPrice,
-      cratePrice: grid.cratePrice,
-      consignPrice: grid.consignPrice,
-      discountPercentage: grid.discountPercentage,
-      minimumOrderQuantity: grid.minimumOrderQuantity,
-      notes: grid.notes || '',
+      supplierPrice: product.supplierPrice || 0,
+      initialStock: product.initialStock || 0,
     });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setShowCreateForm(false);
-    resetForm();
-  };
-
-  const resetForm = () => {
     setFormData({
-      productId: '',
-      unitPrice: 0,
-      cratePrice: 0,
-      consignPrice: 0,
-      discountPercentage: 0,
-      minimumOrderQuantity: 1,
-      notes: '',
+      supplierPrice: 0,
+      initialStock: 0,
     });
   };
 
-  const getProductName = (productId: string) => {
-    const product = products.find((p) => p.id === productId);
-    return product?.name || 'Produit inconnu';
-  };
-
-  const getVarianceInfo = (productId: string, cratePrice: number) => {
+  const getVarianceInfo = (supplierPrice?: number, productId?: string) => {
+    if (!supplierPrice || !productId) return null;
+    
     const refPrice = referencePrices.get(productId);
     if (!refPrice) return null;
 
-    const { variancePercentage, isAbove, isBelow } = compareToReference(cratePrice, refPrice);
+    const { variancePercentage, isAbove, isBelow } = compareToReference(supplierPrice, refPrice);
     const status = getPriceStatus(variancePercentage);
     const colorClass = getPriceStatusColor(status);
 
@@ -191,10 +194,31 @@ export const PriceGridTable: React.FC = () => {
     };
   };
 
-  const showHistory = (gridId: string) => {
-    setSelectedGridId(gridId);
-    setShowHistoryModal(true);
+  const handleResetQuantities = async () => {
+    try {
+      if (!user) return;
+
+      // Appeler la fonction de base de données pour réinitialiser
+      const { error } = await supabase.rpc('reset_supplier_sold_quantities', {
+        p_supplier_id: user.id,
+      });
+
+      if (error) throw error;
+
+      // Rafraîchir les données
+      await refreshSupplierGrids();
+      await loadProducts();
+      
+      setSuccessMessage('Les quantités vendues ont été réinitialisées avec succès');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (error) {
+      console.error('Error resetting quantities:', error);
+      throw error;
+    }
   };
+
+  // Obtenir le nom du fournisseur pour l'affichage dynamique
+  const supplierName = user?.businessName || user?.name || 'Fournisseur';
 
   return (
     <>
@@ -212,7 +236,14 @@ export const PriceGridTable: React.FC = () => {
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => setShowResetModal(true)}
+              className="flex items-center gap-2 px-4 py-2 border border-orange-300 dark:border-orange-600 text-orange-700 dark:text-orange-300 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Réinitialiser les quantités vendues
+            </button>
             <button
               onClick={() => setShowImportExport(true)}
               className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
@@ -220,15 +251,6 @@ export const PriceGridTable: React.FC = () => {
               <Upload className="h-4 w-4" />
               Import/Export
             </button>
-            {!showCreateForm && (
-              <button
-                onClick={() => setShowCreateForm(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-              >
-                <Plus className="h-5 w-5" />
-                Nouveau Prix
-              </button>
-            )}
           </div>
         </div>
 
@@ -239,133 +261,15 @@ export const PriceGridTable: React.FC = () => {
           </div>
         )}
 
-        {/* Create Form */}
-        {showCreateForm && (
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Créer une nouvelle grille tarifaire
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Produit
-                </label>
-                <select
-                  value={formData.productId}
-                  onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500"
-                >
-                  <option value="">Sélectionner un produit</option>
-                  {products.map((product) => (
-                    <option key={product.id} value={product.id}>
-                      {product.name} - {product.brand} ({product.crateType})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Prix Unitaire (FCFA)
-                </label>
-                <input
-                  type="number"
-                  value={formData.unitPrice}
-                  onChange={(e) => setFormData({ ...formData, unitPrice: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500"
-                  min="0"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Prix Casier (FCFA)
-                </label>
-                <input
-                  type="number"
-                  value={formData.cratePrice}
-                  onChange={(e) => setFormData({ ...formData, cratePrice: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500"
-                  min="0"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Prix Consigne (FCFA)
-                </label>
-                <input
-                  type="number"
-                  value={formData.consignPrice}
-                  onChange={(e) => setFormData({ ...formData, consignPrice: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500"
-                  min="0"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Remise (%)
-                </label>
-                <input
-                  type="number"
-                  value={formData.discountPercentage}
-                  onChange={(e) => setFormData({ ...formData, discountPercentage: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500"
-                  min="0"
-                  max="100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Quantité Minimale
-                </label>
-                <input
-                  type="number"
-                  value={formData.minimumOrderQuantity}
-                  onChange={(e) => setFormData({ ...formData, minimumOrderQuantity: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500"
-                  min="1"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Notes (optionnel)
-                </label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500"
-                  rows={2}
-                  placeholder="Notes ou conditions spéciales..."
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={handleCreate}
-                disabled={isSaving}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
-              >
-                <Save className="h-4 w-4" />
-                Enregistrer
-              </button>
-              <button
-                onClick={cancelEdit}
-                disabled={isSaving}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              >
-                <X className="h-4 w-4" />
-                Annuler
-              </button>
-            </div>
-          </Card>
+        {/* Success Display */}
+        {successMessage && (
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <p className="text-green-800 dark:text-green-300">{successMessage}</p>
+          </div>
         )}
 
-        {/* Grids Table */}
+        {/* Products Table */}
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -375,16 +279,22 @@ export const PriceGridTable: React.FC = () => {
                     Produit
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Prix Casier
+                    Prix {supplierName}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Référence
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Écart
+                    Écart %
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Qté Min
+                    Stock Initial
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Qté Vendue
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Stock Final
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Actions
@@ -392,135 +302,129 @@ export const PriceGridTable: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredGrids.length === 0 ? (
+                {isLoadingProducts ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                      Chargement des produits...
+                    </td>
+                  </tr>
+                ) : filteredProducts.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                       {searchTerm
-                        ? 'Aucune grille trouvée pour cette recherche'
-                        : 'Aucune grille tarifaire. Créez votre première grille pour commencer.'}
+                        ? 'Aucun produit trouvé pour cette recherche'
+                        : 'Aucun produit disponible'}
                     </td>
                   </tr>
                 ) : (
-                  filteredGrids.map((grid) => {
-                    const varianceInfo = getVarianceInfo(grid.productId, grid.cratePrice);
-                    const isEditing = editingId === grid.id;
+                  filteredProducts.map((product) => {
+                    const varianceInfo = getVarianceInfo(product.supplierPrice, product.id);
+                    const isEditing = editingId === product.id;
+                    const refPrice = referencePrices.get(product.id);
 
                     return (
-                      <tr key={grid.id} className={!grid.isActive ? 'opacity-50' : ''}>
-                        {isEditing ? (
-                          <>
-                            <td className="px-6 py-4">
-                              <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                {getProductName(grid.productId)}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <input
-                                type="number"
-                                value={formData.cratePrice}
-                                onChange={(e) =>
-                                  setFormData({ ...formData, cratePrice: Number(e.target.value) })
-                                }
-                                className="w-28 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-                                min="0"
-                              />
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                              {referencePrices.get(grid.productId)
-                                ? formatPrice(referencePrices.get(grid.productId)!)
-                                : '-'}
-                            </td>
-                            <td className="px-6 py-4">-</td>
-                            <td className="px-6 py-4">
-                              <input
-                                type="number"
-                                value={formData.minimumOrderQuantity}
-                                onChange={(e) =>
-                                  setFormData({ ...formData, minimumOrderQuantity: Number(e.target.value) })
-                                }
-                                className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-                                min="1"
-                              />
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => handleUpdate(grid.id)}
-                                  disabled={isSaving}
-                                  className="text-green-600 hover:text-green-800 disabled:opacity-50"
-                                >
-                                  <Save className="h-4 w-4" />
-                                </button>
-                                <button
-                                  onClick={cancelEdit}
-                                  disabled={isSaving}
-                                  className="text-gray-600 hover:text-gray-800 disabled:opacity-50"
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </>
-                        ) : (
-                          <>
-                            <td className="px-6 py-4">
-                              <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                {getProductName(grid.productId)}
-                              </div>
-                              {grid.notes && (
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                  {grid.notes}
-                                </div>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">
-                              {formatPrice(grid.cratePrice)}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                              {referencePrices.get(grid.productId)
-                                ? formatPrice(referencePrices.get(grid.productId)!)
-                                : '-'}
-                            </td>
-                            <td className="px-6 py-4">
-                              {varianceInfo ? (
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${varianceInfo.colorClass}`}>
-                                  {varianceInfo.isAbove ? '+' : ''}
-                                  {varianceInfo.variancePercentage.toFixed(1)}%
-                                </span>
-                              ) : (
-                                <span className="text-xs text-gray-400">N/A</span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                              {grid.minimumOrderQuantity}
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => showHistory(grid.id)}
-                                  className="text-purple-600 hover:text-purple-800 dark:text-purple-400"
-                                  title="Historique"
-                                >
-                                  <History className="h-4 w-4" />
-                                </button>
-                                <button
-                                  onClick={() => startEdit(grid)}
-                                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400"
-                                  title="Modifier"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </button>
-                                <button
-                                  onClick={() => handleDelete(grid.id)}
-                                  className="text-red-600 hover:text-red-800 dark:text-red-400"
-                                  title="Supprimer"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </>
-                        )}
+                      <tr key={product.id}>
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {product.name}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {product.brand} - {product.crateType}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={formData.supplierPrice}
+                              onChange={(e) =>
+                                setFormData({ ...formData, supplierPrice: Number(e.target.value) })
+                              }
+                              className="w-32 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                              min="0"
+                              placeholder="Prix FCFA"
+                            />
+                          ) : (
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                              {product.supplierPrice ? formatPrice(product.supplierPrice) : '-'}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                          {refPrice ? formatPrice(refPrice) : '-'}
+                        </td>
+                        <td className="px-6 py-4">
+                          {varianceInfo ? (
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${varianceInfo.colorClass}`}>
+                              {varianceInfo.isAbove ? '+' : ''}
+                              {varianceInfo.variancePercentage.toFixed(1)}%
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400">N/A</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={formData.initialStock}
+                              onChange={(e) =>
+                                setFormData({ ...formData, initialStock: Number(e.target.value) })
+                              }
+                              className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                              min="0"
+                              placeholder="Qté"
+                            />
+                          ) : (
+                            <span className="text-sm text-gray-900 dark:text-white">
+                              {product.initialStock || 0}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {product.soldQuantity || 0}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`text-sm font-medium ${
+                            (product.stockFinal || 0) < 0
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-gray-900 dark:text-white'
+                          }`}>
+                            {product.stockFinal || 0}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {isEditing ? (
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleUpdate(product.id, product.gridId)}
+                                disabled={isSaving}
+                                className="text-green-600 hover:text-green-800 disabled:opacity-50"
+                                title="Enregistrer"
+                              >
+                                <Save className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={cancelEdit}
+                                disabled={isSaving}
+                                className="text-gray-600 hover:text-gray-800 disabled:opacity-50"
+                                title="Annuler"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => startEdit(product)}
+                              className="text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                              title="Modifier"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     );
                   })
@@ -529,23 +433,35 @@ export const PriceGridTable: React.FC = () => {
             </table>
           </div>
         </Card>
+
+        {/* Info sur le workflow */}
+        <Card className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+          <div className="text-sm text-green-800 dark:text-green-300">
+            <p className="font-medium mb-2">💡 Cycle opérationnel quotidien :</p>
+            <ol className="space-y-1 list-decimal list-inside ml-2">
+              <li><strong>Ouverture</strong> : Saisissez votre stock initial et réinitialisez les quantités vendues</li>
+              <li><strong>Activité</strong> : Les quantités vendues se mettent à jour automatiquement à chaque commande</li>
+              <li><strong>Clôture</strong> : Vérifiez votre stock final et exportez l'inventaire si nécessaire</li>
+            </ol>
+          </div>
+        </Card>
       </div>
 
       {/* Modals */}
-      {showHistoryModal && selectedGridId && (
-        <PriceHistoryModal
-          gridId={selectedGridId}
-          onClose={() => {
-            setShowHistoryModal(false);
-            setSelectedGridId(null);
+      {showImportExport && (
+        <BulkImportExport
+          onClose={() => setShowImportExport(false)}
+          onImportComplete={() => {
+            refreshSupplierGrids();
+            loadProducts();
           }}
         />
       )}
 
-      {showImportExport && (
-        <BulkImportExport
-          onClose={() => setShowImportExport(false)}
-          onImportComplete={() => refreshSupplierGrids()}
+      {showResetModal && (
+        <ResetQuantitiesModal
+          onClose={() => setShowResetModal(false)}
+          onConfirm={handleResetQuantities}
         />
       )}
     </>

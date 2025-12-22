@@ -84,7 +84,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
       case 'supplier':
         return [
           { id: 'zones', label: 'Mes Zones', icon: MapPin },
-          { id: 'pricing', label: 'Mes Prix', icon: DollarSign },
+          { id: 'pricing', label: 'Produits vendus', icon: DollarSign },
           { id: 'team', label: 'Mon Équipe', icon: Users },
           { id: 'history', label: 'Historique', icon: Clock },
           { id: 'support', label: 'Support', icon: MessageSquare },
