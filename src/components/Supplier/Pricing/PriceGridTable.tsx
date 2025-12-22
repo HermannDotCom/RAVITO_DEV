@@ -30,6 +30,7 @@ export const PriceGridTable: React.FC = () => {
   const { formatPrice } = usePriceFormatter();
   const { compareToReference, getPriceStatus, getPriceStatusColor } = usePriceComparison();
 
+  const [rawProducts, setRawProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<ProductWithPricing[]>([]);
   const [referencePrices, setReferencePrices] = useState<Map<string, number>>(new Map());
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
@@ -52,8 +53,10 @@ export const PriceGridTable: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    mergeProductsWithGrids();
-  }, [products, supplierPriceGrids]);
+    if (rawProducts.length > 0) {
+      mergeProductsWithGrids();
+    }
+  }, [rawProducts, supplierPriceGrids]);
 
   const loadProducts = async () => {
     try {
@@ -69,7 +72,7 @@ export const PriceGridTable: React.FC = () => {
         }
       }
       setReferencePrices(priceMap);
-      setProducts(fetchedProducts);
+      setRawProducts(fetchedProducts);
     } catch (error) {
       console.error('Error loading products:', error);
     } finally {
@@ -78,7 +81,7 @@ export const PriceGridTable: React.FC = () => {
   };
 
   const mergeProductsWithGrids = () => {
-    const mergedProducts: ProductWithPricing[] = products.map(product => {
+    const mergedProducts: ProductWithPricing[] = rawProducts.map(product => {
       const grid = supplierPriceGrids.find(g => g.productId === product.id && g.isActive);
       
       if (grid) {
@@ -152,7 +155,9 @@ export const PriceGridTable: React.FC = () => {
 
       setEditingId(null);
       await refreshSupplierGrids();
-      await loadProducts();
+      // Recharger les produits bruts
+      const fetchedProducts = await getProducts({ isActive: true });
+      setRawProducts(fetchedProducts);
     } catch (error) {
       console.error('Error updating grid:', error);
       alert('Erreur lors de la mise à jour');
@@ -207,7 +212,9 @@ export const PriceGridTable: React.FC = () => {
 
       // Rafraîchir les données
       await refreshSupplierGrids();
-      await loadProducts();
+      // Recharger les produits bruts
+      const fetchedProducts = await getProducts({ isActive: true });
+      setRawProducts(fetchedProducts);
       
       setSuccessMessage('Les quantités vendues ont été réinitialisées avec succès');
       setTimeout(() => setSuccessMessage(null), 5000);
