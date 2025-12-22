@@ -1,4 +1,6 @@
 import { supabase } from '../lib/supabase';
+import { selectBestSupplierAndCost } from './yangoService';
+import { isNightTime } from '../utils/timeUtils';
 import { Order, OrderStatus, CartItem, PaymentMethod } from '../types';
 
 export async function createOrder(
@@ -11,6 +13,22 @@ export async function createOrder(
   zoneId?: string
 ): Promise<{ success: boolean; orderId?: string; error?: string }> {
   try {
+    if (!zoneId) {
+      return { success: false, error: 'Zone de livraison non spécifiée.' };
+    }
+
+    // 1. Sélectionner le meilleur fournisseur et calculer le coût de livraison Yango
+    const bestSupplierResult = await selectBestSupplierAndCost(coordinates, zoneId);
+
+    if (!bestSupplierResult) {
+      return { success: false, error: 'Aucun fournisseur disponible pour cette zone et cette heure.' };
+    }
+
+    const { supplierId, deliveryCost } = bestSupplierResult;
+    
+    // Le coût de livraison Yango inclut déjà la marge RAVITO (15%)
+    const ravitoMargin = Math.round(deliveryCost / (1 + 0.15) * 0.15); // Calcul inverse pour retrouver la marge
+
     const subtotal = items.reduce((sum, item) => sum + (item.product.cratePrice * item.quantity), 0);
     const consigneTotal = items.reduce(
       (sum, item) => sum + (item.withConsigne ? item.product.consignPrice * item.quantity : 0),
@@ -19,11 +37,14 @@ export async function createOrder(
 
     const orderTotal = subtotal + consigneTotal;
     const clientCommission = Math.round(orderTotal * (commissionSettings.clientCommission / 100));
-    const totalAmount = orderTotal + clientCommission;
+    
+    // Le montant total inclut le coût de la commande, la commission client et le coût de livraison
+    const totalAmount = orderTotal + clientCommission + deliveryCost;
 
     const orderData: any = {
       client_id: clientId,
-      status: 'pending-offers',
+      supplier_id: supplierId, // Fournisseur pré-sélectionné
+      status: 'accepted', // La commande est directement acceptée par le fournisseur sélectionné
       total_amount: totalAmount,
       consigne_total: consigneTotal,
       client_commission: clientCommission,
@@ -33,7 +54,9 @@ export async function createOrder(
       coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
       payment_method: paymentMethod,
       payment_status: 'pending',
-      zone_id: zoneId || null
+      zone_id: zoneId,
+      delivery_cost: deliveryCost, // Nouveau champ
+      ravito_margin: ravitoMargin // Nouveau champ
     };
 
     const { data: order, error: orderError } = await supabase
@@ -41,6 +64,18 @@ export async function createOrder(
       .insert([orderData])
       .select()
       .single();
+      
+    // Mise à jour du statut pour les commandes acceptées (pour ne pas apparaître dans pending-offers)
+    // Note: Le statut 'accepted' est mis directement dans orderData, cette étape est redondante mais peut être utile
+    // pour des triggers Supabase.
+    if (order && order.status === 'accepted') {
+      await supabase.from('supplier_offers').insert([{
+        order_id: order.id,
+        supplier_id: supplierId,
+        status: 'accepted',
+        offer_amount: order.total_amount // Montant total de la commande
+      }]);
+    }
 
     if (orderError) {
       console.error('Error creating order:', orderError);
@@ -101,7 +136,7 @@ export async function getOrdersByClient(clientId: string): Promise<Order[]> {
   }
 }
 
-export async function getOrdersBySupplier(supplierId: string): Promise<Order[]> {
+export async function getPendingOrders(supplierId?: string, isClientSearch: boolean = false): Promise<Order[]> {
   try {
     const { data, error } = await supabase
       .from('orders_with_coords')
@@ -128,7 +163,7 @@ export async function getOrdersBySupplier(supplierId: string): Promise<Order[]> 
   }
 }
 
-export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
+export async function getPendingOrders(supplierId?: string, isClientSearch: boolean = false): Promise<Order[]> {
   try {
     let query = supabase
       .from('orders_with_coords')
@@ -145,6 +180,43 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
         zone:zones (name)
       `)
       .in('status', ['pending-offers', 'offers-received']);
+
+    // -------------------------------------------------------------------
+    // LOGIQUE DE GARDE DE NUIT
+    // -------------------------------------------------------------------
+    if (isClientSearch && isNightTime()) {
+      console.log('🌙 Mode Garde de Nuit activé pour la recherche client.');
+      
+      // 1. Récupérer les fournisseurs en garde de nuit pour aujourd'hui
+      const { data: nightGuardSuppliers, error: ngError } = await supabase
+        .from('night_guard_schedule')
+        .select('supplier_id, covered_zones')
+        .eq('is_active', true)
+        .eq('date', new Date().toISOString().split('T')[0]); // Aujourd'hui
+
+      if (ngError) {
+        console.error('❌ Erreur lors de la récupération des plannings de garde de nuit:', ngError);
+        // Continuer sans filtre si erreur
+      } else if (nightGuardSuppliers && nightGuardSuppliers.length > 0) {
+        const nightGuardIds = nightGuardSuppliers.map(ng => ng.supplier_id);
+        const coveredZoneIds = nightGuardSuppliers.flatMap(ng => ng.covered_zones);
+
+        // 2. Filtrer les commandes pour qu'elles correspondent aux zones couvertes par la garde
+        query = query.in('zone_id', coveredZoneIds);
+        
+        // 3. Filtrer les offres pour qu'elles ne soient visibles que par les fournisseurs de garde
+        // (Ceci est géré par la RLS sur la table night_guard_schedule)
+        
+        console.log(`✅ ${nightGuardIds.length} fournisseurs en garde de nuit trouvés.`);
+      } else {
+        console.log('⚠️ Aucun fournisseur en garde de nuit trouvé. La recherche sera vide.');
+        // Si aucun fournisseur en garde, on retourne un jeu de données vide pour le client
+        return [];
+      }
+    }
+    // -------------------------------------------------------------------
+    // FIN LOGIQUE DE GARDE DE NUIT
+    // -------------------------------------------------------------------
 
     if (supplierId) {
       console.log('🔍 Fetching zones for supplier:', supplierId);
@@ -340,6 +412,8 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
     paymentStatus: dbOrder.payment_status,
     deliveryConfirmationCode: dbOrder.delivery_confirmation_code,
     clientRating: dbOrder.client?.rating ?? undefined,
+    deliveryCost: dbOrder.delivery_cost, // Nouveau champ
+    ravitoMargin: dbOrder.ravito_margin, // Nouveau champ
     createdAt: new Date(dbOrder.created_at),
     acceptedAt: dbOrder.accepted_at ? new Date(dbOrder.accepted_at) : undefined,
     deliveredAt: dbOrder.delivered_at ? new Date(dbOrder.delivered_at) : undefined,

@@ -129,6 +129,11 @@ export interface CartItem {
   withConsigne: boolean;
 }
 
+export interface Coordinates {
+  lat: number;
+  lng: number;
+}
+
 export interface Order {
   id: string;
   clientId: string;
@@ -154,7 +159,8 @@ export interface Order {
   createdAt: Date;
   acceptedAt?: Date;
   deliveredAt?: Date;
-  delivery_confirmation_code?: string;
+  deliveryCost?: number; // Nouveau champ
+  ravitoMargin?: number; // Nouveau champ
 }
 
 export type OrderStatus =
@@ -180,6 +186,15 @@ export interface SupplierPayment {
   orderCount: number;
   orders: Order[];
   lastOrderDate: Date;
+}
+
+export interface NightGuardSchedule {
+  id: string;
+  supplier_id: string;
+  date: string; // ISO Date string
+  is_active: boolean;
+  covered_zones: string[]; // Array of Zone IDs
+  created_at: Date;
 }
 
 export interface Rating {

@@ -3,6 +3,8 @@ import { Package, Clock } from 'lucide-react';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { useOrder } from '../../context/OrderContext';
 import { useCommission } from '../../context/CommissionContext';
+import { useZones } from '../../hooks/useZones';
+import { NightGuardSettings } from './NightGuardSettings';
 import {
   SupplierHeader,
   KPICards,
@@ -22,6 +24,7 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
   const { user, getAccessRestrictions } = useProfileSecurity();
   const { availableOrders, updateOrderStatus } = useOrder();
   const { commissionSettings, getSupplierNetAmount } = useCommission();
+  const { zones, isLoading: zonesLoading } = useZones();
   const [activeDelivery, setActiveDelivery] = useState<Order | null>(null);
   const [todayStats, setTodayStats] = useState({ delivered: 0, revenue: 0 });
   const [monthlyRevenue, setMonthlyRevenue] = useState(0);
@@ -147,6 +150,14 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
   const zone = (user as any)?.coverageZone || (user as any)?.zoneId;
   const rating = user?.rating || 5;
 
+  if (zonesLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
@@ -179,6 +190,7 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
               )}
             </div>
             <div className="space-y-8">
+              <NightGuardSettings zones={zones} />
               {user && <PerformanceStats supplierId={user.id} rating={rating} />}
             </div>
           </div>

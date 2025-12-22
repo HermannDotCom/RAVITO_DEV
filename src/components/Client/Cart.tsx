@@ -236,10 +236,20 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
             <div className="text-xs text-blue-500 -mt-1 text-right">
               ({commissionSettings.clientCommission}% frais de traitement)
             </div>
+            
+            {/* Simulation du coût de livraison Yango */}
+            <div className="flex justify-between text-red-600">
+              <span>Coût de Livraison (Yango)</span>
+              <span>{formatPrice(5000)}</span> {/* Valeur simulée pour l'affichage */}
+            </div>
+            <div className="text-xs text-red-500 -mt-1 text-right">
+              (Inclus la marge RAVITO de 15%)
+            </div>
+
             <div className="border-t border-gray-300 pt-2">
               <div className="flex justify-between text-lg font-bold text-gray-900">
-                <span>Total</span>
-                <span>{formatPrice(total)}</span>
+                <span>Total Estimé</span>
+                <span>{formatPrice(total + 5000)}</span> {/* Total + Coût simulé */}
               </div>
             </div>
           </div>

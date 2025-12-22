@@ -73,9 +73,11 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       if (user.role === 'client') {
         const orders = await getOrdersByClient(user.id);
         setClientOrders(orders);
+        const pendingOrders = await getPendingOrders(undefined, true); // Client search for available orders
+        setAvailableOrders(pendingOrders);
       } else if (user.role === 'supplier') {
         const [pending, active, completed] = await Promise.all([
-          getPendingOrders(user.id),
+          getPendingOrders(user.id, false), // Supplier search
           getOrdersBySupplier(user.id),
           getOrdersBySupplier(user.id)
         ]);
@@ -87,7 +89,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setSupplierCompletedDeliveries(completed.filter(o => o.status === 'delivered'));
       } else if (user.role === 'admin') {
         const [pending, all] = await Promise.all([
-          getPendingOrders(),
+          getPendingOrders(undefined, true), // Admin search for all pending orders (potentially filtered by night guard)
           getAllOrders()
         ]);
         setAvailableOrders(pending);
