@@ -1,14 +1,18 @@
 /**
- * BulkImportExport - Composant pour import/export en masse Excel
- * Permet d'importer et exporter des grilles tarifaires
+ * BulkImportExport - Composant pour import/export en masse Excel (XLSX)
+ * Permet d'importer et exporter des prix et inventaires au format professionnel
  */
 
 import React, { useState } from 'react';
-import { X, Upload, Download, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Upload, Download, AlertCircle, CheckCircle, FileSpreadsheet } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import { useSupplierPriceGridManagement } from '../../../hooks/usePricing';
 import { usePricing } from '../../../context/PricingContext';
 import { getProducts } from '../../../services/productService';
+import { useAuth } from '../../../context/AuthContext';
+import { exportInventoryToXLSX, exportPriceImportTemplate } from '../../../utils/excelExport';
+import { importPricesFromXLSX, isValidXLSXFile } from '../../../utils/excelImport';
+import { supabase } from '../../../lib/supabase';
 
 interface BulkImportExportProps {
   onClose: () => void;
@@ -16,59 +20,76 @@ interface BulkImportExportProps {
 }
 
 export const BulkImportExport: React.FC<BulkImportExportProps> = ({ onClose, onImportComplete }) => {
-  const { bulkCreate, isLoading } = useSupplierPriceGridManagement();
-  const { supplierPriceGrids } = usePricing();
+  const { user } = useAuth();
+  const { supplierPriceGrids, getReferencePrice } = usePricing();
   const [importResult, setImportResult] = useState<{
     success: number;
     errors: number;
     errorDetails: any[];
   } | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
-  const handleExport = async () => {
+  const handleExportInventory = async () => {
     try {
+      setIsExporting(true);
+      
+      // Récupérer tous les produits
       const products = await getProducts({ isActive: true });
       
-      // Créer les données CSV
-      const headers = [
-        'ID Produit',
-        'Nom Produit',
-        'Prix Unitaire',
-        'Prix Casier',
-        'Prix Consigne',
-        'Remise (%)',
-        'Quantité Min',
-        'Notes',
-      ];
+      // Construire les données d'export avec les prix et stocks
+      const exportData = await Promise.all(
+        products.map(async (product) => {
+          const grid = supplierPriceGrids.find(g => g.productId === product.id && g.isActive);
+          const refPrice = await getReferencePrice(product.id);
 
-      const rows = supplierPriceGrids.map((grid) => {
-        const product = products.find((p) => p.id === grid.productId);
-        return [
-          grid.productId,
-          product?.name || '',
-          grid.unitPrice,
-          grid.cratePrice,
-          grid.consignPrice,
-          grid.discountPercentage,
-          grid.minimumOrderQuantity,
-          grid.notes || '',
-        ];
+          return {
+            id: product.id,
+            reference: product.reference,
+            name: `${product.name} - ${product.brand}`,
+            supplierPrice: grid?.cratePrice || 0,
+            referencePrice: refPrice?.referenceCratePrice,
+            initialStock: grid?.initialStock || 0,
+            soldQuantity: grid?.soldQuantity || 0,
+            stockFinal: (grid?.initialStock || 0) - (grid?.soldQuantity || 0),
+          };
+        })
+      );
+
+      // Exporter via notre utilitaire
+      const supplierName = user?.businessName || user?.name || 'Fournisseur';
+      exportInventoryToXLSX({
+        supplierName,
+        products: exportData,
+        exportDate: new Date(),
       });
 
-      // Convertir en CSV
-      const csvContent = [
-        headers.join(','),
-        ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
-      ].join('\n');
-
-      // Télécharger le fichier
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `grilles_tarifaires_${new Date().toISOString().split('T')[0]}.csv`;
-      link.click();
+      alert('Inventaire exporté avec succès !');
     } catch (error) {
-      console.error('Error exporting grids:', error);
-      alert('Erreur lors de l\'export');
+      console.error('Error exporting inventory:', error);
+      alert('Erreur lors de l\'export de l\'inventaire');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      // Récupérer tous les produits pour le template
+      const products = await getProducts({ isActive: true });
+      
+      const productList = products.map(p => ({
+        reference: p.reference,
+        name: `${p.name} - ${p.brand} (${p.crateType})`,
+      }));
+
+      const supplierName = user?.businessName || user?.name || 'Fournisseur';
+      exportPriceImportTemplate(supplierName, productList);
+
+      alert('Template téléchargé avec succès !');
+    } catch (error) {
+      console.error('Error downloading template:', error);
+      alert('Erreur lors du téléchargement du template');
     }
   };
 
@@ -76,95 +97,118 @@ export const BulkImportExport: React.FC<BulkImportExportProps> = ({ onClose, onI
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Réinitialiser l'input
+    event.target.value = '';
+
+    // Valider le type de fichier
+    if (!isValidXLSXFile(file)) {
+      alert('Veuillez sélectionner un fichier XLSX valide');
+      return;
+    }
+
     try {
-      const text = await file.text();
-      const lines = text.split('\n').filter((line) => line.trim());
+      setIsImporting(true);
+      setImportResult(null);
 
-      if (lines.length < 2) {
-        alert('Le fichier est vide ou invalide');
-        return;
-      }
+      // Importer le fichier
+      const importData = await importPricesFromXLSX(file);
 
-      // Parser les lignes (skip header)
-      const grids = [];
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i];
-        // Simple CSV parsing (assumes no commas in values or proper escaping)
-        const values = line.split(',').map((v) => v.trim().replace(/^"|"$/g, ''));
-
-        if (values.length >= 7) {
-          grids.push({
-            productId: values[0],
-            unitPrice: Number(values[2]) || 0,
-            cratePrice: Number(values[3]) || 0,
-            consignPrice: Number(values[4]) || 0,
-            discountPercentage: Number(values[5]) || 0,
-            minimumOrderQuantity: Number(values[6]) || 1,
-            notes: values[7] || '',
-          });
-        }
-      }
-
-      if (grids.length === 0) {
+      if (importData.data.length === 0) {
         alert('Aucune donnée valide trouvée dans le fichier');
         return;
       }
 
-      // Import en masse
-      const result = await bulkCreate(grids);
-      setImportResult(result);
+      // Récupérer tous les produits pour valider les références
+      const products = await getProducts({ isActive: true });
+      const productMap = new Map(products.map(p => [p.reference, p.id]));
 
-      if (result.success > 0) {
+      // Traiter chaque ligne importée
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: any[] = [];
+
+      for (const row of importData.data) {
+        try {
+          const productId = productMap.get(row.reference);
+          
+          if (!productId) {
+            errorCount++;
+            errors.push({
+              reference: row.reference,
+              error: `Référence produit inconnue: ${row.reference}`,
+            });
+            continue;
+          }
+
+          // Vérifier si une grille existe déjà
+          const existingGrid = supplierPriceGrids.find(
+            g => g.productId === productId && g.isActive
+          );
+
+          if (existingGrid) {
+            // Mettre à jour la grille existante
+            const { error: updateError } = await supabase
+              .from('supplier_price_grids')
+              .update({
+                crate_price: row.supplierPrice,
+                initial_stock: row.initialStock || 0,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', existingGrid.id);
+
+            if (updateError) throw updateError;
+          } else {
+            // Créer une nouvelle grille
+            const { error: insertError } = await supabase
+              .from('supplier_price_grids')
+              .insert({
+                supplier_id: user?.id,
+                product_id: productId,
+                unit_price: 0,
+                crate_price: row.supplierPrice,
+                consign_price: 0,
+                initial_stock: row.initialStock || 0,
+                sold_quantity: 0,
+                is_active: true,
+              });
+
+            if (insertError) throw insertError;
+          }
+
+          successCount++;
+        } catch (error) {
+          errorCount++;
+          errors.push({
+            reference: row.reference,
+            error: `Erreur lors de l'import: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+          });
+        }
+      }
+
+      setImportResult({
+        success: successCount,
+        errors: errorCount,
+        errorDetails: errors,
+      });
+
+      if (successCount > 0) {
         onImportComplete();
       }
     } catch (error) {
-      console.error('Error importing grids:', error);
-      alert('Erreur lors de l\'import');
+      console.error('Error importing prices:', error);
+      alert(`Erreur lors de l'import: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+    } finally {
+      setIsImporting(false);
     }
-  };
-
-  const handleDownloadTemplate = () => {
-    const headers = [
-      'ID Produit',
-      'Nom Produit (info)',
-      'Prix Unitaire',
-      'Prix Casier',
-      'Prix Consigne',
-      'Remise (%)',
-      'Quantité Min',
-      'Notes',
-    ];
-
-    const exampleRow = [
-      'PRODUCT_ID_HERE',
-      'Exemple Produit',
-      '300',
-      '7200',
-      '3000',
-      '0',
-      '1',
-      'Notes optionnelles',
-    ];
-
-    const csvContent = [
-      headers.join(','),
-      exampleRow.map((cell) => `"${cell}"`).join(','),
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'template_grilles_tarifaires.csv';
-    link.click();
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-900 z-10">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Import / Export en Masse
+            Import / Export (Excel)
           </h2>
           <button
             onClick={onClose}
@@ -176,32 +220,35 @@ export const BulkImportExport: React.FC<BulkImportExportProps> = ({ onClose, onI
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          {/* Export Section */}
+          {/* Export Inventory Section */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
-              Exporter vos grilles
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5 text-blue-600" />
+              Exporter l'inventaire (XLSX)
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Téléchargez toutes vos grilles tarifaires au format CSV
+              Téléchargez un export complet de votre inventaire avec prix, stocks et mouvements
             </p>
             <button
-              onClick={handleExport}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={handleExportInventory}
+              disabled={isExporting}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
               <Download className="h-4 w-4" />
-              Exporter (CSV)
+              {isExporting ? 'Export en cours...' : 'Exporter l\'inventaire (XLSX)'}
             </button>
           </div>
 
           <div className="border-t border-gray-200 dark:border-gray-700" />
 
-          {/* Import Section */}
+          {/* Import Prices Section */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
-              Importer des grilles
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <Upload className="h-5 w-5 text-orange-600" />
+              Importer les prix (XLSX)
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Importez vos grilles tarifaires depuis un fichier CSV
+              Mettez à jour vos prix et stocks en masse depuis un fichier Excel
             </p>
 
             <div className="space-y-3">
@@ -210,17 +257,17 @@ export const BulkImportExport: React.FC<BulkImportExportProps> = ({ onClose, onI
                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 <Download className="h-4 w-4" />
-                Télécharger le Template
+                Télécharger le Template (XLSX)
               </button>
 
               <label className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors cursor-pointer">
                 <Upload className="h-4 w-4" />
-                <span>Importer CSV</span>
+                <span>{isImporting ? 'Import en cours...' : 'Importer les prix (XLSX)'}</span>
                 <input
                   type="file"
-                  accept=".csv"
+                  accept=".xlsx,.xls"
                   onChange={handleImport}
-                  disabled={isLoading}
+                  disabled={isImporting}
                   className="hidden"
                 />
               </label>
@@ -233,7 +280,7 @@ export const BulkImportExport: React.FC<BulkImportExportProps> = ({ onClose, onI
                   <div className="flex items-start gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                     <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-green-800 dark:text-green-300">
-                      <p className="font-medium">{importResult.success} grille(s) importée(s) avec succès</p>
+                      <p className="font-medium">{importResult.success} produit(s) importé(s) avec succès</p>
                     </div>
                   </div>
                 )}
@@ -245,11 +292,11 @@ export const BulkImportExport: React.FC<BulkImportExportProps> = ({ onClose, onI
                       <p className="font-medium">{importResult.errors} erreur(s) lors de l'import</p>
                       {importResult.errorDetails.length > 0 && (
                         <ul className="mt-2 space-y-1 list-disc list-inside">
-                          {importResult.errorDetails.slice(0, 3).map((error, index) => (
+                          {importResult.errorDetails.slice(0, 5).map((error, index) => (
                             <li key={index}>{error.error}</li>
                           ))}
-                          {importResult.errorDetails.length > 3 && (
-                            <li>... et {importResult.errorDetails.length - 3} autre(s)</li>
+                          {importResult.errorDetails.length > 5 && (
+                            <li>... et {importResult.errorDetails.length - 5} autre(s)</li>
                           )}
                         </ul>
                       )}
@@ -264,19 +311,20 @@ export const BulkImportExport: React.FC<BulkImportExportProps> = ({ onClose, onI
           <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-blue-800 dark:text-blue-300">
-              <p className="font-medium mb-1">Format du fichier CSV</p>
+              <p className="font-medium mb-1">Format du fichier Excel (XLSX)</p>
               <ul className="space-y-1 list-disc list-inside">
+                <li>Format: XLSX exclusivement</li>
                 <li>Encodage: UTF-8</li>
-                <li>Séparateur: virgule (,)</li>
-                <li>La première ligne doit contenir les en-têtes</li>
-                <li>L'ID Produit doit correspondre à un produit existant</li>
+                <li>Utilisez le template fourni pour éviter les erreurs</li>
+                <li>Les références produits doivent correspondre exactement</li>
+                <li>Les prix doivent être en FCFA (entiers ou 2 décimales max)</li>
               </ul>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end p-6 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-gray-900">
           <button
             onClick={onClose}
             className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
