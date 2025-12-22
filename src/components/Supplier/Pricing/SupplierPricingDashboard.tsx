@@ -1,21 +1,24 @@
 /**
- * SupplierPricingDashboard - Dashboard de gestion des prix fournisseur
- * Interface principale pour les fournisseurs pour gérer leurs grilles tarifaires
+ * SupplierPricingDashboard - Tableau de bord "Produits vendus"
+ * Interface refonte pour la gestion quotidienne des stocks et des prix
  */
 
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Package, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react';
+import { Package, TrendingUp, AlertCircle, RefreshCw, TrendingDown } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import { PriceGridTable } from './PriceGridTable';
 import { usePricing } from '../../../context/PricingContext';
 import { supabase } from '../../../lib/supabase';
+import { useAuth } from '../../../context/AuthContext';
 
 export const SupplierPricingDashboard: React.FC = () => {
+  const { user } = useAuth();
   const { supplierPriceGrids, isLoadingSupplierGrids, refreshSupplierGrids } = usePricing();
   const [stats, setStats] = useState({
-    totalGrids: 0,
-    activeGrids: 0,
+    totalProducts: 0,
     productsWithPrices: 0,
+    totalInitialStock: 0,
+    totalSoldQuantity: 0,
     avgVariance: 0,
   });
   const [isLoadingStats, setIsLoadingStats] = useState(false);
@@ -28,15 +31,21 @@ export const SupplierPricingDashboard: React.FC = () => {
     try {
       setIsLoadingStats(true);
       
-      const totalGrids = supplierPriceGrids.length;
-      const activeGrids = supplierPriceGrids.filter(g => g.isActive).length;
-      const productsWithPrices = new Set(supplierPriceGrids.map(g => g.productId)).size;
+      // Compter les produits avec prix
+      const productsWithPrices = new Set(
+        supplierPriceGrids.filter(g => g.isActive).map(g => g.productId)
+      ).size;
 
-      // Calculer la variance moyenne par rapport aux prix de référence
+      // Calculer les stocks et quantités vendues
+      let totalInitialStock = 0;
+      let totalSoldQuantity = 0;
       let totalVariance = 0;
       let variantCount = 0;
 
       for (const grid of supplierPriceGrids.filter(g => g.isActive)) {
+        totalInitialStock += grid.initialStock || 0;
+        totalSoldQuantity += grid.soldQuantity || 0;
+
         try {
           const { data: refPrice } = await supabase
             .from('reference_prices')
@@ -55,12 +64,19 @@ export const SupplierPricingDashboard: React.FC = () => {
         }
       }
 
+      // Compter le total des produits disponibles
+      const { count: totalProducts } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true);
+
       const avgVariance = variantCount > 0 ? totalVariance / variantCount : 0;
 
       setStats({
-        totalGrids,
-        activeGrids,
+        totalProducts: totalProducts || 0,
         productsWithPrices,
+        totalInitialStock,
+        totalSoldQuantity,
         avgVariance,
       });
     } catch (error) {
@@ -80,10 +96,10 @@ export const SupplierPricingDashboard: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            Gestion de mes Prix
+            Produits vendus
           </h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Gérez vos grilles tarifaires et suivez vos performances
+            Gestion quotidienne de vos stocks et de vos prix
           </p>
         </div>
         <button
@@ -101,9 +117,12 @@ export const SupplierPricingDashboard: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Grilles Totales</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Produits Catalogue</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                {isLoadingStats ? '...' : stats.totalGrids}
+                {isLoadingStats ? '...' : stats.totalProducts}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {stats.productsWithPrices} avec prix
               </p>
             </div>
             <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
@@ -115,18 +134,14 @@ export const SupplierPricingDashboard: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Grilles Actives</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Stock Initial</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                {isLoadingStats ? '...' : stats.activeGrids}
+                {isLoadingStats ? '...' : stats.totalInitialStock}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {stats.totalGrids > 0
-                  ? `${((stats.activeGrids / stats.totalGrids) * 100).toFixed(0)}% activé`
-                  : '0% activé'}
-              </p>
+              <p className="text-xs text-gray-500 mt-1">unités déclarées</p>
             </div>
-            <div className="h-12 w-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-              <DollarSign className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <div className="h-12 w-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+              <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
         </Card>
@@ -134,13 +149,14 @@ export const SupplierPricingDashboard: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Produits Couverts</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Qté Vendue</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                {isLoadingStats ? '...' : stats.productsWithPrices}
+                {isLoadingStats ? '...' : stats.totalSoldQuantity}
               </p>
+              <p className="text-xs text-gray-500 mt-1">depuis dernière réinit.</p>
             </div>
-            <div className="h-12 w-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-              <Package className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            <div className="h-12 w-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+              <TrendingDown className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
           </div>
         </Card>
@@ -177,11 +193,11 @@ export const SupplierPricingDashboard: React.FC = () => {
           <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
           <div>
             <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-1">
-              Gestion de vos grilles tarifaires
+              Gestion quotidienne de vos stocks et prix
             </h3>
             <p className="text-sm text-blue-800 dark:text-blue-400">
-              Définissez vos prix pour chaque produit. Les prix de référence RAVITO sont affichés pour comparaison. 
-              Vous pouvez importer/exporter vos grilles en masse via Excel pour plus d'efficacité.
+              Saisissez vos prix et votre stock initial. Les quantités vendues sont mises à jour automatiquement à chaque commande.
+              Utilisez l'import/export Excel pour une gestion efficace.
             </p>
           </div>
         </div>
