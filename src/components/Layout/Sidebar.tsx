@@ -14,7 +14,8 @@ import {
   Wallet,
   MoreHorizontal,
   BarChart3,
-  DollarSign
+  DollarSign,
+  Navigation
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useModuleAccess } from '../../hooks/useModuleAccess';
@@ -50,6 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
       case 'supplier':
         allMenuItems = [
           { id: 'dashboard', label: 'Accueil', icon: Home, moduleKey: 'dashboard' },
+          { id: 'delivery-mode', label: 'Mode Livreur', icon: Navigation, moduleKey: 'deliveries' },
           { id: 'orders', label: 'Commandes', icon: Package, moduleKey: 'orders' },
           { id: 'deliveries', label: 'Livraisons', icon: Truck, moduleKey: 'deliveries' },
           { id: 'treasury', label: 'Revenus', icon: Wallet, moduleKey: 'treasury' },

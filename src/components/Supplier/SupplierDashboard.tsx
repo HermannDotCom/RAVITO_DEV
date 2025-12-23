@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Clock } from 'lucide-react';
+import { Package, Clock, Navigation } from 'lucide-react';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { useOrder } from '../../context/OrderContext';
 import { useCommission } from '../../context/CommissionContext';
@@ -167,6 +167,31 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
               onViewDetails={(id) => onNavigate('orders')}
               onViewAll={() => onNavigate('orders')}
             />
+          )}
+
+          {/* Delivery Mode Quick Access */}
+          {activeDelivery && (
+            <div className="bg-gradient-to-r from-orange-500 to-green-500 rounded-2xl p-6 text-white shadow-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white bg-opacity-20 rounded-xl">
+                    <Navigation className="h-8 w-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-1">Mode Livreur</h3>
+                    <p className="text-white text-opacity-90">
+                      Interface simplifiée pour vos livraisons
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => onNavigate('delivery-mode')}
+                  className="px-6 py-3 bg-white text-orange-600 font-semibold rounded-xl hover:shadow-lg transition-all"
+                >
+                  Accéder →
+                </button>
+              </div>
+            </div>
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
