@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Livraison Terminée</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .header { background-color: #10b981; padding: 32px; text-align: center; color: #ffffff; }
+    .content { padding: 32px; }
+    .success-icon { width: 80px; height: 80px; background-color: #10b981; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 48px; }
+    .order-box { background-color: #ecfdf5; border: 2px solid #10b981; border-radius: 8px; padding: 20px; margin: 20px 0; }
+    .rating-box { background-color: #fff7ed; border: 2px solid #fdba74; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center; }
+    .btn { display: inline-block; background-color: #f97316; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 10px 0; }
+    .footer { background-color: #f4f4f5; padding: 20px; text-align: center; color: #6b7280; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0; font-size: 28px;">🎉 Livraison Terminée</h1>
+    </div>
+    <div class="content">
+      <div style="text-align: center;">
+        <div class="success-icon">✓</div>
+      </div>
+      
+      <p style="font-size: 16px; color: #4b5563; text-align: center;">Bonjour {{clientName}},</p>
+      <p style="font-size: 16px; color: #4b5563; text-align: center;">Votre commande a été livrée avec succès !</p>
+      
+      <div class="order-box">
+        <h2 style="margin: 0 0 16px 0; color: #111827;">Commande #{{orderNumber}}</h2>
+        <p style="margin: 8px 0;"><strong>Fournisseur:</strong> {{supplierName}}</p>
+        <p style="margin: 8px 0;"><strong>Heure de livraison:</strong> {{deliveryTime}}</p>
+        <p style="margin: 8px 0;"><strong>Montant total:</strong> {{totalAmount}} FCFA</p>
+      </div>
+      
+      <div class="rating-box">
+        <h3 style="margin: 0 0 16px 0; color: #111827;">Comment s'est passée votre livraison ?</h3>
+        <div style="font-size: 32px; margin: 20px 0;">⭐⭐⭐⭐⭐</div>
+        <a href="{{ratingUrl}}" class="btn">Évaluer ma livraison</a>
+      </div>
+      
+      <p style="font-size: 16px; color: #4b5563; text-align: center; margin-top: 24px;">
+        Merci de votre confiance ! À très bientôt sur RAVITO. 🧡
+      </p>
+    </div>
+    <div class="footer">
+      <p>© 2024 RAVITO - Le ravitaillement qui ne dort jamais 🌙</p>
+    </div>
+  </div>
+</body>
+</html>

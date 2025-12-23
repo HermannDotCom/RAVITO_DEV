@@ -93,3 +93,58 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(request))
   );
 });
+
+// Push notification event - handle incoming push notifications
+self.addEventListener('push', function(event) {
+  console.log('Push notification received:', event);
+  
+  const data = event.data?.json() || {};
+  
+  const options = {
+    body: data.body || 'Nouvelle notification',
+    icon: data.icon || '/web-app-manifest-192x192.png',
+    badge: data.badge || '/favicon-96x96.png',
+    vibrate: [100, 50, 100],
+    data: {
+      url: data.url || '/',
+      notificationId: data.id
+    },
+    tag: data.tag || 'ravito-notification',
+    requireInteraction: data.requireInteraction || false,
+    actions: data.actions || []
+  };
+  
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'RAVITO', options)
+  );
+});
+
+// Notification click event - handle user interaction with notifications
+self.addEventListener('notificationclick', function(event) {
+  console.log('Notification clicked:', event);
+  
+  event.notification.close();
+  
+  const url = event.notification.data?.url || '/';
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      // Check if there is already a window open with the target URL
+      for (const client of windowClients) {
+        if (client.url === url && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If not, open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(url);
+      }
+    })
+  );
+});
+
+// Notification close event - handle notification dismissal (optional)
+self.addEventListener('notificationclose', function(event) {
+  console.log('Notification closed:', event);
+  // Optional: Track notification dismissal analytics
+});

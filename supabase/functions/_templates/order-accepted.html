@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Commande Acceptée</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .header { background-color: #10b981; padding: 32px; text-align: center; color: #ffffff; }
+    .content { padding: 32px; }
+    .order-box { background-color: #ecfdf5; border: 2px solid #10b981; border-radius: 8px; padding: 20px; margin: 20px 0; }
+    .btn { display: inline-block; background-color: #10b981; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+    .footer { background-color: #f4f4f5; padding: 20px; text-align: center; color: #6b7280; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0; font-size: 28px;">✅ Commande Acceptée</h1>
+    </div>
+    <div class="content">
+      <p style="font-size: 16px; color: #4b5563;">Bonjour {{clientName}},</p>
+      <p style="font-size: 16px; color: #4b5563;">Bonne nouvelle ! Votre commande a été acceptée par {{supplierName}}.</p>
+      
+      <div class="order-box">
+        <h2 style="margin: 0 0 16px 0; color: #111827;">Commande #{{orderNumber}}</h2>
+        <p style="margin: 8px 0;"><strong>Fournisseur:</strong> {{supplierName}}</p>
+        <p style="margin: 8px 0;"><strong>Montant total:</strong> {{totalAmount}} FCFA</p>
+        <p style="margin: 8px 0;"><strong>Statut:</strong> En préparation</p>
+      </div>
+      
+      <div style="text-align: center;">
+        <a href="{{trackingUrl}}" class="btn">Suivre ma commande</a>
+      </div>
+      
+      <p style="font-size: 14px; color: #6b7280; text-align: center; margin-top: 24px;">
+        Vous serez notifié lorsque la livraison sera en cours.
+      </p>
+    </div>
+    <div class="footer">
+      <p>© 2024 RAVITO - Le ravitaillement qui ne dort jamais 🌙</p>
+    </div>
+  </div>
+</body>
+</html>
