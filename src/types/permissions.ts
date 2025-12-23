@@ -45,3 +45,19 @@ export interface ModuleAccessState {
   isOwner: boolean;
   isSuperAdmin: boolean;
 }
+
+// Pour la gestion des permissions d'équipe
+export interface TeamMemberWithPermissions {
+  id: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  avatarUrl?: string;
+  role: 'owner' | 'manager' | 'employee' | 'driver';
+  permissions: UserModulePermission[];
+}
+
+export interface PermissionUpdate {
+  moduleKey: string;
+  enabled: boolean;
+}
