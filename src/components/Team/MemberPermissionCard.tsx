@@ -35,7 +35,7 @@ export const MemberPermissionCard: React.FC<MemberPermissionCardProps> = ({
   });
 
   // Get member's display name
-  const displayName = member.email.split('@')[0] || member.email;
+  const displayName = member.email ? member.email.split('@')[0] : 'Membre sans email';
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">

@@ -152,25 +152,27 @@ export const PermissionsTab: React.FC<PermissionsTabProps> = ({
         </div>
       ) : (
         <div className="space-y-6">
-          {editableMembers.map((member) => {
-            const permissions = memberPermissions.get(member.userId || '') || [];
-            const savingModule = savingStates.get(member.userId || '');
+          {editableMembers
+            .filter((member) => member.userId) // Filter out members without userId
+            .map((member) => {
+              const permissions = memberPermissions.get(member.userId!) || [];
+              const savingModule = savingStates.get(member.userId!);
 
-            return (
-              <MemberPermissionCard
-                key={member.id}
-                member={member}
-                modules={availableModules}
-                permissions={permissions}
-                onPermissionChange={(moduleKey, enabled) =>
-                  handlePermissionChange(member.userId || '', moduleKey, enabled)
-                }
-                canEdit={canEdit}
-                isLoading={isLoading}
-                savingModule={savingModule}
-              />
-            );
-          })}
+              return (
+                <MemberPermissionCard
+                  key={member.id}
+                  member={member}
+                  modules={availableModules}
+                  permissions={permissions}
+                  onPermissionChange={(moduleKey, enabled) =>
+                    handlePermissionChange(member.userId!, moduleKey, enabled)
+                  }
+                  canEdit={canEdit}
+                  isLoading={isLoading}
+                  savingModule={savingModule}
+                />
+              );
+            })}
         </div>
       )}
     </div>
