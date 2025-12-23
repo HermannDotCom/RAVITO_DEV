@@ -106,6 +106,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
       map.current?.remove();
       map.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [readOnly]);
 
   // Update marker position when coordinates change externally
