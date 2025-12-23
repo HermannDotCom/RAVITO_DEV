@@ -363,3 +363,15 @@ export {
   STATUS_COLORS,
   STATUS_LABELS
 } from './team';
+
+// ============================================
+// MODULE PERMISSIONS TYPES - Re-export from permissions.ts
+// ============================================
+export type {
+  InterfaceType,
+  AvailableModule,
+  UserModulePermission,
+  ModulePermissionWithDetails,
+  PermissionAssignment,
+  ModuleAccessState
+} from './permissions';
