@@ -432,17 +432,18 @@ export const getReviews = async (
   try {
     const offset = (page - 1) * limit;
     
+    // Fetch limit + 1 to check if there are more records
     const { data: ratings, error } = await supabase
       .from('ratings')
       .select('id, overall, comment, created_at, from_user_role')
       .eq('to_user_id', userId)
       .eq('to_user_role', userType)
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit);
+      .range(offset, offset + limit); // Fetch one extra to check for more
 
     if (error) throw error;
 
-    const reviews: Review[] = (ratings || []).map(r => ({
+    const reviews: Review[] = (ratings || []).slice(0, limit).map(r => ({
       id: r.id,
       rating: parseFloat(r.overall.toString()),
       comment: r.comment,
@@ -452,7 +453,7 @@ export const getReviews = async (
 
     return {
       reviews,
-      hasMore: ratings ? ratings.length === limit + 1 : false
+      hasMore: ratings ? ratings.length > limit : false
     };
   } catch (error) {
     console.error('Error fetching reviews:', error);

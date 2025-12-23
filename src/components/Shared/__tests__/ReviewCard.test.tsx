@@ -52,6 +52,6 @@ describe('ReviewCard', () => {
       createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString() // 30 minutes ago
     };
     render(<ReviewCard review={recentReview} />);
-    expect(screen.getByText(/Il y a 30 minute/)).toBeInTheDocument();
+    expect(screen.getByText(/Il y a 30 minutes/)).toBeInTheDocument();
   });
 });

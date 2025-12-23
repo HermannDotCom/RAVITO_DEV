@@ -12,10 +12,10 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
     const diffDays = Math.floor(diffHours / 24);
     const diffWeeks = Math.floor(diffDays / 7);
 
-    if (diffMins < 60) return `Il y a ${diffMins} minute${diffMins > 1 ? 's' : ''}`;
-    if (diffHours < 24) return `Il y a ${diffHours} heure${diffHours > 1 ? 's' : ''}`;
-    if (diffDays < 7) return `Il y a ${diffDays} jour${diffDays > 1 ? 's' : ''}`;
-    if (diffWeeks < 4) return `Il y a ${diffWeeks} semaine${diffWeeks > 1 ? 's' : ''}`;
+    if (diffMins < 60) return `Il y a ${diffMins} minute${diffMins !== 1 ? 's' : ''}`;
+    if (diffHours < 24) return `Il y a ${diffHours} heure${diffHours !== 1 ? 's' : ''}`;
+    if (diffDays < 7) return `Il y a ${diffDays} jour${diffDays !== 1 ? 's' : ''}`;
+    if (diffWeeks < 4) return `Il y a ${diffWeeks} semaine${diffWeeks !== 1 ? 's' : ''}`;
     
     return new Intl.DateTimeFormat('fr-FR', {
       day: 'numeric',
