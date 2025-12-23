@@ -46,17 +46,10 @@ export function usePushNotifications(): UsePushNotificationsReturn {
     checkSupport();
   }, []);
 
-  // Check current subscription status
-  useEffect(() => {
-    if (!isSupported || !user) {
-      setIsSubscribed(false);
-      return;
-    }
-
-    checkSubscription();
-  }, [isSupported, user]);
-
-  const checkSubscription = async () => {
+  /**
+   * Check current subscription status
+   */
+  const checkSubscription = useCallback(async () => {
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
@@ -65,7 +58,17 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       console.error('Error checking subscription:', err);
       setIsSubscribed(false);
     }
-  };
+  }, []);
+
+  // Check current subscription status
+  useEffect(() => {
+    if (!isSupported || !user) {
+      setIsSubscribed(false);
+      return;
+    }
+
+    checkSubscription();
+  }, [isSupported, user, checkSubscription]);
 
   /**
    * Convert VAPID key from base64 to Uint8Array

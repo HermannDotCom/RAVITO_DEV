@@ -125,19 +125,24 @@ self.addEventListener('notificationclick', function(event) {
   
   event.notification.close();
   
-  const url = event.notification.data?.url || '/';
+  const notificationUrl = event.notification.data?.url || '/';
   
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      // Parse URLs for proper comparison
+      const targetUrl = new URL(notificationUrl, self.location.origin);
+      
       // Check if there is already a window open with the target URL
       for (const client of windowClients) {
-        if (client.url === url && 'focus' in client) {
+        const clientUrl = new URL(client.url);
+        // Compare pathname to handle absolute vs relative URLs
+        if (clientUrl.pathname === targetUrl.pathname && 'focus' in client) {
           return client.focus();
         }
       }
       // If not, open a new window
       if (clients.openWindow) {
-        return clients.openWindow(url);
+        return clients.openWindow(targetUrl.href);
       }
     })
   );

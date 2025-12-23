@@ -78,7 +78,9 @@ Deno.serve(async (req: Request) => {
     };
 
     // 2. Check if notification type is enabled for this user
-    const notificationTypeKey = `notify_${type.replace(/-/g, '_')}`;
+    // Normalize type: 'new-order' or 'new_order' both become 'notify_new_order'
+    const normalizedType = type.replace(/-/g, '_');
+    const notificationTypeKey = `notify_${normalizedType}`;
     if (userPrefs[notificationTypeKey] === false) {
       return new Response(
         JSON.stringify({ 

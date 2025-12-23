@@ -16,7 +16,9 @@ export const NotificationPreferences: React.FC = () => {
     if (user) {
       loadPreferences();
     }
-  }, [user, loadPreferences]);
+    // loadPreferences is memoized with useCallback and depends on user
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const loadPreferences = useCallback(async () => {
     if (!user) return;
