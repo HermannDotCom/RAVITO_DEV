@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { RatingDetails, RatingDistribution, Review } from '../types/rating';
 
 export interface Rating {
   id: string;
@@ -367,5 +368,125 @@ export const hasUserRatedOrder = async (orderId: string, userId: string): Promis
   } catch (error) {
     console.error('Error checking if user rated order:', error);
     return false;
+  }
+};
+
+/**
+ * Get detailed rating statistics for a user
+ */
+export const getRatingDetails = async (
+  userId: string,
+  userType: 'client' | 'supplier'
+): Promise<RatingDetails | null> => {
+  try {
+    const { data: ratings, error } = await supabase
+      .from('ratings')
+      .select('overall, punctuality, quality, communication')
+      .eq('to_user_id', userId)
+      .eq('to_user_role', userType);
+
+    if (error) throw error;
+
+    if (!ratings || ratings.length === 0) {
+      return {
+        userId,
+        userType,
+        averageRating: 0,
+        totalReviews: 0,
+        distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+      };
+    }
+
+    // Calculate average rating
+    const averageRating = ratings.reduce((sum, r) => sum + parseFloat(r.overall.toString()), 0) / ratings.length;
+
+    // Calculate distribution
+    const distribution: RatingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    ratings.forEach(r => {
+      const roundedRating = Math.round(parseFloat(r.overall.toString())) as 1 | 2 | 3 | 4 | 5;
+      distribution[roundedRating]++;
+    });
+
+    return {
+      userId,
+      userType,
+      averageRating: Math.round(averageRating * 10) / 10,
+      totalReviews: ratings.length,
+      distribution
+    };
+  } catch (error) {
+    console.error('Error fetching rating details:', error);
+    return null;
+  }
+};
+
+/**
+ * Get paginated reviews for a user
+ */
+export const getReviews = async (
+  userId: string,
+  userType: 'client' | 'supplier',
+  page: number = 1,
+  limit: number = 10
+): Promise<{ reviews: Review[]; hasMore: boolean }> => {
+  try {
+    const offset = (page - 1) * limit;
+    
+    // Fetch limit + 1 to check if there are more records
+    const { data: ratings, error } = await supabase
+      .from('ratings')
+      .select('id, overall, comment, created_at, from_user_role')
+      .eq('to_user_id', userId)
+      .eq('to_user_role', userType)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit); // Fetch one extra to check for more
+
+    if (error) throw error;
+
+    const reviews: Review[] = (ratings || []).slice(0, limit).map(r => ({
+      id: r.id,
+      rating: parseFloat(r.overall.toString()),
+      comment: r.comment,
+      createdAt: r.created_at,
+      reviewerType: r.from_user_role as 'client' | 'supplier'
+    }));
+
+    return {
+      reviews,
+      hasMore: ratings ? ratings.length > limit : false
+    };
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    return { reviews: [], hasMore: false };
+  }
+};
+
+/**
+ * Calculate rating distribution for a user
+ */
+export const getRatingDistribution = async (
+  userId: string,
+  userType: 'client' | 'supplier'
+): Promise<RatingDistribution> => {
+  try {
+    const { data: ratings, error } = await supabase
+      .from('ratings')
+      .select('overall')
+      .eq('to_user_id', userId)
+      .eq('to_user_role', userType);
+
+    if (error) throw error;
+
+    const distribution: RatingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    
+    (ratings || []).forEach(r => {
+      const roundedRating = Math.round(parseFloat(r.overall.toString())) as 1 | 2 | 3 | 4 | 5;
+      distribution[roundedRating]++;
+    });
+
+    return distribution;
+  } catch (error) {
+    console.error('Error calculating rating distribution:', error);
+    return { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
   }
 };

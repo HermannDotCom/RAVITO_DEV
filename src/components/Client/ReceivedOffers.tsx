@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Package, CheckCircle, XCircle, MessageSquare, AlertCircle, CreditCard, Star } from 'lucide-react';
+import { Package, CheckCircle, XCircle, MessageSquare, AlertCircle, CreditCard } from 'lucide-react';
 import { Order } from '../../types';
 import { SupplierOffer, getOffersByOrder, acceptOffer, rejectOffer } from '../../services/supplierOfferService';
+import { RatingBadge } from '../Shared/RatingBadge';
 
 interface ReceivedOffersProps {
   order: Order;
@@ -159,13 +160,18 @@ export const ReceivedOffers: React.FC<ReceivedOffersProps> = ({ order, onOfferAc
                   Offre #{index + 1}
                 </h4>
                 <div className="flex items-center space-x-2 mt-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Note moyenne reçue du fournisseur :</span>
-                  <div className="flex items-center space-x-1">
-                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                      {offer.supplierRating?.toFixed(1) || 'N/A'}
-                    </span>
-                  </div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Note du fournisseur :</span>
+                  {offer.supplierRating && offer.supplierRating > 0 ? (
+                    <RatingBadge
+                      rating={offer.supplierRating}
+                      reviewCount={1}
+                      userId={offer.supplierId}
+                      userType="supplier"
+                      size="sm"
+                    />
+                  ) : (
+                    <span className="text-sm text-gray-500 dark:text-gray-400">N/A</span>
+                  )}
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   Reçue le {formatDate(offer.createdAt)}

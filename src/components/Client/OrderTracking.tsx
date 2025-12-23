@@ -6,6 +6,7 @@ import { OrderStatus, CrateType, PaymentMethod } from '../../types';
 import { PaymentFlow } from './PaymentFlow';
 import { DeliveryTracking } from './DeliveryTracking';
 import { supabase } from '../../lib/supabase';
+import { RatingBadge } from '../Shared/RatingBadge';
 
 // Statuts post-paiement où l'identité du fournisseur est révélée
 const REVEALED_STATUSES: OrderStatus[] = ['paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating'];
@@ -374,11 +375,14 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                 </div>
                 {supplierProfile.rating && supplierProfile.rating > 0 && (
                   <div className="text-right">
-                    <p className="text-xs text-gray-500 mb-1">Note moyenne reçue du fournisseur :</p>
-                    <div className="flex items-center space-x-1">
-                      <span className="text-yellow-400">★</span>
-                      <span className="text-sm font-semibold">{supplierProfile.rating.toFixed(1)}</span>
-                    </div>
+                    <p className="text-xs text-gray-500 mb-1">Note du fournisseur :</p>
+                    <RatingBadge
+                      rating={supplierProfile.rating}
+                      reviewCount={1}
+                      userId={supplierProfile.id}
+                      userType="supplier"
+                      size="sm"
+                    />
                   </div>
                 )}
               </div>
