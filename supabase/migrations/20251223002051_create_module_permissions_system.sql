@@ -81,7 +81,7 @@ ON CONFLICT (key) DO NOTHING;
 -- Admin interface modules
 INSERT INTO available_modules (key, name, description, icon, interface, display_order, is_always_accessible, is_owner_only, is_super_admin_only)
 VALUES 
-  ('admin_dashboard', 'Dashboard', 'Vue d''ensemble', 'LayoutDashboard', 'admin', 1, false, false, false),
+  ('admin_dashboard', 'Tableau de bord', 'Vue d''ensemble', 'LayoutDashboard', 'admin', 1, false, false, false),
   ('admin_users', 'Utilisateurs', 'Gestion utilisateurs', 'Users', 'admin', 2, false, false, false),
   ('admin_orders', 'Commandes', 'Toutes les commandes', 'Package', 'admin', 3, false, false, false),
   ('admin_products', 'Produits', 'Gestion catalogue', 'ShoppingBag', 'admin', 4, false, false, false),
