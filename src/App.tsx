@@ -81,6 +81,7 @@ import { SupplierContactSupport } from './components/Supplier/ContactSupport';
 import { KenteLoader } from './components/ui/KenteLoader';
 import { TicketManagement } from './components/Admin/TicketManagement';
 import { TeamPage } from './components/Team';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusIndicator';
 import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
 import { RatingReminder } from './components/Shared/RatingReminder';
@@ -220,6 +221,8 @@ const AppContent: React.FC = () => {
             return <ClientTreasury />;
           case 'team':
             return <TeamPage />;
+          case 'notifications':
+            return <NotificationsPage />;
           // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
           // case 'subscription':
           //   return <SubscriptionPage onNavigate={setActiveSection} />;
@@ -247,6 +250,8 @@ const AppContent: React.FC = () => {
             return <SupplierTreasury />;
           case 'team':
             return <TeamPage />;
+          case 'notifications':
+            return <NotificationsPage />;
           // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
           // case 'subscription':
           //   return <SubscriptionPage onNavigate={setActiveSection} />;
@@ -294,6 +299,8 @@ const AppContent: React.FC = () => {
             return <TeamPage />;
           case 'data':
             return <DataManagement />;
+          case 'notifications':
+            return <NotificationsPage />;
           case 'settings':
             return <SystemSettings />;
           case 'pricing':
