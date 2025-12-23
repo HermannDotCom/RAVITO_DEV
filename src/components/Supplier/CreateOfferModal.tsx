@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Minus, AlertCircle, Package } from 'lucide-react';
 import { Order } from '../../types';
-import { createSupplierOffer } from '../../services/supplierOfferService';
+import { createSupplierOffer, getSupplierPrices } from '../../services/supplierOfferService';
 import { useCommission } from '../../context/CommissionContext';
+import { supabase } from '../../lib/supabase';
 
 interface CreateOfferModalProps {
   order: Order;
@@ -19,6 +20,8 @@ interface ModifiedItem {
   unitPrice: number;
   cratePrice: number;
   consignPrice: number;
+  isCustomPrice?: boolean;
+  referenceCratePrice?: number;
 }
 
 export const CreateOfferModal: React.FC<CreateOfferModalProps> = ({ order, onClose, onSuccess }) => {
@@ -29,17 +32,51 @@ export const CreateOfferModal: React.FC<CreateOfferModalProps> = ({ order, onClo
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const items: ModifiedItem[] = order.items.map(item => ({
-      productId: item.product.id,
-      productName: item.product.name,
-      originalQuantity: item.quantity,
-      quantity: item.quantity,
-      withConsigne: item.withConsigne,
-      unitPrice: item.product.unitPrice,
-      cratePrice: item.product.cratePrice,
-      consignPrice: item.product.consignPrice
-    }));
-    setModifiedItems(items);
+    const loadSupplierPrices = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        // Fallback to reference prices if no user
+        const items: ModifiedItem[] = order.items.map(item => ({
+          productId: item.product.id,
+          productName: item.product.name,
+          originalQuantity: item.quantity,
+          quantity: item.quantity,
+          withConsigne: item.withConsigne,
+          unitPrice: item.product.unitPrice,
+          cratePrice: item.product.cratePrice,
+          consignPrice: item.product.consignPrice,
+          isCustomPrice: false,
+          referenceCratePrice: item.product.cratePrice
+        }));
+        setModifiedItems(items);
+        return;
+      }
+
+      // Fetch supplier's custom prices
+      const priceMap = await getSupplierPrices(user.id);
+
+      // Use supplier prices with fallback to Ravito reference prices
+      const items: ModifiedItem[] = order.items.map(item => {
+        const supplierPrice = priceMap.get(item.product.id);
+        
+        return {
+          productId: item.product.id,
+          productName: item.product.name,
+          originalQuantity: item.quantity,
+          quantity: item.quantity,
+          withConsigne: item.withConsigne,
+          unitPrice: supplierPrice?.unit_price ?? item.product.unitPrice,
+          cratePrice: supplierPrice?.crate_price ?? item.product.cratePrice,
+          consignPrice: supplierPrice?.consign_price ?? item.product.consignPrice,
+          isCustomPrice: !!supplierPrice,
+          referenceCratePrice: item.product.cratePrice
+        };
+      });
+      
+      setModifiedItems(items);
+    };
+
+    loadSupplierPrices();
   }, [order]);
 
   const updateQuantity = (productId: string, newQuantity: number) => {
@@ -142,6 +179,19 @@ export const CreateOfferModal: React.FC<CreateOfferModalProps> = ({ order, onClo
             </div>
           )}
 
+          {modifiedItems.some(item => !item.isCustomPrice) && (
+            <div className="mb-4 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg flex items-start">
+              <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400 mr-2 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-orange-800 dark:text-orange-300">
+                <p className="font-semibold mb-1">Prix par défaut utilisés</p>
+                <p>
+                  Certains produits utilisent les prix de référence Ravito. 
+                  Définissez vos propres prix dans votre grille tarifaire pour être plus compétitif.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <p className="text-sm text-blue-800 dark:text-blue-300">
               <strong>Note:</strong> Vous pouvez modifier les quantités selon vos disponibilités.
@@ -173,6 +223,15 @@ export const CreateOfferModal: React.FC<CreateOfferModalProps> = ({ order, onClo
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Prix: {formatPrice(item.cratePrice)}
                     </p>
+                    {item.isCustomPrice ? (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                        ✓ Prix personnalisé
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400">
+                        ⚠ Prix par défaut
+                      </span>
+                    )}
                   </div>
                 </div>
 
