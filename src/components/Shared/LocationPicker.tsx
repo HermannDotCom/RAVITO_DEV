@@ -3,10 +3,16 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin, Navigation, Search } from 'lucide-react';
 
-// Mapbox access token - should be in environment variable
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoicmF2aXRvLWNpIiwiYSI6ImNtNTRuZjVmbjBnbWMybHM1cHFnODRxenkifQ.qK9gYZqLJOxJYJyYJYqYJQ';
+// Mapbox access token - must be provided via environment variable
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
-mapboxgl.accessToken = MAPBOX_TOKEN;
+if (!MAPBOX_TOKEN) {
+  console.error('VITE_MAPBOX_TOKEN is not defined. Map functionality will be disabled.');
+}
+
+if (MAPBOX_TOKEN) {
+  mapboxgl.accessToken = MAPBOX_TOKEN;
+}
 
 interface LocationData {
   latitude: number;
@@ -199,8 +205,16 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
   return (
     <div className="space-y-3">
+      {!MAPBOX_TOKEN && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-sm text-yellow-800">
+            ⚠️ La carte est temporairement indisponible. La configuration Mapbox est manquante.
+          </p>
+        </div>
+      )}
+
       {/* Search bar */}
-      {showSearchBar && !readOnly && (
+      {showSearchBar && !readOnly && MAPBOX_TOKEN && (
         <div className="flex space-x-2">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -224,7 +238,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
       )}
 
       {/* GPS button */}
-      {showGpsButton && !readOnly && (
+      {showGpsButton && !readOnly && MAPBOX_TOKEN && (
         <button
           onClick={handleGetCurrentLocation}
           className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
@@ -235,11 +249,13 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
       )}
 
       {/* Map container */}
-      <div 
-        ref={mapContainer} 
-        className="w-full rounded-lg overflow-hidden border border-gray-300"
-        style={{ height }}
-      />
+      {MAPBOX_TOKEN && (
+        <div 
+          ref={mapContainer} 
+          className="w-full rounded-lg overflow-hidden border border-gray-300"
+          style={{ height }}
+        />
+      )}
 
       {/* Address display */}
       <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
