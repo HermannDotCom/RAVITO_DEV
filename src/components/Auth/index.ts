@@ -6,3 +6,4 @@ export { RegisterFormStep1 } from './RegisterFormStep1';
 export { RegisterFormStep2 } from './RegisterFormStep2';
 export { RegisterFormStep3 } from './RegisterFormStep3';
 export { DemoAccountSelector } from './DemoAccountSelector';
+export { ProtectedModule, AccessDeniedMessage } from './ProtectedModule';

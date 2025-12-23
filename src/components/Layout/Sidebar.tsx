@@ -17,6 +17,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useModuleAccess } from '../../hooks/useModuleAccess';
 import { MoreMenu } from '../ui/MoreMenu';
 
 interface SidebarProps {
@@ -28,71 +29,87 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection, onSectionChange }) => {
   const { user } = useAuth();
+  const { hasAccess } = useModuleAccess();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const getMainMenuItems = () => {
     if (!user) return [];
 
+    let allMenuItems: Array<{ id: string; label: string; icon: any; moduleKey?: string }> = [];
+
     switch (user.role) {
       case 'client':
-        return [
-          { id: 'dashboard', label: 'Accueil', icon: Home },
-          { id: 'catalog', label: 'Catalogue', icon: ShoppingBag },
-          { id: 'cart', label: 'Panier', icon: ShoppingCart },
-          { id: 'orders', label: 'Mes Commandes', icon: Package },
+        allMenuItems = [
+          { id: 'dashboard', label: 'Accueil', icon: Home, moduleKey: 'dashboard' },
+          { id: 'catalog', label: 'Catalogue', icon: ShoppingBag, moduleKey: 'catalog' },
+          { id: 'cart', label: 'Panier', icon: ShoppingCart, moduleKey: 'cart' },
+          { id: 'orders', label: 'Mes Commandes', icon: Package, moduleKey: 'orders' },
           { id: 'more', label: 'Plus...', icon: MoreHorizontal },
         ];
+        break;
       case 'supplier':
-        return [
-          { id: 'dashboard', label: 'Accueil', icon: Home },
-          { id: 'orders', label: 'Commandes', icon: Package },
-          { id: 'deliveries', label: 'Livraisons', icon: Truck },
-          { id: 'treasury', label: 'Revenus', icon: Wallet },
+        allMenuItems = [
+          { id: 'dashboard', label: 'Accueil', icon: Home, moduleKey: 'dashboard' },
+          { id: 'orders', label: 'Commandes', icon: Package, moduleKey: 'orders' },
+          { id: 'deliveries', label: 'Livraisons', icon: Truck, moduleKey: 'deliveries' },
+          { id: 'treasury', label: 'Revenus', icon: Wallet, moduleKey: 'treasury' },
           { id: 'more', label: 'Plus...', icon: MoreHorizontal },
         ];
+        break;
       case 'admin':
-        return [
-          { id: 'analytics', label: 'Analyses', icon: BarChart3 },
-          { id: 'users', label: 'Utilisateurs', icon: Users },
-          { id: 'orders', label: 'Commandes', icon: Package },
-          { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag },
-          { id: 'pricing', label: 'Prix de Reference', icon: DollarSign },
-          { id: 'treasury', label: 'Tresorerie', icon: CreditCard },
-          { id: 'commissions', label: 'Mes Commissions', icon: Wallet },
-          { id: 'zones', label: 'Zones de Livraison', icon: MapPin },
-          { id: 'team', label: 'Mon Equipe', icon: Users },
-          { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare },
-          { id: 'data', label: 'Gestion des Donnees', icon: Settings },
-          { id: 'settings', label: 'Parametres', icon: Settings }
+        allMenuItems = [
+          { id: 'analytics', label: 'Analyses', icon: BarChart3, moduleKey: 'analytics' },
+          { id: 'users', label: 'Utilisateurs', icon: Users, moduleKey: 'users' },
+          { id: 'orders', label: 'Commandes', icon: Package, moduleKey: 'orders' },
+          { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag, moduleKey: 'products' },
+          { id: 'pricing', label: 'Prix de Reference', icon: DollarSign, moduleKey: 'pricing' },
+          { id: 'treasury', label: 'Tresorerie', icon: CreditCard, moduleKey: 'treasury' },
+          { id: 'commissions', label: 'Mes Commissions', icon: Wallet, moduleKey: 'commissions' },
+          { id: 'zones', label: 'Zones de Livraison', icon: MapPin, moduleKey: 'zones' },
+          { id: 'team', label: 'Mon Equipe', icon: Users, moduleKey: 'team' },
+          { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare, moduleKey: 'tickets' },
+          { id: 'data', label: 'Gestion des Donnees', icon: Settings, moduleKey: 'data' },
+          { id: 'settings', label: 'Parametres', icon: Settings, moduleKey: 'settings' }
         ];
+        break;
       default:
         return [];
     }
+
+    // Filter based on permissions (keep items without moduleKey like "more")
+    return allMenuItems.filter(item => !item.moduleKey || hasAccess(item.moduleKey));
   };
 
   const getSecondaryMenuItems = () => {
     if (!user) return [];
 
+    let allSecondaryItems: Array<{ id: string; label: string; icon: any; moduleKey?: string }> = [];
+
     switch (user.role) {
       case 'client':
-        return [
-          { id: 'profile', label: 'Mon Profil', icon: Settings },
-          { id: 'treasury', label: 'Trésorerie', icon: Wallet },
-          { id: 'team', label: 'Mon Équipe', icon: Users },
-          { id: 'support', label: 'Support', icon: MessageSquare },
+        allSecondaryItems = [
+          { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
+          { id: 'treasury', label: 'Trésorerie', icon: Wallet, moduleKey: 'treasury' },
+          { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
+          { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
         ];
+        break;
       case 'supplier':
-        return [
-          { id: 'zones', label: 'Mes Zones', icon: MapPin },
-          { id: 'pricing', label: 'Produits vendus', icon: DollarSign },
-          { id: 'team', label: 'Mon Équipe', icon: Users },
-          { id: 'history', label: 'Historique', icon: Clock },
-          { id: 'support', label: 'Support', icon: MessageSquare },
-          { id: 'profile', label: 'Mon Profil', icon: Settings },
+        allSecondaryItems = [
+          { id: 'zones', label: 'Mes Zones', icon: MapPin, moduleKey: 'zones' },
+          { id: 'pricing', label: 'Produits vendus', icon: DollarSign, moduleKey: 'pricing' },
+          { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
+          { id: 'history', label: 'Historique', icon: Clock, moduleKey: 'history' },
+          { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
+          { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
         ];
+        break;
       default:
         return [];
     }
+
+    // Filter based on permissions
+    return allSecondaryItems.filter(item => !item.moduleKey || hasAccess(item.moduleKey));
   };
 
   const mainMenuItems = getMainMenuItems();
