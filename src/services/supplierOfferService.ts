@@ -324,6 +324,15 @@ export interface SupplierPriceGrid {
 /**
  * Fetches supplier's custom prices from supplier_price_grids table
  * Returns a Map for quick lookup by product_id
+ * 
+ * @param supplierId - The UUID of the supplier
+ * @returns Map with product_id as key and SupplierPriceGrid as value
+ *          Returns empty Map if no custom prices found or on error
+ * 
+ * Error Handling:
+ * - Database errors are logged and empty Map is returned
+ * - Exceptions are caught and empty Map is returned
+ * - Allows graceful fallback to reference prices
  */
 export async function getSupplierPrices(
   supplierId: string

@@ -64,7 +64,7 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedOrderTab, setSelectedOrderTab] = useState<'available' | 'pending' | 'active'>('available');
 
-  const handleViewDetails = async (order: Order, activeTab: 'available' | 'pending' | 'active') => {
+  const handleViewDetails = async (order: Order, activeTab: 'available' | 'pending' | 'active'): Promise<void> => {
     if (hasPendingRatings) {
       setShowRatingModal(true);
       return;
