@@ -34,8 +34,21 @@ export const MemberPermissionCard: React.FC<MemberPermissionCardProps> = ({
     permissionMap.set(perm.moduleKey, perm.hasAccess);
   });
 
-  // Get member's display name
-  const displayName = member.email ? member.email.split('@')[0] : 'Membre sans email';
+  // Get member's display name with fallback logic
+  const getDisplayName = (member: OrganizationMember): string => {
+    // Try to extract name from email
+    if (member.email && member.email.includes('@')) {
+      return member.email.split('@')[0];
+    }
+    // Fallback to email if no @ sign
+    if (member.email) {
+      return member.email;
+    }
+    // Last resort fallback
+    return 'Membre';
+  };
+
+  const displayName = getDisplayName(member);
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">

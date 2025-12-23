@@ -152,8 +152,10 @@ export const PermissionsTab: React.FC<PermissionsTabProps> = ({
         </div>
       ) : (
         <div className="space-y-6">
+          {/* Filter members who have a userId (active members only) 
+              Members without userId are typically pending invitations */}
           {editableMembers
-            .filter((member) => member.userId) // Filter out members without userId
+            .filter((member) => member.userId)
             .map((member) => {
               const permissions = memberPermissions.get(member.userId!) || [];
               const savingModule = savingStates.get(member.userId!);
