@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { PaymentMethod } from '../../types';
 import { ZoneSelector } from './ZoneSelector';
+import { LocationPicker } from '../Shared/LocationPicker';
 
 export const ClientProfile: React.FC = () => {
   const { user } = useAuth();
@@ -24,7 +25,10 @@ export const ClientProfile: React.FC = () => {
     businessName: '',
     businessHours: '',
     responsiblePerson: user?.name || '',
-    preferredPayments: [] as PaymentMethod[]
+    preferredPayments: [] as PaymentMethod[],
+    deliveryLatitude: user?.deliveryLatitude || null,
+    deliveryLongitude: user?.deliveryLongitude || null,
+    deliveryInstructions: user?.deliveryInstructions || ''
   });
 
   useEffect(() => {
@@ -38,7 +42,10 @@ export const ClientProfile: React.FC = () => {
         businessName: (user as any).businessName || user.name,
         businessHours: (user as any).businessHours || '',
         responsiblePerson: (user as any).responsiblePerson || user.name,
-        preferredPayments: (user as any).preferredPayments || []
+        preferredPayments: (user as any).preferredPayments || [],
+        deliveryLatitude: user.deliveryLatitude || null,
+        deliveryLongitude: user.deliveryLongitude || null,
+        deliveryInstructions: user.deliveryInstructions || ''
       });
     }
   }, [user, hasLoadedStats]);
@@ -107,7 +114,10 @@ export const ClientProfile: React.FC = () => {
           zone_id: formData.zoneId || null,
           business_name: formData.businessName,
           business_hours: formData.businessHours,
-          responsible_person: formData.responsiblePerson
+          responsible_person: formData.responsiblePerson,
+          delivery_latitude: formData.deliveryLatitude,
+          delivery_longitude: formData.deliveryLongitude,
+          delivery_instructions: formData.deliveryInstructions
         })
         .eq('id', user.id);
 
@@ -319,21 +329,40 @@ export const ClientProfile: React.FC = () => {
 
             {isEditing ? (
               <>
-                <textarea
-                  value={formData.address}
-                  onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 mb-4"
-                  placeholder="Entrez votre adresse complète..."
-                />
-                <ZoneSelector
-                  value={formData.zoneId}
-                  onChange={(zoneId) => setFormData(prev => ({ ...prev, zoneId }))}
-                  required={false}
+                <div className="mb-4">
+                  <ZoneSelector
+                    value={formData.zoneId}
+                    onChange={(zoneId) => setFormData(prev => ({ ...prev, zoneId }))}
+                    required={false}
+                  />
+                </div>
+                <LocationPicker
+                  initialLatitude={formData.deliveryLatitude}
+                  initialLongitude={formData.deliveryLongitude}
+                  initialAddress={formData.address}
+                  initialInstructions={formData.deliveryInstructions || ''}
+                  onLocationChange={(location) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      address: location.address,
+                      deliveryLatitude: location.latitude,
+                      deliveryLongitude: location.longitude,
+                      deliveryInstructions: location.instructions
+                    }));
+                  }}
+                  showSearchBar={true}
+                  showGpsButton={true}
+                  showInstructions={true}
                 />
               </>
             ) : (
-              <p className="text-gray-900">{formData.address || 'Non renseignée'}</p>
+              <LocationPicker
+                initialLatitude={formData.deliveryLatitude}
+                initialLongitude={formData.deliveryLongitude}
+                initialAddress={formData.address}
+                readOnly={true}
+                height="200px"
+              />
             )}
           </div>
 

@@ -36,7 +36,9 @@ interface OrderContextType {
     coordinates: { lat: number; lng: number },
     paymentMethod: PaymentMethod,
     commissionSettings: { clientCommission: number; supplierCommission: number },
-    zoneId?: string
+    zoneId?: string,
+    deliveryInstructions?: string,
+    usesProfileAddress?: boolean
   ) => Promise<{ success: boolean; orderId?: string; error?: string }>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<boolean>;
   acceptSupplierOffer: (orderId: string) => Promise<boolean>;
@@ -164,7 +166,9 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     coordinates: { lat: number; lng: number },
     paymentMethod: PaymentMethod,
     commissionSettings: { clientCommission: number; supplierCommission: number },
-    zoneId?: string
+    zoneId?: string,
+    deliveryInstructions?: string,
+    usesProfileAddress?: boolean
   ) => {
     if (!user || user.role !== 'client') {
       return { success: false, error: 'Unauthorized' };
@@ -177,7 +181,9 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       coordinates,
       paymentMethod,
       commissionSettings,
-      zoneId
+      zoneId,
+      deliveryInstructions,
+      usesProfileAddress
     );
 
     if (result.success) {

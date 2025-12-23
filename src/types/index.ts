@@ -31,6 +31,9 @@ export interface User {
   rejectedAt?: Date;
   rejectionReason?: string;
   createdAt: Date;
+  deliveryLatitude?: number | null;
+  deliveryLongitude?: number | null;
+  deliveryInstructions?: string | null;
 }
 
 export interface Client extends User {
@@ -162,6 +165,10 @@ export interface Order {
   acceptedAt?: Date;
   deliveredAt?: Date;
   delivery_confirmation_code?: string;
+  deliveryLatitude?: number | null;
+  deliveryLongitude?: number | null;
+  deliveryInstructions?: string | null;
+  usesProfileAddress?: boolean;
 }
 
 export type OrderStatus =

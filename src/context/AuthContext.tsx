@@ -118,7 +118,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         businessHours: profile.business_hours || undefined,
         responsiblePerson: profile.responsible_person || undefined,
         coverageZone: profile.coverage_zone || undefined,
-        deliveryCapacity: profile.delivery_capacity as any || undefined
+        deliveryCapacity: profile.delivery_capacity as any || undefined,
+        deliveryLatitude: profile.delivery_latitude || null,
+        deliveryLongitude: profile.delivery_longitude || null,
+        deliveryInstructions: profile.delivery_instructions || null
       };
 
       setUser(mappedUser);

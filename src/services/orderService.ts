@@ -8,7 +8,9 @@ export async function createOrder(
   coordinates: { lat: number; lng: number },
   paymentMethod: PaymentMethod,
   commissionSettings: { clientCommission: number; supplierCommission: number },
-  zoneId?: string
+  zoneId?: string,
+  deliveryInstructions?: string,
+  usesProfileAddress?: boolean
 ): Promise<{ success: boolean; orderId?: string; error?: string }> {
   try {
     const subtotal = items.reduce((sum, item) => sum + (item.product.cratePrice * item.quantity), 0);
@@ -31,6 +33,10 @@ export async function createOrder(
       net_supplier_amount: 0,
       delivery_address: deliveryAddress,
       coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
+      delivery_latitude: coordinates.lat,
+      delivery_longitude: coordinates.lng,
+      delivery_instructions: deliveryInstructions || null,
+      uses_profile_address: usesProfileAddress !== undefined ? usesProfileAddress : true,
       payment_method: paymentMethod,
       payment_status: 'pending',
       zone_id: zoneId || null
@@ -322,7 +328,11 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
     acceptedAt: dbOrder.accepted_at ? new Date(dbOrder.accepted_at) : undefined,
     deliveredAt: dbOrder.delivered_at ? new Date(dbOrder.delivered_at) : undefined,
     paidAt: dbOrder.paid_at ? new Date(dbOrder.paid_at) : undefined,
-    transferredAt: dbOrder.transferred_at ? new Date(dbOrder.transferred_at) : undefined
+    transferredAt: dbOrder.transferred_at ? new Date(dbOrder.transferred_at) : undefined,
+    deliveryLatitude: dbOrder.delivery_latitude || null,
+    deliveryLongitude: dbOrder.delivery_longitude || null,
+    deliveryInstructions: dbOrder.delivery_instructions || null,
+    usesProfileAddress: dbOrder.uses_profile_address !== undefined ? dbOrder.uses_profile_address : true
   };
 
   return mappedOrder;
