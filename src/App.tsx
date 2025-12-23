@@ -89,6 +89,7 @@ import { SessionErrorBanner } from './components/Shared/SessionErrorBanner';
 import { BottomNavigation } from './components/Navigation/BottomNavigation';
 import { InstallPrompt } from './components/PWA/InstallPrompt';
 import { UpdatePrompt } from './components/PWA/UpdatePrompt';
+import { DeliveryModePage } from './components/Supplier/DeliveryMode/DeliveryModePage';
 // MVP: Premium tier dashboard disabled - Uncomment to reactivate post-MVP
 // import { PremiumTierDashboard } from './components/Supplier/PremiumTierDashboard';
 // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
@@ -242,6 +243,8 @@ const AppContent: React.FC = () => {
             );
           case 'deliveries':
             return <ActiveDeliveries onNavigate={setActiveSection} />;
+          case 'delivery-mode':
+            return <DeliveryModePage />;
           case 'history':
             return <DeliveryHistory onNavigate={setActiveSection} onClaimRequest={setClaimData} initialOrderIdToRate={orderIdToRate} onOrderRated={handleOrderRated} />;
           case 'profile':
