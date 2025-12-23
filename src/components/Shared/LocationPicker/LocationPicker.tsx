@@ -4,6 +4,7 @@ import L from 'leaflet';
 import { MapPin, Loader2, Navigation } from 'lucide-react';
 import { useGeolocation } from '../../../hooks/useGeolocation';
 import { useGeocoding } from '../../../hooks/useGeocoding';
+import { GeocodingResult } from '../../../types/geolocation';
 import './LocationPicker.css';
 
 // Default center: Abidjan, Côte d'Ivoire
@@ -124,7 +125,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   }, [gpsPosition, instructions, reverseGeocode, notifyLocationChange]);
 
   // Handle search input
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
     if (value.trim()) {
       search(value);
@@ -133,10 +134,10 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
       clearResults();
       setShowResults(false);
     }
-  };
+  }, [search, clearResults]);
 
   // Handle result selection
-  const handleResultSelect = useCallback((result: any) => {
+  const handleResultSelect = useCallback((result: GeocodingResult) => {
     const newPosition: [number, number] = [result.latitude, result.longitude];
     setPosition(newPosition);
     setAddress(result.displayName);
