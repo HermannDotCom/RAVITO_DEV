@@ -121,7 +121,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
         notifyLocationChange(gpsPosition.latitude, gpsPosition.longitude, addr, instructions);
       });
     }
-  }, [gpsPosition]);
+  }, [gpsPosition, instructions, reverseGeocode, notifyLocationChange]);
 
   // Handle search input
   const handleSearchChange = (value: string) => {
@@ -136,7 +136,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   };
 
   // Handle result selection
-  const handleResultSelect = (result: any) => {
+  const handleResultSelect = useCallback((result: any) => {
     const newPosition: [number, number] = [result.latitude, result.longitude];
     setPosition(newPosition);
     setAddress(result.displayName);
@@ -144,7 +144,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     setShowResults(false);
     clearResults();
     notifyLocationChange(result.latitude, result.longitude, result.displayName, instructions);
-  };
+  }, [instructions, clearResults, notifyLocationChange]);
 
   // Handle map click
   const handleMapClick = useCallback((lat: number, lng: number) => {
@@ -156,7 +156,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
       setAddress(addr);
       notifyLocationChange(lat, lng, addr, instructions);
     });
-  }, [instructions]);
+  }, [instructions, reverseGeocode, notifyLocationChange]);
 
   // Handle marker drag
   const handleMarkerDrag = useCallback((e: L.DragEndEvent) => {
@@ -170,23 +170,23 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
       setAddress(addr);
       notifyLocationChange(newPos.lat, newPos.lng, addr, instructions);
     });
-  }, [instructions]);
+  }, [instructions, reverseGeocode, notifyLocationChange]);
 
   // Handle instructions change
-  const handleInstructionsChange = (value: string) => {
+  const handleInstructionsChange = useCallback((value: string) => {
     setInstructions(value);
     notifyLocationChange(position[0], position[1], address, value);
-  };
+  }, [position, address, notifyLocationChange]);
 
   // Notify parent component of location changes
-  const notifyLocationChange = (lat: number, lng: number, addr: string, instr: string) => {
+  const notifyLocationChange = useCallback((lat: number, lng: number, addr: string, instr: string) => {
     onLocationChange({
       latitude: lat,
       longitude: lng,
       address: addr,
       instructions: instr,
     });
-  };
+  }, [onLocationChange]);
 
   return (
     <div className="location-picker-container">

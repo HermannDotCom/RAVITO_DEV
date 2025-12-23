@@ -1,6 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { GeocodingResult } from '../types/geolocation';
 
+// Get version from environment or use a fallback
+const APP_VERSION = import.meta.env.VITE_APP_VERSION || '1.5.4';
+
 const NOMINATIM_CONFIG = {
   baseUrl: 'https://nominatim.openstreetmap.org',
   params: {
@@ -11,7 +14,7 @@ const NOMINATIM_CONFIG = {
     'accept-language': 'fr'
   },
   headers: {
-    'User-Agent': 'RAVITO-App/1.5.4'
+    'User-Agent': `RAVITO-App/${APP_VERSION}`
   }
 };
 
@@ -32,7 +35,7 @@ export const useGeocoding = (): UseGeocodingReturn => {
   const [results, setResults] = useState<GeocodingResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimer = useRef<number | null>(null);
   const abortController = useRef<AbortController | null>(null);
 
   // Cleanup on unmount
