@@ -30,6 +30,10 @@ interface UseUserPermissionsReturn {
 /**
  * Hook to manage permissions for team members
  * Only accessible to owners and users with team management permissions
+ * 
+ * @param organizationId - Required for most operations. If not provided, 
+ *                          most methods will silently fail with warnings.
+ *                          Consider providing it from AuthContext or similar.
  */
 export function useUserPermissions(organizationId?: string): UseUserPermissionsReturn {
   const { user } = useAuth();

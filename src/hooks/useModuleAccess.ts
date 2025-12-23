@@ -98,18 +98,41 @@ export function useModuleAccess(interfaceType?: InterfaceType): UseModuleAccessR
     if (!userId) return false;
 
     try {
-      const { data, error: queryError } = await supabase
+      // First check if user has admin role
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', userId)
         .single();
 
-      if (queryError) throw queryError;
+      if (profileError) throw profileError;
 
-      // Check if user has super_admin role or is admin
-      return data?.role === 'admin' || data?.role === 'super_admin';
+      // User must have admin role
+      if (profileData?.role !== 'admin') return false;
+
+      // Check if they have super_admin member role in an organization
+      const { data: memberData, error: memberError } = await supabase
+        .from('organization_members')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'super_admin')
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (memberError && memberError.code !== 'PGRST116') {
+        // PGRST116 is "no rows returned" which is fine
+        if (memberError.code === '42P01' || memberError.message.includes('does not exist')) {
+          console.warn('organization_members table not found - using fallback mode');
+          // In fallback mode, any admin is treated as super admin
+          return true;
+        }
+        throw memberError;
+      }
+
+      return !!memberData;
     } catch (err) {
       console.error('Error checking super admin status:', err);
+      // In fallback mode, any admin is treated as super admin
       return false;
     }
   }, []);
@@ -208,7 +231,7 @@ export function useModuleAccess(interfaceType?: InterfaceType): UseModuleAccessR
       // 3. Find module details
       const module = availableModules.find(m => m.key === moduleKey);
 
-      // 4. Super Admin has access to all admin modules
+      // 4. Super Admin has access to all admin modules (only if interfaceType is explicitly 'admin')
       if (isSuperAdmin && interfaceType === 'admin') return true;
 
       // 5. Check if module is super_admin_only

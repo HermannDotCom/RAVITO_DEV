@@ -7,7 +7,7 @@ interface ProtectedModuleProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
   showAccessDenied?: boolean;
-  redirectTo?: string;
+  onAccessDenied?: () => void; // Callback for when access is denied
 }
 
 /**
@@ -18,7 +18,7 @@ export const ProtectedModule: React.FC<ProtectedModuleProps> = ({
   children,
   fallback,
   showAccessDenied = true,
-  redirectTo
+  onAccessDenied
 }) => {
   const { hasAccess, isLoading } = useModuleAccess();
 
@@ -33,9 +33,9 @@ export const ProtectedModule: React.FC<ProtectedModuleProps> = ({
 
   // Check access
   if (!hasAccess(moduleKey)) {
-    // Redirect if specified
-    if (redirectTo) {
-      window.location.href = redirectTo;
+    // Call onAccessDenied callback if provided
+    if (onAccessDenied) {
+      onAccessDenied();
       return null;
     }
 
