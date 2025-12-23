@@ -3,6 +3,13 @@ export type UserRole = 'client' | 'supplier' | 'admin';
 export type ProductCategory = 'biere' | 'soda' | 'vin' | 'eau' | 'spiritueux';
 export type CrateType = 'C24' | 'C12' | 'C12V' | 'C6' | 'CARTON24' | 'PACK6' | 'PACK12' | 'C20';
 
+export interface DeliveryLocation {
+  latitude: number | null;
+  longitude: number | null;
+  address: string;
+  instructions: string | null;
+}
+
 export interface User {
   id: string;
   email: string;
