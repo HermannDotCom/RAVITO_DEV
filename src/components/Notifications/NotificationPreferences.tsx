@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Bell, Mail, MessageSquare, Save, Loader } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { notificationService, NotificationPreferences as NotificationPreferencesType } from '../../services/notificationService';
@@ -16,9 +16,9 @@ export const NotificationPreferences: React.FC = () => {
     if (user) {
       loadPreferences();
     }
-  }, [user]);
+  }, [user, loadPreferences]);
 
-  const loadPreferences = async () => {
+  const loadPreferences = useCallback(async () => {
     if (!user) return;
 
     setIsLoading(true);
@@ -30,7 +30,7 @@ export const NotificationPreferences: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   const handleToggle = async (field: keyof NotificationPreferencesType) => {
     if (!preferences || !user) return;

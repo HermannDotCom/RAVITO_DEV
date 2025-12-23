@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Bell, Filter, Trash2, CheckCircle, Settings, Loader } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { NotificationPreferences } from '../components/Notifications/NotificationPreferences';
 
@@ -8,7 +7,6 @@ type TabType = 'all' | 'preferences';
 type FilterType = 'all' | 'unread' | 'orders' | 'deliveries' | 'payments';
 
 export const NotificationsPage: React.FC = () => {
-  const { user } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, isLoading } = useNotifications();
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [filter, setFilter] = useState<FilterType>('all');
