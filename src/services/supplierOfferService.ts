@@ -106,11 +106,9 @@ export async function createSupplierOffer(
     }
 
     if (error) {
-      console.error('❌ Error creating/updating supplier offer:', error);
+      console.error('Error creating/updating supplier offer:', error);
       return { success: false, error: error.message };
     }
-
-    console.log('✅ Supplier offer created successfully');
 
     return { success: true, offerId: data.id };
   } catch (error) {

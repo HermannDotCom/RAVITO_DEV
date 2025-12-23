@@ -121,7 +121,6 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             filter: `client_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('📦 Client order change detected:', payload);
             loadOrders();
           }
         )
@@ -138,7 +137,6 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             filter: `supplier_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('📦 Supplier order change detected:', payload);
             loadOrders();
           }
         )
@@ -147,7 +145,6 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     // Also listen for custom refresh events from realtime hooks
     const handleRefreshEvent = () => {
-      console.log('🔄 Manual refresh triggered');
       loadOrders();
     };
 

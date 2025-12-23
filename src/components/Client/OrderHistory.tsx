@@ -91,7 +91,6 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
       const updatedOrder = allOrders.find(o => o.id === selectedOrder.id);
       // Only update if the order exists and status has actually changed
       if (updatedOrder && updatedOrder.status !== selectedOrder.status) {
-        console.log('🔄 Updating selectedOrder status:', selectedOrder.status, '->', updatedOrder.status);
         setSelectedOrder(updatedOrder);
       }
     }
@@ -99,7 +98,6 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
       const updatedOrder = allOrders.find(o => o.id === orderForPayment.id);
       // Only update if the order exists and status has actually changed
       if (updatedOrder && updatedOrder.status !== orderForPayment.status) {
-        console.log('🔄 Updating orderForPayment status:', orderForPayment.status, '->', updatedOrder.status);
         setOrderForPayment(updatedOrder);
       }
     }
