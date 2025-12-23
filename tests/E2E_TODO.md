@@ -2,7 +2,7 @@
 
 ## Statut : DÉSACTIVÉS TEMPORAIREMENT
 
-Les tests E2E ont été désactivés le 2025-12-23 car ils n'étaient plus à jour avec les évolutions de l'application.
+Les tests E2E ont été désactivés en décembre 2024 pendant la phase de développement MVP car ils n'étaient plus à jour avec les évolutions de l'application.
 
 ## Raisons de la désactivation
 
