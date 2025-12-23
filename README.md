@@ -157,6 +157,8 @@ ravito/
 
 ## 🧪 Tests
 
+### Tests Unitaires
+
 ```bash
 # Lancer les tests
 npm test
@@ -169,6 +171,16 @@ npm run test:coverage
 ```
 
 **Coverage actuel :** 90%+ sur les contextes critiques
+
+### Tests E2E
+
+> ⚠️ **Note** : Les tests E2E sont temporairement désactivés pendant la phase de développement MVP. 
+> Voir [`tests/E2E_TODO.md`](./tests/E2E_TODO.md) pour plus d'informations.
+
+```bash
+# Les tests E2E seront réactivés avant la mise en production
+# npx playwright test
+```
 
 ---
 

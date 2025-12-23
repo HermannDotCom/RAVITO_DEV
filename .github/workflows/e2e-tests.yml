@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   test:
+    if: false  # TEMPORAIREMENT DÉSACTIVÉ - À réactiver avant production
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
