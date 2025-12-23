@@ -49,13 +49,33 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
    */
   const mapOrderToDelivery = async (order: Order): Promise<DeliveryOrder | null> => {
     try {
-      // Fetch client info
-      const { data: clientData, error: clientError } = await supabase
-        .rpc('get_client_info_for_order', { p_order_id: order.id });
+      // Fetch client info using RPC if available, fallback to direct query
+      let clientData: any = null;
+      
+      try {
+        const { data, error: rpcError } = await supabase
+          .rpc('get_client_info_for_order', { p_order_id: order.id });
+        
+        if (!rpcError && data) {
+          clientData = data;
+        }
+      } catch (rpcErr) {
+        console.warn('RPC not available, using fallback query:', rpcErr);
+      }
 
-      if (clientError) {
-        console.error('Error fetching client info:', clientError);
-        return null;
+      // Fallback: Query profiles directly if RPC fails
+      if (!clientData) {
+        const { data, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, name, business_name, phone, rating')
+          .eq('id', order.clientId)
+          .single();
+        
+        if (profileError) {
+          console.error('Error fetching client profile:', profileError);
+        } else {
+          clientData = data;
+        }
       }
 
       // Determine delivery status based on order status
@@ -75,6 +95,9 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
         .map(item => `${item.quantity}x ${item.product.name}`)
         .join(', ');
 
+      // Use consistent field name for confirmation code
+      const confirmationCode = order.delivery_confirmation_code || order.deliveryConfirmationCode || '';
+
       return {
         id: order.id,
         orderNumber: order.id.slice(0, 8).toUpperCase(),
@@ -88,9 +111,10 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
         paymentStatus: order.paymentStatus === 'paid' ? 'paid' : 'pending',
         paymentMethod: order.paymentMethod,
         assignedAt: order.acceptedAt?.toString() || order.createdAt.toString(),
-        startedAt: order.status === 'delivering' ? new Date().toISOString() : undefined,
+        // Don't set startedAt here - it should come from the database
+        startedAt: order.status === 'delivering' && order.acceptedAt ? order.acceptedAt.toString() : undefined,
         deliveredAt: order.deliveredAt?.toString(),
-        confirmationCode: order.delivery_confirmation_code || order.deliveryConfirmationCode || '',
+        confirmationCode,
         itemsCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
         itemsSummary,
       };
@@ -170,20 +194,12 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
 
   /**
    * Mark as arrived at location
+   * Note: This updates local state only. The actual order status remains 'delivering'
+   * until the delivery is confirmed. This provides visual feedback without changing
+   * the order state in the database.
    */
   const markAsArrived = async (orderId: string) => {
     try {
-      // Update the delivery with arrived timestamp
-      const { error } = await supabase
-        .from('orders')
-        .update({ 
-          // We track "arrived" state in our local state
-          // The actual order status remains 'delivering'
-        })
-        .eq('id', orderId);
-
-      if (error) throw error;
-
       // Update local state to show arrived
       setDeliveries(prev => 
         prev.map(d => 

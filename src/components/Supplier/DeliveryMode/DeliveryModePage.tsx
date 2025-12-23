@@ -31,23 +31,25 @@ export const DeliveryModePage: React.FC = () => {
 
   /**
    * Open navigation (Google Maps / Apple Maps)
+   * Uses a more reliable detection method
    */
   const openNavigation = (delivery: DeliveryOrder) => {
     const { clientLat, clientLng, clientAddress } = delivery;
     
-    // Detect platform
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/.test(navigator.userAgent);
+    // Check for iOS using more reliable methods
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || 
+                  (navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform));
     
     if (clientLat && clientLng) {
       if (isIOS) {
+        // Try Apple Maps first on iOS
         window.open(`maps://maps.apple.com/?daddr=${clientLat},${clientLng}`, '_blank');
-      } else if (isAndroid) {
-        window.open(`google.navigation:q=${clientLat},${clientLng}`, '_blank');
       } else {
+        // Use Google Maps for all other platforms
         window.open(`https://www.google.com/maps/dir/?api=1&destination=${clientLat},${clientLng}`, '_blank');
       }
     } else {
+      // Fallback to address search
       window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clientAddress)}`, '_blank');
     }
   };

@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { X, CheckCircle, AlertCircle } from 'lucide-react';
 
+/**
+ * Constants for delivery confirmation
+ */
+const CONFIRMATION_CODE_LENGTH = 8;
+
 interface DeliveryConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -25,8 +30,8 @@ export const DeliveryConfirmationModal: React.FC<DeliveryConfirmationModalProps>
   if (!isOpen) return null;
 
   const handleConfirm = async () => {
-    if (code.length !== 8) {
-      setError('Le code doit contenir 8 caractères');
+    if (code.length !== CONFIRMATION_CODE_LENGTH) {
+      setError(`Le code doit contenir ${CONFIRMATION_CODE_LENGTH} caractères`);
       return;
     }
 
@@ -95,13 +100,13 @@ export const DeliveryConfirmationModal: React.FC<DeliveryConfirmationModalProps>
               setCode(e.target.value.toUpperCase());
               setError(null);
             }}
-            maxLength={8}
+            maxLength={CONFIRMATION_CODE_LENGTH}
             placeholder="ABC12XYZ"
             className="w-full px-4 py-3 text-center text-2xl font-mono font-bold border-2 border-gray-300 rounded-xl focus:outline-none focus:border-emerald-500 uppercase tracking-wider"
             disabled={isValidating}
           />
           <p className="text-xs text-gray-500 mt-2 text-center">
-            Code à 8 caractères (lettres et chiffres)
+            Code à {CONFIRMATION_CODE_LENGTH} caractères (lettres et chiffres)
           </p>
         </div>
 
@@ -132,7 +137,7 @@ export const DeliveryConfirmationModal: React.FC<DeliveryConfirmationModalProps>
           </button>
           <button
             onClick={handleConfirm}
-            disabled={isValidating || code.length !== 8}
+            disabled={isValidating || code.length !== CONFIRMATION_CODE_LENGTH}
             className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isValidating ? 'Validation...' : '✅ Confirmer'}
