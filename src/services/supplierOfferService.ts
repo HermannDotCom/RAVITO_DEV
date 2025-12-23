@@ -313,3 +313,41 @@ function mapDatabaseOfferToApp(dbOffer: Record<string, unknown>): SupplierOffer 
     rejectedAt: dbOffer.rejected_at ? new Date(dbOffer.rejected_at as string) : undefined
   };
 }
+
+export interface SupplierPriceGrid {
+  product_id: string;
+  unit_price: number;
+  crate_price: number;
+  consign_price: number;
+}
+
+/**
+ * Fetches supplier's custom prices from supplier_price_grids table
+ * Returns a Map for quick lookup by product_id
+ */
+export async function getSupplierPrices(
+  supplierId: string
+): Promise<Map<string, SupplierPriceGrid>> {
+  try {
+    const { data: supplierGrids, error } = await supabase
+      .from('supplier_price_grids')
+      .select('product_id, unit_price, crate_price, consign_price')
+      .eq('supplier_id', supplierId)
+      .eq('is_active', true);
+
+    if (error) {
+      console.error('Error fetching supplier prices:', error);
+      return new Map();
+    }
+
+    const priceMap = new Map<string, SupplierPriceGrid>();
+    supplierGrids?.forEach(grid => {
+      priceMap.set(grid.product_id, grid);
+    });
+
+    return priceMap;
+  } catch (error) {
+    console.error('Exception fetching supplier prices:', error);
+    return new Map();
+  }
+}

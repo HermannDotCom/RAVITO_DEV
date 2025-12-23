@@ -8,6 +8,7 @@ import { usePendingRatings } from '../../hooks/usePendingRatings';
 import { PendingRatingModal } from '../Shared/PendingRatingModal';
 import { SupplierOrderSections } from './SupplierOrderSections';
 import { supabase } from '../../lib/supabase';
+import { getSupplierPrices } from '../../services/supplierOfferService';
 
 interface AvailableOrdersProps {
   onNavigate: (section: string) => void;
@@ -21,6 +22,8 @@ interface OfferItem {
   pricePerUnit: number;
   withConsigne: boolean;
   consigneAmount: number;
+  isCustomPrice?: boolean;
+  referencePricePerUnit?: number;
 }
 
 export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) => {
@@ -61,21 +64,32 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedOrderTab, setSelectedOrderTab] = useState<'available' | 'pending' | 'active'>('available');
 
-  const handleViewDetails = (order: Order, activeTab: 'available' | 'pending' | 'active') => {
+  const handleViewDetails = async (order: Order, activeTab: 'available' | 'pending' | 'active') => {
     if (hasPendingRatings) {
       setShowRatingModal(true);
       return;
     }
 
-    const items: OfferItem[] = order.items.map(item => ({
-      productId: item.product.id,
-      productName: item.product.name,
-      requestedQuantity: item.quantity,
-      offeredQuantity: item.quantity,
-      pricePerUnit: item.product.pricePerUnit,
-      withConsigne: item.withConsigne,
-      consigneAmount: item.product.consigneAmount || 0
-    }));
+    // Fetch supplier's custom prices
+    const priceMap = user ? await getSupplierPrices(user.id) : new Map();
+
+    const items: OfferItem[] = order.items.map(item => {
+      const supplierPrice = priceMap.get(item.product.id);
+      const pricePerUnit = supplierPrice?.crate_price ?? item.product.pricePerUnit;
+      const consigneAmount = supplierPrice?.consign_price ?? (item.product.consigneAmount || 0);
+
+      return {
+        productId: item.product.id,
+        productName: item.product.name,
+        requestedQuantity: item.quantity,
+        offeredQuantity: item.quantity,
+        pricePerUnit: pricePerUnit,
+        withConsigne: item.withConsigne,
+        consigneAmount: consigneAmount,
+        isCustomPrice: !!supplierPrice,
+        referencePricePerUnit: item.product.pricePerUnit
+      };
+    });
 
     setOfferItems(items);
     setSelectedOrder(order);
@@ -241,6 +255,14 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
 
               <div className="mb-4 sm:mb-6">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Produits demandés</h3>
+                {selectedOrderTab === 'available' && offerItems.some(item => !item.isCustomPrice) && (
+                  <div className="bg-orange-50 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
+                    <p className="text-xs sm:text-sm text-orange-800">
+                      <strong>Prix par défaut:</strong> Certains produits utilisent les prix de référence Ravito. 
+                      Définissez vos propres prix dans votre grille tarifaire pour être plus compétitif.
+                    </p>
+                  </div>
+                )}
                 {selectedOrderTab === 'available' && (
                   <div className="bg-blue-50 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
                     <p className="text-xs sm:text-sm text-blue-800">
@@ -260,6 +282,15 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                             {item.withConsigne && ` (+ ${formatPrice(item.consigneAmount)} consigne)`}
                           </p>
                         </div>
+                        {item.isCustomPrice ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            ✓ Prix perso
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                            ⚠ Défaut
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex items-center justify-between">
