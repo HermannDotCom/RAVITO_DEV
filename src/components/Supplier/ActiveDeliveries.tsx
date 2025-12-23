@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Navigation, Star, Archive, AlertCircle, X, Key } from 'lucide-react';
+import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Navigation, Archive, AlertCircle, X, Key } from 'lucide-react';
 import { Order, OrderStatus, CrateType } from '../../types';
 import { useOrder } from '../../context/OrderContext';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { supabase } from '../../lib/supabase';
+import { RatingBadge } from '../Shared/RatingBadge';
 
 interface ActiveDeliveriesProps {
   onNavigate: (section: string) => void;
@@ -311,12 +312,15 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
                           <span className="font-medium">{clientPhone}</span>
                         </div>
                         {clientRating > 0 && (
-                          <div className="flex justify-between">
+                          <div className="flex justify-between items-center">
                             <span className="text-gray-600">Note client</span>
-                            <div className="flex items-center space-x-1">
-                              <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                              <span className="font-medium">{clientRating.toFixed(1)}</span>
-                            </div>
+                            <RatingBadge
+                              rating={clientRating}
+                              reviewCount={1}
+                              userId={delivery.clientId}
+                              userType="client"
+                              size="sm"
+                            />
                           </div>
                         )}
                       </div>
