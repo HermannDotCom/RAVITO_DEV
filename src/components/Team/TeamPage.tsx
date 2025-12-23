@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, Crown, AlertCircle, RefreshCw } from 'lucide-react';
+import { Users, UserPlus, Crown, AlertCircle, RefreshCw, Mail, Shield } from 'lucide-react';
 import { useTeam } from '../../hooks/useTeam';
 import { usePermissions } from '../../hooks/usePermissions';
 import { MemberCard } from './MemberCard';
 import { InviteMemberModal } from './InviteMemberModal';
 import { QuotaBar } from './QuotaBar';
+import { PermissionsTab } from './PermissionsTab';
 import type { OrganizationMember, MemberRole } from '../../types/team';
 import { RoleSelector } from './RoleSelector';
 import { useAuth } from '../../context/AuthContext';
+
+type TabId = 'members' | 'invitations' | 'permissions';
 
 /**
  * Main Team Management Page
@@ -17,6 +20,7 @@ export const TeamPage: React.FC = () => {
   const { organization, members, stats, isLoading, error, inviteMember, removeMember, updateMemberRole, refresh } = useTeam();
   const { can } = usePermissions(organization?.id || null);
   
+  const [activeTab, setActiveTab] = useState<TabId>('members');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingMember, setEditingMember] = useState<OrganizationMember | null>(null);
@@ -28,6 +32,7 @@ export const TeamPage: React.FC = () => {
   const canEdit = can('team', 'edit');
   const canRemove = can('team', 'remove');
   const isOwner = organization ? organization.ownerId === user?.id : false;
+  const canViewPermissions = isOwner || canEdit;
 
   const handleInvite = async (email: string, role: MemberRole): Promise<boolean> => {
     return await inviteMember(email, role);
@@ -125,7 +130,7 @@ export const TeamPage: React.FC = () => {
               Actualiser
             </button>
 
-            {canInvite && (
+            {canInvite && activeTab === 'members' && (
               <button
                 onClick={() => setShowInviteModal(true)}
                 disabled={stats?.availableSlots === 0}
@@ -163,35 +168,106 @@ export const TeamPage: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Tabs Navigation */}
+        <div className="mt-6 border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab('members')}
+              className={`
+                py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors
+                ${activeTab === 'members'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }
+              `}
+            >
+              <Users className="w-5 h-5" />
+              <span>Membres</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('invitations')}
+              className={`
+                py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors
+                ${activeTab === 'invitations'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }
+              `}
+            >
+              <Mail className="w-5 h-5" />
+              <span>Invitations</span>
+            </button>
+
+            {canViewPermissions && (
+              <button
+                onClick={() => setActiveTab('permissions')}
+                className={`
+                  py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors
+                  ${activeTab === 'permissions'
+                    ? 'border-orange-500 text-orange-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+              >
+                <Shield className="w-5 h-5" />
+                <span>Permissions</span>
+              </button>
+            )}
+          </nav>
+        </div>
       </div>
 
-      {/* Members List */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900">
-          Membres ({members.length})
-        </h2>
+      {/* Tab Content */}
+      {activeTab === 'members' && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Membres ({members.length})
+          </h2>
 
-        {members.length === 0 ? (
+          {members.length === 0 ? (
+            <div className="bg-gray-50 rounded-lg p-8 text-center">
+              <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-600">Aucun membre dans l'équipe</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {members.map((member) => (
+                <MemberCard
+                  key={member.id}
+                  member={member}
+                  isOwner={member.role === 'owner'}
+                  canEdit={canEdit && member.role !== 'owner'}
+                  canRemove={canRemove && member.role !== 'owner'}
+                  onEdit={handleEditClick}
+                  onRemove={handleRemoveClick}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'invitations' && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Invitations en attente
+          </h2>
           <div className="bg-gray-50 rounded-lg p-8 text-center">
-            <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-600">Aucun membre dans l'équipe</p>
+            <Mail className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600">Aucune invitation en attente</p>
           </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {members.map((member) => (
-              <MemberCard
-                key={member.id}
-                member={member}
-                isOwner={member.role === 'owner'}
-                canEdit={canEdit && member.role !== 'owner'}
-                canRemove={canRemove && member.role !== 'owner'}
-                onEdit={handleEditClick}
-                onRemove={handleRemoveClick}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {activeTab === 'permissions' && organization && (
+        <PermissionsTab
+          organizationId={organization.id}
+          members={members}
+          canEdit={isOwner}
+        />
+      )}
 
       {/* Invite Modal */}
       <InviteMemberModal

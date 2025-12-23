@@ -1,12 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useModuleAccess } from './useModuleAccess';
 import type { 
   UserModulePermission, 
   PermissionAssignment, 
-  AvailableModule,
-  InterfaceType 
+  AvailableModule 
 } from '../types/permissions';
 
 interface UseUserPermissionsReturn {
@@ -105,7 +104,16 @@ export function useUserPermissions(organizationId?: string): UseUserPermissionsR
           throw queryError;
         }
 
-        const permissions = (data || []).map((record: any) => ({
+        const permissions = (data || []).map((record: {
+          id: string;
+          organization_id: string;
+          user_id: string;
+          module_key: string;
+          has_access: boolean;
+          assigned_by: string | null;
+          assigned_at: string;
+          updated_at: string;
+        }) => ({
           id: record.id,
           organizationId: record.organization_id,
           userId: record.user_id,
