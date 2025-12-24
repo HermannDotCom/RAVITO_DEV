@@ -171,7 +171,7 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
     };
     order.items.forEach(item => {
       const crateType = item.product?.crateType;
-      if (crateType && crateSummary[crateType]) {
+      if (crateType) {
         if (item.withConsigne) {
           crateSummary[crateType].withConsigne += item.quantity;
         } else {

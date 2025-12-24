@@ -40,10 +40,10 @@ export async function createOrder(
 
     // Add geolocation fields only if they have values
     // (They will be ignored by Supabase if columns don't exist)
-    if (coordinates.lat !== undefined && coordinates.lat !== null) {
+    if (coordinates.lat != null) {
       orderData.delivery_latitude = coordinates.lat;
     }
-    if (coordinates.lng !== undefined && coordinates.lng !== null) {
+    if (coordinates.lng != null) {
       orderData.delivery_longitude = coordinates.lng;
     }
     if (deliveryInstructions !== undefined) {

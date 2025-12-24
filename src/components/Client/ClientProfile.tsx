@@ -118,10 +118,10 @@ export const ClientProfile: React.FC = () => {
 
       // Add geolocation fields only if they have values
       // (They will be ignored by Supabase if columns don't exist)
-      if (formData.deliveryLatitude !== undefined && formData.deliveryLatitude !== null) {
+      if (formData.deliveryLatitude != null) {
         updateData.delivery_latitude = formData.deliveryLatitude;
       }
-      if (formData.deliveryLongitude !== undefined && formData.deliveryLongitude !== null) {
+      if (formData.deliveryLongitude != null) {
         updateData.delivery_longitude = formData.deliveryLongitude;
       }
       if (formData.deliveryInstructions !== undefined) {
