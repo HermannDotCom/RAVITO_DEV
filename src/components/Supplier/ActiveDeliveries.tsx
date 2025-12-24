@@ -170,10 +170,13 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
       C6: { withConsigne: 0, toReturn: 0 }
     };
     order.items.forEach(item => {
-      if (item.withConsigne) {
-        crateSummary[item.product.crateType].withConsigne += item.quantity;
-      } else {
-        crateSummary[item.product.crateType].toReturn += item.quantity;
+      const crateType = item.product?.crateType;
+      if (crateType && crateSummary[crateType]) {
+        if (item.withConsigne) {
+          crateSummary[crateType].withConsigne += item.quantity;
+        } else {
+          crateSummary[crateType].toReturn += item.quantity;
+        }
       }
     });
     return crateSummary;
@@ -317,7 +320,7 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
                             <RatingBadge
                               rating={clientRating}
                               reviewCount={1}
-                              userId={delivery.clientId}
+                              userId={order.clientId}
                               userType="client"
                               size="sm"
                             />
