@@ -163,20 +163,37 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
   };
 
   const getCrateSummary = (order: Order) => {
+    // Initialize summary for traditional crate types used in consigne management
+    // Note: Other crate types (CARTON24, PACK6, PACK12, C20) don't use the traditional
+    // crate consigne system and are intentionally excluded from this summary
     const crateSummary: { [key in CrateType]: { withConsigne: number; toReturn: number } } = {
       C24: { withConsigne: 0, toReturn: 0 },
       C12: { withConsigne: 0, toReturn: 0 },
       C12V: { withConsigne: 0, toReturn: 0 },
       C6: { withConsigne: 0, toReturn: 0 }
     };
+    
+    // Verify that order.items exists and is an array
+    if (!order.items || !Array.isArray(order.items)) {
+      return crateSummary;
+    }
+    
     order.items.forEach(item => {
-      const crateType = item.product?.crateType;
-      if (crateType) {
-        if (item.withConsigne) {
-          crateSummary[crateType].withConsigne += item.quantity;
-        } else {
-          crateSummary[crateType].toReturn += item.quantity;
-        }
+      // Triple verification: item exists, product exists, crateType exists and is valid
+      if (!item || !item.product) return;
+      
+      const crateType = item.product.crateType as CrateType;
+      
+      // Verify that the crateType is a valid key of crateSummary
+      // This filters out non-traditional crate types like CARTON24, PACK6, etc.
+      if (!crateType || !crateSummary[crateType]) return;
+      
+      const quantity = item.quantity || 0;
+      
+      if (item.withConsigne) {
+        crateSummary[crateType].withConsigne += quantity;
+      } else {
+        crateSummary[crateType].toReturn += quantity;
       }
     });
     return crateSummary;

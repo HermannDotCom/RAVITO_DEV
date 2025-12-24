@@ -134,8 +134,77 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
     setError(null);
 
     try {
-      // Get all orders for the supplier
-      const orders = await getOrdersBySupplier(user.id);
+      let orders: Order[] = [];
+      
+      // Check if user is a driver by checking if there are orders assigned to them
+      const { data: driverOrdersData, error: driverError } = await supabase
+        .from('orders_with_coords')
+        .select(`
+          *,
+          order_items (
+            *,
+            product:products (*)
+          ),
+          zone:zones (name)
+        `)
+        .eq('assigned_delivery_user_id', user.id)
+        .in('status', ['paid', 'accepted', 'preparing', 'delivering', 'delivered'])
+        .order('created_at', { ascending: false });
+      
+      if (!driverError && driverOrdersData && driverOrdersData.length > 0) {
+        // User has orders assigned as driver - show only those
+        orders = driverOrdersData.map((order: any) => {
+          const items: CartItem[] = order.order_items.map((item: any) => ({
+            product: {
+              id: item.product.id,
+              reference: item.product.reference,
+              name: item.product.name,
+              category: item.product.category,
+              brand: item.product.brand,
+              crateType: item.product.crate_type,
+              unitPrice: item.product.unit_price,
+              cratePrice: item.product.crate_price,
+              consignPrice: item.product.consign_price,
+              volume: item.product.volume,
+              isActive: item.product.is_active,
+              imageUrl: item.product.image_url,
+              createdAt: new Date(item.product.created_at),
+              updatedAt: new Date(item.product.updated_at)
+            },
+            quantity: item.quantity,
+            withConsigne: item.with_consigne
+          }));
+
+          return {
+            id: order.id,
+            clientId: order.client_id,
+            supplierId: order.supplier_id,
+            items,
+            totalAmount: order.total_amount,
+            status: order.status,
+            consigneTotal: order.consigne_total,
+            deliveryAddress: order.delivery_address,
+            deliveryZone: order.zone?.name,
+            coordinates: {
+              lat: order.lat,
+              lng: order.lng
+            },
+            zoneId: order.zone_id,
+            paymentMethod: order.payment_method,
+            paymentStatus: order.payment_status,
+            // Include both field names for backward compatibility with legacy code
+            deliveryConfirmationCode: order.delivery_confirmation_code,
+            delivery_confirmation_code: order.delivery_confirmation_code,
+            createdAt: new Date(order.created_at),
+            acceptedAt: order.accepted_at ? new Date(order.accepted_at) : undefined,
+            deliveredAt: order.delivered_at ? new Date(order.delivered_at) : undefined,
+            paidAt: order.paid_at ? new Date(order.paid_at) : undefined
+          };
+        });
+      } else {
+        // Fallback to supplier orders (for suppliers managing their own deliveries)
+        orders = await getOrdersBySupplier(user.id);
+      }
       
       // Filter to delivery-relevant orders only
       const deliveryOrders = orders.filter(o => 
