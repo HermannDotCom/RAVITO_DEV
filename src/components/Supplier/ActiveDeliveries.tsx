@@ -169,14 +169,27 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
       C12V: { withConsigne: 0, toReturn: 0 },
       C6: { withConsigne: 0, toReturn: 0 }
     };
+    
+    // Verify that order.items exists and is an array
+    if (!order.items || !Array.isArray(order.items)) {
+      return crateSummary;
+    }
+    
     order.items.forEach(item => {
-      const crateType = item.product?.crateType;
-      if (crateType) {
-        if (item.withConsigne) {
-          crateSummary[crateType].withConsigne += item.quantity;
-        } else {
-          crateSummary[crateType].toReturn += item.quantity;
-        }
+      // Triple verification: item exists, product exists, crateType exists and is valid
+      if (!item || !item.product) return;
+      
+      const crateType = item.product.crateType as CrateType;
+      
+      // Verify that the crateType is a valid key of crateSummary
+      if (!crateType || !crateSummary[crateType]) return;
+      
+      const quantity = item.quantity || 0;
+      
+      if (item.withConsigne) {
+        crateSummary[crateType].withConsigne += quantity;
+      } else {
+        crateSummary[crateType].toReturn += quantity;
       }
     });
     return crateSummary;
