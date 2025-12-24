@@ -192,6 +192,7 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
             zoneId: order.zone_id,
             paymentMethod: order.payment_method,
             paymentStatus: order.payment_status,
+            // Include both field names for backward compatibility with legacy code
             deliveryConfirmationCode: order.delivery_confirmation_code,
             delivery_confirmation_code: order.delivery_confirmation_code,
             createdAt: new Date(order.created_at),
