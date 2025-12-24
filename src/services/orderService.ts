@@ -33,14 +33,24 @@ export async function createOrder(
       net_supplier_amount: 0,
       delivery_address: deliveryAddress,
       coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
-      delivery_latitude: coordinates.lat,
-      delivery_longitude: coordinates.lng,
-      delivery_instructions: deliveryInstructions || null,
-      uses_profile_address: usesProfileAddress !== undefined ? usesProfileAddress : true,
       payment_method: paymentMethod,
       payment_status: 'pending',
       zone_id: zoneId || null
     };
+
+    // Add geolocation fields only if they have values
+    // (They will be ignored by Supabase if columns don't exist)
+    if (coordinates.lat != null) {
+      orderData.delivery_latitude = coordinates.lat;
+    }
+    if (coordinates.lng != null) {
+      orderData.delivery_longitude = coordinates.lng;
+    }
+    if (deliveryInstructions !== undefined) {
+      orderData.delivery_instructions = deliveryInstructions || null;
+    }
+    // Default to true when undefined to maintain original behavior
+    orderData.uses_profile_address = usesProfileAddress !== undefined ? usesProfileAddress : true;
 
     const { data: order, error: orderError } = await supabase
       .from('orders')

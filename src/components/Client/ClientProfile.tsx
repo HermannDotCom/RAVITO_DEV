@@ -105,20 +105,32 @@ export const ClientProfile: React.FC = () => {
     if (!user) return;
 
     try {
+      // Build base update object
+      const updateData: Record<string, any> = {
+        name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+        zone_id: formData.zoneId || null,
+        business_name: formData.businessName,
+        business_hours: formData.businessHours,
+        responsible_person: formData.responsiblePerson
+      };
+
+      // Add geolocation fields only if they have values
+      // (They will be ignored by Supabase if columns don't exist)
+      if (formData.deliveryLatitude != null) {
+        updateData.delivery_latitude = formData.deliveryLatitude;
+      }
+      if (formData.deliveryLongitude != null) {
+        updateData.delivery_longitude = formData.deliveryLongitude;
+      }
+      if (formData.deliveryInstructions !== undefined) {
+        updateData.delivery_instructions = formData.deliveryInstructions;
+      }
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          name: formData.name,
-          phone: formData.phone,
-          address: formData.address,
-          zone_id: formData.zoneId || null,
-          business_name: formData.businessName,
-          business_hours: formData.businessHours,
-          responsible_person: formData.responsiblePerson,
-          delivery_latitude: formData.deliveryLatitude,
-          delivery_longitude: formData.deliveryLongitude,
-          delivery_instructions: formData.deliveryInstructions
-        })
+        .update(updateData)
         .eq('id', user.id);
 
       if (error) throw error;
