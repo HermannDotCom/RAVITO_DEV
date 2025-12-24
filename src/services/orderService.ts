@@ -49,9 +49,8 @@ export async function createOrder(
     if (deliveryInstructions !== undefined) {
       orderData.delivery_instructions = deliveryInstructions || null;
     }
-    if (usesProfileAddress !== undefined) {
-      orderData.uses_profile_address = usesProfileAddress;
-    }
+    // Default to true when undefined to maintain original behavior
+    orderData.uses_profile_address = usesProfileAddress !== undefined ? usesProfileAddress : true;
 
     const { data: order, error: orderError } = await supabase
       .from('orders')
