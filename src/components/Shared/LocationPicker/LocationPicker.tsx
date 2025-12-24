@@ -110,6 +110,16 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     clearResults
   } = useGeocoding();
 
+  // Notify parent component of location changes
+  const notifyLocationChange = useCallback((lat: number, lng: number, addr: string, instr: string) => {
+    onLocationChange({
+      latitude: lat,
+      longitude: lng,
+      address: addr,
+      instructions: instr,
+    });
+  }, [onLocationChange]);
+
   // Update position when GPS position is obtained
   useEffect(() => {
     if (gpsPosition) {
@@ -178,16 +188,6 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     setInstructions(value);
     notifyLocationChange(position[0], position[1], address, value);
   }, [position, address, notifyLocationChange]);
-
-  // Notify parent component of location changes
-  const notifyLocationChange = useCallback((lat: number, lng: number, addr: string, instr: string) => {
-    onLocationChange({
-      latitude: lat,
-      longitude: lng,
-      address: addr,
-      instructions: instr,
-    });
-  }, [onLocationChange]);
 
   return (
     <div className="location-picker-container">
