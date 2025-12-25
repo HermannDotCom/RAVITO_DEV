@@ -48,7 +48,6 @@ import { ProductCatalog } from './components/Client/ProductCatalog';
 import { Cart } from './components/Client/Cart';
 import { CheckoutForm } from './components/Client/CheckoutForm';
 import { OrderTracking } from './components/Client/OrderTracking';
-import { RatingForm } from './components/Client/RatingForm';
 import { AvailableOrders } from './components/Supplier/AvailableOrders';
 import { ActiveDeliveries } from './components/Supplier/ActiveDeliveries';
 import { DeliveryHistory, ClaimData } from './components/Supplier/DeliveryHistory';
@@ -103,7 +102,6 @@ const AppContent: React.FC = () => {
   const { path, navigate } = useSimpleRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
-  const [showRating, setShowRating] = useState(false);
   const [claimData, setClaimData] = useState<ClaimData | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [orderIdToRate, setOrderIdToRate] = useState<string | null>(null);
@@ -178,18 +176,6 @@ const AppContent: React.FC = () => {
   }
 
   const renderMainContent = () => {
-    if (showRating) {
-      return (
-        <RatingForm
-          supplierName="Dépôt du Plateau"
-          onSubmit={() => {
-            setShowRating(false);
-            setActiveSection('dashboard');
-          }}
-        />
-      );
-    }
-
     return renderSectionContent();
   };
 
@@ -210,7 +196,7 @@ const AppContent: React.FC = () => {
             );
           case 'tracking':
             return <OrderTracking onComplete={() => {
-              setShowRating(true);
+              setActiveSection('orders');
             }} />;
           case 'profile':
             return <ClientProfile />;
@@ -352,7 +338,7 @@ const AppContent: React.FC = () => {
       <SkipLink />
       <Header
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-        title={showRating ? 'Évaluation' : undefined}
+        title={undefined}
         onCartClick={() => setActiveSection('cart')}
       />
 
