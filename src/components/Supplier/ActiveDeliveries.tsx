@@ -48,9 +48,11 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
         return;
       }
 
+      if (!profiles) return;
+
       // Create profiles map
       const profilesMap: Record<string, ClientProfile> = {};
-      profiles?.forEach(profile => {
+      profiles.forEach(profile => {
         profilesMap[profile.id] = {
           id: profile.id,
           name: profile.name,
