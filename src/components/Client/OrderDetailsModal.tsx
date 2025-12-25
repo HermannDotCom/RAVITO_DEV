@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { XCircle, Download, Archive, CreditCard, Phone, Star } from 'lucide-react';
+import { XCircle, Download, Archive, CreditCard, Phone, Star, Package, AlertTriangle } from 'lucide-react';
 import { Order, CrateType } from '../../types';
 import { MutualRatingsDisplay } from '../Shared/MutualRatingsDisplay';
 import { RatingBadge } from '../Shared/RatingBadge';
@@ -77,6 +77,9 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
   const supplierProfile = order.supplierId && isSupplierRevealed(order.status)
     ? getSupplierProfile(order.supplierId)
     : null;
+
+  // Extract delivery confirmation code
+  const deliveryConfirmationCode = order.delivery_confirmation_code || order.deliveryConfirmationCode;
 
   // Map status text colors to gradient classes (Tailwind needs explicit class names)
   const statusGradientClasses: Record<string, string> = {
@@ -179,6 +182,27 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
                   )}
                 </div>
               </div>
+
+              {/* Delivery Confirmation Code */}
+              {order.status === 'delivering' && deliveryConfirmationCode && (
+                <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Package className="h-5 w-5 text-orange-600" />
+                    <h3 className="font-semibold text-orange-800">Code de confirmation</h3>
+                  </div>
+                  
+                  <div className="bg-white border border-orange-300 rounded-lg p-4 text-center">
+                    <span className="text-2xl font-bold tracking-wider text-orange-600">
+                      {deliveryConfirmationCode}
+                    </span>
+                  </div>
+                  
+                  <p className="text-sm text-orange-700 mt-3 flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                    <span>Communiquez ce code au livreur lors de la réception de votre commande</span>
+                  </p>
+                </div>
+              )}
 
               {/* Payment Information */}
               <div className="bg-green-50 rounded-xl p-6">
