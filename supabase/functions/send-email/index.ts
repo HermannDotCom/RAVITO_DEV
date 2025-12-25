@@ -13,7 +13,7 @@ const corsHeaders = {
 };
 
 interface EmailRequest {
-  type: 'welcome' | 'password_reset' | 'new_order' | 'delivery_confirmation';
+  type: 'welcome' | 'password_reset' | 'new_order' | 'delivery_confirmation' | 'order_paid' | 'offer_received' | 'offer_accepted' | 'delivery_code' | 'order_cancelled' | 'rating_request';
   to: string;
   data: Record<string, unknown>;
 }
@@ -483,6 +483,458 @@ function buildDeliveryConfirmationEmailHtml(data: Record<string, unknown>): stri
   return buildBaseEmailTemplate(content, clientEmail);
 }
 
+// Build order paid email HTML
+function buildOrderPaidEmailHtml(data: Record<string, unknown>): string {
+  const clientName = String(data.clientName || 'Client');
+  const clientEmail = String(data.clientEmail || '');
+  const orderId = String(data.orderId || '');
+  const supplierName = String(data.supplierName || '');
+  const supplierPhone = data.supplierPhone ? String(data.supplierPhone) : undefined;
+  const totalAmount = Number(data.totalAmount || 0);
+  const items = (data.items as Array<{ name: string; quantity: number; unit: string }>) || [];
+  const deliveryAddress = String(data.deliveryAddress || '');
+
+  const content = `
+    <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="width: 80px; height: 80px; background-color: #10B981; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin: 0 auto;">
+          <span style="font-size: 48px; color: #FFFFFF; line-height: 80px;">✓</span>
+        </div>
+      </div>
+      
+      <h1 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 28px; font-weight: 700; color: #111827; margin: 0 0 24px 0; line-height: 1.3; text-align: center;">
+        Paiement confirmé ! ✅
+      </h1>
+      
+      <p style="font-size: 16px; line-height: 1.6; color: #4B5563; margin: 0 0 32px 0; text-align: center;">
+        Bonjour ${clientName}, votre paiement a été confirmé avec succès.
+      </p>
+      
+      <div style="background-color: #ECFDF5; border: 2px solid #10B981; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+        <div style="margin-bottom: 16px;">
+          <p style="font-size: 13px; color: #065F46; margin: 0 0 4px 0; font-weight: 600;">Commande</p>
+          <p style="font-size: 20px; font-weight: 700; color: #059669; margin: 0; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+            #${orderId}
+          </p>
+        </div>
+        
+        <div style="border-top: 1px solid #A7F3D0; padding-top: 16px; margin-bottom: 12px;">
+          <div style="margin-bottom: 12px;">
+            <p style="font-size: 13px; color: #065F46; margin: 0 0 4px 0; font-weight: 600;">Fournisseur</p>
+            <p style="font-size: 15px; color: #047857; margin: 0; font-weight: 600;">${supplierName}</p>
+            ${supplierPhone ? `<p style="font-size: 14px; color: #047857; margin: 4px 0 0 0;">📞 ${supplierPhone}</p>` : ''}
+          </div>
+          <div style="margin-bottom: 12px;">
+            <p style="font-size: 13px; color: #065F46; margin: 0 0 4px 0; font-weight: 600;">Adresse de livraison</p>
+            <p style="font-size: 14px; color: #047857; margin: 0;">${deliveryAddress}</p>
+          </div>
+        </div>
+        
+        <div style="border-top: 1px solid #A7F3D0; padding-top: 16px; margin-bottom: 12px;">
+          <p style="font-size: 13px; color: #065F46; margin: 0 0 12px 0; font-weight: 600;">
+            Articles commandés
+          </p>
+          <div style="background-color: #F0FDF4; border-radius: 8px; padding: 12px;">
+            ${items.map(item => `
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 14px; color: #111827;">${item.name}</span>
+                <span style="font-size: 14px; font-weight: 600; color: #4B5563;">${item.quantity} ${item.unit}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        
+        <div style="border-top: 2px solid #10B981; padding-top: 16px;">
+          <div style="display: flex; justify-content: space-between;">
+            <p style="font-size: 15px; color: #065F46; margin: 0; font-weight: 600;">Montant payé</p>
+            <p style="font-size: 24px; font-weight: 700; color: #059669; margin: 0; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+              ${formatAmount(totalAmount)} FCFA
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div style="background-color: #FFF7ED; border: 1px solid #FED7AA; border-radius: 8px; padding: 20px; text-align: center;">
+        <p style="font-size: 14px; font-weight: 600; color: #C2410C; margin: 0;">
+          🚀 Votre commande est maintenant en préparation !
+        </p>
+      </div>
+    </div>
+  `;
+
+  return buildBaseEmailTemplate(content, clientEmail);
+}
+
+// Build offer received email HTML
+function buildOfferReceivedEmailHtml(data: Record<string, unknown>): string {
+  const clientName = String(data.clientName || 'Client');
+  const clientEmail = String(data.clientEmail || '');
+  const orderId = String(data.orderId || '');
+  const supplierName = String(data.supplierName || '');
+  const supplierRating = data.supplierRating ? Number(data.supplierRating) : undefined;
+  const offerAmount = Number(data.offerAmount || 0);
+  const estimatedDeliveryTime = data.estimatedDeliveryTime ? Number(data.estimatedDeliveryTime) : undefined;
+  const supplierMessage = data.supplierMessage ? String(data.supplierMessage) : undefined;
+  const offerUrl = String(data.offerUrl || 'https://ravito.ci/orders');
+
+  const content = `
+    <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+      <h1 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 28px; font-weight: 700; color: #111827; margin: 0 0 24px 0; line-height: 1.3;">
+        Nouvelle offre reçue ! 💰
+      </h1>
+      
+      <p style="font-size: 16px; line-height: 1.6; color: #4B5563; margin: 0 0 24px 0;">
+        Bonjour ${clientName},
+      </p>
+      <p style="font-size: 16px; line-height: 1.6; color: #4B5563; margin: 0 0 32px 0;">
+        Un fournisseur a fait une offre pour votre commande #${orderId}.
+      </p>
+      
+      <div style="background-color: #FFFFFF; border: 2px solid #F97316; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+        <div style="margin-bottom: 20px;">
+          <p style="font-size: 14px; color: #6B7280; margin: 0 0 8px 0; font-weight: 600;">Fournisseur</p>
+          <p style="font-size: 20px; font-weight: 700; color: #F97316; margin: 0 0 8px 0; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+            ${supplierName}
+          </p>
+          ${supplierRating ? `
+          <div style="margin-top: 8px;">
+            <span style="font-size: 14px; color: #F59E0B;">⭐ ${supplierRating.toFixed(1)}/5</span>
+          </div>
+          ` : ''}
+        </div>
+        
+        <div style="border-top: 1px solid #E5E7EB; padding-top: 16px; margin-bottom: 16px;">
+          <div style="margin-bottom: 16px;">
+            <p style="font-size: 13px; color: #6B7280; margin: 0 0 4px 0; font-weight: 600;">Montant proposé</p>
+            <p style="font-size: 28px; font-weight: 700; color: #F97316; margin: 0; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+              ${formatAmount(offerAmount)} FCFA
+            </p>
+          </div>
+          
+          ${estimatedDeliveryTime ? `
+          <div style="margin-bottom: 12px;">
+            <p style="font-size: 13px; color: #6B7280; margin: 0 0 4px 0; font-weight: 600;">Délai estimé</p>
+            <p style="font-size: 15px; color: #111827; margin: 0;">${estimatedDeliveryTime} minutes</p>
+          </div>
+          ` : ''}
+          
+          ${supplierMessage ? `
+          <div style="background-color: #F9FAFB; border-radius: 8px; padding: 12px; margin-top: 16px;">
+            <p style="font-size: 13px; color: #6B7280; margin: 0 0 8px 0; font-weight: 600;">Message du fournisseur</p>
+            <p style="font-size: 14px; color: #111827; margin: 0; line-height: 1.5;">${supplierMessage}</p>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+      
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="${offerUrl}" style="display: inline-block; background-color: #F97316; color: #FFFFFF; font-size: 16px; font-weight: 600; font-family: 'Plus Jakarta Sans', Arial, sans-serif; padding: 14px 32px; border-radius: 8px; text-decoration: none; box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);">
+          👀 Voir l'offre
+        </a>
+      </div>
+      
+      <div style="background-color: #FFF7ED; border: 1px solid #FED7AA; border-radius: 8px; padding: 16px; text-align: center;">
+        <p style="font-size: 14px; color: #C2410C; margin: 0; line-height: 1.5;">
+          Consultez l'offre et acceptez-la si elle vous convient pour finaliser votre commande.
+        </p>
+      </div>
+    </div>
+  `;
+
+  return buildBaseEmailTemplate(content, clientEmail);
+}
+
+// Build offer accepted email HTML
+function buildOfferAcceptedEmailHtml(data: Record<string, unknown>): string {
+  const supplierName = String(data.supplierName || 'Fournisseur');
+  const supplierEmail = String(data.supplierEmail || '');
+  const orderId = String(data.orderId || '');
+  const clientName = String(data.clientName || '');
+  const clientPhone = data.clientPhone ? String(data.clientPhone) : undefined;
+  const deliveryAddress = String(data.deliveryAddress || '');
+  const items = (data.items as Array<{ name: string; quantity: number; unit: string }>) || [];
+  const totalAmount = Number(data.totalAmount || 0);
+  const dashboardUrl = String(data.dashboardUrl || 'https://ravito.ci/supplier/orders');
+
+  const content = `
+    <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="width: 80px; height: 80px; background-color: #F97316; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin: 0 auto;">
+          <span style="font-size: 48px; color: #FFFFFF; line-height: 80px;">🎉</span>
+        </div>
+      </div>
+      
+      <h1 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 28px; font-weight: 700; color: #111827; margin: 0 0 24px 0; line-height: 1.3; text-align: center;">
+        Votre offre a été acceptée ! 🎉
+      </h1>
+      
+      <p style="font-size: 16px; line-height: 1.6; color: #4B5563; margin: 0 0 24px 0;">
+        Bonjour ${supplierName},
+      </p>
+      <p style="font-size: 16px; line-height: 1.6; color: #4B5563; margin: 0 0 32px 0;">
+        Félicitations ! Le client a accepté votre offre pour la commande #${orderId}.
+      </p>
+      
+      <div style="background-color: #FFF7ED; border: 2px solid #F97316; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+        <div style="margin-bottom: 16px;">
+          <p style="font-size: 13px; color: #9A3412; margin: 0 0 4px 0; font-weight: 600;">Commande</p>
+          <p style="font-size: 20px; font-weight: 700; color: #F97316; margin: 0; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+            #${orderId}
+          </p>
+        </div>
+        
+        <div style="border-top: 1px solid #FDBA74; padding-top: 16px; margin-bottom: 16px;">
+          <div style="margin-bottom: 12px;">
+            <p style="font-size: 13px; color: #9A3412; margin: 0 0 4px 0; font-weight: 600;">Client</p>
+            <p style="font-size: 15px; color: #EA580C; margin: 0; font-weight: 600;">${clientName}</p>
+            ${clientPhone ? `<p style="font-size: 14px; color: #EA580C; margin: 4px 0 0 0;">📞 ${clientPhone}</p>` : ''}
+          </div>
+          <div style="margin-bottom: 12px;">
+            <p style="font-size: 13px; color: #9A3412; margin: 0 0 4px 0; font-weight: 600;">Adresse de livraison</p>
+            <p style="font-size: 14px; color: #EA580C; margin: 0;">${deliveryAddress}</p>
+          </div>
+        </div>
+        
+        <div style="border-top: 1px solid #FDBA74; padding-top: 16px; margin-bottom: 16px;">
+          <p style="font-size: 13px; color: #9A3412; margin: 0 0 12px 0; font-weight: 600;">
+            Articles commandés
+          </p>
+          <div style="background-color: #FFEDD5; border-radius: 8px; padding: 12px;">
+            ${items.map(item => `
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 14px; color: #111827;">${item.name}</span>
+                <span style="font-size: 14px; font-weight: 600; color: #4B5563;">${item.quantity} ${item.unit}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        
+        <div style="border-top: 2px solid #F97316; padding-top: 16px;">
+          <div style="display: flex; justify-content: space-between;">
+            <p style="font-size: 15px; color: #9A3412; margin: 0; font-weight: 600;">Montant total</p>
+            <p style="font-size: 24px; font-weight: 700; color: #F97316; margin: 0; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+              ${formatAmount(totalAmount)} FCFA
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="${dashboardUrl}" style="display: inline-block; background-color: #F97316; color: #FFFFFF; font-size: 16px; font-weight: 600; font-family: 'Plus Jakarta Sans', Arial, sans-serif; padding: 14px 32px; border-radius: 8px; text-decoration: none; box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);">
+          📋 Gérer la commande
+        </a>
+      </div>
+      
+      <div style="background-color: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 8px; padding: 16px; text-align: center;">
+        <p style="font-size: 14px; color: #065F46; margin: 0; line-height: 1.5;">
+          Le client attend sa commande. Préparez-la et marquez-la comme "En livraison" une fois prête.
+        </p>
+      </div>
+    </div>
+  `;
+
+  return buildBaseEmailTemplate(content, supplierEmail);
+}
+
+// Build delivery code email HTML
+function buildDeliveryCodeEmailHtml(data: Record<string, unknown>): string {
+  const clientName = String(data.clientName || 'Client');
+  const clientEmail = String(data.clientEmail || '');
+  const orderId = String(data.orderId || '');
+  const deliveryCode = String(data.deliveryCode || '');
+  const supplierName = String(data.supplierName || '');
+
+  const content = `
+    <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="width: 80px; height: 80px; background-color: #3B82F6; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin: 0 auto;">
+          <span style="font-size: 48px; color: #FFFFFF; line-height: 80px;">🚚</span>
+        </div>
+      </div>
+      
+      <h1 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 28px; font-weight: 700; color: #111827; margin: 0 0 24px 0; line-height: 1.3; text-align: center;">
+        Votre commande est en livraison ! 🚚
+      </h1>
+      
+      <p style="font-size: 16px; line-height: 1.6; color: #4B5563; margin: 0 0 32px 0; text-align: center;">
+        Bonjour ${clientName}, votre commande #${orderId} est en route depuis ${supplierName}.
+      </p>
+      
+      <div style="background-color: #DBEAFE; border: 3px solid #3B82F6; border-radius: 12px; padding: 32px; margin-bottom: 24px; text-align: center;">
+        <p style="font-size: 14px; color: #1E40AF; margin: 0 0 16px 0; font-weight: 600; letter-spacing: 1px;">
+          CODE DE LIVRAISON
+        </p>
+        <p style="font-size: 48px; font-weight: 700; color: #3B82F6; margin: 0; font-family: 'Courier New', monospace; letter-spacing: 8px;">
+          ${deliveryCode}
+        </p>
+      </div>
+      
+      <div style="background-color: #FFFBEB; border: 2px solid #FCD34D; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+        <h2 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 18px; font-weight: 600; color: #111827; margin: 0 0 16px 0;">
+          ⚠️ Instructions importantes
+        </h2>
+        <ul style="margin: 0; padding-left: 20px; color: #78350F;">
+          <li style="font-size: 14px; margin-bottom: 8px; line-height: 1.5;">
+            <strong>Communiquez ce code au livreur</strong> à son arrivée
+          </li>
+          <li style="font-size: 14px; margin-bottom: 8px; line-height: 1.5;">
+            Le livreur entrera le code pour <strong>valider la livraison</strong>
+          </li>
+          <li style="font-size: 14px; margin-bottom: 8px; line-height: 1.5;">
+            <strong>Ne partagez pas</strong> ce code avec d'autres personnes
+          </li>
+          <li style="font-size: 14px; line-height: 1.5;">
+            Ce code est <strong>unique</strong> et valable uniquement pour cette livraison
+          </li>
+        </ul>
+      </div>
+      
+      <div style="background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 16px; text-align: center;">
+        <p style="font-size: 14px; color: #6B7280; margin: 0; line-height: 1.5;">
+          Le livreur devrait arriver sous peu. Gardez ce code à portée de main.
+        </p>
+      </div>
+    </div>
+  `;
+
+  return buildBaseEmailTemplate(content, clientEmail);
+}
+
+// Build order cancelled email HTML
+function buildOrderCancelledEmailHtml(data: Record<string, unknown>): string {
+  const recipientName = String(data.recipientName || 'Utilisateur');
+  const recipientEmail = String(data.recipientEmail || '');
+  const orderId = String(data.orderId || '');
+  const cancellationReason = data.cancellationReason ? String(data.cancellationReason) : 'Aucune raison spécifiée';
+  const refundAmount = data.refundAmount ? Number(data.refundAmount) : undefined;
+  const isClient = data.isClient ? Boolean(data.isClient) : false;
+
+  const content = `
+    <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="width: 80px; height: 80px; background-color: #EF4444; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin: 0 auto;">
+          <span style="font-size: 48px; color: #FFFFFF; line-height: 80px;">✕</span>
+        </div>
+      </div>
+      
+      <h1 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 28px; font-weight: 700; color: #111827; margin: 0 0 24px 0; line-height: 1.3; text-align: center;">
+        Commande annulée ❌
+      </h1>
+      
+      <p style="font-size: 16px; line-height: 1.6; color: #4B5563; margin: 0 0 24px 0;">
+        Bonjour ${recipientName},
+      </p>
+      <p style="font-size: 16px; line-height: 1.6; color: #4B5563; margin: 0 0 32px 0;">
+        La commande #${orderId} a été annulée.
+      </p>
+      
+      <div style="background-color: #FEF2F2; border: 2px solid #EF4444; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+        <div style="margin-bottom: 16px;">
+          <p style="font-size: 13px; color: #991B1B; margin: 0 0 4px 0; font-weight: 600;">Commande</p>
+          <p style="font-size: 20px; font-weight: 700; color: #EF4444; margin: 0; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+            #${orderId}
+          </p>
+        </div>
+        
+        <div style="border-top: 1px solid #FCA5A5; padding-top: 16px;">
+          <p style="font-size: 13px; color: #991B1B; margin: 0 0 8px 0; font-weight: 600;">Raison de l'annulation</p>
+          <p style="font-size: 14px; color: #DC2626; margin: 0; line-height: 1.5;">
+            ${cancellationReason}
+          </p>
+        </div>
+        
+        ${refundAmount && isClient ? `
+        <div style="border-top: 1px solid #FCA5A5; padding-top: 16px; margin-top: 16px;">
+          <p style="font-size: 13px; color: #991B1B; margin: 0 0 4px 0; font-weight: 600;">Remboursement</p>
+          <p style="font-size: 20px; font-weight: 700; color: #EF4444; margin: 0; font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+            ${formatAmount(refundAmount)} FCFA
+          </p>
+          <p style="font-size: 13px; color: #991B1B; margin: 8px 0 0 0;">
+            Le remboursement sera traité dans les prochaines 24-48h.
+          </p>
+        </div>
+        ` : ''}
+      </div>
+      
+      ${isClient ? `
+      <div style="background-color: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 8px; padding: 16px; text-align: center;">
+        <p style="font-size: 14px; color: #0C4A6E; margin: 0; line-height: 1.5;">
+          Nous sommes désolés pour ce désagrément. N'hésitez pas à passer une nouvelle commande.
+        </p>
+      </div>
+      ` : `
+      <div style="background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 16px; text-align: center;">
+        <p style="font-size: 14px; color: #6B7280; margin: 0; line-height: 1.5;">
+          Cette commande ne nécessite plus d'action de votre part.
+        </p>
+      </div>
+      `}
+    </div>
+  `;
+
+  return buildBaseEmailTemplate(content, recipientEmail);
+}
+
+// Build rating request email HTML
+function buildRatingRequestEmailHtml(data: Record<string, unknown>): string {
+  const clientName = String(data.clientName || 'Client');
+  const clientEmail = String(data.clientEmail || '');
+  const orderId = String(data.orderId || '');
+  const supplierName = String(data.supplierName || '');
+  const ratingUrl = String(data.ratingUrl || 'https://ravito.ci/orders');
+
+  const content = `
+    <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+      <h1 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 28px; font-weight: 700; color: #111827; margin: 0 0 24px 0; line-height: 1.3; text-align: center;">
+        Comment s'est passée votre livraison ? ⭐
+      </h1>
+      
+      <p style="font-size: 16px; line-height: 1.6; color: #4B5563; margin: 0 0 24px 0;">
+        Bonjour ${clientName},
+      </p>
+      <p style="font-size: 16px; line-height: 1.6; color: #4B5563; margin: 0 0 32px 0;">
+        Votre commande #${orderId} a été livrée hier par ${supplierName}. Nous aimerions connaître votre avis !
+      </p>
+      
+      <div style="background-color: #FFFBEB; border: 2px solid #FBBF24; border-radius: 12px; padding: 32px; margin-bottom: 24px; text-align: center;">
+        <div style="margin-bottom: 24px;">
+          <span style="font-size: 48px; letter-spacing: 8px;">⭐⭐⭐⭐⭐</span>
+        </div>
+        
+        <h2 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 20px; font-weight: 600; color: #111827; margin: 0 0 16px 0;">
+          Évaluez votre expérience
+        </h2>
+        
+        <p style="font-size: 14px; line-height: 1.6; color: #78350F; margin: 0 0 24px 0;">
+          Votre avis nous aide à améliorer la qualité de notre service et à aider d'autres clients à faire leur choix.
+        </p>
+        
+        <a href="${ratingUrl}" style="display: inline-block; background-color: #F59E0B; color: #FFFFFF; font-size: 16px; font-weight: 600; font-family: 'Plus Jakarta Sans', Arial, sans-serif; padding: 14px 32px; border-radius: 8px; text-decoration: none; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);">
+          ⭐ Laisser mon avis
+        </a>
+      </div>
+      
+      <div style="background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px;">
+        <h3 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #111827; margin: 0 0 12px 0;">
+          Ce que vous pouvez évaluer :
+        </h3>
+        <ul style="margin: 0; padding-left: 20px; color: #4B5563;">
+          <li style="font-size: 14px; margin-bottom: 6px; line-height: 1.5;">Qualité des produits livrés</li>
+          <li style="font-size: 14px; margin-bottom: 6px; line-height: 1.5;">Rapidité de la livraison</li>
+          <li style="font-size: 14px; margin-bottom: 6px; line-height: 1.5;">Professionnalisme du livreur</li>
+          <li style="font-size: 14px; line-height: 1.5;">Expérience globale</li>
+        </ul>
+      </div>
+      
+      <p style="font-size: 13px; line-height: 1.6; color: #9CA3AF; margin: 32px 0 0 0; text-align: center;">
+        Cela ne prendra que quelques secondes et aidera grandement notre communauté.
+      </p>
+    </div>
+  `;
+
+  return buildBaseEmailTemplate(content, clientEmail);
+}
+
 // Build email content based on type
 function buildEmailContent(type: string, data: Record<string, unknown>): EmailContent {
   switch (type) {
@@ -511,6 +963,47 @@ function buildEmailContent(type: string, data: Record<string, unknown>): EmailCo
       return {
         subject: `✅ Livraison effectuée - Commande #${orderId}`,
         html: buildDeliveryConfirmationEmailHtml(data),
+      };
+    }
+    case 'order_paid': {
+      const orderId = String(data.orderId || '');
+      return {
+        subject: `✅ Paiement confirmé - Commande #${orderId}`,
+        html: buildOrderPaidEmailHtml(data),
+      };
+    }
+    case 'offer_received': {
+      const orderId = String(data.orderId || '');
+      return {
+        subject: `💰 Nouvelle offre pour votre commande #${orderId}`,
+        html: buildOfferReceivedEmailHtml(data),
+      };
+    }
+    case 'offer_accepted': {
+      const orderId = String(data.orderId || '');
+      return {
+        subject: `🎉 Votre offre a été acceptée - Commande #${orderId}`,
+        html: buildOfferAcceptedEmailHtml(data),
+      };
+    }
+    case 'delivery_code': {
+      const deliveryCode = String(data.deliveryCode || '');
+      return {
+        subject: `🚚 Votre commande est en livraison - Code: ${deliveryCode}`,
+        html: buildDeliveryCodeEmailHtml(data),
+      };
+    }
+    case 'order_cancelled': {
+      const orderId = String(data.orderId || '');
+      return {
+        subject: `❌ Commande #${orderId} annulée`,
+        html: buildOrderCancelledEmailHtml(data),
+      };
+    }
+    case 'rating_request': {
+      return {
+        subject: `⭐ Comment s'est passée votre livraison ?`,
+        html: buildRatingRequestEmailHtml(data),
       };
     }
     default:

@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 
-export type EmailType = 'welcome' | 'password_reset' | 'new_order' | 'delivery_confirmation';
+export type EmailType = 'welcome' | 'password_reset' | 'new_order' | 'delivery_confirmation' | 'order_paid' | 'offer_received' | 'offer_accepted' | 'delivery_code' | 'order_cancelled' | 'rating_request';
 
 interface SendEmailParams {
   type: EmailType;
@@ -92,6 +92,114 @@ export const emailService = {
   }) {
     return this.send({
       type: 'delivery_confirmation',
+      to: params.to,
+      data: {
+        ...params,
+        ratingUrl: `${window.location.origin}/orders/${params.orderId}/rate`,
+      },
+    });
+  },
+
+  async sendOrderPaidEmail(params: {
+    to: string;
+    clientName: string;
+    clientEmail: string;
+    orderId: string;
+    supplierName: string;
+    supplierPhone?: string;
+    totalAmount: number;
+    items: Array<{ name: string; quantity: number; unit: string }>;
+    deliveryAddress: string;
+  }) {
+    return this.send({
+      type: 'order_paid',
+      to: params.to,
+      data: params,
+    });
+  },
+
+  async sendOfferReceivedEmail(params: {
+    to: string;
+    clientName: string;
+    clientEmail: string;
+    orderId: string;
+    supplierName: string;
+    supplierRating?: number;
+    offerAmount: number;
+    estimatedDeliveryTime?: number;
+    supplierMessage?: string;
+  }) {
+    return this.send({
+      type: 'offer_received',
+      to: params.to,
+      data: {
+        ...params,
+        offerUrl: `${window.location.origin}/orders`,
+      },
+    });
+  },
+
+  async sendOfferAcceptedEmail(params: {
+    to: string;
+    supplierName: string;
+    supplierEmail: string;
+    orderId: string;
+    clientName: string;
+    clientPhone?: string;
+    deliveryAddress: string;
+    items: Array<{ name: string; quantity: number; unit: string }>;
+    totalAmount: number;
+  }) {
+    return this.send({
+      type: 'offer_accepted',
+      to: params.to,
+      data: {
+        ...params,
+        dashboardUrl: `${window.location.origin}/supplier/orders`,
+      },
+    });
+  },
+
+  async sendDeliveryCodeEmail(params: {
+    to: string;
+    clientName: string;
+    clientEmail: string;
+    orderId: string;
+    deliveryCode: string;
+    supplierName: string;
+  }) {
+    return this.send({
+      type: 'delivery_code',
+      to: params.to,
+      data: params,
+    });
+  },
+
+  async sendOrderCancelledEmail(params: {
+    to: string;
+    recipientName: string;
+    recipientEmail: string;
+    orderId: string;
+    cancellationReason?: string;
+    refundAmount?: number;
+    isClient: boolean;
+  }) {
+    return this.send({
+      type: 'order_cancelled',
+      to: params.to,
+      data: params,
+    });
+  },
+
+  async sendRatingRequestEmail(params: {
+    to: string;
+    clientName: string;
+    clientEmail: string;
+    orderId: string;
+    supplierName: string;
+  }) {
+    return this.send({
+      type: 'rating_request',
       to: params.to,
       data: {
         ...params,
