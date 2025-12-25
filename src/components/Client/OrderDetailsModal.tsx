@@ -181,7 +181,7 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
               </div>
 
               {/* Delivery Confirmation Code */}
-              {(order.status === 'delivering' || order.status === 'en_livraison') && (order.delivery_confirmation_code || order.deliveryConfirmationCode) && (
+              {order.status === 'delivering' && (order.delivery_confirmation_code || order.deliveryConfirmationCode) && (
                 <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Package className="h-5 w-5 text-orange-600" />
