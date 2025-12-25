@@ -78,6 +78,9 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
     ? getSupplierProfile(order.supplierId)
     : null;
 
+  // Extract delivery confirmation code
+  const deliveryConfirmationCode = order.delivery_confirmation_code || order.deliveryConfirmationCode;
+
   // Map status text colors to gradient classes (Tailwind needs explicit class names)
   const statusGradientClasses: Record<string, string> = {
     'text-yellow-600': 'bg-gradient-to-br from-yellow-400 to-yellow-500',
@@ -181,7 +184,7 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
               </div>
 
               {/* Delivery Confirmation Code */}
-              {order.status === 'delivering' && (order.delivery_confirmation_code || order.deliveryConfirmationCode) && (
+              {order.status === 'delivering' && deliveryConfirmationCode && (
                 <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Package className="h-5 w-5 text-orange-600" />
@@ -190,7 +193,7 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
                   
                   <div className="bg-white border border-orange-300 rounded-lg p-4 text-center">
                     <span className="text-2xl font-bold tracking-wider text-orange-600">
-                      {order.delivery_confirmation_code || order.deliveryConfirmationCode}
+                      {deliveryConfirmationCode}
                     </span>
                   </div>
                   
