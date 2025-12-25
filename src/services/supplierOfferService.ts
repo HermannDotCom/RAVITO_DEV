@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { emailService } from './emailService';
 
 export interface SupplierOfferItem {
   productId: string;
@@ -108,6 +109,35 @@ export async function createSupplierOffer(
     if (error) {
       console.error('Error creating/updating supplier offer:', error);
       return { success: false, error: error.message };
+    }
+
+    // Send email to client about new offer
+    try {
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          profiles!orders_client_id_fkey(full_name, email),
+          supplier:profiles!orders_supplier_id_fkey(business_name, rating)
+        `)
+        .eq('id', orderId)
+        .single();
+
+      if (orderData && orderData.profiles?.email) {
+        await emailService.sendOfferReceivedEmail({
+          to: orderData.profiles.email,
+          clientName: orderData.profiles.full_name || 'Client',
+          clientEmail: orderData.profiles.email,
+          orderId: orderId,
+          supplierName: orderData.supplier?.business_name || 'Fournisseur',
+          supplierRating: orderData.supplier?.rating,
+          offerAmount: totalAmount,
+          supplierMessage: supplierMessage,
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send offer received email:', emailError);
+      // Non-blocking - offer creation succeeded
     }
 
     return { success: true, offerId: data.id };
@@ -263,6 +293,48 @@ export async function acceptOffer(
 
     if (itemsInsertError) {
       console.error('Error inserting new items:', itemsInsertError);
+    }
+
+    // Send email to supplier about accepted offer
+    try {
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          delivery_address,
+          total_amount,
+          profiles!orders_client_id_fkey(full_name, phone),
+          supplier:profiles!orders_supplier_id_fkey(email, business_name),
+          order_items(
+            quantity,
+            product:products(name, crate_type)
+          )
+        `)
+        .eq('id', orderId)
+        .single();
+
+      if (orderData && orderData.supplier?.email) {
+        const items = (orderData.order_items || []).map((item: any) => ({
+          name: item.product?.name || 'Produit',
+          quantity: item.quantity,
+          unit: item.product?.crate_type || 'unité',
+        }));
+
+        await emailService.sendOfferAcceptedEmail({
+          to: orderData.supplier.email,
+          supplierName: orderData.supplier.business_name || 'Fournisseur',
+          supplierEmail: orderData.supplier.email,
+          orderId: orderId,
+          clientName: orderData.profiles?.full_name || 'Client',
+          clientPhone: orderData.profiles?.phone,
+          deliveryAddress: orderData.delivery_address,
+          items,
+          totalAmount: orderData.total_amount,
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send offer accepted email:', emailError);
+      // Non-blocking - offer acceptance succeeded
     }
 
     return { success: true };

@@ -186,6 +186,8 @@ npm run test:coverage
 
 ## 🏗️ Build & Déploiement
 
+### Build Local
+
 ```bash
 # Build production
 npm run build
@@ -196,6 +198,90 @@ npm run preview
 # Lint
 npm run lint
 ```
+
+### Déploiement sur Vercel
+
+RAVITO est configuré pour un déploiement facile sur Vercel.
+
+#### Prérequis
+
+1. Compte [Vercel](https://vercel.com)
+2. Variables d'environnement configurées (voir `.env.example`)
+3. Compte Supabase actif avec Edge Functions déployées
+
+#### Étapes de déploiement
+
+1. **Fork/Clone le repository**
+   ```bash
+   git clone https://github.com/your-org/ravito.git
+   cd ravito
+   ```
+
+2. **Installer Vercel CLI (optionnel)**
+   ```bash
+   npm install -g vercel
+   ```
+
+3. **Déployer via Vercel Dashboard** (recommandé)
+   - Connectez-vous à [vercel.com](https://vercel.com)
+   - Cliquez sur "New Project"
+   - Importez votre repository GitHub
+   - Vercel détectera automatiquement la configuration Vite
+   - Configurez les variables d'environnement :
+     - `VITE_SUPABASE_URL`
+     - `VITE_SUPABASE_ANON_KEY`
+     - `VITE_MAPBOX_TOKEN`
+     - `VITE_APP_URL` (votre domaine Vercel)
+     - `VITE_SENTRY_DSN` (optionnel)
+   - Cliquez sur "Deploy"
+
+4. **Déployer via CLI** (alternative)
+   ```bash
+   vercel
+   # Suivez les instructions interactives
+   
+   # Pour production
+   vercel --prod
+   ```
+
+#### Configuration Supabase Edge Functions
+
+Les Edge Functions nécessitent des secrets supplémentaires. Configurez-les via le dashboard Supabase ou CLI :
+
+```bash
+# Via Supabase CLI
+supabase secrets set EMAIL_FROM="RAVITO <noreply@ravito.ci>"
+supabase secrets set RESEND_API_KEY="re_your_api_key"
+```
+
+**Ou via le Dashboard Supabase :**
+1. Allez dans **Settings** → **Edge Functions** → **Secrets**
+2. Ajoutez les secrets suivants :
+   - `EMAIL_FROM` = `RAVITO <noreply@ravito.ci>`
+   - `RESEND_API_KEY` = Votre clé API Resend
+
+#### Vérification post-déploiement
+
+- ✅ L'application est accessible sur votre domaine Vercel
+- ✅ L'authentification fonctionne
+- ✅ Les emails sont envoyés correctement
+- ✅ Les Edge Functions répondent (testez via `/api/health`)
+- ✅ Les cartes s'affichent (Mapbox configuré)
+
+#### Domaine personnalisé
+
+Pour utiliser votre propre domaine (ex: `ravito.ci`) :
+
+1. Dans Vercel Dashboard, allez dans **Settings** → **Domains**
+2. Ajoutez votre domaine
+3. Configurez les DNS selon les instructions Vercel
+4. Mettez à jour `VITE_APP_URL` avec votre domaine
+
+#### Monitoring et Logs
+
+- **Vercel Analytics** : Activez dans le dashboard pour le monitoring
+- **Sentry** : Configurez `VITE_SENTRY_DSN` pour le tracking d'erreurs
+- **Supabase Logs** : Consultez les logs des Edge Functions dans le dashboard Supabase
 
 ---
 
