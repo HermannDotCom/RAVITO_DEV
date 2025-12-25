@@ -39,43 +39,23 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
       );
 
       const results = await Promise.allSettled(
-        uniqueOrders.map(async (order) => {
-          try {
-            // Try RPC first
-            const { data, error } = await supabase.rpc('get_client_info_for_order', { p_order_id: order.id });
-            
-            if (error || !data) {
-              // Fallback to direct profile query
-              console.log('RPC failed, using fallback for client:', order.clientId);
-              const { data: profileData, error: profileError } = await supabase
-                .from('profiles')
-                .select('id, name, business_name, phone, rating')
-                .eq('id', order.clientId)
-                .single();
-              
-              if (profileError) throw profileError;
-              return { clientId: order.clientId, data: profileData, error: null };
-            }
-            
-            return { clientId: order.clientId, data, error: null };
-          } catch (err) {
-            console.error('Error loading client profile for order:', order.id, err);
-            return { clientId: order.clientId, data: null, error: err };
-          }
-        })
+        uniqueOrders.map(order =>
+          supabase.rpc('get_client_info_for_order', { p_order_id: order.id })
+            .then(result => ({ orderId: order.id, ...result }))
+        )
       );
 
       const profilesMap: Record<string, ClientProfile> = {};
 
-      results.forEach((result) => {
+      results.forEach((result, index) => {
         if (result.status === 'fulfilled') {
-          const { clientId, data, error } = result.value;
+          const { data, error, orderId } = result.value;
           if (error) {
-            console.error('Error in result:', error);
+            console.error('Error loading client profile for order:', orderId, error);
             return;
           }
-          if (data && clientId) {
-            profilesMap[clientId] = {
+          if (data) {
+            profilesMap[data.id] = {
               id: data.id,
               name: data.name,
               business_name: data.business_name,
@@ -84,7 +64,7 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
             };
           }
         } else {
-          console.error('Promise rejected:', result.reason);
+          console.error('Error loading client profile for order:', uniqueOrders[index].id, result.reason);
         }
       });
 
@@ -334,21 +314,6 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
 
             return (
               <div key={order.id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                {/* Order Number Header */}
-                <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Package className="h-5 w-5 text-white" />
-                      <span className="text-white font-bold text-lg">
-                        Commande #{order.id.substring(0, 8).toUpperCase()}
-                      </span>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusInfo.bgColor} ${statusInfo.textColor}`}>
-                      {statusInfo.label}
-                    </span>
-                  </div>
-                </div>
-                
                 <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Client Info & Address */}
                   <div className="space-y-4">
