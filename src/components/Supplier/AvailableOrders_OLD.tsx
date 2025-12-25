@@ -220,7 +220,7 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                           <span className="font-bold text-gray-900">{formatPrice(order.totalAmount)}</span>
                         </div>
                         <div className="flex justify-between text-red-600">
-                          <span>Commission RAVITO ({commissionSettings.supplierCommission}%) :</span>
+                          <span>Commission DISTRI-NIGHT ({commissionSettings.supplierCommission}%) :</span>
                           <span className="font-medium">-{formatPrice(getSupplierNetAmount(order.totalAmount).commission)}</span>
                         </div>
                         <div className="border-t border-green-200 pt-2">

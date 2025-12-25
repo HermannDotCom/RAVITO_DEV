@@ -4,11 +4,10 @@ import { Order } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { getOffersBySupplier, SupplierOffer } from '../../services/supplierOfferService';
 import { getOrdersBySupplier } from '../../services/orderService';
-import { RatingBadge } from '../Shared/RatingBadge';
 
 interface SupplierOrderSectionsProps {
   availableOrders: Order[];
-  onSelectOrder: (order: Order, activeTab: 'available' | 'pending' | 'active') => void;
+  onSelectOrder: (order: Order) => void;
 }
 
 export const SupplierOrderSections: React.FC<SupplierOrderSectionsProps> = ({
@@ -95,21 +94,7 @@ export const SupplierOrderSections: React.FC<SupplierOrderSectionsProps> = ({
                 <h3 className="text-lg font-bold text-gray-900">
                   Commande #{order.id.slice(0, 8)}
                 </h3>
-                <div className="flex items-center space-x-2 mt-1">
-                  <span className="text-sm text-gray-600">Note du client :</span>
-                  {order.clientRating ? (
-                    <RatingBadge
-                      rating={order.clientRating}
-                      reviewCount={1}
-                      userId={order.clientId}
-                      userType="client"
-                      size="sm"
-                    />
-                  ) : (
-                    <span className="text-sm text-gray-500">Nouveau client</span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-gray-600">
                   {formatDate(order.createdAt)}
                 </p>
               </div>
@@ -147,7 +132,7 @@ export const SupplierOrderSections: React.FC<SupplierOrderSectionsProps> = ({
           </div>
 
           <button
-            onClick={() => onSelectOrder(order, activeTab)}
+            onClick={() => onSelectOrder(order)}
             className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
           >
             Voir détails
