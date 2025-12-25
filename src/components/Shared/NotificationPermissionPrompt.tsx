@@ -8,6 +8,7 @@ export const NotificationPermissionPrompt: React.FC = () => {
   const { hasNotificationPermission, requestNotificationPermission } = useNotifications();
   const [showPrompt, setShowPrompt] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false);
 
   useEffect(() => {
     // Check if we should show the prompt
@@ -24,9 +25,23 @@ export const NotificationPermissionPrompt: React.FC = () => {
   }, [hasNotificationPermission, user]);
 
   const handleEnable = async () => {
-    const granted = await requestNotificationPermission();
-    if (granted) {
+    if (isRequesting) return; // Prevent multiple clicks
+    
+    setIsRequesting(true);
+    try {
+      const granted = await requestNotificationPermission();
+      if (granted) {
+        setShowPrompt(false);
+      } else {
+        // If permission denied, still close the prompt but save the preference
+        setShowPrompt(false);
+        localStorage.setItem('notification-prompt-dismissed', 'true');
+      }
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
       setShowPrompt(false);
+    } finally {
+      setIsRequesting(false);
     }
   };
 
@@ -78,9 +93,17 @@ export const NotificationPermissionPrompt: React.FC = () => {
         <div className="space-y-3">
           <button
             onClick={handleEnable}
-            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 px-4 rounded-lg font-medium hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg"
+            disabled={isRequesting}
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 px-4 rounded-lg font-medium hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
           >
-            Activer les Notifications
+            {isRequesting ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Activation en cours...
+              </>
+            ) : (
+              'Activer les Notifications'
+            )}
           </button>
 
           <button

@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { XCircle, Download, Archive, CreditCard, Phone } from 'lucide-react';
+import { XCircle, Download, Archive, CreditCard, Phone, Package, Key } from 'lucide-react';
 import { Order, CrateType } from '../../types';
 import { MutualRatingsDisplay } from '../Shared/MutualRatingsDisplay';
 import { RatingBadge } from '../Shared/RatingBadge';
@@ -215,6 +215,33 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
                   </div>
                 </div>
               </div>
+
+              {/* Delivery Confirmation Code - Display when status is "delivering" */}
+              {(order.status === 'delivering' || order.status === 'en_livraison') && 
+               (order.deliveryConfirmationCode || order.delivery_confirmation_code) && (
+                <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <Key className="h-5 w-5 mr-2 text-orange-600" />
+                    Code de confirmation
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="bg-white border-2 border-orange-300 rounded-lg p-4 text-center">
+                      <div className="text-3xl font-mono font-bold text-orange-600 tracking-widest mb-2">
+                        {order.deliveryConfirmationCode || order.delivery_confirmation_code}
+                      </div>
+                      <div className="flex items-center justify-center text-orange-700">
+                        <Package className="h-4 w-4 mr-2" />
+                        <span className="text-sm">À communiquer au livreur lors de la réception</span>
+                      </div>
+                    </div>
+                    <div className="bg-orange-100 rounded-lg p-3">
+                      <p className="text-xs text-orange-800 text-center">
+                        ⚠️ Ce code est unique et sécurise la réception de votre commande. Ne le partagez qu'avec le livreur lors de la livraison.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Order Details */}
