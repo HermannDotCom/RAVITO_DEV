@@ -53,7 +53,7 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
     'Justificatif d\'adresse manquant ou non conforme',
     'Licence commerciale expirée ou non valide',
     'Zone de couverture non autorisée ou trop étendue',
-    'Établissement non conforme aux critères RAVITO',
+    'Établissement non conforme aux critères DISTRI-NIGHT',
     'Doublon détecté avec un compte existant',
     'Informations commerciales insuffisantes',
     'Moyens de paiement non conformes',

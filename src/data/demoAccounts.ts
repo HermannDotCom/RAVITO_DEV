@@ -12,22 +12,22 @@ export interface DemoAccount {
 }
 
 export const demoAccounts: DemoAccount[] = [
-  // Admin - Employé RAVITO
+  // Admin - Employé DISTRI-NIGHT
   {
     id: 'demo-admin',
     name: 'Hermann N\'GUESSAN',
     role: 'admin',
     profileType: 'Profil Administrateur',
-    email: 'hermann.nguessan@ravito.ci',
+    email: 'hermann.nguessan@distri-night.ci',
     password: 'demo123',
     commune: 'Plateau',
     userData: {
       id: 'admin-hermann',
-      email: 'hermann.nguessan@ravito.ci',
+      email: 'hermann.nguessan@distri-night.ci',
       role: 'admin',
       name: 'Hermann N\'GUESSAN',
       phone: '+225 27 20 30 40 50',
-      address: 'Siège RAVITO, Plateau, Abidjan',
+      address: 'Siège DISTRI-NIGHT, Plateau, Abidjan',
       coordinates: { lat: 5.3267, lng: -4.0305 },
       rating: 5.0,
       totalOrders: 0,
@@ -134,16 +134,16 @@ export const demoAccounts: DemoAccount[] = [
     name: 'Fatou Koné',
     role: 'admin',
     profileType: 'Profil Comptable',
-    email: 'fatou.kone@ravito.ci',
+    email: 'fatou.kone@distri-night.ci',
     password: 'demo123',
     commune: 'Plateau',
     userData: {
       id: 'admin-fatou',
-      email: 'fatou.kone@ravito.ci',
+      email: 'fatou.kone@distri-night.ci',
       role: 'admin',
       name: 'Fatou Koné',
       phone: '+225 01 23 45 67 89',
-      address: 'Siège RAVITO, Plateau, Abidjan',
+      address: 'Siège DISTRI-NIGHT, Plateau, Abidjan',
       coordinates: { lat: 5.3267, lng: -4.0305 },
       rating: 5.0,
       totalOrders: 0,

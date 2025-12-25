@@ -1,10 +1,10 @@
-# 🌙 RAVITO
+# 🌙 DISTRI-NIGHT
 
-**Plateforme de ravitaillement 24h/24 pour CHR à Abidjan, Côte d'Ivoire**
+**Plateforme de distribution nocturne de boissons à Abidjan, Côte d'Ivoire**
 
 ## 📖 Description
 
-RAVITO est une application web moderne qui connecte les bars, maquis et restaurants avec les dépôts de boissons pour des livraisons rapides et efficaces, jour et nuit.
+DISTRI-NIGHT est une application web moderne qui connecte les bars, maquis et restaurants avec les dépôts de boissons pour des livraisons nocturnes rapides et efficaces.
 
 ### 🎯 Fonctionnalités Principales
 
@@ -27,7 +27,7 @@ RAVITO est une application web moderne qui connecte les bars, maquis et restaura
 ```bash
 # Cloner le repository
 git clone <repository-url>
-cd ravito
+cd distri-night
 
 # Installer les dépendances
 npm install
@@ -48,7 +48,7 @@ Voir le fichier **[CREDENTIALS.txt](./CREDENTIALS.txt)** pour les identifiants c
 
 | Rôle | Email | Mot de passe |
 |------|-------|--------------|
-| **Admin** | admin@ravito.ci | Admin@2025! |
+| **Admin** | admin@distri-night.ci | Admin@2025! |
 | **Client** | client1@test.ci | Client@2025! |
 | **Supplier** | supplier1@test.ci | Supplier@2025! |
 
@@ -59,7 +59,7 @@ Voir le fichier **[CREDENTIALS.txt](./CREDENTIALS.txt)** pour les identifiants c
 ## 📁 Structure du Projet
 
 ```
-ravito/
+distri-night/
 ├── src/
 │   ├── components/          # Composants React
 │   │   ├── Admin/          # Dashboard admin
@@ -157,8 +157,6 @@ ravito/
 
 ## 🧪 Tests
 
-### Tests Unitaires
-
 ```bash
 # Lancer les tests
 npm test
@@ -172,21 +170,9 @@ npm run test:coverage
 
 **Coverage actuel :** 90%+ sur les contextes critiques
 
-### Tests E2E
-
-> ⚠️ **Note** : Les tests E2E sont temporairement désactivés pendant la phase de développement MVP. 
-> Voir [`tests/E2E_TODO.md`](./tests/E2E_TODO.md) pour plus d'informations.
-
-```bash
-# Les tests E2E seront réactivés avant la mise en production
-# npx playwright test
-```
-
 ---
 
 ## 🏗️ Build & Déploiement
-
-### Build Local
 
 ```bash
 # Build production
@@ -198,90 +184,6 @@ npm run preview
 # Lint
 npm run lint
 ```
-
-### Déploiement sur Vercel
-
-RAVITO est configuré pour un déploiement facile sur Vercel.
-
-#### Prérequis
-
-1. Compte [Vercel](https://vercel.com)
-2. Variables d'environnement configurées (voir `.env.example`)
-3. Compte Supabase actif avec Edge Functions déployées
-
-#### Étapes de déploiement
-
-1. **Fork/Clone le repository**
-   ```bash
-   git clone https://github.com/your-org/ravito.git
-   cd ravito
-   ```
-
-2. **Installer Vercel CLI (optionnel)**
-   ```bash
-   npm install -g vercel
-   ```
-
-3. **Déployer via Vercel Dashboard** (recommandé)
-   - Connectez-vous à [vercel.com](https://vercel.com)
-   - Cliquez sur "New Project"
-   - Importez votre repository GitHub
-   - Vercel détectera automatiquement la configuration Vite
-   - Configurez les variables d'environnement :
-     - `VITE_SUPABASE_URL`
-     - `VITE_SUPABASE_ANON_KEY`
-     - `VITE_MAPBOX_TOKEN`
-     - `VITE_APP_URL` (votre domaine Vercel)
-     - `VITE_SENTRY_DSN` (optionnel)
-   - Cliquez sur "Deploy"
-
-4. **Déployer via CLI** (alternative)
-   ```bash
-   vercel
-   # Suivez les instructions interactives
-   
-   # Pour production
-   vercel --prod
-   ```
-
-#### Configuration Supabase Edge Functions
-
-Les Edge Functions nécessitent des secrets supplémentaires. Configurez-les via le dashboard Supabase ou CLI :
-
-```bash
-# Via Supabase CLI
-supabase secrets set EMAIL_FROM="RAVITO <noreply@ravito.ci>"
-supabase secrets set RESEND_API_KEY="re_your_api_key"
-```
-
-**Ou via le Dashboard Supabase :**
-1. Allez dans **Settings** → **Edge Functions** → **Secrets**
-2. Ajoutez les secrets suivants :
-   - `EMAIL_FROM` = `RAVITO <noreply@ravito.ci>`
-   - `RESEND_API_KEY` = Votre clé API Resend
-
-#### Vérification post-déploiement
-
-- ✅ L'application est accessible sur votre domaine Vercel
-- ✅ L'authentification fonctionne
-- ✅ Les emails sont envoyés correctement
-- ✅ Les Edge Functions répondent (testez via `/api/health`)
-- ✅ Les cartes s'affichent (Mapbox configuré)
-
-#### Domaine personnalisé
-
-Pour utiliser votre propre domaine (ex: `ravito.ci`) :
-
-1. Dans Vercel Dashboard, allez dans **Settings** → **Domains**
-2. Ajoutez votre domaine
-3. Configurez les DNS selon les instructions Vercel
-4. Mettez à jour `VITE_APP_URL` avec votre domaine
-
-#### Monitoring et Logs
-
-- **Vercel Analytics** : Activez dans le dashboard pour le monitoring
-- **Sentry** : Configurez `VITE_SENTRY_DSN` pour le tracking d'erreurs
-- **Supabase Logs** : Consultez les logs des Edge Functions dans le dashboard Supabase
 
 ---
 
@@ -510,10 +412,10 @@ Ce projet est sous licence propriétaire. Tous droits réservés.
 
 ---
 
-**Développé avec ❤️ pour révolutionner le ravitaillement CHR en Côte d'Ivoire**
+**Développé avec ❤️ pour révolutionner la distribution nocturne en Côte d'Ivoire**
 
 **Status :** ✅ Production Ready
 **Version :** 1.0.0
 **Date :** 2025-10-04
 
-🌙 **RAVITO - Le ravitaillement qui ne dort jamais**
+🌙 **DISTRI-NIGHT - La nuit n'a jamais été aussi productive !**

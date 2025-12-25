@@ -8,9 +8,7 @@ export async function createOrder(
   coordinates: { lat: number; lng: number },
   paymentMethod: PaymentMethod,
   commissionSettings: { clientCommission: number; supplierCommission: number },
-  zoneId?: string,
-  deliveryInstructions?: string,
-  usesProfileAddress?: boolean
+  zoneId?: string
 ): Promise<{ success: boolean; orderId?: string; error?: string }> {
   try {
     const subtotal = items.reduce((sum, item) => sum + (item.product.cratePrice * item.quantity), 0);
@@ -37,20 +35,6 @@ export async function createOrder(
       payment_status: 'pending',
       zone_id: zoneId || null
     };
-
-    // Add geolocation fields only if they have values
-    // (They will be ignored by Supabase if columns don't exist)
-    if (coordinates.lat != null) {
-      orderData.delivery_latitude = coordinates.lat;
-    }
-    if (coordinates.lng != null) {
-      orderData.delivery_longitude = coordinates.lng;
-    }
-    if (deliveryInstructions !== undefined) {
-      orderData.delivery_instructions = deliveryInstructions || null;
-    }
-    // Default to true when undefined to maintain original behavior
-    orderData.uses_profile_address = usesProfileAddress !== undefined ? usesProfileAddress : true;
 
     const { data: order, error: orderError } = await supabase
       .from('orders')
@@ -150,10 +134,6 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
       .from('orders_with_coords')
       .select(`
         *,
-        client:profiles!client_id(
-          id,
-          rating
-        ),
         order_items (
           *,
           product:products (*)
@@ -163,6 +143,8 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
       .in('status', ['pending-offers', 'offers-received']);
 
     if (supplierId) {
+      console.log('🔍 Fetching zones for supplier:', supplierId);
+
       const { data: supplierZones, error: zonesError } = await supabase
         .from('supplier_zones')
         .select('zone_id')
@@ -170,14 +152,16 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
         .eq('approval_status', 'approved');
 
       if (zonesError) {
-        console.error('Error fetching supplier zones:', zonesError);
+        console.error('❌ Error fetching supplier zones:', zonesError);
         return [];
       }
 
+      console.log('✅ Supplier zones found:', supplierZones);
       const zoneIds = supplierZones.map(sz => sz.zone_id);
+      console.log('📍 Zone IDs to filter by:', zoneIds);
 
       if (zoneIds.length === 0) {
-        console.warn('No approved zones found for this supplier');
+        console.warn('⚠️ No approved zones found for this supplier');
         return [];
       }
 
@@ -187,8 +171,21 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
     const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching pending orders:', error);
+      console.error('❌ Error fetching pending orders:', error);
       return [];
+    }
+
+    console.log('📦 getPendingOrders - Raw data from DB:', JSON.stringify(data, null, 2));
+    console.log('📦 Number of orders:', data?.length);
+    if (data && data.length > 0) {
+      console.log('📦 First order details:');
+      console.log('  - ID:', data[0].id);
+      console.log('  - zone_id:', data[0].zone_id);
+      console.log('  - status:', data[0].status);
+      console.log('  - order_items:', data[0].order_items);
+      console.log('  - order_items count:', data[0].order_items?.length);
+    } else {
+      console.warn('⚠️ No orders returned from query');
     }
 
     // Si on filtre pour un fournisseur, exclure les commandes avec une offre acceptée
@@ -284,7 +281,12 @@ export async function updateOrderStatus(
 }
 
 function mapDatabaseOrderToApp(dbOrder: any): Order {
+  console.log('🔄 Mapping order:', dbOrder.id);
+  console.log('🔄 order_items count:', dbOrder.order_items?.length || 0);
+  console.log('🔄 order_items:', JSON.stringify(dbOrder.order_items, null, 2));
+
   const items: CartItem[] = (dbOrder.order_items || []).map((item: any) => {
+    console.log('🔄 Mapping item:', item.id, 'product:', item.product?.name);
     return {
     product: {
       id: item.product.id,
@@ -333,17 +335,14 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
     estimatedDeliveryTime: dbOrder.estimated_delivery_time,
     paymentStatus: dbOrder.payment_status,
     deliveryConfirmationCode: dbOrder.delivery_confirmation_code,
-    clientRating: dbOrder.client?.rating ?? undefined,
     createdAt: new Date(dbOrder.created_at),
     acceptedAt: dbOrder.accepted_at ? new Date(dbOrder.accepted_at) : undefined,
     deliveredAt: dbOrder.delivered_at ? new Date(dbOrder.delivered_at) : undefined,
     paidAt: dbOrder.paid_at ? new Date(dbOrder.paid_at) : undefined,
-    transferredAt: dbOrder.transferred_at ? new Date(dbOrder.transferred_at) : undefined,
-    deliveryLatitude: dbOrder.delivery_latitude || null,
-    deliveryLongitude: dbOrder.delivery_longitude || null,
-    deliveryInstructions: dbOrder.delivery_instructions || null,
-    usesProfileAddress: dbOrder.uses_profile_address !== undefined ? dbOrder.uses_profile_address : true
+    transferredAt: dbOrder.transferred_at ? new Date(dbOrder.transferred_at) : undefined
   };
+
+  console.log('✅ Mapped order:', mappedOrder.id, 'items:', mappedOrder.items.length);
 
   return mappedOrder;
 }

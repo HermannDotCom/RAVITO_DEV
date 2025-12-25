@@ -49,22 +49,6 @@ export const useRealtimeOrders = () => {
             (order.order_number as string) || (order.id as string)?.substring(0, 8) || 'N/A',
             statusLabel
           );
-        },
-        (order) => {
-          // Callback for available orders status updates (e.g., pending-offers -> offers-received)
-          console.log('Available order status updated for supplier:', order);
-          
-          // Force refresh of available orders list
-          window.dispatchEvent(new CustomEvent('refresh-orders'));
-          
-          // Show toast notification for the status change
-          const status = order.status as string;
-          if (status === 'offers-received') {
-            toastNotifications.orderStatusUpdate(
-              (order.order_number as string) || (order.id as string)?.substring(0, 8) || 'N/A',
-              'Offre(s) reçue(s)'
-            );
-          }
         }
       );
     }

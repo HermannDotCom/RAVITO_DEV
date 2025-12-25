@@ -1,22 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 
-interface AuthScreenProps {
-  initialPath?: string;
-}
-
-export const AuthScreen: React.FC<AuthScreenProps> = ({ initialPath = '/' }) => {
+export const AuthScreen: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
-  
-  // Set initial state based on route
-  useEffect(() => {
-    if (initialPath === '/register') {
-      setIsLogin(false);
-    } else {
-      setIsLogin(true);
-    }
-  }, [initialPath]);
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md lg:max-w-2xl">

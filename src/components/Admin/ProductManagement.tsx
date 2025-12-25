@@ -206,7 +206,7 @@ export const ProductManagement: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion du Catalogue</h1>
-            <p className="text-gray-600">Administrez les produits disponibles sur RAVITO</p>
+            <p className="text-gray-600">Administrez les produits disponibles sur DISTRI-NIGHT</p>
           </div>
           
           <button

@@ -3,7 +3,6 @@ import { Star, Clock, Package, MessageCircle } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
 import { useAuth } from '../../context/AuthContext';
 import { createRating } from '../../services/ratingService';
-import { supabase } from '../../lib/supabase'; // Ajout direct Supabase pour le check
 
 interface RatingFormProps {
   onSubmit: (rating: any) => void;
@@ -39,25 +38,11 @@ export const RatingForm: React.FC<RatingFormProps> = ({ onSubmit, supplierName }
 
     setIsSubmitting(true);
 
-    // Vérification anti-duplicate côté client
-    const { data: existingRatings, error } = await supabase
-      .from('ratings')
-      .select('id')
-      .eq('order_id', clientCurrentOrder.id)
-      .eq('from_user_id', user.id);
-
-    if (existingRatings && existingRatings.length > 0) {
-      alert("Vous avez déjà évalué cette commande.");
-      setIsSubmitting(false);
-      return;
-    }
-    
     try {
-      // On passe bien les UUID
       const success = await createRating({
         orderId: clientCurrentOrder.id,
-        fromUserId: user.id, // Id du client évaluateur
-        toUserId: clientCurrentOrder.supplierId!, // Id du fournisseur évalué
+        fromUserId: user.id,
+        toUserId: clientCurrentOrder.supplierId!,
         fromUserRole: 'client',
         toUserRole: 'supplier',
         punctuality: ratings.punctuality,
@@ -106,15 +91,21 @@ export const RatingForm: React.FC<RatingFormProps> = ({ onSubmit, supplierName }
                     </div>
                   </div>
                 </div>
+                
                 <div className="flex items-center justify-center space-x-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
                       onClick={() => handleStarClick(criterion.key, star)}
-                      onMouseEnter={() => {setHoveredCriteria(criterion.key);setHoveredStar(star);}}
-                      onMouseLeave={() => {setHoveredCriteria(null);setHoveredStar(0);}}
+                      onMouseEnter={() => {
+                        setHoveredCriteria(criterion.key);
+                        setHoveredStar(star);
+                      }}
+                      onMouseLeave={() => {
+                        setHoveredCriteria(null);
+                        setHoveredStar(0);
+                      }}
                       className="transition-transform hover:scale-110"
-                      type="button"
                     >
                       <Star
                         className={`h-8 w-8 ${
@@ -147,8 +138,7 @@ export const RatingForm: React.FC<RatingFormProps> = ({ onSubmit, supplierName }
           <button
             onClick={handleSubmit}
             disabled={!isComplete || isSubmitting}
-            className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            type="button"
+            className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-lg"
           >
             {isSubmitting ? 'Envoi en cours...' : 'Valider l\'évaluation'}
           </button>

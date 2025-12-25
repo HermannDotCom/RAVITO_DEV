@@ -234,19 +234,7 @@ export async function completeTransfer(
   userId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { data: transferOrders, error: fetchError } = await supabase
-      .from('transfer_orders')
-      .select('order_id')
-      .eq('transfer_id', transferId);
-
-    if (fetchError) {
-      console.error('Error fetching transfer orders:', fetchError);
-      return { success: false, error: fetchError.message };
-    }
-
-    const orderIds = transferOrders?.map(to => to.order_id) || [];
-
-    const { error: transferError } = await supabase
+    const { error } = await supabase
       .from('transfers')
       .update({
         status: 'completed',
@@ -254,25 +242,11 @@ export async function completeTransfer(
         completed_at: new Date().toISOString()
       })
       .eq('id', transferId)
-      .in('status', ['pending', 'approved']);
+      .in('status', ['pending', 'approved']); // Can complete pending or approved transfers
 
-    if (transferError) {
-      console.error('Error completing transfer:', transferError);
-      return { success: false, error: transferError.message };
-    }
-
-    if (orderIds.length > 0) {
-      const { error: ordersError } = await supabase
-        .from('orders')
-        .update({
-          transferred_at: new Date().toISOString(),
-          payment_status: 'transferred'
-        })
-        .in('id', orderIds);
-
-      if (ordersError) {
-        console.error('Error updating orders transferred_at:', ordersError);
-      }
+    if (error) {
+      console.error('Error completing transfer:', error);
+      return { success: false, error: error.message };
     }
 
     return { success: true };

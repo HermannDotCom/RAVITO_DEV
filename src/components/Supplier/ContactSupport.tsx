@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { MessageSquare, Send, Clock, CheckCircle, X, Eye, MessageCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MessageSquare, Send, Clock, AlertCircle, CheckCircle, X, Eye, MessageCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
   ticketService,
@@ -9,24 +9,9 @@ import {
   TicketPriority,
   CreateTicketData
 } from '../../services/ticketService';
-import { KenteLoader } from '../ui/KenteLoader';
 
-interface SupplierContactSupportProps {
-  initialSubject?: string;
-  initialCategory?: TicketCategory;
-  initialMessage?: string;
-  initialPriority?: TicketPriority;
-  onClaimDataClear?: () => void;
-}
-
-export const SupplierContactSupport: React.FC<SupplierContactSupportProps> = ({
-  initialSubject,
-  initialCategory,
-  initialMessage,
-  initialPriority,
-  onClaimDataClear
-}) => {
-  const { user, setSessionError } = useAuth();
+export const SupplierContactSupport: React.FC = () => {
+  const { user } = useAuth();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
@@ -35,68 +20,33 @@ export const SupplierContactSupport: React.FC<SupplierContactSupportProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<CreateTicketData>({
-    subject: initialSubject || '',
-    message: initialMessage || '',
-    category: initialCategory || 'other',
-    priority: initialPriority || 'medium'
+    subject: '',
+    message: '',
+    category: 'other',
+    priority: 'medium'
   });
 
   const [newMessage, setNewMessage] = useState('');
 
-  // Extract userId as a stable primitive dependency
-  const userId = user?.id;
-  
-  // Track if we've loaded tickets at least once
-  const hasLoadedRef = useRef(false);
-
-  // Handle pre-filled data from claim navigation
   useEffect(() => {
-    // Only update form if at least one prop has a meaningful value
-    const hasPrefilledData = Boolean(initialSubject || initialMessage);
-    if (hasPrefilledData) {
-      setFormData({
-        subject: initialSubject || '',
-        message: initialMessage || '',
-        category: initialCategory || 'other',
-        priority: initialPriority || 'medium'
-      });
-      setShowCreateForm(true);
-    }
-  }, [initialSubject, initialCategory, initialMessage, initialPriority]);
-
-  const loadTickets = useCallback(async () => {
-    if (!userId) {
-      setIsLoading(false);
-      return;
-    }
-    
-    // Only show loader on initial load
-    if (!hasLoadedRef.current) {
-      setIsLoading(true);
-    }
-    
-    try {
-      const data = await ticketService.getUserTickets(userId);
-      setTickets(data);
-      hasLoadedRef.current = true;
-    } catch (error) {
-      console.error('Error loading tickets:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    if (userId) {
+    if (user) {
       loadTickets();
     }
-  }, [userId, loadTickets]);
+  }, [user]);
 
   useEffect(() => {
     if (selectedTicket) {
       loadTicketMessages(selectedTicket.id);
     }
   }, [selectedTicket]);
+
+  const loadTickets = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    const data = await ticketService.getUserTickets(user.id);
+    setTickets(data);
+    setIsLoading(false);
+  };
 
   const loadTicketMessages = async (ticketId: string) => {
     const messages = await ticketService.getTicketMessages(ticketId);
@@ -108,10 +58,10 @@ export const SupplierContactSupport: React.FC<SupplierContactSupportProps> = ({
     if (!user) return;
 
     setIsSubmitting(true);
-    const result = await ticketService.createTicket(user.id, formData);
+    const ticket = await ticketService.createTicket(user.id, formData);
 
-    if (result.success && result.ticket) {
-      setTickets([result.ticket, ...tickets]);
+    if (ticket) {
+      setTickets([ticket, ...tickets]);
       setFormData({
         subject: '',
         message: '',
@@ -119,17 +69,9 @@ export const SupplierContactSupport: React.FC<SupplierContactSupportProps> = ({
         priority: 'medium'
       });
       setShowCreateForm(false);
-      // Clear claim data if it was a pre-filled form
-      if (onClaimDataClear) {
-        onClaimDataClear();
-      }
       alert('Ticket créé avec succès!');
     } else {
-      // Check if we should trigger session error UI
-      if (result.shouldRefresh && result.error) {
-        setSessionError(result.error.message);
-      }
-      alert(result.error?.message || 'Erreur lors de la création du ticket');
+      alert('Erreur lors de la création du ticket');
     }
     setIsSubmitting(false);
   };
@@ -164,7 +106,7 @@ export const SupplierContactSupport: React.FC<SupplierContactSupportProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <KenteLoader size="md" text="Chargement..." />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }
@@ -365,7 +307,6 @@ export const SupplierContactSupport: React.FC<SupplierContactSupportProps> = ({
                   <option value="billing">Facturation</option>
                   <option value="delivery">Livraison</option>
                   <option value="account">Compte</option>
-                  <option value="complaint">Réclamation</option>
                   <option value="other">Autre</option>
                 </select>
               </div>

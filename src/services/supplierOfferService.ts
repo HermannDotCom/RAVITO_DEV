@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { emailService } from './emailService';
 
 export interface SupplierOfferItem {
   productId: string;
@@ -18,7 +17,6 @@ export interface SupplierOffer {
   supplierCommission: number;
   netSupplierAmount: number;
   supplierMessage?: string;
-  supplierRating?: number;
   createdAt: Date;
   acceptedAt?: Date;
   rejectedAt?: Date;
@@ -37,6 +35,17 @@ export async function createSupplierOffer(
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
       return { success: false, error: 'Non authentifié' };
+    }
+
+    const { data: hasPendingRatings } = await supabase.rpc('has_pending_ratings', {
+      user_id: userData.user.id
+    });
+
+    if (hasPendingRatings) {
+      return {
+        success: false,
+        error: 'Vous devez d\'abord évaluer votre dernière transaction avant d\'accepter une nouvelle commande.'
+      };
     }
 
     // Vérifier que la commande n'a pas déjà une offre acceptée
@@ -107,38 +116,11 @@ export async function createSupplierOffer(
     }
 
     if (error) {
-      console.error('Error creating/updating supplier offer:', error);
+      console.error('❌ Error creating/updating supplier offer:', error);
       return { success: false, error: error.message };
     }
 
-    // Send email to client about new offer
-    try {
-      const { data: orderData } = await supabase
-        .from('orders')
-        .select(`
-          id,
-          profiles!orders_client_id_fkey(full_name, email),
-          supplier:profiles!orders_supplier_id_fkey(business_name, rating)
-        `)
-        .eq('id', orderId)
-        .single();
-
-      if (orderData && orderData.profiles?.email) {
-        await emailService.sendOfferReceivedEmail({
-          to: orderData.profiles.email,
-          clientName: orderData.profiles.full_name || 'Client',
-          clientEmail: orderData.profiles.email,
-          orderId: orderId,
-          supplierName: orderData.supplier?.business_name || 'Fournisseur',
-          supplierRating: orderData.supplier?.rating,
-          offerAmount: totalAmount,
-          supplierMessage: supplierMessage,
-        });
-      }
-    } catch (emailError) {
-      console.error('Failed to send offer received email:', emailError);
-      // Non-blocking - offer creation succeeded
-    }
+    console.log('✅ Supplier offer created successfully');
 
     return { success: true, offerId: data.id };
   } catch (error) {
@@ -157,8 +139,7 @@ export async function getOffersByOrder(orderId: string): Promise<SupplierOffer[]
         supplier:profiles!supplier_id(
           id,
           name,
-          business_name,
-          rating
+          business_name
         )
       `)
       .eq('order_id', orderId)
@@ -214,6 +195,17 @@ export async function acceptOffer(
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
       return { success: false, error: 'Non authentifié' };
+    }
+
+    const { data: hasPendingRatings } = await supabase.rpc('has_pending_ratings', {
+      user_id: userData.user.id
+    });
+
+    if (hasPendingRatings) {
+      return {
+        success: false,
+        error: 'Vous devez d\'abord évaluer votre dernière transaction avant de passer une nouvelle commande.'
+      };
     }
 
     const { data: offers } = await supabase
@@ -295,48 +287,6 @@ export async function acceptOffer(
       console.error('Error inserting new items:', itemsInsertError);
     }
 
-    // Send email to supplier about accepted offer
-    try {
-      const { data: orderData } = await supabase
-        .from('orders')
-        .select(`
-          id,
-          delivery_address,
-          total_amount,
-          profiles!orders_client_id_fkey(full_name, phone),
-          supplier:profiles!orders_supplier_id_fkey(email, business_name),
-          order_items(
-            quantity,
-            product:products(name, crate_type)
-          )
-        `)
-        .eq('id', orderId)
-        .single();
-
-      if (orderData && orderData.supplier?.email) {
-        const items = (orderData.order_items || []).map((item: any) => ({
-          name: item.product?.name || 'Produit',
-          quantity: item.quantity,
-          unit: item.product?.crate_type || 'unité',
-        }));
-
-        await emailService.sendOfferAcceptedEmail({
-          to: orderData.supplier.email,
-          supplierName: orderData.supplier.business_name || 'Fournisseur',
-          supplierEmail: orderData.supplier.email,
-          orderId: orderId,
-          clientName: orderData.profiles?.full_name || 'Client',
-          clientPhone: orderData.profiles?.phone,
-          deliveryAddress: orderData.delivery_address,
-          items,
-          totalAmount: orderData.total_amount,
-        });
-      }
-    } catch (emailError) {
-      console.error('Failed to send offer accepted email:', emailError);
-      // Non-blocking - offer acceptance succeeded
-    }
-
     return { success: true };
   } catch (error) {
     console.error('Exception accepting offer:', error);
@@ -367,7 +317,6 @@ export async function rejectOffer(offerId: string): Promise<{ success: boolean; 
 }
 
 function mapDatabaseOfferToApp(dbOffer: Record<string, unknown>): SupplierOffer {
-  const supplier = dbOffer.supplier as { rating?: number } | null;
   return {
     id: dbOffer.id as string,
     orderId: dbOffer.order_id as string,
@@ -379,56 +328,8 @@ function mapDatabaseOfferToApp(dbOffer: Record<string, unknown>): SupplierOffer 
     supplierCommission: dbOffer.supplier_commission as number,
     netSupplierAmount: dbOffer.net_supplier_amount as number,
     supplierMessage: dbOffer.supplier_message as string | undefined,
-    supplierRating: supplier?.rating ?? undefined,
     createdAt: new Date(dbOffer.created_at as string),
     acceptedAt: dbOffer.accepted_at ? new Date(dbOffer.accepted_at as string) : undefined,
     rejectedAt: dbOffer.rejected_at ? new Date(dbOffer.rejected_at as string) : undefined
   };
-}
-
-export interface SupplierPriceGrid {
-  product_id: string;
-  unit_price: number;
-  crate_price: number;
-  consign_price: number;
-}
-
-/**
- * Fetches supplier's custom prices from supplier_price_grids table
- * Returns a Map for quick lookup by product_id
- * 
- * @param supplierId - The UUID of the supplier
- * @returns Map with product_id as key and SupplierPriceGrid as value
- *          Returns empty Map if no custom prices found or on error
- * 
- * Error Handling:
- * - Database errors are logged and empty Map is returned
- * - Exceptions are caught and empty Map is returned
- * - Allows graceful fallback to reference prices
- */
-export async function getSupplierPrices(
-  supplierId: string
-): Promise<Map<string, SupplierPriceGrid>> {
-  try {
-    const { data: supplierGrids, error } = await supabase
-      .from('supplier_price_grids')
-      .select('product_id, unit_price, crate_price, consign_price')
-      .eq('supplier_id', supplierId)
-      .eq('is_active', true);
-
-    if (error) {
-      console.error('Error fetching supplier prices:', error);
-      return new Map();
-    }
-
-    const priceMap = new Map<string, SupplierPriceGrid>();
-    supplierGrids?.forEach(grid => {
-      priceMap.set(grid.product_id, grid);
-    });
-
-    return priceMap;
-  } catch (error) {
-    console.error('Exception fetching supplier prices:', error);
-    return new Map();
-  }
 }
