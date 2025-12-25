@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Clock, Package, Truck, CheckCircle, MapPin, Phone, Archive, CreditCard, AlertCircle } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
-import { useAuth } from '../../context/AuthContext';
 import { OrderStatus, CrateType, PaymentMethod } from '../../types';
 import { PaymentFlow } from './PaymentFlow';
 import { DeliveryTracking } from './DeliveryTracking';
@@ -24,9 +23,10 @@ interface SupplierProfile {
   address?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
-  const { user } = useAuth();
-  const { clientCurrentOrder, updateOrderStatus, processPayment } = useOrder();
+  const { clientCurrentOrder, processPayment } = useOrder();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [estimatedTime, setEstimatedTime] = useState(25);
 
   // --- Etats enrichis pour UX/Paiement/Notifications/Supplier ---
