@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { XCircle, Download, Archive, CreditCard, Phone, Star, Package } from 'lucide-react';
+import { XCircle, Download, Archive, CreditCard, Phone, Star, Package, AlertTriangle } from 'lucide-react';
 import { Order, CrateType } from '../../types';
 import { MutualRatingsDisplay } from '../Shared/MutualRatingsDisplay';
 import { RatingBadge } from '../Shared/RatingBadge';
@@ -198,7 +198,7 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
                   </div>
                   
                   <p className="text-sm text-orange-700 mt-3 flex items-start gap-2">
-                    <span>⚠️</span>
+                    <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                     <span>Communiquez ce code au livreur lors de la réception de votre commande</span>
                   </p>
                 </div>
