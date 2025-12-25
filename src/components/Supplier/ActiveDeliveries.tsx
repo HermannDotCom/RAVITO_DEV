@@ -34,38 +34,30 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
     const loadClientProfiles = async () => {
       if (supplierActiveDeliveries.length === 0) return;
 
-      const uniqueOrders = supplierActiveDeliveries.filter((order, index, self) =>
-        self.findIndex(o => o.clientId === order.clientId) === index
-      );
+      // Get unique client IDs from active deliveries
+      const clientIds = [...new Set(supplierActiveDeliveries.map(order => order.clientId))];
 
-      const results = await Promise.allSettled(
-        uniqueOrders.map(order =>
-          supabase.rpc('get_client_info_for_order', { p_order_id: order.id })
-            .then(result => ({ orderId: order.id, ...result }))
-        )
-      );
+      // Query profiles table directly
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('id, name, business_name, phone, rating')
+        .in('id', clientIds);
 
+      if (error) {
+        console.error('Error loading client profiles:', error);
+        return;
+      }
+
+      // Create profiles map
       const profilesMap: Record<string, ClientProfile> = {};
-
-      results.forEach((result, index) => {
-        if (result.status === 'fulfilled') {
-          const { data, error, orderId } = result.value;
-          if (error) {
-            console.error('Error loading client profile for order:', orderId, error);
-            return;
-          }
-          if (data) {
-            profilesMap[data.id] = {
-              id: data.id,
-              name: data.name,
-              business_name: data.business_name,
-              phone: data.phone,
-              rating: data.rating
-            };
-          }
-        } else {
-          console.error('Error loading client profile for order:', uniqueOrders[index].id, result.reason);
-        }
+      profiles?.forEach(profile => {
+        profilesMap[profile.id] = {
+          id: profile.id,
+          name: profile.name,
+          business_name: profile.business_name,
+          phone: profile.phone,
+          rating: profile.rating
+        };
       });
 
       setClientProfiles(profilesMap);
