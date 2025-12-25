@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { XCircle, Download, Archive, CreditCard, Phone, Package, Key } from 'lucide-react';
+import { XCircle, Download, Archive, CreditCard, Phone, Package, Key, Star } from 'lucide-react';
 import { Order, CrateType } from '../../types';
 import { MutualRatingsDisplay } from '../Shared/MutualRatingsDisplay';
 import { RatingBadge } from '../Shared/RatingBadge';

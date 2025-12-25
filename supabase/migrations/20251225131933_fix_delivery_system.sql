@@ -52,7 +52,7 @@ COMMENT ON FUNCTION get_client_info_for_order IS 'Returns client profile informa
 -- ============================================================================
 -- Bug 4: Fix orders_with_coords view to include assigned_delivery_user_id
 -- ============================================================================
--- The view needs to include assigned_driver_id as assigned_delivery_user_id
+-- The view needs to expose the assigned_delivery_user_id column
 
 DROP VIEW IF EXISTS orders_with_coords CASCADE;
 
@@ -62,8 +62,7 @@ AS
 SELECT
   orders.*,
   ST_Y(coordinates::geometry) as lat,
-  ST_X(coordinates::geometry) as lng,
-  orders.assigned_driver_id as assigned_delivery_user_id
+  ST_X(coordinates::geometry) as lng
 FROM orders;
 
 COMMENT ON VIEW orders_with_coords IS 'View providing orders with coordinate fields (lat, lng) and assigned_delivery_user_id for delivery mode compatibility.';
