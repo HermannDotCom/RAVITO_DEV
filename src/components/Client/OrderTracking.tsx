@@ -87,27 +87,7 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
     timeoutsRef.current.add(timeoutId);
   };
 
-  // Suivi du workflow de la commande (auto-progression si payé)
-  useEffect(() => {
-    if (!clientCurrentOrder) return;
-    if (needsPayment) return;
-    const statusFlow: OrderStatus[] = ['accepted', 'preparing', 'delivering', 'delivered'];
-    let currentIndex = statusFlow.indexOf(clientCurrentOrder.status);
-    if (currentIndex === -1 || currentIndex >= statusFlow.length - 1) return;
-    const interval = setInterval(() => {
-      currentIndex++;
-      if (currentIndex < statusFlow.length) {
-        updateOrderStatus(clientCurrentOrder.id, statusFlow[currentIndex]);
-        if (statusFlow[currentIndex] === 'delivered') {
-          clearInterval(interval);
-          setTimeout(onComplete, 2000);
-        } else {
-          setEstimatedTime(prev => Math.max(5, prev - 8));
-        }
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [clientCurrentOrder, updateOrderStatus, onComplete, needsPayment]);
+
 
   if (!clientCurrentOrder) {
     return (
