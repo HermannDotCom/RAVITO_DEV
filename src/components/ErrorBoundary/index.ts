@@ -1,1 +1,0 @@
-export { SentryErrorBoundary } from './SentryErrorBoundary';
