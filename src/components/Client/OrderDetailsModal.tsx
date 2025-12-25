@@ -217,7 +217,7 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
               </div>
 
               {/* Delivery Confirmation Code - Display when status is "delivering" */}
-              {(order.status === 'delivering' || order.status === 'en_livraison') && 
+              {order.status === 'delivering' && 
                (order.deliveryConfirmationCode || order.delivery_confirmation_code) && (
                 <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-6">
                   <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">

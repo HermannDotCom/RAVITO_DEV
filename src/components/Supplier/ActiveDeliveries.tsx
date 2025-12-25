@@ -54,13 +54,13 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
                 .single();
               
               if (profileError) throw profileError;
-              return { orderId: order.id, data: profileData, error: null };
+              return { clientId: order.clientId, data: profileData, error: null };
             }
             
-            return { orderId: order.id, data, error: null };
+            return { clientId: order.clientId, data, error: null };
           } catch (err) {
             console.error('Error loading client profile for order:', order.id, err);
-            return { orderId: order.id, data: null, error: err };
+            return { clientId: order.clientId, data: null, error: err };
           }
         })
       );
@@ -69,13 +69,13 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
 
       results.forEach((result) => {
         if (result.status === 'fulfilled') {
-          const { data, error } = result.value;
+          const { clientId, data, error } = result.value;
           if (error) {
             console.error('Error in result:', error);
             return;
           }
-          if (data) {
-            profilesMap[data.id] = {
+          if (data && clientId) {
+            profilesMap[clientId] = {
               id: data.id,
               name: data.name,
               business_name: data.business_name,
