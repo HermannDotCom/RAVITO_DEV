@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabase';
 
+const APP_URL = import.meta.env.VITE_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://ravito.ci');
+
 export type EmailType = 'welcome' | 'password_reset' | 'new_order' | 'delivery_confirmation' | 'order_paid' | 'offer_received' | 'offer_accepted' | 'delivery_code' | 'order_cancelled' | 'rating_request';
 
 interface SendEmailParams {
@@ -42,7 +44,7 @@ export const emailService = {
         userEmail: params.userEmail,
         role: params.role,
         businessName: params.businessName,
-        dashboardUrl: `${window.location.origin}/dashboard`,
+        dashboardUrl: `${APP_URL}/dashboard`,
       },
     });
   },
@@ -77,7 +79,7 @@ export const emailService = {
       to: params.to,
       data: {
         ...params,
-        dashboardUrl: `${window.location.origin}/supplier/orders`,
+        dashboardUrl: `${APP_URL}/supplier/orders`,
       },
     });
   },
@@ -95,7 +97,7 @@ export const emailService = {
       to: params.to,
       data: {
         ...params,
-        ratingUrl: `${window.location.origin}/orders/${params.orderId}/rate`,
+        ratingUrl: `${APP_URL}/orders/${params.orderId}/rate`,
       },
     });
   },
@@ -134,7 +136,7 @@ export const emailService = {
       to: params.to,
       data: {
         ...params,
-        offerUrl: `${window.location.origin}/orders`,
+        offerUrl: `${APP_URL}/orders`,
       },
     });
   },
@@ -155,7 +157,7 @@ export const emailService = {
       to: params.to,
       data: {
         ...params,
-        dashboardUrl: `${window.location.origin}/supplier/orders`,
+        dashboardUrl: `${APP_URL}/supplier/orders`,
       },
     });
   },
@@ -203,7 +205,7 @@ export const emailService = {
       to: params.to,
       data: {
         ...params,
-        ratingUrl: `${window.location.origin}/orders/${params.orderId}/rate`,
+        ratingUrl: `${APP_URL}/orders/${params.orderId}/rate`,
       },
     });
   },
