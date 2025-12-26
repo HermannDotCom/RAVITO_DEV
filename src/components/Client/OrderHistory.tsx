@@ -319,7 +319,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                 </div>
 
                 {/* Delivery Confirmation Code - Displayed when delivering */}
-                {order.status === 'delivering' && order.deliveryConfirmationCode && (
+                {order.status === 'delivering' && (order.deliveryConfirmationCode || (order as any).delivery_confirmation_code) && (
                   <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl p-6">
                     <div className="text-center">
                       <h3 className="text-lg font-bold text-gray-900 mb-2">Code de confirmation de livraison</h3>
@@ -328,7 +328,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                       </p>
                       <div className="bg-white rounded-lg p-6 inline-block">
                         <div className="text-4xl font-bold text-orange-600 tracking-widest font-mono">
-                          {order.deliveryConfirmationCode}
+                          {order.deliveryConfirmationCode || (order as any).delivery_confirmation_code}
                         </div>
                       </div>
                       <p className="text-xs text-gray-500 mt-4">
