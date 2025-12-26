@@ -266,6 +266,11 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
     return crateSummary;
   };
 
+  // Helper to get delivery confirmation code (handles both camelCase and snake_case)
+  const getDeliveryConfirmationCode = (order: Order): string | undefined => {
+    return order.deliveryConfirmationCode || (order as any).delivery_confirmation_code;
+  };
+
   const OrderDetailsModal = ({ order, onClose }: { order: Order; onClose: () => void }) => {
     const statusInfo = getStatusInfo(order.status);
     const StatusIcon = statusInfo.icon;
@@ -275,11 +280,6 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
       const consignePrice = crateType === 'C12V' ? 4000 : crateType === 'C6' ? 2000 : 3000;
       return sum + (counts.withConsigne * consignePrice);
     }, 0);
-
-    // Helper to get delivery confirmation code (handles both camelCase and snake_case)
-    const getDeliveryConfirmationCode = (order: Order): string | undefined => {
-      return order.deliveryConfirmationCode || (order as any).delivery_confirmation_code;
-    };
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
