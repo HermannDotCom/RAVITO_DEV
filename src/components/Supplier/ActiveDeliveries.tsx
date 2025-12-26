@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Navigation, Star, Archive, AlertCircle, X, Key } from 'lucide-react';
+import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Navigation, Star, Archive, AlertCircle, X, Key, User } from 'lucide-react';
 import { Order, OrderStatus, CrateType } from '../../types';
 import { useOrder } from '../../context/OrderContext';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
@@ -17,15 +17,28 @@ interface ClientProfile {
   rating?: number;
 }
 
+interface TeamMember {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  status: string;
+}
+
 export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
-  const { supplierActiveDeliveries, updateOrderStatus } = useOrder();
+  const { supplierActiveDeliveries, updateOrderStatus, assignDeliveryDriver } = useOrder();
   const [clientProfiles, setClientProfiles] = useState<Record<string, ClientProfile>>({});
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [selectedOrderForDelivery, setSelectedOrderForDelivery] = useState<Order | null>(null);
   const [confirmationCode, setConfirmationCode] = useState('');
   const [codeError, setCodeError] = useState('');
   const [isValidating, setIsValidating] = useState(false);
+  const [showDriverModal, setShowDriverModal] = useState(false);
+  const [selectedOrderForDriver, setSelectedOrderForDriver] = useState<Order | null>(null);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [selectedDriverId, setSelectedDriverId] = useState('');
+  const [isAssigning, setIsAssigning] = useState(false);
 
   const accessRestrictions = getAccessRestrictions();
 
@@ -60,6 +73,71 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
     loadClientProfiles();
   }, [supplierActiveDeliveries]);
 
+  useEffect(() => {
+    const loadTeamMembers = async () => {
+      if (!user) return;
+
+      try {
+        // Get organization for current user
+        const { data: org, error: orgError } = await supabase
+          .from('organizations')
+          .select('id')
+          .eq('owner_id', user.id)
+          .single();
+
+        if (orgError || !org) {
+          console.log('No organization found or error:', orgError);
+          return;
+        }
+
+        // Get organization members
+        const { data: members, error: membersError } = await supabase
+          .from('organization_members')
+          .select('user_id, email, role, status')
+          .eq('organization_id', org.id)
+          .eq('status', 'active');
+
+        if (membersError) {
+          console.error('Error loading team members:', membersError);
+          return;
+        }
+
+        // Get profiles for members
+        const userIds = members?.map(m => m.user_id).filter(Boolean) || [];
+        if (userIds.length === 0) {
+          setTeamMembers([]);
+          return;
+        }
+
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('id', userIds);
+
+        if (profilesError) {
+          console.error('Error loading member profiles:', profilesError);
+          return;
+        }
+
+        const profileMap = new Map(profiles?.map(p => [p.id, p.name]) || []);
+        
+        const teamMembersList: TeamMember[] = members?.map(m => ({
+          id: m.user_id!,
+          email: m.email,
+          name: profileMap.get(m.user_id!) || m.email,
+          role: m.role,
+          status: m.status
+        })) || [];
+
+        setTeamMembers(teamMembersList);
+      } catch (error) {
+        console.error('Exception loading team members:', error);
+      }
+    };
+
+    loadTeamMembers();
+  }, [user]);
+
   // Restriction d'accès sécurisée
   if (!accessRestrictions.canAcceptOrders) {
     return (
@@ -89,6 +167,38 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
       }
     }
     await updateOrderStatus(orderId, newStatus);
+  };
+
+  const handleAssignDriver = (order: Order) => {
+    setSelectedOrderForDriver(order);
+    setSelectedDriverId('');
+    setShowDriverModal(true);
+  };
+
+  const handleConfirmDriverAssignment = async () => {
+    if (!selectedOrderForDriver || !selectedDriverId) return;
+
+    setIsAssigning(true);
+    try {
+      const success = await assignDeliveryDriver(selectedOrderForDriver.id, selectedDriverId);
+      if (success) {
+        setShowDriverModal(false);
+        setSelectedOrderForDriver(null);
+        setSelectedDriverId('');
+      } else {
+        alert('Erreur lors de l\'affectation du livreur');
+      }
+    } catch (error) {
+      console.error('Error assigning driver:', error);
+      alert('Erreur lors de l\'affectation du livreur');
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
+  const getDriverName = (driverId: string): string => {
+    const driver = teamMembers.find(m => m.id === driverId);
+    return driver?.name || 'Livreur inconnu';
   };
 
   const handleConfirmDelivery = async () => {
@@ -270,7 +380,7 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
                         <Truck className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900">Commande #{order.id}</h3>
+                        <h3 className="text-xl font-bold text-gray-900">Commande #{order.orderNumber || order.id.substring(0, 8)}</h3>
                         <div className="flex items-center space-x-2">
                           <span className={`px-3 py-1 text-xs font-semibold rounded-full ${statusInfo.bgColor} ${statusInfo.textColor}`}>
                             {statusInfo.label}
@@ -435,6 +545,26 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
                     </div>
                   </div>
 
+                  {/* Driver Assignment Section */}
+                  <div className="mt-6">
+                    {!order.assignedDeliveryUserId && ['paid', 'accepted', 'preparing'].includes(order.status) && (
+                      <button
+                        onClick={() => handleAssignDriver(order)}
+                        className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+                      >
+                        <User className="h-4 w-4" />
+                        <span>Affecter un livreur</span>
+                      </button>
+                    )}
+
+                    {order.assignedDeliveryUserId && (
+                      <div className="flex items-center space-x-2 text-sm text-purple-700 bg-purple-50 px-4 py-3 rounded-lg">
+                        <User className="h-4 w-4" />
+                        <span className="font-medium">Livreur affecté: {getDriverName(order.assignedDeliveryUserId)}</span>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Action Buttons */}
                   {nextAction && (
                     <div className="mt-6 flex flex-col sm:flex-row gap-3">
@@ -491,7 +621,7 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                 <p className="text-sm text-blue-800">
-                  <strong>Commande :</strong> #{selectedOrderForDelivery.id.substring(0, 8)}
+                  <strong>Commande :</strong> #{selectedOrderForDelivery.orderNumber || selectedOrderForDelivery.id.substring(0, 8)}
                 </p>
                 <p className="text-sm text-blue-800">
                   <strong>Montant :</strong> {new Intl.NumberFormat('fr-FR').format(selectedOrderForDelivery.totalAmount)} FCFA
@@ -553,6 +683,99 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
                   <>
                     <CheckCircle className="h-5 w-5 mr-2" />
                     Confirmer la livraison
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Driver Assignment Modal */}
+      {showDriverModal && selectedOrderForDriver && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                <User className="h-6 w-6 mr-2 text-purple-600" />
+                Affecter un livreur
+              </h3>
+              <button
+                onClick={() => {
+                  setShowDriverModal(false);
+                  setSelectedOrderForDriver(null);
+                  setSelectedDriverId('');
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-600 mb-4">
+                Sélectionnez un membre de votre équipe pour effectuer cette livraison.
+              </p>
+
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-purple-800">
+                  <strong>Commande :</strong> #{selectedOrderForDriver.orderNumber || selectedOrderForDriver.id.substring(0, 8)}
+                </p>
+                <p className="text-sm text-purple-800">
+                  <strong>Montant :</strong> {formatPrice(selectedOrderForDriver.totalAmount)}
+                </p>
+              </div>
+
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Membre de l'équipe
+              </label>
+              
+              {teamMembers.length === 0 ? (
+                <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-4">
+                  Aucun membre d'équipe disponible. Ajoutez des membres dans la section "Mon équipe".
+                </div>
+              ) : (
+                <select
+                  value={selectedDriverId}
+                  onChange={(e) => setSelectedDriverId(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">Sélectionner un livreur</option>
+                  {teamMembers.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.name} ({member.role})
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowDriverModal(false);
+                  setSelectedOrderForDriver(null);
+                  setSelectedDriverId('');
+                }}
+                disabled={isAssigning}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleConfirmDriverAssignment}
+                disabled={isAssigning || !selectedDriverId}
+                className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              >
+                {isAssigning ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Affectation...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    Confirmer
                   </>
                 )}
               </button>

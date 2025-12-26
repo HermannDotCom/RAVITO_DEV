@@ -92,7 +92,7 @@ export const SupplierOrderSections: React.FC<SupplierOrderSectionsProps> = ({
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900">
-                  Commande #{order.id.slice(0, 8)}
+                  Commande #{order.orderNumber || order.id.slice(0, 8)}
                 </h3>
                 <p className="text-sm text-gray-600">
                   {formatDate(order.createdAt)}

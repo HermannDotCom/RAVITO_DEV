@@ -318,6 +318,7 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
 
   const mappedOrder = {
     id: dbOrder.id,
+    orderNumber: dbOrder.order_number,
     clientId: dbOrder.client_id,
     supplierId: dbOrder.supplier_id,
     items,
@@ -339,7 +340,11 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
     acceptedAt: dbOrder.accepted_at ? new Date(dbOrder.accepted_at) : undefined,
     deliveredAt: dbOrder.delivered_at ? new Date(dbOrder.delivered_at) : undefined,
     paidAt: dbOrder.paid_at ? new Date(dbOrder.paid_at) : undefined,
-    transferredAt: dbOrder.transferred_at ? new Date(dbOrder.transferred_at) : undefined
+    transferredAt: dbOrder.transferred_at ? new Date(dbOrder.transferred_at) : undefined,
+    assignedDeliveryUserId: dbOrder.assigned_delivery_user_id,
+    assignedDeliveryAt: dbOrder.assigned_delivery_at ? new Date(dbOrder.assigned_delivery_at) : undefined,
+    assignedDeliveryBy: dbOrder.assigned_delivery_by,
+    deliveredByUserId: dbOrder.delivered_by_user_id
   };
 
   console.log('✅ Mapped order:', mappedOrder.id, 'items:', mappedOrder.items.length);

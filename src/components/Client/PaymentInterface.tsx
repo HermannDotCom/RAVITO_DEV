@@ -105,7 +105,7 @@ export const PaymentInterface: React.FC<PaymentInterfaceProps> = ({
             Paiement
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Commande #{order.id.slice(0, 8)}
+            Commande #{order.orderNumber || order.id.slice(0, 8)}
           </p>
         </div>
 

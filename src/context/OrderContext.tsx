@@ -32,6 +32,7 @@ interface OrderContextType {
   acceptSupplierOffer: (orderId: string) => Promise<boolean>;
   rejectSupplierOffer: (orderId: string) => Promise<boolean>;
   processPayment: (orderId: string, paymentMethod: PaymentMethod, transactionId: string) => Promise<boolean>;
+  assignDeliveryDriver: (orderId: string, driverId: string) => Promise<boolean>;
   refreshOrders: () => Promise<void>;
 }
 
@@ -247,6 +248,30 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
+  const assignDeliveryDriver = async (orderId: string, driverId: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          assigned_delivery_user_id: driverId,
+          assigned_delivery_at: new Date().toISOString(),
+          assigned_delivery_by: user?.id
+        })
+        .eq('id', orderId);
+
+      if (error) {
+        console.error('Error assigning driver:', error);
+        return false;
+      }
+
+      await loadOrders();
+      return true;
+    } catch (error) {
+      console.error('Exception assigning driver:', error);
+      return false;
+    }
+  };
+
   const refreshOrders = async () => {
     await loadOrders();
   };
@@ -273,6 +298,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         acceptSupplierOffer,
         rejectSupplierOffer,
         processPayment,
+        assignDeliveryDriver,
         refreshOrders
       }}
     >
