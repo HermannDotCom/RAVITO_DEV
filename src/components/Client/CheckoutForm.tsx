@@ -6,6 +6,7 @@ import { useCommission } from '../../context/CommissionContext';
 import { useAuth } from '../../context/AuthContext';
 import { usePendingRatings } from '../../hooks/usePendingRatings';
 import { PendingRatingModal } from '../Shared/PendingRatingModal';
+import { LocationPicker } from '../Shared/LocationPicker';
 import { PaymentMethod, CrateType } from '../../types';
 import { ZoneSelector } from './ZoneSelector';
 
@@ -20,8 +21,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
   const { placeOrder } = useOrder();
   const { commissionSettings } = useCommission();
   const { hasPendingRatings, loading: ratingsLoading } = usePendingRatings(user?.id || null);
-  const [deliveryZone, setDeliveryZone] = useState('');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryZone, setDeliveryZone] = useState(user?.zoneId || '');
+  const [deliveryAddress, setDeliveryAddress] = useState(user?.address || '');
+  const [deliveryLatitude, setDeliveryLatitude] = useState<number | null>(user?.deliveryLatitude || null);
+  const [deliveryLongitude, setDeliveryLongitude] = useState<number | null>(user?.deliveryLongitude || null);
+  const [deliveryInstructions, setDeliveryInstructions] = useState(user?.deliveryInstructions || '');
+  const [usesProfileAddress, setUsesProfileAddress] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('orange');
   const [isProcessing, setIsProcessing] = useState(false);
   const [zoneError, setZoneError] = useState('');
@@ -75,7 +80,11 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
     setIsProcessing(true);
     setZoneError('');
 
-    const coordinates = { lat: 5.3364, lng: -4.0267 };
+    // Use coordinates from LocationPicker if modified, otherwise from profile or default
+    const coordinates = {
+      lat: deliveryLatitude || user?.deliveryLatitude || 5.3364,
+      lng: deliveryLongitude || user?.deliveryLongitude || -4.0267
+    };
 
     const result = await placeOrder(
       cart,
@@ -83,15 +92,18 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
       coordinates,
       paymentMethod,
       commissionSettings,
-      deliveryZone
+      deliveryZone,
+      deliveryInstructions,
+      usesProfileAddress
     );
 
     if (result.success) {
       clearCart();
+      alert('Commande créée avec succès!\n\nVotre commande a été transmise aux fournisseurs de votre zone.\nVous recevrez une notification dès qu\'un fournisseur proposera une offre.');
       setTimeout(() => {
         setIsProcessing(false);
         onConfirm();
-      }, 1000);
+      }, 500);
     } else {
       alert('Erreur lors de la création de la commande: ' + (result.error || 'Erreur inconnue'));
       setIsProcessing(false);
@@ -104,19 +116,19 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
 
   return (
     <>
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Finaliser la commande</h1>
-        <p className="text-gray-600">Vérifiez les détails et confirmez votre commande</p>
+    <div className="max-w-4xl mx-auto p-3 sm:p-4 md:p-6">
+      <div className="mb-4 sm:mb-6 md:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Finaliser la commande</h1>
+        <p className="text-sm sm:text-base text-gray-600">Vérifiez les détails et confirmez votre commande</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
         {/* Order Details */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Delivery Zone */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <MapPin className="h-5 w-5 mr-2 text-orange-600" />
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center">
+              <MapPin className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-orange-600" />
               Zone de livraison
             </h3>
             <ZoneSelector
@@ -133,30 +145,64 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
           </div>
 
           {/* Delivery Address */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <MapPin className="h-5 w-5 mr-2 text-orange-600" />
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center">
+              <MapPin className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-orange-600" />
               Adresse de livraison
             </h3>
-            <textarea
-              value={deliveryAddress}
-              onChange={(e) => setDeliveryAddress(e.target.value)}
-              rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
-              placeholder="Entrez votre adresse précise de livraison avec points de repère..."
-              required
-            />
+            
+            {/* Checkbox to modify address */}
+            <div className="flex items-center space-x-2 mb-4">
+              <input
+                type="checkbox"
+                id="modifyAddress"
+                checked={!usesProfileAddress}
+                onChange={(e) => setUsesProfileAddress(!e.target.checked)}
+                className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+              />
+              <label htmlFor="modifyAddress" className="text-sm text-gray-700 cursor-pointer">
+                Modifier l'adresse de livraison pour cette commande
+              </label>
+            </div>
+
+            {usesProfileAddress ? (
+              // Read-only mode - show profile address
+              <LocationPicker
+                initialLatitude={user?.deliveryLatitude}
+                initialLongitude={user?.deliveryLongitude}
+                initialAddress={user?.address}
+                readOnly={true}
+                height="200px"
+              />
+            ) : (
+              // Edit mode - interactive map
+              <LocationPicker
+                initialLatitude={user?.deliveryLatitude}
+                initialLongitude={user?.deliveryLongitude}
+                initialAddress={user?.address}
+                initialInstructions={user?.deliveryInstructions || ''}
+                onLocationChange={(location) => {
+                  setDeliveryAddress(location.address);
+                  setDeliveryLatitude(location.latitude);
+                  setDeliveryLongitude(location.longitude);
+                  setDeliveryInstructions(location.instructions);
+                }}
+                showSearchBar={true}
+                showGpsButton={true}
+                showInstructions={true}
+              />
+            )}
           </div>
 
           {/* Crate Return Information */}
           {totalCratesToReturn > 0 && (
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                <Archive className="h-5 w-5 mr-2 text-blue-600" />
+            <div className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                <Archive className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
                 Casiers vides à rendre (interchangeables par type)
               </h3>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-3">
                   {Object.entries(crateSummary).map(([crateType, count]) => (
                     count > 0 && (
                       <div key={crateType} className="bg-white rounded p-3 text-center">
@@ -184,90 +230,52 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
             </div>
           )}
 
-          {/* Payment Method */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Mode de paiement (après acceptation)</h3>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-              <div className="flex items-start space-x-2">
-                <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
-                <div className="text-sm text-yellow-800">
-                  <p className="font-medium">Paiement différé</p>
-                  <p>Le paiement sera demandé uniquement après qu'un fournisseur ait accepté votre commande.</p>
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {paymentMethods.map((method) => {
-                const MethodIcon = method.icon;
-                return (
-                  <button
-                    key={method.value}
-                    type="button"
-                    onClick={() => setPaymentMethod(method.value)}
-                    className={`p-4 border-2 rounded-lg text-left transition-all flex items-center space-x-3 ${
-                      paymentMethod === method.value
-                        ? 'border-orange-500 bg-orange-50'
-                        : 'border-gray-200 hover:border-orange-300'
-                    }`}
-                  >
-                    <MethodIcon className={`h-5 w-5 ${
-                      paymentMethod === method.value ? 'text-orange-600' : 'text-gray-500'
-                    }`} />
-                    <span className={`font-medium ${
-                      paymentMethod === method.value ? 'text-orange-700' : 'text-gray-700'
-                    }`}>
-                      {method.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          {/* Payment Method section removed - premature at this stage */}
         </div>
 
         {/* Order Summary */}
         <div>
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sticky top-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Récapitulatif</h3>
-            
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between text-gray-600">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6 lg:sticky lg:top-6">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4">Récapitulatif</h3>
+
+            <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+              <div className="flex justify-between text-sm sm:text-base text-gray-600">
                 <span>Sous-total produits</span>
-                <span>{formatPrice(subtotal)}</span>
+                <span className="font-medium">{formatPrice(subtotal)}</span>
               </div>
               {consigneTotal > 0 && (
-                <div className="flex justify-between text-orange-600">
+                <div className="flex justify-between text-sm sm:text-base text-orange-600">
                   <span>Total consignes</span>
-                  <span>{formatPrice(consigneTotal)}</span>
+                  <span className="font-medium">{formatPrice(consigneTotal)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-blue-600">
-                <span>Frais DISTRI-NIGHT ({commissionSettings.clientCommission}%)</span>
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Frais RAVITO ({commissionSettings.clientCommission}%)</span>
                 <span>{formatPrice(clientCommission)}</span>
               </div>
-              <div className="text-xs text-blue-500 -mt-1">
+              <div className="text-[10px] sm:text-xs text-gray-400 -mt-1">
                 Frais de traitement de la plateforme
               </div>
-              <div className="border-t border-gray-200 pt-3">
-                <div className="flex justify-between text-lg font-bold text-gray-900">
+              <div className="border-t border-gray-200 pt-2 sm:pt-3">
+                <div className="flex justify-between text-base sm:text-lg font-bold text-gray-900">
                   <span>Total</span>
                   <span>{formatPrice(total)}</span>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               <button
                 onClick={handleConfirmOrder}
                 disabled={!deliveryZone || !deliveryAddress.trim() || isProcessing}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 sm:py-3.5 min-h-[48px] rounded-lg text-sm sm:text-base font-semibold active:from-orange-600 active:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {isProcessing ? 'Traitement...' : 'Confirmer la commande'}
               </button>
-              
+
               <button
                 onClick={onBack}
-                className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                className="w-full border-2 border-gray-300 text-gray-700 py-3 sm:py-3.5 min-h-[48px] rounded-lg text-sm sm:text-base font-semibold active:bg-gray-50 transition-colors"
               >
                 Retour au panier
               </button>

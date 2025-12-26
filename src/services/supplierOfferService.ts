@@ -17,6 +17,7 @@ export interface SupplierOffer {
   supplierCommission: number;
   netSupplierAmount: number;
   supplierMessage?: string;
+  supplierRating?: number;
   createdAt: Date;
   acceptedAt?: Date;
   rejectedAt?: Date;
@@ -35,17 +36,6 @@ export async function createSupplierOffer(
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
       return { success: false, error: 'Non authentifié' };
-    }
-
-    const { data: hasPendingRatings } = await supabase.rpc('has_pending_ratings', {
-      user_id: userData.user.id
-    });
-
-    if (hasPendingRatings) {
-      return {
-        success: false,
-        error: 'Vous devez d\'abord évaluer votre dernière transaction avant d\'accepter une nouvelle commande.'
-      };
     }
 
     // Vérifier que la commande n'a pas déjà une offre acceptée
@@ -116,11 +106,9 @@ export async function createSupplierOffer(
     }
 
     if (error) {
-      console.error('❌ Error creating/updating supplier offer:', error);
+      console.error('Error creating/updating supplier offer:', error);
       return { success: false, error: error.message };
     }
-
-    console.log('✅ Supplier offer created successfully');
 
     return { success: true, offerId: data.id };
   } catch (error) {
@@ -139,7 +127,8 @@ export async function getOffersByOrder(orderId: string): Promise<SupplierOffer[]
         supplier:profiles!supplier_id(
           id,
           name,
-          business_name
+          business_name,
+          rating
         )
       `)
       .eq('order_id', orderId)
@@ -195,17 +184,6 @@ export async function acceptOffer(
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
       return { success: false, error: 'Non authentifié' };
-    }
-
-    const { data: hasPendingRatings } = await supabase.rpc('has_pending_ratings', {
-      user_id: userData.user.id
-    });
-
-    if (hasPendingRatings) {
-      return {
-        success: false,
-        error: 'Vous devez d\'abord évaluer votre dernière transaction avant de passer une nouvelle commande.'
-      };
     }
 
     const { data: offers } = await supabase
@@ -317,6 +295,7 @@ export async function rejectOffer(offerId: string): Promise<{ success: boolean; 
 }
 
 function mapDatabaseOfferToApp(dbOffer: Record<string, unknown>): SupplierOffer {
+  const supplier = dbOffer.supplier as { rating?: number } | null;
   return {
     id: dbOffer.id as string,
     orderId: dbOffer.order_id as string,
@@ -328,8 +307,56 @@ function mapDatabaseOfferToApp(dbOffer: Record<string, unknown>): SupplierOffer 
     supplierCommission: dbOffer.supplier_commission as number,
     netSupplierAmount: dbOffer.net_supplier_amount as number,
     supplierMessage: dbOffer.supplier_message as string | undefined,
+    supplierRating: supplier?.rating ?? undefined,
     createdAt: new Date(dbOffer.created_at as string),
     acceptedAt: dbOffer.accepted_at ? new Date(dbOffer.accepted_at as string) : undefined,
     rejectedAt: dbOffer.rejected_at ? new Date(dbOffer.rejected_at as string) : undefined
   };
+}
+
+export interface SupplierPriceGrid {
+  product_id: string;
+  unit_price: number;
+  crate_price: number;
+  consign_price: number;
+}
+
+/**
+ * Fetches supplier's custom prices from supplier_price_grids table
+ * Returns a Map for quick lookup by product_id
+ * 
+ * @param supplierId - The UUID of the supplier
+ * @returns Map with product_id as key and SupplierPriceGrid as value
+ *          Returns empty Map if no custom prices found or on error
+ * 
+ * Error Handling:
+ * - Database errors are logged and empty Map is returned
+ * - Exceptions are caught and empty Map is returned
+ * - Allows graceful fallback to reference prices
+ */
+export async function getSupplierPrices(
+  supplierId: string
+): Promise<Map<string, SupplierPriceGrid>> {
+  try {
+    const { data: supplierGrids, error } = await supabase
+      .from('supplier_price_grids')
+      .select('product_id, unit_price, crate_price, consign_price')
+      .eq('supplier_id', supplierId)
+      .eq('is_active', true);
+
+    if (error) {
+      console.error('Error fetching supplier prices:', error);
+      return new Map();
+    }
+
+    const priceMap = new Map<string, SupplierPriceGrid>();
+    supplierGrids?.forEach(grid => {
+      priceMap.set(grid.product_id, grid);
+    });
+
+    return priceMap;
+  } catch (error) {
+    console.error('Exception fetching supplier prices:', error);
+    return new Map();
+  }
 }

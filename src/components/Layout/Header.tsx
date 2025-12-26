@@ -11,7 +11,7 @@ interface HeaderProps {
   onCartClick?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NIGHT', onCartClick }) => {
+export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'RAVITO', onCartClick }) => {
   const { user, logout } = useAuth();
   const { cart } = useCart();
   const { unreadCount } = useNotifications();
@@ -20,38 +20,40 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NI
   const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
-    <header className="bg-white shadow-lg border-b border-orange-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg border-b border-orange-100">
+      <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8">
+        <div className="flex justify-between items-center h-14 sm:h-16">
           <div className="flex items-center">
             <button
               onClick={onMenuToggle}
-              className="lg:hidden p-2 rounded-md text-gray-600 hover:text-orange-600 hover:bg-orange-50 transition-colors"
+              className="lg:hidden p-2 min-h-[44px] min-w-[44px] rounded-md text-gray-600 active:text-orange-600 active:bg-orange-50 transition-colors"
+              aria-label="Menu"
             >
               <Menu className="h-6 w-6" />
             </button>
 
-            <div className="flex items-center ml-2 lg:ml-0">
+            <div className="flex items-center ml-1 sm:ml-2 lg:ml-0">
               <div className="flex-shrink-0">
-                <div className="h-8 w-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">DN</span>
-                </div>
+                <img 
+                  src="/logo_sans_slogan.png" 
+                  alt="Ravito Logo" 
+                  className="h-8 sm:h-10"
+                />
               </div>
-              <h1 className="ml-3 text-xl font-bold text-gray-900 hidden sm:block">{title}</h1>
             </div>
           </div>
 
           {user && (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4">
               {user.role === 'client' && (
                 <button
                   onClick={onCartClick}
-                  className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-colors relative"
+                  className="p-2 min-h-[44px] min-w-[44px] text-gray-600 active:text-orange-600 active:bg-orange-50 rounded-full transition-colors relative"
                   aria-label="Panier"
                 >
-                  <ShoppingCart className="h-5 w-5" />
+                  <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
                   {cartItemsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 h-5 w-5 bg-orange-500 rounded-full flex items-center justify-center">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1 bg-orange-500 rounded-full flex items-center justify-center">
                       <span className="text-xs text-white font-bold">{cartItemsCount > 9 ? '9+' : cartItemsCount}</span>
                     </span>
                   )}
@@ -60,11 +62,12 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'DISTRI-NI
 
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-colors relative"
+                className="p-2 min-h-[44px] min-w-[44px] text-gray-600 active:text-orange-600 active:bg-orange-50 rounded-full transition-colors relative"
+                aria-label="Notifications"
               >
-                <Bell className="h-5 w-5" />
+                <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1 bg-red-500 rounded-full flex items-center justify-center">
                     <span className="text-xs text-white font-bold">{unreadCount > 9 ? '9+' : unreadCount}</span>
                   </span>
                 )}

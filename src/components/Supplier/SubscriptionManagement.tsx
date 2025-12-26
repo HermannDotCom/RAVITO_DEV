@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { Check, Crown, Award, Target, Zap, X } from 'lucide-react';
 import { SubscriptionService } from '../../services/subscriptionService';
 import type { SubscriptionTier } from '../../types/intelligence';
+import { KenteLoader } from '../ui/KenteLoader';
 
 interface SubscriptionManagementProps {
   supplierId: string;
@@ -72,7 +73,7 @@ export const SubscriptionManagement: React.FC<SubscriptionManagementProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+        <KenteLoader size="md" text="Chargement..." />
       </div>
     );
   }

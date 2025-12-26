@@ -91,7 +91,7 @@ export const OrderDetailsWithOffers: React.FC<OrderDetailsWithOffersProps> = ({
           <div className="flex items-start justify-between mb-4">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Commande #{order.orderNumber || order.id.slice(0, 8)}
+                Commande #{order.id.slice(0, 8)}
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Passée le {formatDate(order.createdAt)}

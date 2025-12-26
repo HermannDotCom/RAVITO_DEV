@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, Clock, AlertCircle, CheckCircle, X, Eye, MessageCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { MessageSquare, Send, Clock, CheckCircle, X, Eye, MessageCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
   ticketService,
@@ -11,7 +11,7 @@ import {
 } from '../../services/ticketService';
 
 export const ContactSupport: React.FC = () => {
-  const { user } = useAuth();
+  const { user, setSessionError } = useAuth();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
@@ -28,25 +28,45 @@ export const ContactSupport: React.FC = () => {
 
   const [newMessage, setNewMessage] = useState('');
 
+  // Extract userId as a stable primitive dependency
+  const userId = user?.id;
+  
+  // Track if we've loaded tickets at least once
+  const hasLoadedRef = useRef(false);
+
+  const loadTickets = useCallback(async () => {
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
+    
+    // Only show loader on initial load
+    if (!hasLoadedRef.current) {
+      setIsLoading(true);
+    }
+    
+    try {
+      const data = await ticketService.getUserTickets(userId);
+      setTickets(data);
+      hasLoadedRef.current = true;
+    } catch (error) {
+      console.error('Error loading tickets:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId]);
+
   useEffect(() => {
-    if (user) {
+    if (userId) {
       loadTickets();
     }
-  }, [user]);
+  }, [userId, loadTickets]);
 
   useEffect(() => {
     if (selectedTicket) {
       loadTicketMessages(selectedTicket.id);
     }
   }, [selectedTicket]);
-
-  const loadTickets = async () => {
-    if (!user) return;
-    setIsLoading(true);
-    const data = await ticketService.getUserTickets(user.id);
-    setTickets(data);
-    setIsLoading(false);
-  };
 
   const loadTicketMessages = async (ticketId: string) => {
     const messages = await ticketService.getTicketMessages(ticketId);
@@ -58,10 +78,10 @@ export const ContactSupport: React.FC = () => {
     if (!user) return;
 
     setIsSubmitting(true);
-    const ticket = await ticketService.createTicket(user.id, formData);
+    const result = await ticketService.createTicket(user.id, formData);
 
-    if (ticket) {
-      setTickets([ticket, ...tickets]);
+    if (result.success && result.ticket) {
+      setTickets([result.ticket, ...tickets]);
       setFormData({
         subject: '',
         message: '',
@@ -71,7 +91,11 @@ export const ContactSupport: React.FC = () => {
       setShowCreateForm(false);
       alert('Ticket créé avec succès!');
     } else {
-      alert('Erreur lors de la création du ticket');
+      // Check if we should trigger session error UI
+      if (result.shouldRefresh && result.error) {
+        setSessionError(result.error.message);
+      }
+      alert(result.error?.message || 'Erreur lors de la création du ticket');
     }
     setIsSubmitting(false);
   };

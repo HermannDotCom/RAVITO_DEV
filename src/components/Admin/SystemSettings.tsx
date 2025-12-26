@@ -1,44 +1,47 @@
 import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { Settings, Bell, CreditCard, Package, Clock, Shield, Save, AlertTriangle } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { useCommission } from '../../context/CommissionContext';
 
 export const SystemSettings: React.FC = () => {
+  const { commissionSettings, refreshCommissionSettings } = useCommission();
   const [settings, setSettings] = useState({
     // General Settings
-    platformName: 'DISTRI-NIGHT',
-    supportEmail: 'support@distri-night.ci',
+    platformName: 'RAVITO',
+    supportEmail: 'support@ravito.ci',
     supportPhone: '+225 27 20 30 40 50',
-    operatingHours: '18h00 - 06h00',
-    
+    operatingHours: '24h/24',
+
     // Order Settings
     maxDeliveryDistance: 15, // km
     defaultDeliveryTime: 25, // minutes
     orderTimeout: 10, // minutes before auto-cancel
     minimumOrderAmount: 5000, // FCFA
-    
+
     // Commission Settings
     clientCommission: 8, // percentage
     supplierCommission: 2, // percentage
-    
+
     // Notification Settings
     smsNotifications: true,
     emailNotifications: true,
     pushNotifications: true,
     whatsappNotifications: false,
-    
+
     // Payment Settings
     enableOrangeMoney: true,
     enableMTN: true,
     enableMoov: true,
     enableWave: true,
     enableBankCards: true,
-    
+
     // Security Settings
     requirePhoneVerification: true,
     requireEmailVerification: false,
     enableTwoFactorAuth: false,
     sessionTimeout: 24, // hours
-    
+
     // Product Settings
     enableSolibra: true,
     enableBrassivoire: true,
@@ -49,18 +52,13 @@ export const SystemSettings: React.FC = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Load settings from localStorage on component mount
   useEffect(() => {
-    const storedCommissionSettings = localStorage.getItem('distri-night-commission-settings');
-    if (storedCommissionSettings) {
-      const commissionData = JSON.parse(storedCommissionSettings);
-      setSettings(prev => ({
-        ...prev,
-        clientCommission: commissionData.clientCommission || 8,
-        supplierCommission: commissionData.supplierCommission || 2
-      }));
-    }
-  }, []);
+    setSettings(prev => ({
+      ...prev,
+      clientCommission: commissionSettings.clientCommission,
+      supplierCommission: commissionSettings.supplierCommission
+    }));
+  }, [commissionSettings]);
 
   const updateSetting = (key: string, value: any) => {
     setSettings(prev => ({ ...prev, [key]: value }));
@@ -69,29 +67,66 @@ export const SystemSettings: React.FC = () => {
 
   const handleSave = async () => {
     setSaving(true);
-    
-    // Prepare commission settings for saving
-    const newCommissionSettings = {
-      clientCommission: settings.clientCommission,
-      supplierCommission: settings.supplierCommission
-    };
-    
-    // Save to localStorage
-    localStorage.setItem('distri-night-commission-settings', JSON.stringify(newCommissionSettings));
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Trigger a custom event to notify other components
-    window.dispatchEvent(new CustomEvent('commissionSettingsUpdated', { 
-      detail: newCommissionSettings 
-    }));
-    
-    setSaving(false);
-    setHasChanges(false);
-    
-    // Show success notification
-    alert('✅ Paramètres sauvegardés avec succès!\n\nLes nouveaux taux de commission sont maintenant appliqués à toutes les nouvelles commandes.');
+
+    try {
+      const { data: currentSettings, error: fetchError } = await supabase
+        .from('commission_settings')
+        .select('*')
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (fetchError) {
+        console.error('Error fetching current settings:', fetchError);
+        alert('Erreur lors du chargement des paramètres actuels');
+        setSaving(false);
+        return;
+      }
+
+      if (currentSettings) {
+        const { error: updateError } = await supabase
+          .from('commission_settings')
+          .update({
+            client_commission_percentage: settings.clientCommission,
+            supplier_commission_percentage: settings.supplierCommission,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentSettings.id);
+
+        if (updateError) {
+          console.error('Error updating settings:', updateError);
+          alert('Erreur lors de la sauvegarde des paramètres: ' + updateError.message);
+          setSaving(false);
+          return;
+        }
+      } else {
+        const { error: insertError } = await supabase
+          .from('commission_settings')
+          .insert({
+            client_commission_percentage: settings.clientCommission,
+            supplier_commission_percentage: settings.supplierCommission,
+            is_active: true,
+            effective_from: new Date().toISOString()
+          });
+
+        if (insertError) {
+          console.error('Error inserting settings:', insertError);
+          alert('Erreur lors de la création des paramètres: ' + insertError.message);
+          setSaving(false);
+          return;
+        }
+      }
+
+      await refreshCommissionSettings();
+
+      setSaving(false);
+      setHasChanges(false);
+
+      alert('✅ Paramètres sauvegardés avec succès!\n\nLes nouveaux taux de commission sont maintenant appliqués à toutes les nouvelles commandes.');
+    } catch (error) {
+      console.error('Exception saving settings:', error);
+      alert('Erreur inattendue lors de la sauvegarde');
+      setSaving(false);
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -104,7 +139,7 @@ export const SystemSettings: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Paramètres Système</h1>
-            <p className="text-gray-600">Configuration globale de la plateforme DISTRI-NIGHT</p>
+            <p className="text-gray-600">Configuration globale de la plateforme RAVITO</p>
           </div>
           
           {hasChanges && (
@@ -276,7 +311,7 @@ export const SystemSettings: React.FC = () => {
                     <span>100.000 FCFA</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Frais DISTRI-NIGHT ({settings.clientCommission}%) :</span>
+                    <span>Frais RAVITO ({settings.clientCommission}%) :</span>
                     <span>+{formatPrice(100000 * (settings.clientCommission / 100))}</span>
                   </div>
                   <div className="flex justify-between font-semibold border-t pt-1 mt-1">
@@ -294,7 +329,7 @@ export const SystemSettings: React.FC = () => {
                     <span>100.000 FCFA</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Commission DISTRI-NIGHT ({settings.supplierCommission}%) :</span>
+                    <span>Commission RAVITO ({settings.supplierCommission}%) :</span>
                     <span>-{formatPrice(100000 * (settings.supplierCommission / 100))}</span>
                   </div>
                   <div className="flex justify-between font-semibold border-t pt-1 mt-1">

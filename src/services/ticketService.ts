@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase';
+import { executeWithRetry, SupabaseCallResult } from '../lib/supabaseWithRetry';
+import { handleSupabaseError, AuthErrorResult } from './authErrorHandler';
 
-export type TicketCategory = 'technical' | 'billing' | 'delivery' | 'account' | 'other';
+export type TicketCategory = 'technical' | 'billing' | 'delivery' | 'account' | 'complaint' | 'other';
 export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type TicketStatus = 'open' | 'in_progress' | 'waiting_response' | 'resolved' | 'closed';
 
@@ -66,37 +68,87 @@ export interface TicketStats {
   };
 }
 
+/**
+ * Result type for createTicket with enhanced error handling
+ */
+export interface CreateTicketResult {
+  success: boolean;
+  ticket: SupportTicket | null;
+  error: AuthErrorResult | null;
+  shouldRefresh: boolean;
+}
+
 export const ticketService = {
-  async createTicket(userId: string, data: CreateTicketData): Promise<SupportTicket | null> {
-    try {
-      const { data: ticket, error } = await supabase
-        .from('support_tickets')
-        .insert({
+  /**
+   * Creates a new support ticket with enhanced error handling
+   * Uses the retry mechanism for auth-related errors
+   */
+  async createTicket(userId: string, data: CreateTicketData): Promise<CreateTicketResult> {
+    console.log('[ticketService] Creating ticket for user:', userId);
+    
+    const result = await executeWithRetry<SupportTicket>(
+      async () => {
+        return await supabase
+          .from('support_tickets')
+          .insert({
+            user_id: userId,
+            subject: data.subject,
+            message: data.message,
+            category: data.category,
+            priority: data.priority,
+            ticket_number: ''
+          })
+          .select()
+          .single();
+      },
+      {
+        maxRetries: 1,
+        onRetry: (attempt, error) => {
+          console.log(`[ticketService] Retrying createTicket (attempt ${attempt}):`, error.errorType);
+        }
+      }
+    );
+
+    if (result.success && result.data) {
+      console.log('[ticketService] Ticket created successfully:', result.data.ticket_number);
+      
+      // Create notification (non-blocking, don't fail the whole operation)
+      try {
+        await supabase.from('notifications').insert({
           user_id: userId,
-          subject: data.subject,
-          message: data.message,
-          category: data.category,
-          priority: data.priority,
-          ticket_number: ''
-        })
-        .select()
-        .single();
+          type: 'ticket_created',
+          title: 'Ticket créé',
+          message: `Votre ticket ${result.data.ticket_number} a été créé avec succès.`,
+          data: { ticket_id: result.data.id, ticket_number: result.data.ticket_number }
+        });
+      } catch (notifError) {
+        console.warn('[ticketService] Failed to create notification:', notifError);
+      }
 
-      if (error) throw error;
-
-      await supabase.from('notifications').insert({
-        user_id: userId,
-        type: 'ticket_created',
-        title: 'Ticket créé',
-        message: `Votre ticket ${ticket.ticket_number} a été créé avec succès.`,
-        data: { ticket_id: ticket.id, ticket_number: ticket.ticket_number }
-      });
-
-      return ticket;
-    } catch (error) {
-      console.error('Error creating ticket:', error);
-      return null;
+      return {
+        success: true,
+        ticket: result.data,
+        error: null,
+        shouldRefresh: false
+      };
     }
+
+    console.error('[ticketService] Failed to create ticket:', result.error);
+    return {
+      success: false,
+      ticket: null,
+      error: result.error,
+      shouldRefresh: result.shouldRefresh
+    };
+  },
+
+  /**
+   * Legacy createTicket method that returns SupportTicket | null
+   * @deprecated Use createTicket instead which returns CreateTicketResult
+   */
+  async createTicketLegacy(userId: string, data: CreateTicketData): Promise<SupportTicket | null> {
+    const result = await this.createTicket(userId, data);
+    return result.ticket;
   },
 
   async getUserTickets(userId: string): Promise<SupportTicket[]> {
@@ -361,6 +413,7 @@ export const ticketService = {
       billing: 'Facturation',
       delivery: 'Livraison',
       account: 'Compte',
+      complaint: 'Réclamation',
       other: 'Autre'
     };
     return labels[category];

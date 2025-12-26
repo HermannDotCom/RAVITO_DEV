@@ -1,57 +1,76 @@
-import React, { useState } from 'react';
-import { Package, Truck, Clock, TrendingUp, Star, MapPin, Phone, Eye, CheckCircle, X, AlertCircle, Archive, CreditCard, User, BarChart3, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Package, Clock, Navigation } from 'lucide-react';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { useOrder } from '../../context/OrderContext';
 import { useCommission } from '../../context/CommissionContext';
-import { CrateType } from '../../types';
+import {
+  SupplierHeader,
+  KPICards,
+  NewOrdersSection,
+  ActiveDeliveryCard,
+  PerformanceStats,
+} from './Dashboard';
+import { getOrdersBySupplier } from '../../services/orderService';
+import { Order } from '../../types';
+import { ACTIVE_DELIVERY_STATUSES, COMPLETED_ORDER_STATUSES } from '../../constants/orderStatuses';
 
 interface SupplierDashboardProps {
   onNavigate: (section: string) => void;
 }
 
-export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate }) => {
+export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
-  const { availableOrders } = useOrder();
+  const { availableOrders, updateOrderStatus } = useOrder();
   const { commissionSettings, getSupplierNetAmount } = useCommission();
+  const [activeDelivery, setActiveDelivery] = useState<Order | null>(null);
+  const [todayStats, setTodayStats] = useState({ delivered: 0, revenue: 0 });
+  const [monthlyRevenue, setMonthlyRevenue] = useState(0);
 
   const accessRestrictions = getAccessRestrictions();
 
-  // Vérification sécurisée de l'accès
   if (!accessRestrictions.canAcceptOrders) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 text-center">
-          <div className="h-16 w-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Package className="h-8 w-8 text-white" />
+      <div className="max-w-4xl mx-auto p-3 sm:p-4 md:p-6">
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 text-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Clock className="h-10 w-10 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-orange-900 mb-4">
+          <h2 className="text-2xl font-bold text-amber-900 mb-3">
             {user?.role === 'supplier' ? 'Dépôt en cours de validation' : 'Accès restreint'}
           </h2>
-          <p className="text-orange-800 mb-6">
+          <p className="text-amber-800 mb-6 text-lg">
             {accessRestrictions.restrictionReason}
           </p>
-          <div className="bg-white border border-orange-300 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold text-orange-900 mb-2">Dépôt soumis :</h3>
-            <div className="text-sm text-orange-800 space-y-1 text-left">
-              <p><strong>Dépôt :</strong> {(user as any)?.businessName || 'Non renseigné'}</p>
-              <p><strong>Responsable :</strong> {user.name}</p>
-              <p><strong>Zone de couverture :</strong> {(user as any)?.coverageZone || 'Non renseignée'}</p>
-              <p><strong>Capacité :</strong> {(user as any)?.deliveryCapacity || 'Non renseignée'}</p>
+          <div className="bg-white border border-amber-200 rounded-2xl p-6 mb-6">
+            <h3 className="font-bold text-amber-900 mb-4 text-lg">Informations soumises</h3>
+            <div className="text-sm text-amber-900 space-y-2 text-left">
+              <p><strong>Dépôt:</strong> {(user as any)?.businessName || 'Non renseigné'}</p>
+              <p><strong>Responsable:</strong> {user.name}</p>
+              <p><strong>Zone de couverture:</strong> {(user as any)?.coverageZone || 'Non renseignée'}</p>
+              <p><strong>Capacité:</strong> {(user as any)?.deliveryCapacity || 'Non renseignée'}</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">Documents requis :</h4>
-              <ul className="text-sm text-blue-800 space-y-1 text-left">
-                <li>✓ Pièce d'identité</li>
-                <li>✓ Justificatif d'adresse</li>
-                <li>⏳ Licence commerciale</li>
-                <li>⏳ Assurance véhicule</li>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+              <h4 className="font-semibold text-blue-900 mb-3">Documents requis</h4>
+              <ul className="text-sm text-blue-800 space-y-2 text-left">
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-600">✓</span> Pièce d'identité
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-emerald-600">✓</span> Justificatif d'adresse
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-amber-600">⏳</span> Licence commerciale
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-amber-600">⏳</span> Assurance véhicule
+                </li>
               </ul>
             </div>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-medium text-green-900 mb-2">Après approbation :</h4>
-              <ul className="text-sm text-green-800 space-y-1 text-left">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+              <h4 className="font-semibold text-emerald-900 mb-3">Après approbation</h4>
+              <ul className="text-sm text-emerald-800 space-y-2 text-left">
                 <li>• Accès aux commandes</li>
                 <li>• Gestion des livraisons</li>
                 <li>• Reversements automatiques</li>
@@ -59,215 +78,136 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({ onNavigate
               </ul>
             </div>
           </div>
-          <div className="text-sm text-orange-700">
-            <p className="mb-2"><strong>Délai d'approbation :</strong> 24-72 heures</p>
-            <p>Contact : <strong>partenaires@distri-night.ci</strong> ou <strong>+225 27 20 30 40 50</strong></p>
+          <div className="bg-amber-100 border border-amber-200 rounded-2xl p-4 text-sm text-amber-900">
+            <p className="font-semibold mb-2">Délai d'approbation: 24-72 heures</p>
+            <p>Contact: <strong>partenaires@distri-night.ci</strong> • <strong>+225 27 20 30 40 50</strong></p>
           </div>
         </div>
       </div>
     );
   }
 
-  const stats = [
-    {
-      label: 'Commandes disponibles',
-      value: availableOrders.length,
-      icon: Package,
-      color: 'orange',
-      action: () => onNavigate('orders')
-    },
-    {
-      label: 'En livraison',
-      value: 0,
-      icon: Truck,
-      color: 'blue'
-    },
-    {
-      label: 'Note moyenne',
-      value: user?.rating || 5,
-      icon: Star,
-      color: 'yellow'
-    },
-    {
-      label: 'Total livraisons',
-      value: user?.totalOrders || 0,
-      icon: TrendingUp,
-      color: 'green'
-    }
-  ];
+  // Load active delivery and today's stats
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      if (! user?. id) return;
 
-  const handleShowDetails = (order: any) => {
-    onNavigate('orders');
-  };
+      try {
+        const orders = await getOrdersBySupplier(user.id);
+        
+        // Find active delivery using consistent status constants
+        const active = orders.find(o => 
+          ACTIVE_DELIVERY_STATUSES.includes(o.status)
+        );
+        setActiveDelivery(active || null);
 
+        // Calculate today's stats
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const todayOrders = orders.filter(o => {
+          const orderDate = new Date(o.createdAt);
+          orderDate.setHours(0, 0, 0, 0);
+          return orderDate. getTime() === today.getTime() && 
+                 COMPLETED_ORDER_STATUSES.includes(o.status);
+        });
 
-  const getCrateSummary = (order: any) => {
-    const crateSummary: { [key in CrateType]: { withConsigne: number; toReturn: number } } = {
-      C24: { withConsigne: 0, toReturn: 0 },
-      C12: { withConsigne: 0, toReturn: 0 },
-      C12V: { withConsigne: 0, toReturn: 0 },
-      C6: { withConsigne: 0, toReturn: 0 }
-    };
+        const delivered = todayOrders.length;
+        const revenue = todayOrders.reduce((sum, o) => sum + o.totalAmount, 0);
 
-    // Mock items for dashboard orders
-    const mockItems = [
-      { product: { crateType: 'C24' as CrateType }, quantity: 2, withConsigne: false },
-      { product: { crateType: 'C12' as CrateType }, quantity: 1, withConsigne: true }
-    ];
+        setTodayStats({ delivered, revenue });
 
-    mockItems.forEach(item => {
-      if (item.withConsigne) {
-        crateSummary[item.product.crateType].withConsigne += item.quantity;
-      } else {
-        crateSummary[item.product.crateType].toReturn += item.quantity;
+        // Calculate monthly revenue
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const monthlyOrders = orders.filter(o => {
+          const orderDate = new Date(o.createdAt);
+          return orderDate >= startOfMonth && o.status === 'delivered';
+        });
+        const monthlyRev = monthlyOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+        setMonthlyRevenue(monthlyRev);
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
       }
-    });
-
-    return crateSummary;
-  };
-
-  const getPaymentMethodLabel = (method: string) => {
-    const methods = {
-      orange: 'Orange Money',
-      mtn: 'MTN Mobile Money',
-      moov: 'Moov Money',
-      wave: 'Wave',
-      card: 'Carte bancaire'
     };
-    return methods[method as keyof typeof methods] || method;
+
+    loadDashboardData();
+  }, [user]);
+
+  const handleMarkDelivered = async () => {
+    if (!activeDelivery) return;
+    try {
+      await updateOrderStatus(activeDelivery.id, 'delivered');
+      setActiveDelivery(null);
+    } catch (error) {
+      console.error('Error marking delivered:', error);
+    }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
-  };
+  const supplierName = user?.name || (user as any)?.businessName || 'Partenaire';
+  const zone = (user as any)?.coverageZone || (user as any)?.zoneId;
+  const rating = user?.rating || 5;
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {(user as any)?.businessName || 'Tableau de Bord Fournisseur'}
-        </h1>
-        <p className="text-gray-600">
-          Responsable: {user?.name} • Gérez vos livraisons et commandes disponibles
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
+        <div className="space-y-8">
+          <SupplierHeader supplierName={supplierName} rating={rating} zone={zone} />
 
-      {/* Intelligence Dashboard CTA */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-lg p-6 mb-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="h-16 w-16 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-              <BarChart3 className="h-8 w-8 text-white" />
-            </div>
-            <div className="text-white">
-              <h3 className="text-xl font-bold mb-1">Intelligence Dashboard</h3>
-              <p className="text-purple-100 text-sm">
-                Advanced analytics, demand forecasting, and market insights
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => onNavigate('intelligence')}
-            className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-colors flex items-center gap-2 shadow-lg"
-          >
-            <Zap className="h-5 w-5" />
-            Access Dashboard
-          </button>
-        </div>
-      </div>
+          <KPICards
+            availableOrders={availableOrders.length}
+            activeDeliveries={activeDelivery ? 1 : 0}
+            todayDelivered={todayStats.delivered}
+            monthlyRevenue={monthlyRevenue}
+            onAvailableClick={() => onNavigate('orders')}
+          />
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat) => {
-          const StatIcon = stat.icon;
-          return (
-            <div 
-              key={stat.label} 
-              className={`bg-white rounded-xl shadow-lg border border-gray-200 p-6 ${
-                stat.action ? 'cursor-pointer hover:shadow-xl transition-shadow' : ''
-              }`}
-              onClick={stat.action}
-            >
+          {availableOrders.length > 0 && (
+            <NewOrdersSection
+              orders={availableOrders.slice(0, 3)}
+              onViewDetails={(id) => onNavigate('orders')}
+              onViewAll={() => onNavigate('orders')}
+            />
+          )}
+
+          {/* Delivery Mode Quick Access */}
+          {activeDelivery && (
+            <div className="bg-gradient-to-r from-orange-500 to-green-500 rounded-2xl p-6 text-white shadow-xl">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">{stat.label}</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {stat.icon === Star ? `${stat.value}/5` : stat.value}
-                  </p>
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white bg-opacity-20 rounded-xl">
+                    <Navigation className="h-8 w-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-1">Mode Livreur</h3>
+                    <p className="text-white text-opacity-90">
+                      Interface simplifiée pour vos livraisons
+                    </p>
+                  </div>
                 </div>
-                <div className={`h-12 w-12 rounded-lg bg-${stat.color}-100 flex items-center justify-center`}>
-                  <StatIcon className={`h-6 w-6 text-${stat.color}-600`} />
-                </div>
+                <button
+                  onClick={() => onNavigate('delivery-mode')}
+                  className="px-6 py-3 bg-white text-orange-600 font-semibold rounded-xl hover:shadow-lg transition-all"
+                >
+                  Accéder →
+                </button>
               </div>
             </div>
-          );
-        })}
-      </div>
+          )}
 
-      {/* Available Orders */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-6">Commandes disponibles</h3>
-        
-        {availableOrders.length === 0 ? (
-          <div className="text-center py-8">
-            <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">Aucune commande disponible pour le moment</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-8">
+              {activeDelivery && (
+                <ActiveDeliveryCard
+                  order={activeDelivery}
+                  onMarkDelivered={handleMarkDelivered}
+                />
+              )}
+            </div>
+            <div className="space-y-8">
+              {user && <PerformanceStats supplierId={user.id} rating={rating} />}
+            </div>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {availableOrders.map((order) => (
-              <div key={order.id} className="border border-gray-200 rounded-lg p-6 hover:border-orange-300 transition-colors">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-lg font-bold text-gray-900">{order.clientName}</h4>
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-sm font-semibold">{order.clientRating}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-gray-400" />
-                        <span>{order.address}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Package className="h-4 w-4 text-gray-400" />
-                        <span>{order.items.length} article(s)</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4 text-gray-400" />
-                        <span>{order.distance} • ~{order.estimatedTime} min</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                      <span className="text-xl font-bold text-gray-900">
-                        {formatPrice(order.totalAmount)}
-                      </span>
-                      {order.consigneTotal > 0 && (
-                        <span className="px-2 py-1 text-xs bg-orange-100 text-orange-700 rounded-full">
-                          Consigne incluse
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={() => handleShowDetails(order)}
-                      className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all flex items-center space-x-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span>Voir les détails</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

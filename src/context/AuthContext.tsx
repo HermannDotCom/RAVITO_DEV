@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { User as AuthUser, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { User, UserRole } from '../types';
+import { setUser as setSentryUser } from '../lib/sentry';
 
 interface AuthContextType {
   user: User | null;
@@ -11,6 +12,10 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<boolean>;
   isLoading: boolean;
   isInitializing: boolean;
+  sessionError: string | null;
+  refreshSession: () => Promise<boolean>;
+  clearSessionError: () => void;
+  setSessionError: (error: string | null) => void;
 }
 
 export interface RegisterData {
@@ -44,30 +49,49 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [sessionError, setSessionError] = useState<string | null>(null);
   const initStartedRef = React.useRef(false);
+  const refreshAttemptsRef = React.useRef(0);
+  const MAX_REFRESH_ATTEMPTS = 2;
 
   const fetchUserProfile = useCallback(async (userId: string): Promise<boolean> => {
     try {
       console.log('Fetching profile for user:', userId);
 
-      const { data: profile, error } = await supabase
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Profile fetch timeout after 10s')), 10000);
+      });
+
+      const fetchPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
 
+      const { data: profile, error } = await Promise.race([
+        fetchPromise,
+        timeoutPromise
+      ]) as any;
+
       if (error) {
         console.error('Error fetching profile:', error);
-        console.error('This might be due to RLS policies. Check Supabase dashboard.');
+        console.error('Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
         return false;
       }
 
       if (!profile) {
         console.error('Profile not found for user:', userId);
+        console.error('This usually means the profile does not exist in the database or RLS policies are blocking access');
         return false;
       }
 
-      console.log('Profile found:', profile);
+      console.log('Profile found:', { id: profile.id, role: profile.role, email: profile.email });
       const { data: authUserData } = await supabase.auth.getUser();
 
       let coordinates = undefined;
@@ -94,11 +118,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         businessHours: profile.business_hours || undefined,
         responsiblePerson: profile.responsible_person || undefined,
         coverageZone: profile.coverage_zone || undefined,
-        deliveryCapacity: profile.delivery_capacity as any || undefined
+        deliveryCapacity: profile.delivery_capacity as any || undefined,
+        deliveryLatitude: profile.delivery_latitude || null,
+        deliveryLongitude: profile.delivery_longitude || null,
+        deliveryInstructions: profile.delivery_instructions || null
       };
 
       setUser(mappedUser);
       console.log('User set successfully:', mappedUser.email);
+      
+      // Définir l'utilisateur dans Sentry pour le tracking
+      setSentryUser({
+        id: mappedUser.id,
+        email: mappedUser.email,
+        role: mappedUser.role,
+      });
+      
       return true;
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
@@ -207,7 +242,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setIsLoading(true);
+      console.log('=== LOGIN START ===');
       console.log('Attempting login for:', email);
+      console.log('Timestamp:', new Date().toISOString());
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -216,21 +253,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) {
         console.error('Login error:', error);
+        console.error('Error code:', error.status);
+        console.error('Error message:', error.message);
         setIsLoading(false);
         return false;
       }
 
       if (data.user) {
-        console.log('Auth successful, fetching profile...');
+        console.log('Auth successful! User ID:', data.user.id);
+        console.log('Session created:', !!data.session);
+        console.log('Now fetching profile...');
+
         const profileSuccess = await fetchUserProfile(data.user.id);
+
+        console.log('Profile fetch result:', profileSuccess);
+        console.log('=== LOGIN END ===');
         setIsLoading(false);
         return profileSuccess;
       }
 
+      console.error('No user returned from signInWithPassword');
       setIsLoading(false);
       return false;
     } catch (error) {
       console.error('Login exception:', error);
+      console.error('Exception stack:', error instanceof Error ? error.stack : 'No stack trace');
       setIsLoading(false);
       return false;
     }
@@ -247,7 +294,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         options: {
           data: {
             name: userData.name,
-            role: userData.role
+            role: userData.role,
+            phone: userData.phone,
+            address: userData.address
           }
         }
       });
@@ -264,34 +313,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return false;
       }
 
-      console.log('Auth user created, waiting for profile to be available...');
+      console.log('Auth user created, waiting for profile...');
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      let retries = 0;
-      const maxRetries = 8;
+      const maxRetries = 10;
       let profileFound = false;
 
-      while (retries < maxRetries && !profileFound) {
-        console.log(`Profile check attempt ${retries + 1}/${maxRetries}...`);
+      for (let i = 0; i < maxRetries && !profileFound; i++) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        console.log(`Profile check ${i + 1}/${maxRetries}...`);
 
-        const { data: existingProfile, error: checkError } = await supabase
+        const { data: profile } = await supabase
           .from('profiles')
           .select('id')
           .eq('id', authData.user.id)
           .maybeSingle();
 
-        if (existingProfile) {
-          console.log('Profile exists, updating with full data...');
+        if (profile) {
           profileFound = true;
+          console.log('Profile found, updating with additional data...');
 
-          const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
-          const updateData: any = {
+          const updateData: Record<string, unknown> = {
             role: userData.role,
             name: userData.name,
             phone: userData.phone,
             address: userData.address,
-            coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
           };
 
           if (userData.role === 'client' && userData.zoneId) {
@@ -306,68 +351,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             updateData.delivery_capacity = userData.deliveryCapacity || null;
           }
 
-          const { error: updateError } = await supabase
+          await supabase
             .from('profiles')
             .update(updateData)
             .eq('id', authData.user.id);
 
-          if (updateError) {
-            console.error('Profile update error:', updateError);
-          }
-
-          const profileSuccess = await fetchUserProfile(authData.user.id);
+          const success = await fetchUserProfile(authData.user.id);
           setIsLoading(false);
-          return profileSuccess;
-        } else if (checkError) {
-          console.error('Error checking profile:', checkError);
-        } else {
-          console.log('Profile not found yet, will try to create it...');
-
-          const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
-          const profileData: any = {
-            id: authData.user.id,
-            email: userData.email,
-            role: userData.role,
-            name: userData.name,
-            phone: userData.phone,
-            address: userData.address,
-            coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
-            zone_id: (userData.role === 'client' && userData.zoneId) ? userData.zoneId : null,
-            business_name: userData.businessName || null,
-            business_hours: userData.businessHours || null,
-            responsible_person: userData.responsiblePerson || null,
-            coverage_zone: userData.coverageZone || null,
-            delivery_capacity: userData.deliveryCapacity || null,
-            is_active: true,
-            is_approved: false,
-            approval_status: 'pending'
-          };
-
-          const { data: createdProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert([profileData])
-            .select()
-            .maybeSingle();
-
-          if (createdProfile) {
-            console.log('Profile created successfully');
-            profileFound = true;
-            const profileSuccess = await fetchUserProfile(authData.user.id);
-            setIsLoading(false);
-            return profileSuccess;
-          } else if (createError) {
-            console.error('Profile creation error:', createError);
-          }
-        }
-
-        retries++;
-        if (retries < maxRetries && !profileFound) {
-          await new Promise(resolve => setTimeout(resolve, 800));
+          return success;
         }
       }
 
       if (!profileFound) {
-        console.error('Failed to create or find profile after multiple attempts');
+        console.error('Profile not created by trigger, logging out');
         await supabase.auth.signOut();
         setIsLoading(false);
         return false;
@@ -387,13 +383,94 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
+      setSessionError(null);
+      refreshAttemptsRef.current = 0;
+      
+      // Effacer l'utilisateur de Sentry lors de la déconnexion
+      setSentryUser(null);
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
+  /**
+   * Attempts to refresh the session
+   * Returns true if successful, false otherwise
+   */
+  const refreshSession = useCallback(async (): Promise<boolean> => {
+    // Check if we've exceeded max attempts
+    if (refreshAttemptsRef.current >= MAX_REFRESH_ATTEMPTS) {
+      console.log('[AuthContext] Max refresh attempts reached');
+      setSessionError('La récupération de session a échoué. Veuillez vous reconnecter.');
+      return false;
+    }
+
+    refreshAttemptsRef.current += 1;
+
+    try {
+      console.log(`[AuthContext] Attempting session refresh (attempt ${refreshAttemptsRef.current}/${MAX_REFRESH_ATTEMPTS})`);
+      
+      const { data, error } = await supabase.auth.refreshSession();
+
+      if (error) {
+        console.error('[AuthContext] Session refresh failed:', error);
+        
+        if (refreshAttemptsRef.current >= MAX_REFRESH_ATTEMPTS) {
+          setSessionError('La récupération de session a échoué. Veuillez vous reconnecter.');
+        } else {
+          setSessionError('Erreur lors de la récupération de session. Réessayez ou reconnectez-vous.');
+        }
+        
+        return false;
+      }
+
+      if (data.session) {
+        console.log('[AuthContext] Session refreshed successfully');
+        setSession(data.session);
+        setSessionError(null);
+        refreshAttemptsRef.current = 0;
+        
+        // Re-fetch user profile with new session
+        if (data.session.user) {
+          await fetchUserProfile(data.session.user.id);
+        }
+        
+        return true;
+      }
+
+      console.warn('[AuthContext] No session returned after refresh');
+      setSessionError('Session non trouvée. Veuillez vous reconnecter.');
+      return false;
+
+    } catch (error) {
+      console.error('[AuthContext] Unexpected error during session refresh:', error);
+      setSessionError('Une erreur inattendue s\'est produite. Veuillez vous reconnecter.');
+      return false;
+    }
+  }, [fetchUserProfile]);
+
+  /**
+   * Clears the session error and resets refresh attempts
+   */
+  const clearSessionError = useCallback(() => {
+    setSessionError(null);
+    refreshAttemptsRef.current = 0;
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, session, login, logout, register, isLoading, isInitializing }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      login, 
+      logout, 
+      register, 
+      isLoading, 
+      isInitializing,
+      sessionError,
+      refreshSession,
+      clearSessionError,
+      setSessionError
+    }}>
       {children}
     </AuthContext.Provider>
   );

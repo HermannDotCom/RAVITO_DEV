@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Package, CheckCircle, XCircle, MessageSquare, AlertCircle, CreditCard } from 'lucide-react';
 import { Order } from '../../types';
 import { SupplierOffer, getOffersByOrder, acceptOffer, rejectOffer } from '../../services/supplierOfferService';
+import { RatingBadge } from '../Shared/RatingBadge';
 
 interface ReceivedOffersProps {
   order: Order;
@@ -158,7 +159,21 @@ export const ReceivedOffers: React.FC<ReceivedOffersProps> = ({ order, onOfferAc
                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Offre #{index + 1}
                 </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center space-x-2 mt-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Note du fournisseur :</span>
+                  {offer.supplierRating && offer.supplierRating > 0 ? (
+                    <RatingBadge
+                      rating={offer.supplierRating}
+                      reviewCount={1}
+                      userId={offer.supplierId}
+                      userType="supplier"
+                      size="sm"
+                    />
+                  ) : (
+                    <span className="text-sm text-gray-500 dark:text-gray-400">N/A</span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   Reçue le {formatDate(offer.createdAt)}
                 </p>
               </div>

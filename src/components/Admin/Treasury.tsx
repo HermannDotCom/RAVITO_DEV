@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   CreditCard,
   Users,
   Package,
-  TrendingUp,
   CheckCircle,
   ArrowRight,
   Calendar,
   DollarSign,
   AlertTriangle,
-  X
+  X,
+  Search,
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  History
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useOrder } from '../../context/OrderContext';
@@ -19,6 +23,7 @@ import { SupplierPayment, Transfer } from '../../types';
 import {
   createTransfer,
   getRecentTransfers,
+  getTransferById,
   completeTransfer
 } from '../../services/transferService';
 
@@ -31,8 +36,14 @@ export const Treasury: React.FC = () => {
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
   const [recentTransfers, setRecentTransfers] = useState<Transfer[]>([]);
   const [isLoadingTransfers, setIsLoadingTransfers] = useState(true);
+  const [supplierSearchQuery, setSupplierSearchQuery] = useState('');
+  const [transferSearchQuery, setTransferSearchQuery] = useState('');
+  const [showTransferHistory, setShowTransferHistory] = useState(false);
+  const [selectedTransferDetails, setSelectedTransferDetails] = useState<{
+    transfer: Transfer;
+    orders: Array<{ id: string; clientName: string; articles: number; totalAmount: number; netAmount: number; deliveredAt: Date }>;
+  } | null>(null);
 
-  // Load recent transfers from Supabase on mount
   useEffect(() => {
     loadRecentTransfers();
   }, []);
@@ -40,7 +51,7 @@ export const Treasury: React.FC = () => {
   const loadRecentTransfers = async () => {
     setIsLoadingTransfers(true);
     try {
-      const transfers = await getRecentTransfers(10);
+      const transfers = await getRecentTransfers(50);
       setRecentTransfers(transfers);
     } catch (error) {
       console.error('Error loading transfers:', error);
@@ -49,13 +60,12 @@ export const Treasury: React.FC = () => {
     }
   };
 
-  // Calculer les commissions dynamiquement depuis les paramètres
   const PLATFORM_COMMISSION = commissionSettings.supplierCommission / 100;
-  const PAYMENT_PROCESSING_FEE = commissionSettings.clientCommission / 100;
-  const TOTAL_COMMISSION = PLATFORM_COMMISSION + PAYMENT_PROCESSING_FEE;
 
   // State to hold supplier profiles
   const [supplierProfiles, setSupplierProfiles] = useState<Record<string, { name: string; business_name?: string }>>({});
+  // State to hold client profiles
+  const [clientProfiles, setClientProfiles] = useState<Record<string, { name: string; business_name?: string }>>({});
 
   // Load supplier profiles
   useEffect(() => {
@@ -89,10 +99,41 @@ export const Treasury: React.FC = () => {
     loadSupplierProfiles();
   }, [allOrders]);
 
+  // Load client profiles
+  useEffect(() => {
+    const loadClientProfiles = async () => {
+      const clientIds = Array.from(new Set(allOrders
+        .filter(o => o.clientId)
+        .map(o => o.clientId)));
+
+      if (clientIds.length === 0) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, business_name')
+        .in('id', clientIds);
+
+      if (error) {
+        console.error('Error loading client profiles:', error);
+        return;
+      }
+
+      const profilesMap: Record<string, { name: string; business_name?: string }> = {};
+      data?.forEach(profile => {
+        profilesMap[profile.id] = {
+          name: profile.name,
+          business_name: profile.business_name
+        };
+      });
+      setClientProfiles(profilesMap);
+    };
+
+    loadClientProfiles();
+  }, [allOrders]);
+
   // Filtrer les commandes livrées et payées mais non transférées
   const ordersToTransfer = allOrders.filter(order =>
     order.status === 'delivered' &&
-    order.paymentStatus === 'paid' &&
     order.supplierId &&
     !order.transferredAt
   );
@@ -102,33 +143,63 @@ export const Treasury: React.FC = () => {
     return profile?.business_name || profile?.name || `Fournisseur ${supplierId.substring(0, 8)}`;
   };
 
-  // Grouper par fournisseur
-  const supplierPayments: SupplierPayment[] = ordersToTransfer.reduce((acc, order) => {
-    if (!order.supplierId) return acc;
+  const getClientName = (clientId: string): string => {
+    const profile = clientProfiles[clientId];
+    return profile?.business_name || profile?.name || 'Client';
+  };
 
-    const existingSupplier = acc.find(s => s.supplierId === order.supplierId);
-    const netAmount = order.totalAmount * (1 - TOTAL_COMMISSION);
-
-    if (existingSupplier) {
-      existingSupplier.totalAmount += netAmount;
-      existingSupplier.orderCount += 1;
-      existingSupplier.orders.push(order);
-      if (order.deliveredAt && order.deliveredAt > existingSupplier.lastOrderDate) {
-        existingSupplier.lastOrderDate = order.deliveredAt;
+  const supplierPayments: SupplierPayment[] = useMemo(() => {
+    const uniqueOrdersMap = new Map<string, typeof ordersToTransfer[0]>();
+    ordersToTransfer.forEach(order => {
+      if (!uniqueOrdersMap.has(order.id)) {
+        uniqueOrdersMap.set(order.id, order);
       }
-    } else {
-      acc.push({
-        supplierId: order.supplierId,
-        supplierName: getSupplierName(order.supplierId),
-        totalAmount: netAmount,
-        orderCount: 1,
-        orders: [order],
-        lastOrderDate: order.deliveredAt || order.createdAt
-      });
-    }
+    });
+    const uniqueOrders = Array.from(uniqueOrdersMap.values());
 
-    return acc;
-  }, [] as SupplierPayment[]);
+    return uniqueOrders.reduce((acc, order) => {
+      if (!order.supplierId) return acc;
+
+      const existingSupplier = acc.find(s => s.supplierId === order.supplierId);
+      const netAmount = order.totalAmount * (1 - PLATFORM_COMMISSION);
+
+      if (existingSupplier) {
+        existingSupplier.totalAmount += netAmount;
+        existingSupplier.orderCount += 1;
+        existingSupplier.orders.push(order);
+        if (order.deliveredAt && order.deliveredAt > existingSupplier.lastOrderDate) {
+          existingSupplier.lastOrderDate = order.deliveredAt;
+        }
+      } else {
+        acc.push({
+          supplierId: order.supplierId,
+          supplierName: getSupplierName(order.supplierId),
+          totalAmount: netAmount,
+          orderCount: 1,
+          orders: [order],
+          lastOrderDate: order.deliveredAt || order.createdAt
+        });
+      }
+
+      return acc;
+    }, [] as SupplierPayment[]);
+  }, [ordersToTransfer, PLATFORM_COMMISSION, supplierProfiles]);
+
+  const filteredSupplierPayments = useMemo(() => {
+    if (!supplierSearchQuery) return supplierPayments;
+    const query = supplierSearchQuery.toLowerCase();
+    return supplierPayments.filter(s =>
+      s.supplierName.toLowerCase().includes(query)
+    );
+  }, [supplierPayments, supplierSearchQuery]);
+
+  const filteredTransfers = useMemo(() => {
+    if (!transferSearchQuery) return recentTransfers;
+    const query = transferSearchQuery.toLowerCase();
+    return recentTransfers.filter(t =>
+      t.supplierName.toLowerCase().includes(query)
+    );
+  }, [recentTransfers, transferSearchQuery]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
@@ -221,25 +292,56 @@ export const Treasury: React.FC = () => {
     setShowDetailsModal(true);
   };
 
-  // Statistiques globales
   const totalPendingAmount = supplierPayments.reduce((sum, supplier) => sum + supplier.totalAmount, 0);
   const totalPendingOrders = supplierPayments.reduce((sum, supplier) => sum + supplier.orderCount, 0);
-  const totalCommissionEarned = ordersToTransfer.reduce((sum, order) => sum + (order.totalAmount * TOTAL_COMMISSION), 0);
+  const totalTransfersCompleted = recentTransfers.filter(t => t.status === 'completed').length;
+
+  const handleViewTransferDetails = async (transfer: Transfer) => {
+    try {
+      const { orders: transferOrders } = await getTransferById(transfer.id);
+
+      const orderIds = transferOrders.map(to => to.orderId);
+      const { data: ordersData } = await supabase
+        .from('orders')
+        .select('id, client_id, total_amount, delivered_at')
+        .in('id', orderIds);
+
+      const orderDetails = await Promise.all((ordersData || []).map(async (order) => {
+        const clientName = order.client_id ? getClientName(order.client_id) : 'Client';
+        const { count } = await supabase
+          .from('order_items')
+          .select('id', { count: 'exact', head: true })
+          .eq('order_id', order.id);
+
+        return {
+          id: order.id,
+          clientName,
+          articles: count || 0,
+          totalAmount: order.total_amount,
+          netAmount: order.total_amount * (1 - PLATFORM_COMMISSION),
+          deliveredAt: new Date(order.delivered_at)
+        };
+      }));
+
+      setSelectedTransferDetails({ transfer, orders: orderDetails });
+    } catch (error) {
+      console.error('Error loading transfer details:', error);
+    }
+  };
 
   return (
     <>
       <div className="max-w-7xl mx-auto p-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Trésorerie</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Tresorerie</h1>
           <p className="text-gray-600">Gestion des reversements aux fournisseurs</p>
         </div>
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Fournisseurs à régler</p>
+                <p className="text-sm font-medium text-gray-600 mb-1">Fournisseurs a regler</p>
                 <p className="text-2xl font-bold text-orange-600">{supplierPayments.length}</p>
               </div>
               <Users className="h-8 w-8 text-orange-600" />
@@ -259,64 +361,71 @@ export const Treasury: React.FC = () => {
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Montant à reverser</p>
+                <p className="text-sm font-medium text-gray-600 mb-1">Montant a reverser</p>
                 <p className="text-xl font-bold text-red-600">{formatPrice(totalPendingAmount)}</p>
               </div>
               <CreditCard className="h-8 w-8 text-red-600" />
             </div>
           </div>
-
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Commissions perçues</p>
-                <p className="text-xl font-bold text-green-600">{formatPrice(totalCommissionEarned)}</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-green-600" />
-            </div>
-          </div>
         </div>
 
-        {/* Commission Info */}
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
           <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center">
             <DollarSign className="h-5 w-5 mr-2" />
             Structure des commissions
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div className="bg-white rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-blue-600 mb-1">{(PLATFORM_COMMISSION * 100).toFixed(0)}%</div>
               <div className="text-blue-800">Commission plateforme</div>
+              <p className="text-xs text-gray-500 mt-1">Prelevee sur le montant de l'offre</p>
             </div>
             <div className="bg-white rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-orange-600 mb-1">{(PAYMENT_PROCESSING_FEE * 100).toFixed(0)}%</div>
-              <div className="text-orange-800">Frais de traitement</div>
-            </div>
-            <div className="bg-white rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-600 mb-1">{((1 - TOTAL_COMMISSION) * 100).toFixed(0)}%</div>
-              <div className="text-green-800">Reversé au fournisseur</div>
+              <div className="text-2xl font-bold text-green-600 mb-1">{((1 - PLATFORM_COMMISSION) * 100).toFixed(0)}%</div>
+              <div className="text-green-800">Reverse au fournisseur</div>
+              <p className="text-xs text-gray-500 mt-1">Montant net apres commission</p>
             </div>
           </div>
+          <p className="text-xs text-blue-700 mt-4">
+            Note : Les frais de traitement ({commissionSettings.clientCommission}%) sont payes par le client et ne sont pas deduits du montant du fournisseur.
+          </p>
         </div>
 
-        {/* Suppliers List */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-8">
           <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-bold text-gray-900">Fournisseurs à régler</h3>
-            <p className="text-sm text-gray-600 mt-1">
-              Cliquez sur un fournisseur pour voir le détail et effectuer le virement
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Fournisseurs a regler</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Cliquez sur un fournisseur pour voir le detail et effectuer le virement
+                </p>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher un fournisseur..."
+                  value={supplierSearchQuery}
+                  onChange={(e) => setSupplierSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-full sm:w-64"
+                />
+              </div>
+            </div>
           </div>
 
-          {supplierPayments.length === 0 ? (
+          {filteredSupplierPayments.length === 0 ? (
             <div className="p-12 text-center">
               <CheckCircle className="h-16 w-16 text-green-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Tous les paiements sont à jour</h3>
-              <p className="text-gray-500">Aucun reversement en attente</p>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                {supplierSearchQuery ? 'Aucun resultat' : 'Tous les paiements sont a jour'}
+              </h3>
+              <p className="text-gray-500">
+                {supplierSearchQuery ? 'Aucun fournisseur ne correspond a votre recherche' : 'Aucun reversement en attente'}
+              </p>
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
-              {supplierPayments.map((supplier) => (
+              {filteredSupplierPayments.map((supplier) => (
                 <div 
                   key={supplier.supplierId} 
                   className="p-6 hover:bg-gray-50 transition-colors cursor-pointer"
@@ -360,36 +469,69 @@ export const Treasury: React.FC = () => {
           )}
         </div>
 
-        {/* Recent Transfers */}
-        <div className="mt-8 bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Virements récents</h3>
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-3">
+                <History className="h-5 w-5 text-gray-600" />
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Historique des Virements</h3>
+                  <p className="text-sm text-gray-600">{filteredTransfers.length} virement(s)</p>
+                </div>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher un fournisseur..."
+                  value={transferSearchQuery}
+                  onChange={(e) => setTransferSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-full sm:w-64"
+                />
+              </div>
+            </div>
+          </div>
+
           {isLoadingTransfers ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
               <p className="text-gray-500">Chargement des virements...</p>
             </div>
-          ) : recentTransfers.length === 0 ? (
+          ) : filteredTransfers.length === 0 ? (
             <div className="text-center py-8">
               <CreditCard className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">Aucun virement récent</p>
-              <p className="text-gray-400 text-sm">Les virements effectués apparaîtront ici</p>
+              <p className="text-gray-500">
+                {transferSearchQuery ? 'Aucun virement trouve' : 'Aucun virement effectue'}
+              </p>
+              <p className="text-gray-400 text-sm">
+                {transferSearchQuery ? 'Modifiez votre recherche' : 'Les virements effectues apparaitront ici'}
+              </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {recentTransfers.map((transfer) => (
-                <div key={transfer.id} className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <div>
-                      <p className="font-medium text-gray-900">{transfer.supplierName}</p>
-                      <p className="text-sm text-gray-600">
-                        {transfer.orderCount} commande(s) • {formatDate(transfer.createdAt)}
-                      </p>
+            <div className="divide-y divide-gray-200">
+              {filteredTransfers.map((transfer) => (
+                <div
+                  key={transfer.id}
+                  className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => handleViewTransferDetails(transfer)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="font-medium text-gray-900">{transfer.supplierName}</p>
+                        <p className="text-sm text-gray-600">
+                          {transfer.orderCount} commande(s) - {formatDate(transfer.createdAt)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-green-600">{formatPrice(transfer.amount)}</p>
-                    <p className="text-xs text-green-500 capitalize">{getTransferStatusLabel(transfer.status)}</p>
+                    <div className="flex items-center space-x-3">
+                      <div className="text-right">
+                        <p className="font-bold text-green-600">{formatPrice(transfer.amount)}</p>
+                        <p className="text-xs text-green-500 capitalize">{getTransferStatusLabel(transfer.status)}</p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-gray-400" />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -450,20 +592,20 @@ export const Treasury: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                           <div>
                             <span className="text-gray-600">Client:</span>
-                            <span className="font-medium text-gray-900 ml-2">Maquis Belle Vue</span>
+                            <span className="font-medium text-gray-900 ml-2">{getClientName(order.clientId)}</span>
                           </div>
                           <div>
                             <span className="text-gray-600">Articles:</span>
                             <span className="font-medium text-gray-900 ml-2">{order.items.length}</span>
                           </div>
                           <div>
-                            <span className="text-gray-600">Montant TTC:</span>
+                            <span className="text-gray-600">Montant offre:</span>
                             <span className="font-medium text-gray-900 ml-2">{formatPrice(order.totalAmount)}</span>
                           </div>
                           <div>
                             <span className="text-gray-600">Net fournisseur:</span>
                             <span className="font-bold text-green-600 ml-2">
-                              {formatPrice(order.totalAmount * (1 - TOTAL_COMMISSION))}
+                              {formatPrice(order.totalAmount * (1 - PLATFORM_COMMISSION))}
                             </span>
                           </div>
                         </div>
@@ -515,6 +657,86 @@ export const Treasury: React.FC = () => {
                       <span>Régler {formatPrice(selectedSupplier.totalAmount)}</span>
                     </>
                   )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedTransferDetails && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="h-12 w-12 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold">
+                      {selectedTransferDetails.transfer.supplierName.charAt(0)}
+                    </span>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">{selectedTransferDetails.transfer.supplierName}</h2>
+                    <p className="text-gray-600">
+                      Virement du {formatDate(selectedTransferDetails.transfer.createdAt)} - {formatPrice(selectedTransferDetails.transfer.amount)}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedTransferDetails(null)}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-gray-900 mb-3">Detail des commandes</h3>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="space-y-3">
+                    {selectedTransferDetails.orders.map((order) => (
+                      <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-3">
+                            <span className="font-bold text-gray-900">#{order.id.substring(0, 8).toUpperCase()}</span>
+                            <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">
+                              Livree
+                            </span>
+                          </div>
+                          <span className="text-sm text-gray-600">
+                            {formatDate(order.deliveredAt)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                          <div>
+                            <span className="text-gray-600">Client:</span>
+                            <span className="font-medium text-gray-900 ml-1">{order.clientName}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Articles:</span>
+                            <span className="font-medium text-gray-900 ml-1">{order.articles}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Montant offre:</span>
+                            <span className="font-medium text-gray-900 ml-1">{formatPrice(order.totalAmount)}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Net fournisseur:</span>
+                            <span className="font-bold text-green-600 ml-1">{formatPrice(order.netAmount)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setSelectedTransferDetails(null)}
+                  className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+                >
+                  Fermer
                 </button>
               </div>
             </div>

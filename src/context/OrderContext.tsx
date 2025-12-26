@@ -11,6 +11,16 @@ import {
   updateOrderStatus as updateOrderStatusService
 } from '../services/orderService';
 
+// Fonction utilitaire pour générer un code à 4 chiffres
+const generateConfirmationCode = (): string => {
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = '';
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
 interface OrderContextType {
   currentOrder: Order | null;
   clientCurrentOrder: Order | null;
@@ -26,13 +36,14 @@ interface OrderContextType {
     coordinates: { lat: number; lng: number },
     paymentMethod: PaymentMethod,
     commissionSettings: { clientCommission: number; supplierCommission: number },
-    zoneId?: string
+    zoneId?: string,
+    deliveryInstructions?: string,
+    usesProfileAddress?: boolean
   ) => Promise<{ success: boolean; orderId?: string; error?: string }>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<boolean>;
   acceptSupplierOffer: (orderId: string) => Promise<boolean>;
   rejectSupplierOffer: (orderId: string) => Promise<boolean>;
   processPayment: (orderId: string, paymentMethod: PaymentMethod, transactionId: string) => Promise<boolean>;
-  assignDeliveryDriver: (orderId: string, driverId: string) => Promise<boolean>;
   refreshOrders: () => Promise<void>;
 }
 
@@ -112,7 +123,6 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             filter: `client_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('📦 Client order change detected:', payload);
             loadOrders();
           }
         )
@@ -129,7 +139,6 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             filter: `supplier_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('📦 Supplier order change detected:', payload);
             loadOrders();
           }
         )
@@ -138,7 +147,6 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     // Also listen for custom refresh events from realtime hooks
     const handleRefreshEvent = () => {
-      console.log('🔄 Manual refresh triggered');
       loadOrders();
     };
 
@@ -158,7 +166,9 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     coordinates: { lat: number; lng: number },
     paymentMethod: PaymentMethod,
     commissionSettings: { clientCommission: number; supplierCommission: number },
-    zoneId?: string
+    zoneId?: string,
+    deliveryInstructions?: string,
+    usesProfileAddress?: boolean
   ) => {
     if (!user || user.role !== 'client') {
       return { success: false, error: 'Unauthorized' };
@@ -171,7 +181,9 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       coordinates,
       paymentMethod,
       commissionSettings,
-      zoneId
+      zoneId,
+      deliveryInstructions,
+      usesProfileAddress
     );
 
     if (result.success) {
@@ -186,8 +198,11 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     if (status === 'accepted') {
       updates.acceptedAt = new Date();
+    } else if (status === 'delivering') {
+      updates.delivery_confirmation_code = generateConfirmationCode();
     } else if (status === 'delivered') {
       updates.deliveredAt = new Date();
+      updates.delivery_confirmation_code = null; // Optionnel: effacer le code après livraison
     }
 
     const success = await updateOrderStatusService(orderId, status, updates);
@@ -248,30 +263,6 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
-  const assignDeliveryDriver = async (orderId: string, driverId: string): Promise<boolean> => {
-    try {
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          assigned_delivery_user_id: driverId,
-          assigned_delivery_at: new Date().toISOString(),
-          assigned_delivery_by: user?.id
-        })
-        .eq('id', orderId);
-
-      if (error) {
-        console.error('Error assigning driver:', error);
-        return false;
-      }
-
-      await loadOrders();
-      return true;
-    } catch (error) {
-      console.error('Exception assigning driver:', error);
-      return false;
-    }
-  };
-
   const refreshOrders = async () => {
     await loadOrders();
   };
@@ -298,7 +289,6 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         acceptSupplierOffer,
         rejectSupplierOffer,
         processPayment,
-        assignDeliveryDriver,
         refreshOrders
       }}
     >
