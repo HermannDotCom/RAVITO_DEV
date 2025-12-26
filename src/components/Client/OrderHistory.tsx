@@ -276,6 +276,11 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
       return sum + (counts.withConsigne * consignePrice);
     }, 0);
 
+    // Helper to get delivery confirmation code (handles both camelCase and snake_case)
+    const getDeliveryConfirmationCode = (order: Order): string | undefined => {
+      return order.deliveryConfirmationCode || (order as any).delivery_confirmation_code;
+    };
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -319,7 +324,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                 </div>
 
                 {/* Delivery Confirmation Code - Displayed when delivering */}
-                {order.status === 'delivering' && (order.deliveryConfirmationCode || (order as any).delivery_confirmation_code) && (
+                {order.status === 'delivering' && getDeliveryConfirmationCode(order) && (
                   <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300 rounded-xl p-6">
                     <div className="text-center">
                       <h3 className="text-lg font-bold text-gray-900 mb-2">Code de confirmation de livraison</h3>
@@ -328,7 +333,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate }) => {
                       </p>
                       <div className="bg-white rounded-lg p-6 inline-block">
                         <div className="text-4xl font-bold text-orange-600 tracking-widest font-mono">
-                          {order.deliveryConfirmationCode || (order as any).delivery_confirmation_code}
+                          {getDeliveryConfirmationCode(order)}
                         </div>
                       </div>
                       <p className="text-xs text-gray-500 mt-4">
