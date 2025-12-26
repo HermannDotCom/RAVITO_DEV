@@ -121,13 +121,15 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
 
         const profileMap = new Map(profiles?.map(p => [p.id, p.name]) || []);
         
-        const teamMembersList: TeamMember[] = members?.map(m => ({
-          id: m.user_id!,
-          email: m.email,
-          name: profileMap.get(m.user_id!) || m.email,
-          role: m.role,
-          status: m.status
-        })) || [];
+        const teamMembersList: TeamMember[] = members
+          ?.filter(m => m.user_id) // Filter out members without user_id
+          .map(m => ({
+            id: m.user_id as string,
+            email: m.email,
+            name: profileMap.get(m.user_id as string) || m.email,
+            role: m.role,
+            status: m.status
+          })) || [];
 
         setTeamMembers(teamMembersList);
       } catch (error) {
