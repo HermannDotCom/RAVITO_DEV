@@ -1,0 +1,10 @@
+# RAVITO - robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://ravito.ci/sitemap.xml
+
+# Disallow admin/private areas
+Disallow: /admin
+Disallow: /api

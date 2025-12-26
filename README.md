@@ -1,10 +1,10 @@
-# 🌙 DISTRI-NIGHT
+# 🌙 RAVITO
 
-**Plateforme de distribution nocturne de boissons à Abidjan, Côte d'Ivoire**
+**Plateforme de ravitaillement 24h/24 pour CHR à Abidjan, Côte d'Ivoire**
 
 ## 📖 Description
 
-DISTRI-NIGHT est une application web moderne qui connecte les bars, maquis et restaurants avec les dépôts de boissons pour des livraisons nocturnes rapides et efficaces.
+RAVITO est une application web moderne qui connecte les bars, maquis et restaurants avec les dépôts de boissons pour des livraisons rapides et efficaces, jour et nuit.
 
 ### 🎯 Fonctionnalités Principales
 
@@ -27,7 +27,7 @@ DISTRI-NIGHT est une application web moderne qui connecte les bars, maquis et re
 ```bash
 # Cloner le repository
 git clone <repository-url>
-cd distri-night
+cd ravito
 
 # Installer les dépendances
 npm install
@@ -48,7 +48,7 @@ Voir le fichier **[CREDENTIALS.txt](./CREDENTIALS.txt)** pour les identifiants c
 
 | Rôle | Email | Mot de passe |
 |------|-------|--------------|
-| **Admin** | admin@distri-night.ci | Admin@2025! |
+| **Admin** | admin@ravito.ci | Admin@2025! |
 | **Client** | client1@test.ci | Client@2025! |
 | **Supplier** | supplier1@test.ci | Supplier@2025! |
 
@@ -59,7 +59,7 @@ Voir le fichier **[CREDENTIALS.txt](./CREDENTIALS.txt)** pour les identifiants c
 ## 📁 Structure du Projet
 
 ```
-distri-night/
+ravito/
 ├── src/
 │   ├── components/          # Composants React
 │   │   ├── Admin/          # Dashboard admin
@@ -157,6 +157,8 @@ distri-night/
 
 ## 🧪 Tests
 
+### Tests Unitaires
+
 ```bash
 # Lancer les tests
 npm test
@@ -169,6 +171,16 @@ npm run test:coverage
 ```
 
 **Coverage actuel :** 90%+ sur les contextes critiques
+
+### Tests E2E
+
+> ⚠️ **Note** : Les tests E2E sont temporairement désactivés pendant la phase de développement MVP. 
+> Voir [`tests/E2E_TODO.md`](./tests/E2E_TODO.md) pour plus d'informations.
+
+```bash
+# Les tests E2E seront réactivés avant la mise en production
+# npx playwright test
+```
 
 ---
 
@@ -412,10 +424,10 @@ Ce projet est sous licence propriétaire. Tous droits réservés.
 
 ---
 
-**Développé avec ❤️ pour révolutionner la distribution nocturne en Côte d'Ivoire**
+**Développé avec ❤️ pour révolutionner le ravitaillement CHR en Côte d'Ivoire**
 
 **Status :** ✅ Production Ready
 **Version :** 1.0.0
 **Date :** 2025-10-04
 
-🌙 **DISTRI-NIGHT - La nuit n'a jamais été aussi productive !**
+🌙 **RAVITO - Le ravitaillement qui ne dort jamais**

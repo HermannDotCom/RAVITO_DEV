@@ -1,7 +1,14 @@
 export type UserRole = 'client' | 'supplier' | 'admin';
 
 export type ProductCategory = 'biere' | 'soda' | 'vin' | 'eau' | 'spiritueux';
-export type CrateType = 'C24' | 'C12' | 'C12V' | 'C6';
+export type CrateType = 'C24' | 'C12' | 'C12V' | 'C6' | 'CARTON24' | 'PACK6' | 'PACK12' | 'C20';
+
+export interface DeliveryLocation {
+  latitude: number | null;
+  longitude: number | null;
+  address: string;
+  instructions: string | null;
+}
 
 export interface User {
   id: string;
@@ -24,6 +31,9 @@ export interface User {
   rejectedAt?: Date;
   rejectionReason?: string;
   createdAt: Date;
+  deliveryLatitude?: number | null;
+  deliveryLongitude?: number | null;
+  deliveryInstructions?: string | null;
 }
 
 export interface Client extends User {
@@ -131,7 +141,6 @@ export interface CartItem {
 
 export interface Order {
   id: string;
-  orderNumber?: string;
   clientId: string;
   supplierId?: string;
   items: CartItem[];
@@ -149,15 +158,17 @@ export interface Order {
   estimatedDeliveryTime?: number;
   paymentStatus?: PaymentStatus;
   deliveryConfirmationCode?: string;
+  clientRating?: number;
   paidAt?: Date;
   transferredAt?: Date;
   createdAt: Date;
   acceptedAt?: Date;
   deliveredAt?: Date;
-  assignedDeliveryUserId?: string;
-  assignedDeliveryAt?: Date;
-  assignedDeliveryBy?: string;
-  deliveredByUserId?: string;
+  delivery_confirmation_code?: string;
+  deliveryLatitude?: number | null;
+  deliveryLongitude?: number | null;
+  deliveryInstructions?: string | null;
+  usesProfileAddress?: boolean;
 }
 
 export type OrderStatus =
@@ -238,3 +249,143 @@ export interface TransferOrder {
   orderAmount: number;
   createdAt: Date;
 }
+
+// =============================================
+// SUBSCRIPTION & PREMIUM TIER TYPES
+// =============================================
+
+export type TierName = 'basic' | 'silver' | 'gold' | 'platinum';
+export type PlanType = 'FREE' | 'SILVER' | 'GOLD' | 'PLATINUM';
+export type BillingPeriod = 'monthly' | 'yearly';
+export type SubscriptionStatus = 'active' | 'inactive' | 'pending' | 'cancelled' | 'expired';
+
+export interface PremiumTier {
+  id: string;
+  name: TierName;
+  displayName: string;
+  priceMonthly: number;
+  features: {
+    description: string;
+    features: string[];
+  };
+  maxZones: number | null;
+  hasPriorityPlacement: boolean;
+  hasAdvancedAnalytics: boolean;
+  hasPrioritySupport: boolean;
+  hasUnlimitedZones: boolean;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ActiveSubscription {
+  subscriptionId: string;
+  tierName: TierName;
+  tierDisplayName: string;
+  hasPriorityPlacement: boolean;
+  hasAdvancedAnalytics: boolean;
+  hasPrioritySupport: boolean;
+  hasUnlimitedZones: boolean;
+  maxZones: number | null;
+}
+
+export interface SupplierSubscription {
+  id: string;
+  supplierId: string;
+  tierId: string;
+  status: SubscriptionStatus;
+  startsAt: Date;
+  endsAt?: Date;
+  autoRenew: boolean;
+  paymentMethod?: PaymentMethod;
+  lastPaymentDate?: Date;
+  nextPaymentDate?: Date;
+  totalPaid: number;
+  createdAt: Date;
+  updatedAt: Date;
+  activatedAt?: Date;
+  cancelledAt?: Date;
+  cancellationReason?: string;
+}
+
+export interface PlanFeature {
+  name: string;
+  included: boolean;
+  tooltip?: string;
+}
+
+export interface Plan {
+  id: string;
+  name: string;
+  price: { monthly: number; yearly: number };
+  color: string;
+  popular?: boolean;
+  features: PlanFeature[];
+}
+
+export interface Invoice {
+  id: string;
+  subscriptionId: string;
+  userId: string;
+  amount: number;
+  status: 'paid' | 'pending' | 'failed';
+  createdAt: Date;
+  paidAt?: Date;
+  pdfUrl?: string;
+}
+
+export interface Subscription {
+  id: string;
+  userId: string;
+  plan: PlanType;
+  billingPeriod: BillingPeriod;
+  status: 'active' | 'cancelled' | 'expired' | 'past_due';
+  startedAt: Date;
+  expiresAt: Date;
+  autoRenew: boolean;
+}
+
+// ============================================
+// TEAM MANAGEMENT TYPES - Re-export from team.ts
+// ============================================
+export type {
+  OrganizationType,
+  MemberStatus,
+  MemberRole,
+  Organization,
+  OrganizationMember,
+  RolePermission,
+  Permissions,
+  SectionPermissions,
+  TreasuryPermissions,
+  TeamPermissions,
+  SettingsPermissions,
+  DeliveryPermissions,
+  AnalyticsPermissions,
+  SupportPermissions,
+  PermissionAction,
+  TeamStats
+} from './team';
+
+export {
+  ROLE_LABELS,
+  ROLE_DESCRIPTIONS,
+  ROLES_BY_ORG_TYPE,
+  MAX_MEMBERS_BY_TYPE,
+  ROLE_COLORS,
+  STATUS_COLORS,
+  STATUS_LABELS
+} from './team';
+
+// ============================================
+// MODULE PERMISSIONS TYPES - Re-export from permissions.ts
+// ============================================
+export type {
+  InterfaceType,
+  AvailableModule,
+  UserModulePermission,
+  ModulePermissionWithDetails,
+  PermissionAssignment,
+  ModuleAccessState
+} from './permissions';

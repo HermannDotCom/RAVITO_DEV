@@ -128,6 +128,10 @@ export type Database = {
           delivered_at: string | null
           paid_at: string | null
           transferred_at: string | null
+          delivery_latitude: number | null
+          delivery_longitude: number | null
+          delivery_instructions: string | null
+          uses_profile_address: boolean | null
           created_at: string
           updated_at: string
         }
@@ -150,6 +154,10 @@ export type Database = {
           delivered_at?: string | null
           paid_at?: string | null
           transferred_at?: string | null
+          delivery_latitude?: number | null
+          delivery_longitude?: number | null
+          delivery_instructions?: string | null
+          uses_profile_address?: boolean | null
           created_at?: string
           updated_at?: string
         }
@@ -172,6 +180,10 @@ export type Database = {
           delivered_at?: string | null
           paid_at?: string | null
           transferred_at?: string | null
+          delivery_latitude?: number | null
+          delivery_longitude?: number | null
+          delivery_instructions?: string | null
+          uses_profile_address?: boolean | null
           created_at?: string
           updated_at?: string
         }
@@ -282,6 +294,9 @@ export type Database = {
           approved_at: string | null
           rejected_at: string | null
           rejection_reason: string | null
+          delivery_latitude: number | null
+          delivery_longitude: number | null
+          delivery_instructions: string | null
           created_at: string
           updated_at: string
         }
@@ -305,6 +320,9 @@ export type Database = {
           approved_at?: string | null
           rejected_at?: string | null
           rejection_reason?: string | null
+          delivery_latitude?: number | null
+          delivery_longitude?: number | null
+          delivery_instructions?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -328,6 +346,9 @@ export type Database = {
           approved_at?: string | null
           rejected_at?: string | null
           rejection_reason?: string | null
+          delivery_latitude?: number | null
+          delivery_longitude?: number | null
+          delivery_instructions?: string | null
           created_at?: string
           updated_at?: string
         }
