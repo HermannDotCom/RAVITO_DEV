@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Package, Clock, Star, MapPin, Filter, Search, CheckCircle, XCircle, Truck, Calendar, Eye, Download, Phone, Archive, CreditCard } from 'lucide-react';
+import { Package, Clock, MapPin, Filter, Search, CheckCircle, XCircle, Truck, Calendar, Eye, Download, Phone, Archive, CreditCard, Star } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useOrder } from '../../context/OrderContext';
@@ -14,6 +14,7 @@ import { supabase } from '../../lib/supabase';
 import { StatCard } from '../ui/StatCard';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { RatingBadge } from '../Shared/RatingBadge';
 
 interface OrderHistoryProps {
   onNavigate: (section: string) => void;
@@ -91,7 +92,6 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
       const updatedOrder = allOrders.find(o => o.id === selectedOrder.id);
       // Only update if the order exists and status has actually changed
       if (updatedOrder && updatedOrder.status !== selectedOrder.status) {
-        console.log('🔄 Updating selectedOrder status:', selectedOrder.status, '->', updatedOrder.status);
         setSelectedOrder(updatedOrder);
       }
     }
@@ -99,7 +99,6 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
       const updatedOrder = allOrders.find(o => o.id === orderForPayment.id);
       // Only update if the order exists and status has actually changed
       if (updatedOrder && updatedOrder.status !== orderForPayment.status) {
-        console.log('🔄 Updating orderForPayment status:', orderForPayment.status, '->', updatedOrder.status);
         setOrderForPayment(updatedOrder);
       }
     }
@@ -155,13 +154,13 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
   }, [initialOrderIdToRate, allOrders, clientCurrentOrder, user?.id, onOrderRated]);
 
   // Filtrer les commandes de l'utilisateur connecté
-  const userOrders = allOrders.filter(order => 
+  const userOrders = allOrders.filter(order =>
     order.clientId === user?.id
   );
 
-  // Combiner la commande en cours avec l'historique
+  // Combiner la commande en cours avec l'historique (éviter les doublons)
   const allUserOrders = clientCurrentOrder
-    ? [clientCurrentOrder, ...userOrders]
+    ? [clientCurrentOrder, ...userOrders.filter(o => o.id !== clientCurrentOrder.id)]
     : userOrders;
 
   // Memoize order IDs to prevent unnecessary re-renders
@@ -415,6 +414,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
       .map(([supplierId, count]) => {
         const profile = supplierProfiles[supplierId];
         return {
+          id: supplierId,
           name: getSupplierName(supplierId),
           orders: count,
           rating: profile?.rating ?? null
@@ -543,10 +543,13 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                       <p className="text-xs text-slate-600">{supplier.orders} commande{supplier.orders > 1 ? 's' : ''}</p>
                     </div>
                     {supplier.rating !== null && supplier.rating > 0 && (
-                      <div className="flex items-center gap-1.5 ml-3">
-                        <Star className="h-4 w-4 text-amber-400 fill-current" />
-                        <span className="text-sm font-semibold text-slate-900">{supplier.rating.toFixed(1)}</span>
-                      </div>
+                      <RatingBadge
+                        rating={supplier.rating}
+                        reviewCount={1}
+                        userId={supplier.id}
+                        userType="supplier"
+                        size="sm"
+                      />
                     )}
                   </div>
                 )) : (

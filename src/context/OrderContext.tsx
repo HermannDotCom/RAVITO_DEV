@@ -10,6 +10,7 @@ import {
   getAllOrders,
   updateOrderStatus as updateOrderStatusService
 } from '../services/orderService';
+import { emailService } from '../services/emailService';
 
 // Fonction utilitaire pour générer un code à 4 chiffres
 const generateConfirmationCode = (): string => {
@@ -36,7 +37,9 @@ interface OrderContextType {
     coordinates: { lat: number; lng: number },
     paymentMethod: PaymentMethod,
     commissionSettings: { clientCommission: number; supplierCommission: number },
-    zoneId?: string
+    zoneId?: string,
+    deliveryInstructions?: string,
+    usesProfileAddress?: boolean
   ) => Promise<{ success: boolean; orderId?: string; error?: string }>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<boolean>;
   acceptSupplierOffer: (orderId: string) => Promise<boolean>;
@@ -121,7 +124,6 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             filter: `client_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('📦 Client order change detected:', payload);
             loadOrders();
           }
         )
@@ -138,7 +140,6 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             filter: `supplier_id=eq.${user.id}`
           },
           (payload) => {
-            console.log('📦 Supplier order change detected:', payload);
             loadOrders();
           }
         )
@@ -147,7 +148,6 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     // Also listen for custom refresh events from realtime hooks
     const handleRefreshEvent = () => {
-      console.log('🔄 Manual refresh triggered');
       loadOrders();
     };
 
@@ -167,7 +167,9 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     coordinates: { lat: number; lng: number },
     paymentMethod: PaymentMethod,
     commissionSettings: { clientCommission: number; supplierCommission: number },
-    zoneId?: string
+    zoneId?: string,
+    deliveryInstructions?: string,
+    usesProfileAddress?: boolean
   ) => {
     if (!user || user.role !== 'client') {
       return { success: false, error: 'Unauthorized' };
@@ -180,7 +182,9 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       coordinates,
       paymentMethod,
       commissionSettings,
-      zoneId
+      zoneId,
+      deliveryInstructions,
+      usesProfileAddress
     );
 
     if (result.success) {
@@ -206,6 +210,39 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     if (success) {
       await loadOrders();
+
+      // Send delivery code email when order moves to delivering status
+      if (status === 'delivering' && updates.delivery_confirmation_code) {
+        try {
+          // Fetch order details to send email
+          const { data: order } = await supabase
+            .from('orders')
+            .select(`
+              id,
+              client_id,
+              supplier_id,
+              delivery_confirmation_code,
+              profiles!orders_client_id_fkey(full_name, email),
+              supplier:profiles!orders_supplier_id_fkey(business_name)
+            `)
+            .eq('id', orderId)
+            .single();
+
+          if (order && order.profiles?.email) {
+            await emailService.sendDeliveryCodeEmail({
+              to: order.profiles.email,
+              clientName: order.profiles.full_name || 'Client',
+              clientEmail: order.profiles.email,
+              orderId: order.id,
+              deliveryCode: updates.delivery_confirmation_code,
+              supplierName: order.supplier?.business_name || 'Fournisseur',
+            });
+          }
+        } catch (emailError) {
+          console.error('Failed to send delivery code email:', emailError);
+          // Non-blocking - order status update succeeded
+        }
+      }
     }
 
     return success;
@@ -253,6 +290,52 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       if (error) throw error;
 
       await loadOrders();
+
+      // Send order paid email
+      try {
+        // Fetch order details with items
+        const { data: order } = await supabase
+          .from('orders')
+          .select(`
+            id,
+            total_amount,
+            delivery_address,
+            client_id,
+            supplier_id,
+            profiles!orders_client_id_fkey(full_name, email),
+            supplier:profiles!orders_supplier_id_fkey(business_name, phone),
+            order_items(
+              quantity,
+              product:products(name, crate_type)
+            )
+          `)
+          .eq('id', orderId)
+          .single();
+
+        if (order && order.profiles?.email) {
+          const items = (order.order_items || []).map((item: any) => ({
+            name: item.product?.name || 'Produit',
+            quantity: item.quantity,
+            unit: item.product?.crate_type || 'unité',
+          }));
+
+          await emailService.sendOrderPaidEmail({
+            to: order.profiles.email,
+            clientName: order.profiles.full_name || 'Client',
+            clientEmail: order.profiles.email,
+            orderId: order.id,
+            supplierName: order.supplier?.business_name || 'Fournisseur',
+            supplierPhone: order.supplier?.phone,
+            totalAmount: order.total_amount,
+            items,
+            deliveryAddress: order.delivery_address,
+          });
+        }
+      } catch (emailError) {
+        console.error('Failed to send order paid email:', emailError);
+        // Non-blocking - payment processing succeeded
+      }
+
       return true;
     } catch (error) {
       console.error('Error processing payment:', error);

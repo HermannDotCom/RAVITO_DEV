@@ -55,11 +55,8 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
         }
         break;
       case 'zoneId':
-        if (data.role === 'client' && !data.zoneId) {
-          newErrors.zoneId = 'La zone de livraison est requise';
-        } else {
-          delete newErrors.zoneId;
-        }
+        // Le champ zoneId n'est plus obligatoire pour l'inscription client
+        delete newErrors.zoneId;
         break;
       case 'zones':
         if (data.role === 'supplier' && data.zones.length === 0) {
@@ -87,7 +84,7 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
     setTouched({
       businessName: true,
       establishmentType: true,
-      zoneId: true,
+
       zones: true,
       address: true
     });
@@ -103,9 +100,9 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
       if (!data.establishmentType) {
         newErrors.establishmentType = 'Le type d\'établissement est requis';
       }
-      if (!data.zoneId) {
-        newErrors.zoneId = 'La zone de livraison est requise';
-      }
+      // if (!data.zoneId) {
+      //   newErrors.zoneId = 'La zone de livraison est requise';
+      // }
     }
 
     if (data.role === 'supplier' && data.zones.length === 0) {
@@ -198,20 +195,8 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
         </div>
       )}
 
-      {/* Zone Selection */}
-      {data.role === 'client' ? (
-        <div>
-          <ZoneSelector
-            value={data.zoneId}
-            onChange={(zoneId) => {
-              updateField('zoneId', zoneId);
-              handleBlur('zoneId');
-            }}
-            required={true}
-            error={touched.zoneId ? errors.zoneId : undefined}
-          />
-        </div>
-      ) : (
+      {/* Zone Selection (Supplier only) */}
+      {data.role === 'supplier' && (
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Zones desservies <span className="text-red-500">*</span>

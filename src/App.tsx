@@ -34,6 +34,8 @@ import { CommissionProvider } from './context/CommissionContext';
 import { RatingProvider } from './context/RatingContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ToastProvider } from './context/ToastContext';
+import { PricingProvider } from './context/PricingContext';
+import { PermissionProvider } from './context/PermissionContext';
 import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AuthScreen } from './components/Auth/AuthScreen';
@@ -46,7 +48,6 @@ import { ProductCatalog } from './components/Client/ProductCatalog';
 import { Cart } from './components/Client/Cart';
 import { CheckoutForm } from './components/Client/CheckoutForm';
 import { OrderTracking } from './components/Client/OrderTracking';
-import { RatingForm } from './components/Client/RatingForm';
 import { AvailableOrders } from './components/Supplier/AvailableOrders';
 import { ActiveDeliveries } from './components/Supplier/ActiveDeliveries';
 import { DeliveryHistory, ClaimData } from './components/Supplier/DeliveryHistory';
@@ -64,9 +65,12 @@ import { ZoneManagement } from './components/Admin/ZoneManagement';
 import { SystemSettings } from './components/Admin/SystemSettings';
 import { ProductManagement } from './components/Admin/ProductManagement';
 import { Treasury } from './components/Admin/Treasury';
+import { CommissionsDashboard } from './components/Admin/CommissionsDashboard';
 import { DataManagement } from './components/Admin/DataManagement';
 // MVP: Premium tier management disabled - Uncomment to reactivate post-MVP
 // import { PremiumTierManagement } from './components/Admin/PremiumTierManagement';
+import { AdminReferencePricingDashboard } from './components/Admin/Pricing/AdminReferencePricingDashboard';
+import { SupplierPricingDashboard } from './components/Supplier/Pricing/SupplierPricingDashboard';
 import { ClientProfile } from './components/Client/ClientProfile';
 import { ClientDashboard } from './components/Client/ClientDashboard';
 import { OrderHistory } from './components/Client/OrderHistory';
@@ -76,6 +80,7 @@ import { SupplierContactSupport } from './components/Supplier/ContactSupport';
 import { KenteLoader } from './components/ui/KenteLoader';
 import { TicketManagement } from './components/Admin/TicketManagement';
 import { TeamPage } from './components/Team';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusIndicator';
 import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
 import { RatingReminder } from './components/Shared/RatingReminder';
@@ -83,6 +88,7 @@ import { SessionErrorBanner } from './components/Shared/SessionErrorBanner';
 import { BottomNavigation } from './components/Navigation/BottomNavigation';
 import { InstallPrompt } from './components/PWA/InstallPrompt';
 import { UpdatePrompt } from './components/PWA/UpdatePrompt';
+import { DeliveryModePage } from './components/Supplier/DeliveryMode/DeliveryModePage';
 // MVP: Premium tier dashboard disabled - Uncomment to reactivate post-MVP
 // import { PremiumTierDashboard } from './components/Supplier/PremiumTierDashboard';
 // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
@@ -96,7 +102,6 @@ const AppContent: React.FC = () => {
   const { path, navigate } = useSimpleRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
-  const [showRating, setShowRating] = useState(false);
   const [claimData, setClaimData] = useState<ClaimData | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [orderIdToRate, setOrderIdToRate] = useState<string | null>(null);
@@ -148,11 +153,13 @@ const AppContent: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="h-20 w-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse">
-            <span className="text-white font-bold text-3xl">R</span>
+          <div className="flex justify-center mb-6 animate-pulse">
+            <img 
+              src="/Logo_Ravito_avec_slogan.png" 
+              alt="Ravito - Le ravitaillement qui ne dort jamais" 
+              className="h-32 w-auto"
+            />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">RAVITO</h1>
-          <div className="h-1 w-24 bg-gradient-to-r from-orange-500 to-orange-400 rounded-full mx-auto mb-4"></div>
           <KenteLoader size="md" text="Chargement..." />
         </div>
       </div>
@@ -169,18 +176,6 @@ const AppContent: React.FC = () => {
   }
 
   const renderMainContent = () => {
-    if (showRating) {
-      return (
-        <RatingForm
-          supplierName="Dépôt du Plateau"
-          onSubmit={() => {
-            setShowRating(false);
-            setActiveSection('dashboard');
-          }}
-        />
-      );
-    }
-
     return renderSectionContent();
   };
 
@@ -201,7 +196,7 @@ const AppContent: React.FC = () => {
             );
           case 'tracking':
             return <OrderTracking onComplete={() => {
-              setShowRating(true);
+              setActiveSection('orders');
             }} />;
           case 'profile':
             return <ClientProfile />;
@@ -213,6 +208,8 @@ const AppContent: React.FC = () => {
             return <ClientTreasury />;
           case 'team':
             return <TeamPage />;
+          case 'notifications':
+            return <NotificationsPage />;
           // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
           // case 'subscription':
           //   return <SubscriptionPage onNavigate={setActiveSection} />;
@@ -232,6 +229,8 @@ const AppContent: React.FC = () => {
             );
           case 'deliveries':
             return <ActiveDeliveries onNavigate={setActiveSection} />;
+          case 'delivery-mode':
+            return <DeliveryModePage />;
           case 'history':
             return <DeliveryHistory onNavigate={setActiveSection} onClaimRequest={setClaimData} initialOrderIdToRate={orderIdToRate} onOrderRated={handleOrderRated} />;
           case 'profile':
@@ -240,6 +239,8 @@ const AppContent: React.FC = () => {
             return <SupplierTreasury />;
           case 'team':
             return <TeamPage />;
+          case 'notifications':
+            return <NotificationsPage />;
           // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
           // case 'subscription':
           //   return <SubscriptionPage onNavigate={setActiveSection} />;
@@ -256,6 +257,9 @@ const AppContent: React.FC = () => {
                 onClaimDataClear={() => setClaimData(null)}
               />
             );
+          case 'pricing':
+            return <SupplierPricingDashboard />;
+    
           // MVP: Intelligence Dashboard disabled - Uncomment to reactivate post-MVP
           // case 'intelligence':
           //   return <SupplierIntelligenceDashboard supplierId={user.id} onNavigate={setActiveSection} />;
@@ -276,17 +280,20 @@ const AppContent: React.FC = () => {
             return <ProductManagement />;
           case 'treasury':
             return <Treasury />;
+          case 'commissions':
+            return <CommissionsDashboard />;
           case 'zones':
             return <ZoneManagement />;
           case 'team':
             return <TeamPage />;
-          // MVP: Premium tier management disabled - Uncomment to reactivate post-MVP
-          // case 'premium':
-          //   return <PremiumTierManagement />;
           case 'data':
             return <DataManagement />;
+          case 'notifications':
+            return <NotificationsPage />;
           case 'settings':
             return <SystemSettings />;
+          case 'pricing':
+            return <AdminReferencePricingDashboard />;
           case 'tickets':
             return <TicketManagement />;
           default:
@@ -331,7 +338,7 @@ const AppContent: React.FC = () => {
       <SkipLink />
       <Header
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-        title={showRating ? 'Évaluation' : undefined}
+        title={undefined}
         onCartClick={() => setActiveSection('cart')}
       />
 
@@ -386,15 +393,19 @@ function App() {
     <AuthProvider>
       <NotificationProvider>
         <ToastProvider>
-          <CartProvider>
-            <CommissionProvider>
-              <OrderProvider>
-                <RatingProvider>
-                  <AppContent />
-                </RatingProvider>
-              </OrderProvider>
-            </CommissionProvider>
-          </CartProvider>
+          <PermissionProvider>
+            <CartProvider>
+              <CommissionProvider>
+                <PricingProvider>
+                  <OrderProvider>
+                    <RatingProvider>
+                      <AppContent />
+                    </RatingProvider>
+                  </OrderProvider>
+                </PricingProvider>
+              </CommissionProvider>
+            </CartProvider>
+          </PermissionProvider>
         </ToastProvider>
       </NotificationProvider>
     </AuthProvider>

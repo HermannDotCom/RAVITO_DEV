@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { emailService } from './emailService';
 
 export interface SupplierOfferItem {
   productId: string;
@@ -106,11 +107,38 @@ export async function createSupplierOffer(
     }
 
     if (error) {
-      console.error('❌ Error creating/updating supplier offer:', error);
+      console.error('Error creating/updating supplier offer:', error);
       return { success: false, error: error.message };
     }
 
-    console.log('✅ Supplier offer created successfully');
+    // Send email to client about new offer
+    try {
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          profiles!orders_client_id_fkey(full_name, email),
+          supplier:profiles!orders_supplier_id_fkey(business_name, rating)
+        `)
+        .eq('id', orderId)
+        .single();
+
+      if (orderData && orderData.profiles?.email) {
+        await emailService.sendOfferReceivedEmail({
+          to: orderData.profiles.email,
+          clientName: orderData.profiles.full_name || 'Client',
+          clientEmail: orderData.profiles.email,
+          orderId: orderId,
+          supplierName: orderData.supplier?.business_name || 'Fournisseur',
+          supplierRating: orderData.supplier?.rating,
+          offerAmount: totalAmount,
+          supplierMessage: supplierMessage,
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send offer received email:', emailError);
+      // Non-blocking - offer creation succeeded
+    }
 
     return { success: true, offerId: data.id };
   } catch (error) {
@@ -267,6 +295,48 @@ export async function acceptOffer(
       console.error('Error inserting new items:', itemsInsertError);
     }
 
+    // Send email to supplier about accepted offer
+    try {
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          delivery_address,
+          total_amount,
+          profiles!orders_client_id_fkey(full_name, phone),
+          supplier:profiles!orders_supplier_id_fkey(email, business_name),
+          order_items(
+            quantity,
+            product:products(name, crate_type)
+          )
+        `)
+        .eq('id', orderId)
+        .single();
+
+      if (orderData && orderData.supplier?.email) {
+        const items = (orderData.order_items || []).map((item: any) => ({
+          name: item.product?.name || 'Produit',
+          quantity: item.quantity,
+          unit: item.product?.crate_type || 'unité',
+        }));
+
+        await emailService.sendOfferAcceptedEmail({
+          to: orderData.supplier.email,
+          supplierName: orderData.supplier.business_name || 'Fournisseur',
+          supplierEmail: orderData.supplier.email,
+          orderId: orderId,
+          clientName: orderData.profiles?.full_name || 'Client',
+          clientPhone: orderData.profiles?.phone,
+          deliveryAddress: orderData.delivery_address,
+          items,
+          totalAmount: orderData.total_amount,
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send offer accepted email:', emailError);
+      // Non-blocking - offer acceptance succeeded
+    }
+
     return { success: true };
   } catch (error) {
     console.error('Exception accepting offer:', error);
@@ -314,4 +384,51 @@ function mapDatabaseOfferToApp(dbOffer: Record<string, unknown>): SupplierOffer 
     acceptedAt: dbOffer.accepted_at ? new Date(dbOffer.accepted_at as string) : undefined,
     rejectedAt: dbOffer.rejected_at ? new Date(dbOffer.rejected_at as string) : undefined
   };
+}
+
+export interface SupplierPriceGrid {
+  product_id: string;
+  unit_price: number;
+  crate_price: number;
+  consign_price: number;
+}
+
+/**
+ * Fetches supplier's custom prices from supplier_price_grids table
+ * Returns a Map for quick lookup by product_id
+ * 
+ * @param supplierId - The UUID of the supplier
+ * @returns Map with product_id as key and SupplierPriceGrid as value
+ *          Returns empty Map if no custom prices found or on error
+ * 
+ * Error Handling:
+ * - Database errors are logged and empty Map is returned
+ * - Exceptions are caught and empty Map is returned
+ * - Allows graceful fallback to reference prices
+ */
+export async function getSupplierPrices(
+  supplierId: string
+): Promise<Map<string, SupplierPriceGrid>> {
+  try {
+    const { data: supplierGrids, error } = await supabase
+      .from('supplier_price_grids')
+      .select('product_id, unit_price, crate_price, consign_price')
+      .eq('supplier_id', supplierId)
+      .eq('is_active', true);
+
+    if (error) {
+      console.error('Error fetching supplier prices:', error);
+      return new Map();
+    }
+
+    const priceMap = new Map<string, SupplierPriceGrid>();
+    supplierGrids?.forEach(grid => {
+      priceMap.set(grid.product_id, grid);
+    });
+
+    return priceMap;
+  } catch (error) {
+    console.error('Exception fetching supplier prices:', error);
+    return new Map();
+  }
 }

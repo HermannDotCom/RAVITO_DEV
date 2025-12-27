@@ -118,7 +118,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         businessHours: profile.business_hours || undefined,
         responsiblePerson: profile.responsible_person || undefined,
         coverageZone: profile.coverage_zone || undefined,
-        deliveryCapacity: profile.delivery_capacity as any || undefined
+        deliveryCapacity: profile.delivery_capacity as any || undefined,
+        deliveryLatitude: profile.delivery_latitude || null,
+        deliveryLongitude: profile.delivery_longitude || null,
+        deliveryInstructions: profile.delivery_instructions || null
       };
 
       setUser(mappedUser);
@@ -291,7 +294,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         options: {
           data: {
             name: userData.name,
-            role: userData.role
+            role: userData.role,
+            phone: userData.phone,
+            address: userData.address
           }
         }
       });
@@ -308,34 +313,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return false;
       }
 
-      console.log('Auth user created, waiting for profile to be available...');
+      console.log('Auth user created, waiting for profile...');
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      let retries = 0;
-      const maxRetries = 8;
+      const maxRetries = 10;
       let profileFound = false;
 
-      while (retries < maxRetries && !profileFound) {
-        console.log(`Profile check attempt ${retries + 1}/${maxRetries}...`);
+      for (let i = 0; i < maxRetries && !profileFound; i++) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        console.log(`Profile check ${i + 1}/${maxRetries}...`);
 
-        const { data: existingProfile, error: checkError } = await supabase
+        const { data: profile } = await supabase
           .from('profiles')
           .select('id')
           .eq('id', authData.user.id)
           .maybeSingle();
 
-        if (existingProfile) {
-          console.log('Profile exists, updating with full data...');
+        if (profile) {
           profileFound = true;
+          console.log('Profile found, updating with additional data...');
 
-          const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
-          const updateData: any = {
+          const updateData: Record<string, unknown> = {
             role: userData.role,
             name: userData.name,
             phone: userData.phone,
             address: userData.address,
-            coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
           };
 
           if (userData.role === 'client' && userData.zoneId) {
@@ -350,68 +351,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             updateData.delivery_capacity = userData.deliveryCapacity || null;
           }
 
-          const { error: updateError } = await supabase
+          await supabase
             .from('profiles')
             .update(updateData)
             .eq('id', authData.user.id);
 
-          if (updateError) {
-            console.error('Profile update error:', updateError);
-          }
-
-          const profileSuccess = await fetchUserProfile(authData.user.id);
+          const success = await fetchUserProfile(authData.user.id);
           setIsLoading(false);
-          return profileSuccess;
-        } else if (checkError) {
-          console.error('Error checking profile:', checkError);
-        } else {
-          console.log('Profile not found yet, will try to create it...');
-
-          const coordinates = userData.coordinates || { lat: 5.3364, lng: -4.0267 };
-          const profileData: any = {
-            id: authData.user.id,
-            email: userData.email,
-            role: userData.role,
-            name: userData.name,
-            phone: userData.phone,
-            address: userData.address,
-            coordinates: `POINT(${coordinates.lng} ${coordinates.lat})`,
-            zone_id: (userData.role === 'client' && userData.zoneId) ? userData.zoneId : null,
-            business_name: userData.businessName || null,
-            business_hours: userData.businessHours || null,
-            responsible_person: userData.responsiblePerson || null,
-            coverage_zone: userData.coverageZone || null,
-            delivery_capacity: userData.deliveryCapacity || null,
-            is_active: true,
-            is_approved: false,
-            approval_status: 'pending'
-          };
-
-          const { data: createdProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert([profileData])
-            .select()
-            .maybeSingle();
-
-          if (createdProfile) {
-            console.log('Profile created successfully');
-            profileFound = true;
-            const profileSuccess = await fetchUserProfile(authData.user.id);
-            setIsLoading(false);
-            return profileSuccess;
-          } else if (createError) {
-            console.error('Profile creation error:', createError);
-          }
-        }
-
-        retries++;
-        if (retries < maxRetries && !profileFound) {
-          await new Promise(resolve => setTimeout(resolve, 800));
+          return success;
         }
       }
 
       if (!profileFound) {
-        console.error('Failed to create or find profile after multiple attempts');
+        console.error('Profile not created by trigger, logging out');
         await supabase.auth.signOut();
         setIsLoading(false);
         return false;

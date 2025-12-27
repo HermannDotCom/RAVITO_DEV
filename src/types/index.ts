@@ -1,7 +1,14 @@
 export type UserRole = 'client' | 'supplier' | 'admin';
 
 export type ProductCategory = 'biere' | 'soda' | 'vin' | 'eau' | 'spiritueux';
-export type CrateType = 'C24' | 'C12' | 'C12V' | 'C6';
+export type CrateType = 'C24' | 'C12' | 'C12V' | 'C6' | 'CARTON24' | 'PACK6' | 'PACK12' | 'C20';
+
+export interface DeliveryLocation {
+  latitude: number | null;
+  longitude: number | null;
+  address: string;
+  instructions: string | null;
+}
 
 export interface User {
   id: string;
@@ -24,6 +31,9 @@ export interface User {
   rejectedAt?: Date;
   rejectionReason?: string;
   createdAt: Date;
+  deliveryLatitude?: number | null;
+  deliveryLongitude?: number | null;
+  deliveryInstructions?: string | null;
 }
 
 export interface Client extends User {
@@ -155,6 +165,10 @@ export interface Order {
   acceptedAt?: Date;
   deliveredAt?: Date;
   delivery_confirmation_code?: string;
+  deliveryLatitude?: number | null;
+  deliveryLongitude?: number | null;
+  deliveryInstructions?: string | null;
+  usesProfileAddress?: boolean;
 }
 
 export type OrderStatus =
@@ -363,3 +377,15 @@ export {
   STATUS_COLORS,
   STATUS_LABELS
 } from './team';
+
+// ============================================
+// MODULE PERMISSIONS TYPES - Re-export from permissions.ts
+// ============================================
+export type {
+  InterfaceType,
+  AvailableModule,
+  UserModulePermission,
+  ModulePermissionWithDetails,
+  PermissionAssignment,
+  ModuleAccessState
+} from './permissions';

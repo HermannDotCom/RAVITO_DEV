@@ -24,8 +24,27 @@ export const NotificationPermissionPrompt: React.FC = () => {
   }, [hasNotificationPermission, user]);
 
   const handleEnable = async () => {
-    const granted = await requestNotificationPermission();
-    if (granted) {
+    try {
+      // Check if notifications are supported
+      if (!('Notification' in window)) {
+        console.warn('Notifications not supported');
+        setShowPrompt(false);
+        return;
+      }
+
+      // Request notification permission
+      const granted = await requestNotificationPermission();
+      
+      if (granted) {
+        // Save preference when granted
+        localStorage.setItem('notifications_enabled', 'true');
+      }
+      
+      // Close modal in all cases (granted, denied, or error)
+      setShowPrompt(false);
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      // Always close modal even on error
       setShowPrompt(false);
     }
   };

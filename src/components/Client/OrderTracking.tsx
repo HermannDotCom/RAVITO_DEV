@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Clock, Package, Truck, CheckCircle, MapPin, Phone, Archive, CreditCard, AlertCircle } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
-import { useAuth } from '../../context/AuthContext';
 import { OrderStatus, CrateType, PaymentMethod } from '../../types';
 import { PaymentFlow } from './PaymentFlow';
 import { DeliveryTracking } from './DeliveryTracking';
 import { supabase } from '../../lib/supabase';
+import { RatingBadge } from '../Shared/RatingBadge';
 
 // Statuts post-paiement où l'identité du fournisseur est révélée
 const REVEALED_STATUSES: OrderStatus[] = ['paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating'];
@@ -23,9 +23,10 @@ interface SupplierProfile {
   address?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
-  const { user } = useAuth();
-  const { clientCurrentOrder, updateOrderStatus, processPayment } = useOrder();
+  const { clientCurrentOrder, processPayment } = useOrder();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [estimatedTime, setEstimatedTime] = useState(25);
 
   // --- Etats enrichis pour UX/Paiement/Notifications/Supplier ---
@@ -86,27 +87,7 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
     timeoutsRef.current.add(timeoutId);
   };
 
-  // Suivi du workflow de la commande (auto-progression si payé)
-  useEffect(() => {
-    if (!clientCurrentOrder) return;
-    if (needsPayment) return;
-    const statusFlow: OrderStatus[] = ['accepted', 'preparing', 'delivering', 'delivered'];
-    let currentIndex = statusFlow.indexOf(clientCurrentOrder.status);
-    if (currentIndex === -1 || currentIndex >= statusFlow.length - 1) return;
-    const interval = setInterval(() => {
-      currentIndex++;
-      if (currentIndex < statusFlow.length) {
-        updateOrderStatus(clientCurrentOrder.id, statusFlow[currentIndex]);
-        if (statusFlow[currentIndex] === 'delivered') {
-          clearInterval(interval);
-          setTimeout(onComplete, 2000);
-        } else {
-          setEstimatedTime(prev => Math.max(5, prev - 8));
-        }
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [clientCurrentOrder, updateOrderStatus, onComplete, needsPayment]);
+
 
   if (!clientCurrentOrder) {
     return (
@@ -374,11 +355,14 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
                 </div>
                 {supplierProfile.rating && supplierProfile.rating > 0 && (
                   <div className="text-right">
-                    <p className="text-xs text-gray-500 mb-1">Note moyenne reçue du fournisseur :</p>
-                    <div className="flex items-center space-x-1">
-                      <span className="text-yellow-400">★</span>
-                      <span className="text-sm font-semibold">{supplierProfile.rating.toFixed(1)}</span>
-                    </div>
+                    <p className="text-xs text-gray-500 mb-1">Note du fournisseur :</p>
+                    <RatingBadge
+                      rating={supplierProfile.rating}
+                      reviewCount={1}
+                      userId={supplierProfile.id}
+                      userType="supplier"
+                      size="sm"
+                    />
                   </div>
                 )}
               </div>

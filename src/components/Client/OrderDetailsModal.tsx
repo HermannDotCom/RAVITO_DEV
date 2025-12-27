@@ -1,7 +1,8 @@
 import React, { memo } from 'react';
-import { XCircle, Star, Download, Archive, CreditCard, Phone } from 'lucide-react';
+import { XCircle, Download, Archive, CreditCard, Phone, Star } from 'lucide-react';
 import { Order, CrateType } from '../../types';
 import { MutualRatingsDisplay } from '../Shared/MutualRatingsDisplay';
+import { RatingBadge } from '../Shared/RatingBadge';
 
 interface SupplierProfile {
   id: string;
@@ -31,18 +32,19 @@ interface OrderDetailsModalProps {
 }
 
 const getCrateSummary = (order: Order) => {
-  const crateSummary: { [key in CrateType]: { withConsigne: number; toReturn: number } } = {
-    C24: { withConsigne: 0, toReturn: 0 },
-    C12: { withConsigne: 0, toReturn: 0 },
-    C12V: { withConsigne: 0, toReturn: 0 },
-    C6: { withConsigne: 0, toReturn: 0 }
-  };
+  const crateSummary: Record<string, { withConsigne: number; toReturn: number }> = {};
 
   order.items.forEach(item => {
+    const crateType = item.product.crateType;
+
+    if (!crateSummary[crateType]) {
+      crateSummary[crateType] = { withConsigne: 0, toReturn: 0 };
+    }
+
     if (item.withConsigne) {
-      crateSummary[item.product.crateType].withConsigne += item.quantity;
+      crateSummary[crateType].withConsigne += item.quantity;
     } else {
-      crateSummary[item.product.crateType].toReturn += item.quantity;
+      crateSummary[crateType].toReturn += item.quantity;
     }
   });
 
@@ -149,11 +151,14 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
                           )}
                           {supplierProfile.rating && supplierProfile.rating > 0 && (
                             <div>
-                              <span className="text-gray-600 block mb-1">Note moyenne reçue du fournisseur :</span>
-                              <div className="flex items-center">
-                                <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                                <span className="font-medium text-gray-900">{supplierProfile.rating.toFixed(1)}</span>
-                              </div>
+                              <span className="text-gray-600 block mb-1">Note du fournisseur :</span>
+                              <RatingBadge
+                                rating={supplierProfile.rating}
+                                reviewCount={1}
+                                userId={supplierProfile.id}
+                                userType="supplier"
+                                size="sm"
+                              />
                             </div>
                           )}
                         </>

@@ -82,15 +82,10 @@ export const purgeAllOrders = (createBackup: boolean = true): boolean => {
       rating: 5.0 // Reset to default rating
     }));
     localStorage.setItem('distri-night-users', JSON.stringify(resetUsers));
-
-    // Log de l'opération
-    console.log('✅ Purge des commandes effectuée avec succès');
-    console.log('📦 Sauvegarde créée automatiquement');
-    console.log('ℹ️  Les transferts sont conservés dans Supabase');
     
     return true;
   } catch (error) {
-    console.error('❌ Erreur lors de la purge des commandes:', error);
+    console.error('Erreur lors de la purge des commandes:', error);
     return false;
   }
 };
@@ -113,11 +108,9 @@ export const restoreFromBackup = (backupKey: string): boolean => {
     localStorage.setItem('distri-night-ratings', JSON.stringify(data.ratings));
     localStorage.setItem('distri-night-commission-settings', JSON.stringify(data.commissionSettings));
 
-    console.log('✅ Restauration effectuée avec succès');
-    console.log('ℹ️  Les transferts ne sont pas restaurés (stockés dans Supabase)');
     return true;
   } catch (error) {
-    console.error('❌ Erreur lors de la restauration:', error);
+    console.error('Erreur lors de la restauration:', error);
     return false;
   }
 };

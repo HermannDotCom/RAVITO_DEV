@@ -20,15 +20,13 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onNavigate }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Column 1: Brand */}
           <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="h-10 w-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-xl">R</span>
-              </div>
-              <span className="text-xl font-bold">RAVITO</span>
+            <div className="mb-4">
+              <img 
+                src="/logo_with_slogan_transparent.png" 
+                alt="Ravito - Le ravitaillement qui ne dort jamais" 
+                className="h-20"
+              />
             </div>
-            <p className="text-orange-400 font-semibold mb-2">
-              Le ravitaillement qui ne dort jamais
-            </p>
             <p className="text-gray-400 text-sm">
               Livraison de boissons 24h/24 pour bars, maquis et restaurants à Abidjan.
             </p>
