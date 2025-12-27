@@ -29,6 +29,7 @@ interface OrderDetailsModalProps {
   isSupplierRevealed: (status: string) => boolean;
   handleRateSupplier: (order: Order) => void;
   handleCancelOrder: (orderId: string) => void;
+  getDeliveryConfirmationCode: (order: Order) => string | undefined;
 }
 
 const getCrateSummary = (order: Order) => {
@@ -62,7 +63,8 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
   getSupplierProfile,
   isSupplierRevealed,
   handleRateSupplier,
-  handleCancelOrder
+  handleCancelOrder,
+  getDeliveryConfirmationCode
 }) => {
   const statusInfo = getStatusInfo(order.status);
   const StatusIcon = statusInfo.icon;
@@ -77,6 +79,9 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
   const supplierProfile = order.supplierId && isSupplierRevealed(order.status)
     ? getSupplierProfile(order.supplierId)
     : null;
+
+  // Get delivery confirmation code once
+  const deliveryConfirmationCode = getDeliveryConfirmationCode(order);
 
   // Map status text colors to gradient classes (Tailwind needs explicit class names)
   const statusGradientClasses: Record<string, string> = {
@@ -175,6 +180,19 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
                     <div>
                       <span className="text-gray-600 block mb-1">Temps estimé:</span>
                       <span className="font-medium text-gray-900">{order.estimatedDeliveryTime} minutes</span>
+                    </div>
+                  )}
+                  {order.status === 'delivering' && deliveryConfirmationCode && (
+                    <div>
+                      <span className="text-gray-600 block mb-2">Code de confirmation:</span>
+                      <div className="bg-green-100 border border-green-300 rounded-lg p-4">
+                        <p className="text-3xl font-bold text-green-600 tracking-widest text-center">
+                          {deliveryConfirmationCode}
+                        </p>
+                        <p className="text-xs text-green-700 mt-2 text-center">
+                          À communiquer au livreur pour finaliser la livraison.
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
