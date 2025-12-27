@@ -185,11 +185,11 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
                   {order.status === 'delivering' && deliveryConfirmationCode && (
                     <div>
                       <span className="text-gray-600 block mb-2">Code de confirmation:</span>
-                      <div className="bg-green-100 border border-green-300 rounded-lg p-4">
-                        <p className="text-3xl font-bold text-green-600 tracking-widest text-center">
+                      <div className="bg-orange-100 border border-orange-300 rounded-lg p-4">
+                        <p className="text-3xl font-bold text-orange-600 tracking-widest text-center">
                           {deliveryConfirmationCode}
                         </p>
-                        <p className="text-xs text-green-700 mt-2 text-center">
+                        <p className="text-xs text-orange-700 mt-2 text-center">
                           À communiquer au livreur pour finaliser la livraison.
                         </p>
                       </div>
