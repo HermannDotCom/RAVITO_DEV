@@ -30,6 +30,11 @@ interface SupplierProfile {
   rating?: number;
 }
 
+// Helper to get delivery confirmation code (handles both camelCase and snake_case)
+const getDeliveryConfirmationCode = (order: Order): string | undefined => {
+  return order.deliveryConfirmationCode || (order as any).delivery_confirmation_code;
+};
+
 export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialOrderIdToRate, onOrderRated }) => {
   const { user } = useAuth();
   const { cart } = useCart();
@@ -806,6 +811,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
           isSupplierRevealed={isSupplierRevealed}
           handleRateSupplier={handleRateSupplier}
           handleCancelOrder={handleCancelOrder}
+          getDeliveryConfirmationCode={getDeliveryConfirmationCode}
         />
       )}
 
