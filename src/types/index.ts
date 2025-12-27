@@ -141,6 +141,7 @@ export interface CartItem {
 
 export interface Order {
   id: string;
+  orderNumber?: string;
   clientId: string;
   supplierId?: string;
   items: CartItem[];
@@ -169,6 +170,10 @@ export interface Order {
   deliveryLongitude?: number | null;
   deliveryInstructions?: string | null;
   usesProfileAddress?: boolean;
+  assignedDeliveryUserId?: string;
+  assignedDeliveryAt?: Date;
+  assignedDeliveryBy?: string;
+  deliveredByUserId?: string;
 }
 
 export type OrderStatus =

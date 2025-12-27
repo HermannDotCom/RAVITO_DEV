@@ -316,6 +316,7 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
 
   const mappedOrder = {
     id: dbOrder.id,
+    orderNumber: dbOrder.order_number,
     clientId: dbOrder.client_id,
     supplierId: dbOrder.supplier_id,
     items,
@@ -342,7 +343,11 @@ function mapDatabaseOrderToApp(dbOrder: any): Order {
     deliveryLatitude: dbOrder.delivery_latitude || null,
     deliveryLongitude: dbOrder.delivery_longitude || null,
     deliveryInstructions: dbOrder.delivery_instructions || null,
-    usesProfileAddress: dbOrder.uses_profile_address !== undefined ? dbOrder.uses_profile_address : true
+    usesProfileAddress: dbOrder.uses_profile_address !== undefined ? dbOrder.uses_profile_address : true,
+    assignedDeliveryUserId: dbOrder.assigned_delivery_user_id,
+    assignedDeliveryAt: dbOrder.assigned_delivery_at ? new Date(dbOrder.assigned_delivery_at) : undefined,
+    assignedDeliveryBy: dbOrder.assigned_delivery_by,
+    deliveredByUserId: dbOrder.delivered_by_user_id
   };
 
   return mappedOrder;
