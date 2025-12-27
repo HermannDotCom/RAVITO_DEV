@@ -80,6 +80,9 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
     ? getSupplierProfile(order.supplierId)
     : null;
 
+  // Get delivery confirmation code once
+  const deliveryConfirmationCode = getDeliveryConfirmationCode(order);
+
   // Map status text colors to gradient classes (Tailwind needs explicit class names)
   const statusGradientClasses: Record<string, string> = {
     'text-yellow-600': 'bg-gradient-to-br from-yellow-400 to-yellow-500',
@@ -179,12 +182,12 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
                       <span className="font-medium text-gray-900">{order.estimatedDeliveryTime} minutes</span>
                     </div>
                   )}
-                  {order.status === 'delivering' && getDeliveryConfirmationCode(order) && (
+                  {order.status === 'delivering' && deliveryConfirmationCode && (
                     <div>
                       <span className="text-gray-600 block mb-2">Code de confirmation:</span>
                       <div className="bg-green-100 border border-green-300 rounded-lg p-4">
                         <p className="text-3xl font-bold text-green-600 tracking-widest text-center">
-                          {getDeliveryConfirmationCode(order)}
+                          {deliveryConfirmationCode}
                         </p>
                         <p className="text-xs text-green-700 mt-2 text-center">
                           À communiquer au livreur pour finaliser la livraison.

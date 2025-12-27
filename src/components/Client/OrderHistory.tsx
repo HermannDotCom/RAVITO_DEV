@@ -32,7 +32,7 @@ interface SupplierProfile {
 
 // Helper to get delivery confirmation code (handles both camelCase and snake_case)
 const getDeliveryConfirmationCode = (order: Order): string | undefined => {
-  return order.deliveryConfirmationCode || (order as any).delivery_confirmation_code;
+  return order.deliveryConfirmationCode || order.delivery_confirmation_code;
 };
 
 export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialOrderIdToRate, onOrderRated }) => {
