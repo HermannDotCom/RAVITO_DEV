@@ -81,23 +81,33 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
       if (!user?.id) return;
       
       // Get organization for the current user
-      const { data: orgData } = await supabase
+      const { data: orgData, error: orgError } = await supabase
         .from('organizations')
         .select('id')
         .eq('owner_id', user.id)
         .single();
       
+      if (orgError) {
+        console.error('Error loading organization:', orgError);
+        return;
+      }
+      
       if (!orgData) return;
       
       // Get members with driver/delivery role
-      const { data: members } = await supabase
+      const { data: members, error: membersError } = await supabase
         .from('organization_members')
         .select('user_id, profiles(id, name, business_name)')
         .eq('organization_id', orgData.id)
         .in('role', ['driver', 'delivery', 'employee', 'manager']);
       
+      if (membersError) {
+        console.error('Error loading team members:', membersError);
+        return;
+      }
+      
       if (members) {
-        setTeamMembers(members.map((m: any) => ({
+        setTeamMembers(members.map((m: { user_id: string; profiles: { id: string; name: string; business_name?: string } | null }) => ({
           id: m.user_id,
           name: m.profiles?.name || m.profiles?.business_name || 'Membre'
         })));
