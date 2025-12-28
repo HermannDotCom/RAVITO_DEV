@@ -36,6 +36,7 @@ interface OrderContextType {
   rejectSupplierOffer: (orderId: string) => Promise<boolean>;
   processPayment: (orderId: string, paymentMethod: PaymentMethod, transactionId: string) => Promise<boolean>;
   refreshOrders: () => Promise<void>;
+  assignDeliveryDriver: (orderId: string, driverId: string) => Promise<boolean>;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
@@ -339,6 +340,30 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     await loadOrders();
   };
 
+  const assignDeliveryDriver = async (orderId: string, driverId: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          assigned_delivery_user_id: driverId,
+          assigned_delivery_at: new Date().toISOString(),
+          assigned_delivery_by: user?.id
+        })
+        .eq('id', orderId);
+      
+      if (error) {
+        console.error('Error assigning driver:', error);
+        return false;
+      }
+      
+      await loadOrders();
+      return true;
+    } catch (error) {
+      console.error('Exception assigning driver:', error);
+      return false;
+    }
+  };
+
   const allOrders = [...clientOrders, ...availableOrders, ...supplierActiveDeliveries, ...supplierCompletedDeliveries, ...adminAllOrders];
   
   const clientCurrentOrder = clientOrders.find(order => 
@@ -361,7 +386,8 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         acceptSupplierOffer,
         rejectSupplierOffer,
         processPayment,
-        refreshOrders
+        refreshOrders,
+        assignDeliveryDriver
       }}
     >
       {children}
