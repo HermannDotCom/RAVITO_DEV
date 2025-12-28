@@ -117,14 +117,20 @@ BEGIN
   -- 9. Supprimer les anciens order_items
   DELETE FROM order_items WHERE order_id = p_order_id;
   
-  -- 10. Insérer les nouveaux order_items depuis l'offre
+  -- 10. Valider et insérer les nouveaux order_items depuis l'offre
+  IF v_offer.modified_items IS NULL OR jsonb_typeof(v_offer.modified_items::jsonb) != 'array' THEN
+    RETURN json_build_object('success', false, 'error', 'Items de l''offre invalides');
+  END IF;
+  
   INSERT INTO order_items (order_id, product_id, quantity, with_consigne)
   SELECT 
     p_order_id,
     (item->>'productId')::UUID,
     (item->>'quantity')::INTEGER,
     COALESCE((item->>'withConsigne')::BOOLEAN, false)
-  FROM jsonb_array_elements(v_offer.modified_items::jsonb) AS item;
+  FROM jsonb_array_elements(v_offer.modified_items::jsonb) AS item
+  WHERE item->>'productId' IS NOT NULL 
+    AND item->>'quantity' IS NOT NULL;
   
   -- 11. Retourner le succès
   RETURN json_build_object(

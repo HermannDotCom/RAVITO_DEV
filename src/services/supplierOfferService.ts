@@ -24,6 +24,16 @@ export interface SupplierOffer {
   rejectedAt?: Date;
 }
 
+interface AcceptOfferResponse {
+  success: boolean;
+  error?: string;
+  message?: string;
+  offer_id?: string;
+  order_id?: string;
+  supplier_id?: string;
+  total_amount?: number;
+}
+
 export async function createSupplierOffer(
   orderId: string,
   modifiedItems: SupplierOfferItem[],
@@ -227,8 +237,13 @@ export async function acceptOffer(
       return { success: false, error: error.message };
     }
 
-    // The function returns a JSON object with success and optional error
-    const result = data as { success: boolean; error?: string; supplier_id?: string; order_id?: string };
+    // Validate and parse the response
+    if (!data || typeof data !== 'object') {
+      console.error('Invalid response from accept_supplier_offer:', data);
+      return { success: false, error: 'Réponse invalide du serveur' };
+    }
+
+    const result = data as AcceptOfferResponse;
     
     if (!result.success) {
       console.error('accept_supplier_offer failed:', result.error);
