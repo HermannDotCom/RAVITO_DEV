@@ -122,15 +122,23 @@ BEGIN
     RETURN json_build_object('success', false, 'error', 'Items de l''offre invalides');
   END IF;
   
-  INSERT INTO order_items (order_id, product_id, quantity, with_consigne)
-  SELECT 
-    p_order_id,
-    (item->>'productId')::UUID,
-    (item->>'quantity')::INTEGER,
-    COALESCE((item->>'withConsigne')::BOOLEAN, false)
-  FROM jsonb_array_elements(v_offer.modified_items::jsonb) AS item
-  WHERE item->>'productId' IS NOT NULL 
-    AND item->>'quantity' IS NOT NULL;
+  -- Insérer les items avec validation complète
+  BEGIN
+    INSERT INTO order_items (order_id, product_id, quantity, with_consigne)
+    SELECT 
+      p_order_id,
+      (item->>'productId')::UUID,
+      (item->>'quantity')::INTEGER,
+      COALESCE((item->>'withConsigne')::BOOLEAN, false)
+    FROM jsonb_array_elements(v_offer.modified_items::jsonb) AS item
+    WHERE item->>'productId' IS NOT NULL 
+      AND item->>'quantity' IS NOT NULL
+      AND (item->>'quantity')::INTEGER > 0
+      AND item->>'productId' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
+  EXCEPTION
+    WHEN OTHERS THEN
+      RETURN json_build_object('success', false, 'error', 'Erreur lors de l''insertion des items: ' || SQLERRM);
+  END;
   
   -- 11. Retourner le succès
   RETURN json_build_object(
