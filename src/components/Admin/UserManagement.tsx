@@ -40,10 +40,7 @@ export const UserManagement: React.FC = () => {
       console.log('Loading users...');
 
       const { data: approvedData, error: approvedError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('approval_status', 'approved')
-        .order('created_at', { ascending: false});
+        .rpc('get_users_by_status_with_email', { status_filter: 'approved' });
 
       if (approvedError) {
         console.error('Error loading approved users:', approvedError);
@@ -60,9 +57,9 @@ export const UserManagement: React.FC = () => {
           name: profile.name,
           phone: profile.phone || '',
           address: profile.address || '',
-          rating: 0,
-          totalOrders: 0,
-          isActive: true,
+          rating: profile.rating || 0,
+          totalOrders: profile.total_orders || 0,
+          isActive: profile.is_active,
           createdAt: new Date(profile.created_at)
         };
       });
@@ -70,10 +67,7 @@ export const UserManagement: React.FC = () => {
       setUsers(mappedUsers);
 
       const { data: pendingData, error: pendingError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('approval_status', 'pending')
-        .order('created_at', { ascending: false });
+        .rpc('get_users_by_status_with_email', { status_filter: 'pending' });
 
       if (pendingError) {
         console.error('Error loading pending users:', pendingError);
@@ -90,7 +84,7 @@ export const UserManagement: React.FC = () => {
           name: profile.name,
           phone: profile.phone || '',
           address: profile.address || '',
-          businessName: (profile as any).business_name || profile.name,
+          businessName: profile.business_name || profile.name,
           created_at: profile.created_at,
           approval_status: profile.approval_status
         };

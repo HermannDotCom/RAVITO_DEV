@@ -91,7 +91,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return false;
       }
 
-      console.log('Profile found:', { id: profile.id, role: profile.role, email: profile.email });
+      console.log('Profile found:', { id: profile.id, role: profile.role, name: profile.name });
       const { data: authUserData } = await supabase.auth.getUser();
 
       let coordinates = undefined;
