@@ -24,6 +24,16 @@ export interface SupplierOffer {
   rejectedAt?: Date;
 }
 
+interface AcceptOfferResponse {
+  success: boolean;
+  error?: string;
+  message?: string;
+  offer_id?: string;
+  order_id?: string;
+  supplier_id?: string;
+  total_amount?: number;
+}
+
 export async function createSupplierOffer(
   orderId: string,
   modifiedItems: SupplierOfferItem[],
@@ -216,86 +226,31 @@ export async function acceptOffer(
       return { success: false, error: 'Non authentifié' };
     }
 
-    const { data: offers } = await supabase
-      .from('supplier_offers')
-      .select('*')
-      .eq('order_id', orderId)
-      .eq('id', offerId)
-      .single();
+    // Call the atomic SQL function
+    const { data, error } = await supabase.rpc('accept_supplier_offer', {
+      p_offer_id: offerId,
+      p_order_id: orderId
+    });
 
-    if (!offers) {
-      return { success: false, error: 'Offre introuvable' };
+    if (error) {
+      console.error('Error calling accept_supplier_offer:', error);
+      return { success: false, error: error.message };
     }
 
-    const { error: rejectOthersError } = await supabase
-      .from('supplier_offers')
-      .update({
-        status: 'rejected',
-        rejected_at: new Date().toISOString()
-      })
-      .eq('order_id', orderId)
-      .neq('id', offerId);
-
-    if (rejectOthersError) {
-      console.error('Error rejecting other offers:', rejectOthersError);
+    // Validate and parse the response
+    if (!data || typeof data !== 'object') {
+      console.error('Invalid response from accept_supplier_offer:', data);
+      return { success: false, error: 'Réponse invalide du serveur' };
     }
 
-    const { error: acceptError } = await supabase
-      .from('supplier_offers')
-      .update({
-        status: 'accepted',
-        accepted_at: new Date().toISOString()
-      })
-      .eq('id', offerId);
-
-    if (acceptError) {
-      console.error('Error accepting offer:', acceptError);
-      return { success: false, error: acceptError.message };
+    const result = data as AcceptOfferResponse;
+    
+    if (!result.success) {
+      console.error('accept_supplier_offer failed:', result.error);
+      return { success: false, error: result.error || 'Erreur lors de l\'acceptation de l\'offre' };
     }
 
-    const { error: orderUpdateError } = await supabase
-      .from('orders')
-      .update({
-        status: 'awaiting-payment',
-        supplier_id: offers.supplier_id,
-        total_amount: offers.total_amount,
-        consigne_total: offers.consigne_total,
-        supplier_commission: offers.supplier_commission,
-        net_supplier_amount: offers.net_supplier_amount
-      })
-      .eq('id', orderId);
-
-    if (orderUpdateError) {
-      console.error('Error updating order:', orderUpdateError);
-      return { success: false, error: orderUpdateError.message };
-    }
-
-    const { error: itemsDeleteError } = await supabase
-      .from('order_items')
-      .delete()
-      .eq('order_id', orderId);
-
-    if (itemsDeleteError) {
-      console.error('Error deleting old items:', itemsDeleteError);
-    }
-
-    const modifiedItems = offers.modified_items as SupplierOfferItem[];
-    const itemsToInsert = modifiedItems.map(item => ({
-      order_id: orderId,
-      product_id: item.productId,
-      quantity: item.quantity,
-      with_consigne: item.withConsigne
-    }));
-
-    const { error: itemsInsertError } = await supabase
-      .from('order_items')
-      .insert(itemsToInsert);
-
-    if (itemsInsertError) {
-      console.error('Error inserting new items:', itemsInsertError);
-    }
-
-    // Send email to supplier about accepted offer
+    // Send email to supplier about accepted offer (non-blocking)
     try {
       const { data: orderData } = await supabase
         .from('orders')
