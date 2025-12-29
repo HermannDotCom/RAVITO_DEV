@@ -296,7 +296,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             name: userData.name,
             role: userData.role,
             phone: userData.phone,
-            address: userData.address
+            address: userData.address,
+            business_name: userData.businessName || null
           }
         }
       });
