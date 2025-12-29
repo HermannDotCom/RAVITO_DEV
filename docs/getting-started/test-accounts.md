@@ -5,7 +5,7 @@
 ### 👨‍💼 ADMINISTRATEUR
 ```
 🌐 URL:      http://localhost:5173
-📧 Email:    admin@distri-night.ci
+📧 Email:    admin@ravito.ci
 🔒 Password: Admin@2025!
 👤 Nom:      Kouassi Administrateur
 ```
@@ -100,7 +100,7 @@
 9. Se déconnecter
 
 ### Étape 3 : Test Admin (1 min)
-1. Se connecter : `admin@distri-night.ci` / `Admin@2025!`
+1. Se connecter : `admin@ravito.ci` / `Admin@2025!`
 2. Voir le dashboard Analytics
 3. Vérifier les statistiques de commandes
 4. Aller dans "Utilisateurs" voir les 7 comptes
@@ -208,7 +208,7 @@ Tous les mots de passe suivent le même pattern pour faciliter les tests :
 Le système contient déjà :
 - ✅ 26 produits (bières, sodas, vins, etc.)
 - ✅ 10 zones de livraison (communes d'Abidjan)
-- ✅ Paramètres de commission (8% client, 2% supplier)
+- ✅ Paramètres de commission configurables via Admin
 - ✅ Catégories de produits
 - ✅ Types de caisses (C24, C12, C12V, C6)
 
@@ -217,6 +217,6 @@ Vous n'avez qu'à créer les 7 comptes utilisateurs !
 ---
 
 **Status :** 🟢 Prêt pour tests
-**Dernière mise à jour :** 2025-10-04
+**Dernière mise à jour :** 2025-12-29
 
 **Bon test ! 🚀**

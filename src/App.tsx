@@ -1,8 +1,7 @@
 /**
  * MVP NOTE: Premium subscription functionality is temporarily disabled.
- * Business model for MVP focuses on commission-based revenue only:
- * - Client commission: 8%
- * - Supplier commission: 2%
+ * Business model for MVP focuses on commission-based revenue only.
+ * Commission rates are configurable via Admin > Paramètres > Paramètres financiers.
  * 
  * To reactivate subscriptions post-MVP:
  * 1. Uncomment the imports:
