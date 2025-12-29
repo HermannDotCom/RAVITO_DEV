@@ -59,11 +59,8 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
         delete newErrors.zoneId;
         break;
       case 'zones':
-        if (data.role === 'supplier' && data.zones.length === 0) {
-          newErrors.zones = 'Veuillez sélectionner au moins une zone';
-        } else {
-          delete newErrors.zones;
-        }
+        // Le champ zones n'est plus obligatoire pour l'inscription fournisseur
+        delete newErrors.zones;
         break;
       case 'address':
         if (!data.address.trim()) {
@@ -105,9 +102,8 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
       // }
     }
 
-    if (data.role === 'supplier' && data.zones.length === 0) {
-      newErrors.zones = 'Veuillez sélectionner au moins une zone';
-    }
+    // Les zones ne sont plus requises pour l'inscription des fournisseurs
+    // Ils pourront les configurer plus tard dans leur profil
 
     if (!data.address.trim()) {
       newErrors.address = 'L\'adresse est requise';
@@ -195,56 +191,7 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
         </div>
       )}
 
-      {/* Zone Selection (Supplier only) */}
-      {data.role === 'supplier' && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Zones desservies <span className="text-red-500">*</span>
-          </label>
-          <p className="text-sm text-gray-500 mb-3">
-            Sélectionnez au moins une zone que vous pouvez desservir. Vous pourrez modifier cette liste plus tard.
-          </p>
-          <div className="space-y-2">
-            <ZoneSelector
-              value=""
-              onChange={(zoneId) => {
-                if (zoneId && !data.zones.includes(zoneId)) {
-                  toggleZone(zoneId);
-                }
-                handleBlur('zones');
-              }}
-              required={false}
-            />
-            {data.zones.length > 0 && (
-              <div className="mt-3 space-y-2">
-                <p className="text-sm font-medium text-gray-700">Zones sélectionnées:</p>
-                <div className="flex flex-wrap gap-2">
-                  {data.zones.map((zoneId) => (
-                    <div
-                      key={zoneId}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-sm"
-                    >
-                      <span>{zoneId}</span>
-                      <button
-                        type="button"
-                        onClick={() => toggleZone(zoneId)}
-                        className="hover:bg-orange-200 rounded-full p-0.5 transition-colors"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          {touched.zones && errors.zones && (
-            <p className="mt-1 text-sm text-red-600">{errors.zones}</p>
-          )}
-        </div>
-      )}
+      {/* Zone Selection removed - Suppliers can configure zones later in their profile */}
 
       {/* Address */}
       <div>
