@@ -289,7 +289,7 @@ export function usePriceComparison() {
 export function usePriceCalculations() {
   const calculateOrderTotal = useCallback((
     items: Array<{ quantity: number; cratePrice: number; consignPrice: number; withConsigne: boolean }>,
-    clientCommissionRate: number = 8
+    clientCommissionRate: number = 4
   ) => {
     const subtotal = items.reduce(
       (sum, item) => sum + item.quantity * item.cratePrice,
@@ -316,9 +316,10 @@ export function usePriceCalculations() {
 
   const calculateSupplierNet = useCallback((
     grossAmount: number,
-    supplierCommissionRate: number = 2
+    supplierCommissionRate: number = 2,
+    clientCommissionRate: number = 4
   ) => {
-    const baseAmount = grossAmount / (1 + (0.08)); // Retire commission client (8%)
+    const baseAmount = grossAmount / (1 + (clientCommissionRate / 100)); // Retire commission client
     const commission = Math.round(baseAmount * (supplierCommissionRate / 100));
     const netAmount = grossAmount - commission;
 
