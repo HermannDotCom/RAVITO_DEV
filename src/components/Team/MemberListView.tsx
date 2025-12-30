@@ -3,6 +3,7 @@ import { Search, Eye, Shield, Power, Trash2, Grid, List } from 'lucide-react';
 import type { OrganizationMember, MemberRole } from '../../types/team';
 import { ROLE_LABELS, ROLE_COLORS } from '../../types/team';
 import { MemberStatusBadge } from './MemberStatusBadge';
+import { getMemberDisplayName, getMemberInitials, formatDate } from '../../utils/memberUtils';
 
 interface MemberListViewProps {
   members: OrganizationMember[];
@@ -39,28 +40,6 @@ export const MemberListView: React.FC<MemberListViewProps> = ({
     return Array.from(roles).sort();
   }, [members]);
 
-  // Get member display name
-  const getMemberName = (member: OrganizationMember): string => {
-    if (member.email && member.email.includes('@')) {
-      const name = member.email.split('@')[0];
-      return name.charAt(0).toUpperCase() + name.slice(1);
-    }
-    return member.email || 'Membre';
-  };
-
-  // Get member initials for avatar
-  const getInitials = (member: OrganizationMember): string => {
-    const email = member.email;
-    if (email && email.includes('@')) {
-      const parts = email.split('@')[0].split('.');
-      if (parts.length >= 2) {
-        return (parts[0][0] + parts[1][0]).toUpperCase();
-      }
-      return email.substring(0, 1).toUpperCase();
-    }
-    return 'M';
-  };
-
   // Filter and sort members
   const filteredMembers = useMemo(() => {
     let filtered = members;
@@ -71,7 +50,7 @@ export const MemberListView: React.FC<MemberListViewProps> = ({
       filtered = filtered.filter(
         m => 
           m.email.toLowerCase().includes(term) ||
-          getMemberName(m).toLowerCase().includes(term)
+          getMemberDisplayName(m).toLowerCase().includes(term)
       );
     }
 
@@ -92,8 +71,8 @@ export const MemberListView: React.FC<MemberListViewProps> = ({
 
       switch (sortField) {
         case 'name':
-          compareA = getMemberName(a);
-          compareB = getMemberName(b);
+          compareA = getMemberDisplayName(a);
+          compareB = getMemberDisplayName(b);
           break;
         case 'email':
           compareA = a.email;
@@ -235,8 +214,8 @@ export const MemberListView: React.FC<MemberListViewProps> = ({
               ) : (
                 filteredMembers.map((member) => {
                   const isOwner = member.role === 'owner';
-                  const memberName = getMemberName(member);
-                  const initials = getInitials(member);
+                  const memberName = getMemberDisplayName(member);
+                  const initials = getMemberInitials(member);
 
                   return (
                     <tr key={member.id} className="hover:bg-gray-50">
@@ -264,14 +243,7 @@ export const MemberListView: React.FC<MemberListViewProps> = ({
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {member.acceptedAt 
-                          ? new Date(member.acceptedAt).toLocaleDateString('fr-FR', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric'
-                            })
-                          : '-'
-                        }
+                        {formatDate(member.acceptedAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <MemberStatusBadge status={member.status} />

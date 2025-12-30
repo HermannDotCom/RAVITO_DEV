@@ -106,8 +106,11 @@ export const TeamPage: React.FC = () => {
   };
 
   const handleSavePermissions = async (memberId: string, permissions: Record<string, boolean>) => {
-    // This would call a service to update permissions
-    // For now, we'll just close the modal
+    // TODO: Implement actual permission saving via backend service
+    // This will need to call a service function that updates user_module_permissions table
+    // For example: await teamService.updateMemberPermissions(memberId, permissions);
+    // The current permission system uses module keys from available_modules table
+    // and stores access in user_module_permissions table per user
     console.log('Saving permissions for', memberId, permissions);
     setShowPermissionsModal(false);
     await refresh();

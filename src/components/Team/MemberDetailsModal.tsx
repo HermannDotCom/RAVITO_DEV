@@ -4,6 +4,7 @@ import type { OrganizationMember, OrganizationType } from '../../types/team';
 import { ROLE_LABELS, ROLE_COLORS } from '../../types/team';
 import { MemberStatusBadge } from './MemberStatusBadge';
 import { getPagesByOrganizationType } from '../../constants/pageDefinitions';
+import { getMemberDisplayName, formatDateTime } from '../../utils/memberUtils';
 
 interface MemberDetailsModalProps {
   isOpen: boolean;
@@ -25,34 +26,14 @@ export const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
 }) => {
   if (!isOpen || !member) return null;
 
-  const getMemberName = (member: OrganizationMember): string => {
-    if (member.email && member.email.includes('@')) {
-      const name = member.email.split('@')[0];
-      return name.split('.').map(part => 
-        part.charAt(0).toUpperCase() + part.slice(1)
-      ).join(' ');
-    }
-    return member.email || 'Membre';
-  };
-
-  const formatDateTime = (date: Date | null): string => {
-    if (!date) return 'Jamais connecté';
-    return new Date(date).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const memberName = getMemberName(member);
+  const memberName = getMemberDisplayName(member);
   const isOwner = member.role === 'owner';
 
   // Get available pages for this organization type
   const availablePages = getPagesByOrganizationType(organizationType, isOwner && organizationType === 'admin');
 
-  // Mock statistics (in real implementation, these would come from the backend)
+  // TODO: Fetch real statistics from backend
+  // These mock statistics should be replaced with actual data from the member's activity
   const mockStats = {
     connections30d: 24,
     actions30d: 156

@@ -3,6 +3,7 @@ import { X, Shield, CheckSquare, Square } from 'lucide-react';
 import type { OrganizationMember, OrganizationType } from '../../types/team';
 import { ROLE_LABELS } from '../../types/team';
 import { getPagesByOrganizationType } from '../../constants/pageDefinitions';
+import { getMemberDisplayName } from '../../utils/memberUtils';
 
 interface MemberPermissionsModalProps {
   isOpen: boolean;
@@ -41,16 +42,7 @@ export const MemberPermissionsModal: React.FC<MemberPermissionsModalProps> = ({
 
   const isOwner = member.role === 'owner';
   const pages = getPagesByOrganizationType(organizationType, false);
-
-  const getMemberName = (member: OrganizationMember): string => {
-    if (member.email && member.email.includes('@')) {
-      const name = member.email.split('@')[0];
-      return name.split('.').map(part => 
-        part.charAt(0).toUpperCase() + part.slice(1)
-      ).join(' ');
-    }
-    return member.email || 'Membre';
-  };
+  const memberName = getMemberDisplayName(member);
 
   const togglePage = (pageId: string) => {
     const newSelected = new Set(selectedPages);
@@ -92,8 +84,6 @@ export const MemberPermissionsModal: React.FC<MemberPermissionsModalProps> = ({
       setIsSaving(false);
     }
   };
-
-  const memberName = getMemberName(member);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
