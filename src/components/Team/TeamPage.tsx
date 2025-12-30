@@ -1,80 +1,64 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, Crown, AlertCircle, RefreshCw, Mail, Shield } from 'lucide-react';
+import { Users, UserPlus, Crown, AlertCircle, RefreshCw } from 'lucide-react';
 import { useTeam } from '../../hooks/useTeam';
 import { usePermissions } from '../../hooks/usePermissions';
-import { MemberCard } from './MemberCard';
-import { InviteMemberModal } from './InviteMemberModal';
 import { CreateMemberModal } from './CreateMemberModal';
 import { QuotaBar } from './QuotaBar';
-import { PermissionsTab } from './PermissionsTab';
-import type { OrganizationMember, MemberRole } from '../../types/team';
-import { RoleSelector } from './RoleSelector';
+import { MemberListView } from './MemberListView';
+import { MemberDetailsModal } from './MemberDetailsModal';
+import { MemberPermissionsModal } from './MemberPermissionsModal';
+import type { OrganizationMember } from '../../types/team';
 import { useAuth } from '../../context/AuthContext';
 
-type TabId = 'members' | 'invitations' | 'permissions';
-
 /**
- * Main Team Management Page
+ * Main Team Management Page - Refactored UI
  */
 export const TeamPage: React.FC = () => {
   const { user } = useAuth();
-  const { organization, members, stats, isLoading, error, inviteMember, createMember, removeMember, updateMemberRole, toggleMemberStatus, refresh } = useTeam();
+  const { organization, members, stats, isLoading, error, createMember, removeMember, toggleMemberStatus, updateMemberPermissions, refresh } = useTeam();
   const { can } = usePermissions(organization?.id || null);
   
-  const [activeTab, setActiveTab] = useState<TabId>('members');
-  const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingMember, setEditingMember] = useState<OrganizationMember | null>(null);
-  const [newRole, setNewRole] = useState<MemberRole | ''>('');
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [updateError, setUpdateError] = useState<string | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<OrganizationMember | null>(null);
 
   const canInvite = can('team', 'invite');
   const canEdit = can('team', 'edit');
   const canRemove = can('team', 'remove');
   const isOwner = organization ? organization.ownerId === user?.id : false;
-  const canViewPermissions = isOwner || canEdit;
 
-  const handleInvite = async (email: string, role: MemberRole): Promise<boolean> => {
-    return await inviteMember(email, role);
+  const handleViewDetails = (member: OrganizationMember) => {
+    setSelectedMember(member);
+    setShowDetailsModal(true);
   };
 
-  const handleEditClick = (member: OrganizationMember) => {
-    setEditingMember(member);
-    setNewRole(member.role);
-    setUpdateError(null);
-    setShowEditModal(true);
+  const handleEditPermissions = (member: OrganizationMember) => {
+    setSelectedMember(member);
+    setShowPermissionsModal(true);
   };
 
-  const handleEditSubmit = async () => {
-    if (!editingMember || !newRole) return;
-
-    setIsUpdating(true);
-    setUpdateError(null);
-
-    try {
-      const success = await updateMemberRole(editingMember.id, newRole as MemberRole);
-      if (success) {
-        setShowEditModal(false);
-        setEditingMember(null);
-        setNewRole('');
-      } else {
-        setUpdateError('Erreur lors de la mise à jour du rôle');
-      }
-    } catch (err) {
-      setUpdateError('Une erreur est survenue');
-    } finally {
-      setIsUpdating(false);
+  const handleToggleStatus = async (member: OrganizationMember) => {
+    const newStatus = !member.isActive;
+    const action = newStatus ? 'activer' : 'désactiver';
+    
+    if (!confirm(`Êtes-vous sûr de vouloir ${action} ${member.email} ?`)) {
+      return;
     }
+
+    await toggleMemberStatus(member.id, newStatus);
   };
 
-  const handleRemoveClick = async (member: OrganizationMember) => {
-    if (!confirm(`Êtes-vous sûr de vouloir retirer ${member.email} de l'équipe ?`)) {
+  const handleRemove = async (member: OrganizationMember) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${member.email} de l'équipe ? Cette action est irréversible.`)) {
       return;
     }
 
     await removeMember(member.id);
+  };
+
+  const handleSavePermissions = async (memberId: string, allowedPages: string[]): Promise<boolean> => {
+    return await updateMemberPermissions(memberId, { allowedPages });
   };
 
   if (isLoading) {
@@ -112,13 +96,13 @@ export const TeamPage: React.FC = () => {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-4">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
               <Users className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Mon Équipe</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Gestion des Membres</h1>
               <p className="text-gray-600">{organization.name}</p>
             </div>
           </div>
@@ -132,7 +116,7 @@ export const TeamPage: React.FC = () => {
               Actualiser
             </button>
 
-            {canInvite && activeTab === 'members' && (
+            {canInvite && (
               <button
                 onClick={() => setShowCreateModal(true)}
                 disabled={stats?.availableSlots === 0}
@@ -170,114 +154,19 @@ export const TeamPage: React.FC = () => {
             </div>
           </div>
         )}
-
-        {/* Tabs Navigation */}
-        <div className="mt-6 border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-            <button
-              onClick={() => setActiveTab('members')}
-              className={`
-                py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors
-                ${activeTab === 'members'
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }
-              `}
-            >
-              <Users className="w-5 h-5" />
-              <span>Membres</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('invitations')}
-              className={`
-                py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors
-                ${activeTab === 'invitations'
-                  ? 'border-orange-500 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }
-              `}
-            >
-              <Mail className="w-5 h-5" />
-              <span>Invitations</span>
-            </button>
-
-            {canViewPermissions && (
-              <button
-                onClick={() => setActiveTab('permissions')}
-                className={`
-                  py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors
-                  ${activeTab === 'permissions'
-                    ? 'border-orange-500 text-orange-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }
-                `}
-              >
-                <Shield className="w-5 h-5" />
-                <span>Permissions</span>
-              </button>
-            )}
-          </nav>
-        </div>
       </div>
 
-      {/* Tab Content */}
-      {activeTab === 'members' && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Membres ({members.length})
-          </h2>
-
-          {members.length === 0 ? (
-            <div className="bg-gray-50 rounded-lg p-8 text-center">
-              <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-600">Aucun membre dans l'équipe</p>
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {members.map((member) => (
-                <MemberCard
-                  key={member.id}
-                  member={member}
-                  isOwner={member.role === 'owner'}
-                  canEdit={canEdit && member.role !== 'owner'}
-                  canRemove={canRemove && member.role !== 'owner'}
-                  onEdit={handleEditClick}
-                  onRemove={handleRemoveClick}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'invitations' && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Invitations en attente
-          </h2>
-          <div className="bg-gray-50 rounded-lg p-8 text-center">
-            <Mail className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-600">Aucune invitation en attente</p>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'permissions' && organization && (
-        <PermissionsTab
-          organizationId={organization.id}
-          members={members}
-          canEdit={isOwner}
-        />
-      )}
-
-      {/* Invite Modal (legacy - can be removed once fully migrated) */}
-      <InviteMemberModal
-        isOpen={showInviteModal}
-        onClose={() => setShowInviteModal(false)}
-        onInvite={handleInvite}
+      {/* Main Content - Member List View */}
+      <MemberListView
+        members={members}
         organizationType={organization.type}
-        availableSlots={stats?.availableSlots || 0}
+        currentUserId={user?.id}
+        canEdit={canEdit || isOwner}
+        canRemove={canRemove || isOwner}
+        onViewDetails={handleViewDetails}
+        onEditPermissions={handleEditPermissions}
+        onToggleStatus={handleToggleStatus}
+        onRemove={handleRemove}
       />
 
       {/* Create Member Modal */}
@@ -289,59 +178,34 @@ export const TeamPage: React.FC = () => {
         availableSlots={stats?.availableSlots || 0}
       />
 
-      {/* Edit Role Modal */}
-      {showEditModal && editingMember && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-            onClick={() => !isUpdating && setShowEditModal(false)}
-          />
-          <div className="flex items-center justify-center min-h-screen p-4">
-            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Modifier le rôle
-              </h2>
-              
-              <p className="text-sm text-gray-600 mb-4">
-                Membre: {editingMember.email}
-              </p>
+      {/* Member Details Modal */}
+      {selectedMember && (
+        <MemberDetailsModal
+          isOpen={showDetailsModal}
+          onClose={() => {
+            setShowDetailsModal(false);
+            setSelectedMember(null);
+          }}
+          member={selectedMember}
+          organizationType={organization.type}
+          onEditPermissions={handleEditPermissions}
+        />
+      )}
 
-              {updateError && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 flex items-start space-x-2">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                  <p className="text-sm text-red-800">{updateError}</p>
-                </div>
-              )}
-
-              <RoleSelector
-                organizationType={organization.type}
-                selectedRole={newRole}
-                onChange={setNewRole}
-                excludeOwner={true}
-              />
-
-              <div className="flex space-x-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(false)}
-                  disabled={isUpdating}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="button"
-                  onClick={handleEditSubmit}
-                  disabled={isUpdating || !newRole || newRole === editingMember.role}
-                  className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isUpdating ? 'Mise à jour...' : 'Enregistrer'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Member Permissions Modal */}
+      {selectedMember && (
+        <MemberPermissionsModal
+          isOpen={showPermissionsModal}
+          onClose={() => {
+            setShowPermissionsModal(false);
+            setSelectedMember(null);
+          }}
+          member={selectedMember}
+          organizationType={organization.type}
+          onSave={handleSavePermissions}
+        />
       )}
     </div>
   );
 };
+
