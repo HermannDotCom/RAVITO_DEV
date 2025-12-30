@@ -8,8 +8,10 @@ export const getMemberDisplayName = (member: OrganizationMember): string => {
   if (member.email && member.email.includes('@')) {
     const name = member.email.split('@')[0];
     // Handle dot-separated names (e.g., "john.doe" -> "John Doe")
+    // Filter out empty parts from consecutive dots
     return name
       .split('.')
+      .filter(part => part.length > 0)
       .map(part => part.charAt(0).toUpperCase() + part.slice(1))
       .join(' ');
   }
@@ -22,11 +24,13 @@ export const getMemberDisplayName = (member: OrganizationMember): string => {
 export const getMemberInitials = (member: OrganizationMember): string => {
   const email = member.email;
   if (email && email.includes('@')) {
-    const parts = email.split('@')[0].split('.');
+    const parts = email.split('@')[0].split('.').filter(part => part.length > 0);
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
-    return email.substring(0, 1).toUpperCase();
+    if (parts.length === 1 && parts[0].length > 0) {
+      return parts[0].substring(0, 1).toUpperCase();
+    }
   }
   return 'M';
 };
