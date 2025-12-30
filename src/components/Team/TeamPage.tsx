@@ -111,9 +111,20 @@ export const TeamPage: React.FC = () => {
     // For example: await teamService.updateMemberPermissions(memberId, permissions);
     // The current permission system uses module keys from available_modules table
     // and stores access in user_module_permissions table per user
-    console.log('Saving permissions for', memberId, permissions);
+    
+    // IMPORTANT: This is a placeholder implementation
+    // Remove the console.log and uncomment the actual implementation when ready:
+    // const success = await teamService.updateMemberPermissions(memberId, permissions);
+    // if (!success) {
+    //   alert('Erreur lors de la sauvegarde des permissions');
+    //   return;
+    // }
+    
+    console.log('PLACEHOLDER: Saving permissions for', memberId, permissions);
+    alert('Note: La sauvegarde des permissions sera implémentée avec le backend');
     setShowPermissionsModal(false);
-    await refresh();
+    // Don't refresh until actual save is implemented
+    // await refresh();
   };
 
   if (isLoading) {

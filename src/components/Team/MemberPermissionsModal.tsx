@@ -30,8 +30,11 @@ export const MemberPermissionsModal: React.FC<MemberPermissionsModalProps> = ({
 
   React.useEffect(() => {
     if (member && isOpen) {
-      // Initialize selected pages from member's current permissions
-      // For now, we'll select all pages by default for active members
+      // TODO: Initialize selected pages from member's current permissions
+      // For now, we default to all pages being selected for demonstration
+      // In production, this should load from user_module_permissions table:
+      // const currentPermissions = await fetchMemberPermissions(member.userId);
+      // setSelectedPages(new Set(currentPermissions.filter(p => p.hasAccess).map(p => p.moduleKey)));
       const pages = getPagesByOrganizationType(organizationType, false);
       const initialPages = new Set(pages.map(p => p.id));
       setSelectedPages(initialPages);

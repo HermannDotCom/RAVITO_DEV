@@ -33,7 +33,11 @@ export const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
   const availablePages = getPagesByOrganizationType(organizationType, isOwner && organizationType === 'admin');
 
   // TODO: Fetch real statistics from backend
-  // These mock statistics should be replaced with actual data from the member's activity
+  // Expected data structure:
+  // - connections30d: number of login sessions in the last 30 days
+  // - actions30d: number of user actions (clicks, edits, etc.) in the last 30 days
+  // API endpoint to create: GET /api/team/members/{userId}/statistics?days=30
+  // This should aggregate data from audit logs or activity tracking tables
   const mockStats = {
     connections30d: 24,
     actions30d: 156
@@ -89,7 +93,10 @@ export const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
                   <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
                   <div>
                     <p className="text-sm text-gray-500">Téléphone</p>
-                    <p className="text-sm font-medium text-gray-900">+225 07 00 00 00 00</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {/* TODO: Add phone field to OrganizationMember type and display it here */}
+                      Non renseigné
+                    </p>
                   </div>
                 </div>
 

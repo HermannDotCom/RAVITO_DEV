@@ -78,7 +78,11 @@ export const ADMIN_PAGES: PageDefinition[] = [
 
 /**
  * Get pages available for a specific organization type
- * For admin, filters out super admin exclusive pages unless includeSuperAdmin is true
+ * @param orgType - The organization type (client, supplier, admin)
+ * @param includeSuperAdmin - For admin organizations, whether to include super admin exclusive pages.
+ *                            Has no effect on client or supplier organizations.
+ *                            Default: false
+ * @returns Array of page definitions filtered by organization type
  */
 export function getPagesByOrganizationType(
   orgType: OrganizationType,
@@ -100,6 +104,9 @@ export function getPagesByOrganizationType(
 
 /**
  * Get the count of pages for a specific organization type
+ * @param orgType - The organization type (client, supplier, admin)
+ * @param includeSuperAdmin - For admin organizations, whether to include super admin exclusive pages
+ * @returns Number of pages available for the organization type
  */
 export function getPageCountByOrganizationType(
   orgType: OrganizationType,
