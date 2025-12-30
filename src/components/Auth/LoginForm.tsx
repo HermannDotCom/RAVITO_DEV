@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { ForgotPasswordModal } from './ForgotPasswordModal';
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [error, setError] = useState('');
   const { login, isLoading } = useAuth();
 
@@ -104,6 +106,7 @@ export const LoginForm: React.FC = () => {
 
             <button
               type="button"
+              onClick={() => setShowForgotPassword(true)}
               className="text-sm font-medium text-orange-600 hover:text-orange-500 transition-colors"
             >
               Mot de passe oublié ?
@@ -118,6 +121,11 @@ export const LoginForm: React.FC = () => {
             {isLoading ? 'Connexion en cours...' : 'Se connecter'}
           </button>
         </form>
+
+        <ForgotPasswordModal 
+          isOpen={showForgotPassword} 
+          onClose={() => setShowForgotPassword(false)} 
+        />
       </div>
     </div>
   );

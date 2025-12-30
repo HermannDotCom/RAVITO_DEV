@@ -92,6 +92,7 @@ import { DeliveryModePage } from './components/Supplier/DeliveryMode/DeliveryMod
 // import { PremiumTierDashboard } from './components/Supplier/PremiumTierDashboard';
 // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
 // import { SubscriptionPage } from './pages/Subscription/SubscriptionPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { useRealtimeOrders } from './hooks/useRealtimeOrders';
 import { usePendingRatings } from './hooks/usePendingRatings';
 import { useOrder } from './context/OrderContext';
@@ -146,6 +147,10 @@ const AppContent: React.FC = () => {
 
   if (path === '/mentions-legales') {
     return <MentionsLegalesPage onNavigate={navigate} />;
+  }
+
+  if (path === '/reset-password') {
+    return <ResetPasswordPage />;
   }
 
   if (isInitializing) {
