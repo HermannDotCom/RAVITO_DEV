@@ -17,6 +17,7 @@ interface UseTeamReturn {
   inviteMember: (email: string, role: MemberRole) => Promise<boolean>;
   removeMember: (memberId: string) => Promise<boolean>;
   updateMemberRole: (memberId: string, newRole: MemberRole) => Promise<boolean>;
+  toggleMemberStatus: (memberId: string, currentStatus: string) => Promise<boolean>;
   refresh: () => Promise<void>;
 }
 
@@ -127,6 +128,24 @@ export const useTeam = (): UseTeamReturn => {
     [loadOrganization]
   );
 
+  // Toggle member status
+  const toggleMemberStatus = useCallback(
+    async (memberId: string, currentStatus: string): Promise<boolean> => {
+      setError(null);
+      const result = await teamService.toggleMemberStatus(memberId, currentStatus);
+
+      if (result.success) {
+        // Refresh data
+        await loadOrganization();
+        return true;
+      } else {
+        setError(result.error || 'Erreur lors de la modification du statut');
+        return false;
+      }
+    },
+    [loadOrganization]
+  );
+
   // Refresh function
   const refresh = useCallback(async () => {
     await loadOrganization();
@@ -141,6 +160,7 @@ export const useTeam = (): UseTeamReturn => {
     inviteMember,
     removeMember,
     updateMemberRole,
+    toggleMemberStatus,
     refresh
   };
 };

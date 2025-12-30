@@ -6,6 +6,9 @@ import { MemberCard } from './MemberCard';
 import { InviteMemberModal } from './InviteMemberModal';
 import { QuotaBar } from './QuotaBar';
 import { PermissionsTab } from './PermissionsTab';
+import { MemberListView } from './MemberListView';
+import { MemberDetailsModal } from './MemberDetailsModal';
+import { MemberPermissionsModal } from './MemberPermissionsModal';
 import type { OrganizationMember, MemberRole } from '../../types/team';
 import { RoleSelector } from './RoleSelector';
 import { useAuth } from '../../context/AuthContext';
@@ -17,13 +20,16 @@ type TabId = 'members' | 'invitations' | 'permissions';
  */
 export const TeamPage: React.FC = () => {
   const { user } = useAuth();
-  const { organization, members, stats, isLoading, error, inviteMember, removeMember, updateMemberRole, refresh } = useTeam();
+  const { organization, members, stats, isLoading, error, inviteMember, removeMember, updateMemberRole, toggleMemberStatus, refresh } = useTeam();
   const { can } = usePermissions(organization?.id || null);
   
   const [activeTab, setActiveTab] = useState<TabId>('members');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [editingMember, setEditingMember] = useState<OrganizationMember | null>(null);
+  const [selectedMember, setSelectedMember] = useState<OrganizationMember | null>(null);
   const [newRole, setNewRole] = useState<MemberRole | ''>('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
@@ -73,6 +79,38 @@ export const TeamPage: React.FC = () => {
     }
 
     await removeMember(member.id);
+  };
+
+  const handleToggleStatus = async (member: OrganizationMember) => {
+    if (member.role === 'owner') {
+      alert('Le propriétaire ne peut pas être désactivé');
+      return;
+    }
+
+    const action = member.status === 'active' ? 'désactiver' : 'activer';
+    if (!confirm(`Êtes-vous sûr de vouloir ${action} ${member.email} ?`)) {
+      return;
+    }
+
+    await toggleMemberStatus(member.id, member.status);
+  };
+
+  const handleViewMember = (member: OrganizationMember) => {
+    setSelectedMember(member);
+    setShowDetailsModal(true);
+  };
+
+  const handleEditPermissions = (member: OrganizationMember) => {
+    setSelectedMember(member);
+    setShowPermissionsModal(true);
+  };
+
+  const handleSavePermissions = async (memberId: string, permissions: Record<string, boolean>) => {
+    // This would call a service to update permissions
+    // For now, we'll just close the modal
+    console.log('Saving permissions for', memberId, permissions);
+    setShowPermissionsModal(false);
+    await refresh();
   };
 
   if (isLoading) {
@@ -232,19 +270,14 @@ export const TeamPage: React.FC = () => {
               <p className="text-gray-600">Aucun membre dans l'équipe</p>
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {members.map((member) => (
-                <MemberCard
-                  key={member.id}
-                  member={member}
-                  isOwner={member.role === 'owner'}
-                  canEdit={canEdit && member.role !== 'owner'}
-                  canRemove={canRemove && member.role !== 'owner'}
-                  onEdit={handleEditClick}
-                  onRemove={handleRemoveClick}
-                />
-              ))}
-            </div>
+            <MemberListView
+              members={members}
+              onView={handleViewMember}
+              onEditPermissions={handleEditPermissions}
+              onToggleStatus={handleToggleStatus}
+              onDelete={handleRemoveClick}
+              canEdit={canEdit}
+            />
           )}
         </div>
       )}
@@ -276,6 +309,27 @@ export const TeamPage: React.FC = () => {
         onInvite={handleInvite}
         organizationType={organization.type}
         availableSlots={stats?.availableSlots || 0}
+      />
+
+      {/* Member Details Modal */}
+      <MemberDetailsModal
+        isOpen={showDetailsModal}
+        member={selectedMember}
+        organizationType={organization.type}
+        onClose={() => setShowDetailsModal(false)}
+        onEditPermissions={() => {
+          setShowDetailsModal(false);
+          setShowPermissionsModal(true);
+        }}
+      />
+
+      {/* Member Permissions Modal */}
+      <MemberPermissionsModal
+        isOpen={showPermissionsModal}
+        member={selectedMember}
+        organizationType={organization.type}
+        onClose={() => setShowPermissionsModal(false)}
+        onSave={handleSavePermissions}
       />
 
       {/* Edit Role Modal */}

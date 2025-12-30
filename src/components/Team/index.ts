@@ -7,3 +7,7 @@ export { PermissionGate } from './PermissionGate';
 export { PermissionsTab } from './PermissionsTab';
 export { MemberPermissionCard } from './MemberPermissionCard';
 export { ModuleToggle } from './ModuleToggle';
+export { MemberStatusBadge } from './MemberStatusBadge';
+export { MemberListView } from './MemberListView';
+export { MemberDetailsModal } from './MemberDetailsModal';
+export { MemberPermissionsModal } from './MemberPermissionsModal';

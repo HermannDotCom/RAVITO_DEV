@@ -215,6 +215,35 @@ export const updateMemberRole = async (
 };
 
 /**
+ * Toggle a member's status between active and inactive
+ */
+export const toggleMemberStatus = async (
+  memberId: string,
+  currentStatus: string
+): Promise<{ success: boolean; error?: string; member?: OrganizationMember }> => {
+  try {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    
+    const { data, error } = await supabase
+      .from('organization_members')
+      .update({ status: newStatus })
+      .eq('id', memberId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error toggling member status:', error);
+      return { success: false, error: 'Erreur lors de la modification du statut' };
+    }
+
+    return { success: true, member: transformMember(data) };
+  } catch (error) {
+    console.error('Error in toggleMemberStatus:', error);
+    return { success: false, error: 'Erreur lors de la modification du statut' };
+  }
+};
+
+/**
  * Accept an invitation using a token
  */
 export const acceptInvitation = async (
