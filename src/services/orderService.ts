@@ -1,6 +1,54 @@
 import { supabase } from '../lib/supabase';
 import { Order, OrderStatus, CartItem, PaymentMethod } from '../types';
 
+/**
+ * Get the organization owner ID for a given user
+ * Returns the user's own ID if they're an owner, or their organization owner's ID if they're a member
+ */
+async function getOrganizationOwnerId(userId: string): Promise<string> {
+  try {
+    // First check if user is an organization owner
+    const { data: ownedOrg, error: ownerError } = await supabase
+      .from('organizations')
+      .select('owner_id')
+      .eq('owner_id', userId)
+      .maybeSingle();
+
+    if (ownedOrg) {
+      // User is an owner, return their own ID
+      return userId;
+    }
+
+    // If not owner, check if user is a member and get the organization's owner
+    const { data: membership, error: memberError } = await supabase
+      .from('organization_members')
+      .select(`
+        organization_id,
+        organizations!inner (
+          owner_id
+        )
+      `)
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (membership && membership.organizations) {
+      // User is a member, return organization owner's ID
+      const org = Array.isArray(membership.organizations) 
+        ? membership.organizations[0] 
+        : membership.organizations;
+      return org.owner_id;
+    }
+
+    // Fallback to user's own ID if no organization found
+    return userId;
+  } catch (error) {
+    console.error('Error getting organization owner ID:', error);
+    // Fallback to user's own ID on error
+    return userId;
+  }
+}
+
 export async function createOrder(
   clientId: string,
   items: CartItem[],
@@ -92,6 +140,9 @@ export async function createOrder(
 
 export async function getOrdersByClient(clientId: string): Promise<Order[]> {
   try {
+    // Get the organization owner ID (handles both owners and members)
+    const organizationOwnerId = await getOrganizationOwnerId(clientId);
+    
     const { data, error } = await supabase
       .from('orders_with_coords')
       .select(`
@@ -102,7 +153,7 @@ export async function getOrdersByClient(clientId: string): Promise<Order[]> {
         ),
         zone:zones (name)
       `)
-      .eq('client_id', clientId)
+      .eq('client_id', organizationOwnerId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -119,6 +170,9 @@ export async function getOrdersByClient(clientId: string): Promise<Order[]> {
 
 export async function getOrdersBySupplier(supplierId: string): Promise<Order[]> {
   try {
+    // Get the organization owner ID (handles both owners and members)
+    const organizationOwnerId = await getOrganizationOwnerId(supplierId);
+    
     const { data, error } = await supabase
       .from('orders_with_coords')
       .select(`
@@ -129,7 +183,7 @@ export async function getOrdersBySupplier(supplierId: string): Promise<Order[]> 
         ),
         zone:zones (name)
       `)
-      .eq('supplier_id', supplierId)
+      .eq('supplier_id', organizationOwnerId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -163,10 +217,13 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
       .in('status', ['pending-offers', 'offers-received']);
 
     if (supplierId) {
+      // Get the organization owner ID (handles both owners and members)
+      const organizationOwnerId = await getOrganizationOwnerId(supplierId);
+      
       const { data: supplierZones, error: zonesError } = await supabase
         .from('supplier_zones')
         .select('zone_id')
-        .eq('supplier_id', supplierId)
+        .eq('supplier_id', organizationOwnerId)
         .eq('approval_status', 'approved');
 
       if (zonesError) {

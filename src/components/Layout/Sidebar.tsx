@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useModuleAccess } from '../../hooks/useModuleAccess';
+import { useAllowedPages } from '../../hooks/useAllowedPages';
 import { MoreMenu } from '../ui/MoreMenu';
 
 interface SidebarProps {
@@ -31,6 +32,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection, onSectionChange }) => {
   const { user } = useAuth();
   const { hasAccess } = useModuleAccess();
+  const { allowedPages, isOwner } = useAllowedPages();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const getMainMenuItems = () => {
@@ -78,8 +80,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         return [];
     }
 
-    // Filter based on permissions (keep items without moduleKey like "more")
-    return allMenuItems.filter(item => !item.moduleKey || hasAccess(item.moduleKey));
+    // Filter based on allowed_pages for members, or keep all for owners
+    // Keep items without id (like "more") always visible
+    const filteredItems = allMenuItems.filter(item => {
+      // Always show "more" button
+      if (item.id === 'more') return true;
+      
+      // Owners see everything
+      if (isOwner) return true;
+      
+      // Members see only their allowed pages
+      return allowedPages.includes(item.id);
+    });
+
+    // Additional filter based on module access permissions
+    return filteredItems.filter(item => !item.moduleKey || hasAccess(item.moduleKey));
   };
 
   const getSecondaryMenuItems = () => {
@@ -110,8 +125,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         return [];
     }
 
-    // Filter based on permissions
-    return allSecondaryItems.filter(item => !item.moduleKey || hasAccess(item.moduleKey));
+    // Filter based on allowed_pages for members, or keep all for owners
+    const filteredItems = allSecondaryItems.filter(item => {
+      // Owners see everything
+      if (isOwner) return true;
+      
+      // Members see only their allowed pages
+      return allowedPages.includes(item.id);
+    });
+
+    // Additional filter based on module access permissions
+    return filteredItems.filter(item => !item.moduleKey || hasAccess(item.moduleKey));
   };
 
   const mainMenuItems = getMainMenuItems();
