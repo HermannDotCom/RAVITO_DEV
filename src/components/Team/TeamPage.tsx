@@ -4,6 +4,7 @@ import { useTeam } from '../../hooks/useTeam';
 import { usePermissions } from '../../hooks/usePermissions';
 import { MemberCard } from './MemberCard';
 import { InviteMemberModal } from './InviteMemberModal';
+import { CreateMemberModal } from './CreateMemberModal';
 import { QuotaBar } from './QuotaBar';
 import { PermissionsTab } from './PermissionsTab';
 import type { OrganizationMember, MemberRole } from '../../types/team';
@@ -17,11 +18,12 @@ type TabId = 'members' | 'invitations' | 'permissions';
  */
 export const TeamPage: React.FC = () => {
   const { user } = useAuth();
-  const { organization, members, stats, isLoading, error, inviteMember, removeMember, updateMemberRole, refresh } = useTeam();
+  const { organization, members, stats, isLoading, error, inviteMember, createMember, removeMember, updateMemberRole, toggleMemberStatus, refresh } = useTeam();
   const { can } = usePermissions(organization?.id || null);
   
   const [activeTab, setActiveTab] = useState<TabId>('members');
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingMember, setEditingMember] = useState<OrganizationMember | null>(null);
   const [newRole, setNewRole] = useState<MemberRole | ''>('');
@@ -132,12 +134,12 @@ export const TeamPage: React.FC = () => {
 
             {canInvite && activeTab === 'members' && (
               <button
-                onClick={() => setShowInviteModal(true)}
+                onClick={() => setShowCreateModal(true)}
                 disabled={stats?.availableSlots === 0}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
                 <UserPlus className="w-4 h-4 mr-2" />
-                Inviter
+                Créer un membre
               </button>
             )}
           </div>
@@ -269,11 +271,20 @@ export const TeamPage: React.FC = () => {
         />
       )}
 
-      {/* Invite Modal */}
+      {/* Invite Modal (legacy - can be removed once fully migrated) */}
       <InviteMemberModal
         isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
         onInvite={handleInvite}
+        organizationType={organization.type}
+        availableSlots={stats?.availableSlots || 0}
+      />
+
+      {/* Create Member Modal */}
+      <CreateMemberModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreate={createMember}
         organizationType={organization.type}
         availableSlots={stats?.availableSlots || 0}
       />
