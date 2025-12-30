@@ -297,6 +297,7 @@ export const TeamPage: React.FC = () => {
       {activeTab === 'permissions' && organization && (
         <PermissionsTab
           organizationId={organization.id}
+          organizationType={organization.type}
           members={members}
           canEdit={isOwner}
         />

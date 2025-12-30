@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Shield, AlertCircle, CheckCircle } from 'lucide-react';
 import { useTeamPermissions } from '../../hooks/useTeamPermissions';
 import { MemberPermissionCard } from './MemberPermissionCard';
-import type { OrganizationMember } from '../../types/team';
+import type { OrganizationMember, OrganizationType } from '../../types/team';
 
 interface PermissionsTabProps {
   organizationId: string;
+  organizationType: OrganizationType;
   members: OrganizationMember[];
   canEdit: boolean;
 }
@@ -16,6 +17,7 @@ interface PermissionsTabProps {
  */
 export const PermissionsTab: React.FC<PermissionsTabProps> = ({
   organizationId,
+  organizationType,
   members,
   canEdit,
 }) => {
@@ -39,6 +41,18 @@ export const PermissionsTab: React.FC<PermissionsTabProps> = ({
 
   // Filter out owner from the list (owner has all permissions by default)
   const editableMembers = members.filter((member) => member.role !== 'owner');
+
+  // Filter modules by organization type and interface
+  const filteredModules = availableModules.filter((module) => {
+    // Map organization types to interface types
+    const interfaceTypeMap: Record<OrganizationType, string> = {
+      client: 'client',
+      supplier: 'supplier',
+      admin: 'admin'
+    };
+    
+    return module.interface === interfaceTypeMap[organizationType];
+  });
 
   // Handle permission change with debounce and auto-save
   const handlePermissionChange = useCallback(
@@ -141,6 +155,19 @@ export const PermissionsTab: React.FC<PermissionsTabProps> = ({
         </div>
       )}
 
+      {/* Organization Type Info */}
+      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start space-x-3">
+        <Shield className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm text-orange-900 font-medium">
+            Type d'organisation : {organizationType === 'client' ? 'Client' : organizationType === 'supplier' ? 'Fournisseur' : 'Administrateur'}
+          </p>
+          <p className="text-sm text-orange-800 mt-1">
+            {filteredModules.length} module{filteredModules.length > 1 ? 's' : ''} disponible{filteredModules.length > 1 ? 's' : ''} pour ce type d'organisation
+          </p>
+        </div>
+      </div>
+
       {/* Member Permission Cards */}
       {editableMembers.length === 0 ? (
         <div className="bg-gray-50 rounded-lg p-8 text-center">
@@ -164,7 +191,7 @@ export const PermissionsTab: React.FC<PermissionsTabProps> = ({
                 <MemberPermissionCard
                   key={member.id}
                   member={member}
-                  modules={availableModules}
+                  modules={filteredModules}
                   permissions={permissions}
                   onPermissionChange={(moduleKey, enabled) =>
                     handlePermissionChange(member.userId!, moduleKey, enabled)
