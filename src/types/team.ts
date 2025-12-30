@@ -15,7 +15,51 @@ export type MemberRole =
   // Admin roles
   | 'super_admin'
   | 'administrator'
+  | 'support'
+  | 'analyst'
+  | 'catalog_manager'
+  | 'zone_manager';
+
+// Page IDs
+export type PageId = string;
+
+// Page definitions by organization type
+export type ClientPageId = 
+  | 'dashboard'
+  | 'catalog'
+  | 'cart'
+  | 'orders'
+  | 'profile'
+  | 'treasury'
+  | 'team'
   | 'support';
+
+export type SupplierPageId = 
+  | 'dashboard'
+  | 'delivery-mode'
+  | 'orders'
+  | 'deliveries'
+  | 'treasury'
+  | 'zones'
+  | 'pricing'
+  | 'team'
+  | 'history'
+  | 'support'
+  | 'profile';
+
+export type AdminPageId = 
+  | 'analytics'
+  | 'users'
+  | 'orders'
+  | 'products'
+  | 'pricing'
+  | 'treasury'
+  | 'commissions'
+  | 'zones'
+  | 'team'
+  | 'tickets'
+  | 'data'
+  | 'settings';
 
 // Interfaces
 export interface Organization {
@@ -42,6 +86,21 @@ export interface OrganizationMember {
   acceptedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  // New fields for refactored system
+  customRoleId?: string | null;
+  isActive: boolean;
+  allowedPages?: string[];
+  passwordSetByOwner?: boolean;
+  lastLoginAt?: Date | null;
+  loginCount?: number;
+}
+
+export interface MemberWithProfile extends OrganizationMember {
+  profile?: {
+    fullName: string;
+    phone: string | null;
+    avatar?: string | null;
+  };
 }
 
 export interface RolePermission {
@@ -51,6 +110,21 @@ export interface RolePermission {
   displayName: string;
   description: string;
   permissions: Permissions;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// New interface for custom roles
+export interface CustomRole {
+  id: string;
+  organizationType: OrganizationType;
+  roleKey: string;
+  displayName: string;
+  description: string;
+  allowedPages: string[];
+  isSystemRole: boolean;
+  isActive: boolean;
+  createdBy?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -121,14 +195,17 @@ export interface TeamStats {
 export const ROLE_LABELS: Record<MemberRole, string> = {
   // Client roles
   owner: 'Propriétaire',
-  manager: 'Manager',
+  manager: 'Gérant',
   employee: 'Employé',
   // Supplier roles
   driver: 'Livreur',
   // Admin roles
   super_admin: 'Super Admin',
   administrator: 'Administrateur',
-  support: 'Support'
+  support: 'Support',
+  analyst: 'Analyste',
+  catalog_manager: 'Gestionnaire Catalogue',
+  zone_manager: 'Gestionnaire Zones'
 };
 
 export const ROLE_DESCRIPTIONS: Record<MemberRole, string> = {
@@ -141,19 +218,22 @@ export const ROLE_DESCRIPTIONS: Record<MemberRole, string> = {
   // Admin roles
   super_admin: 'Administrateur avec tous les droits',
   administrator: 'Gestion quotidienne de la plateforme',
-  support: 'Assistance utilisateur et tickets'
+  support: 'Assistance utilisateur et tickets',
+  analyst: 'Rapports et statistiques',
+  catalog_manager: 'Produits et prix de référence',
+  zone_manager: 'Zones de livraison'
 };
 
 export const ROLES_BY_ORG_TYPE: Record<OrganizationType, MemberRole[]> = {
   client: ['owner', 'manager', 'employee'],
   supplier: ['owner', 'manager', 'driver'],
-  admin: ['super_admin', 'administrator', 'support']
+  admin: ['super_admin', 'administrator', 'support', 'analyst', 'catalog_manager', 'zone_manager']
 };
 
 export const MAX_MEMBERS_BY_TYPE: Record<OrganizationType, number> = {
   client: 2,
   supplier: 2,
-  admin: 5
+  admin: 40  // Updated from 5 to 40
 };
 
 // Role colors for badges
@@ -167,7 +247,10 @@ export const ROLE_COLORS: Record<MemberRole, string> = {
   // Admin roles
   super_admin: 'bg-red-100 text-red-800',
   administrator: 'bg-orange-100 text-orange-800',
-  support: 'bg-teal-100 text-teal-800'
+  support: 'bg-teal-100 text-teal-800',
+  analyst: 'bg-indigo-100 text-indigo-800',
+  catalog_manager: 'bg-pink-100 text-pink-800',
+  zone_manager: 'bg-cyan-100 text-cyan-800'
 };
 
 // Status colors for badges
@@ -182,3 +265,60 @@ export const STATUS_LABELS: Record<MemberStatus, string> = {
   active: 'Actif',
   inactive: 'Inactif'
 };
+
+// Page definitions
+export interface PageDefinition {
+  id: string;
+  label: string;
+  moduleKey: string;
+  exclusiveSuperAdmin?: boolean;
+}
+
+export const CLIENT_PAGES: PageDefinition[] = [
+  { id: 'dashboard', label: 'Accueil', moduleKey: 'dashboard' },
+  { id: 'catalog', label: 'Catalogue', moduleKey: 'catalog' },
+  { id: 'cart', label: 'Panier', moduleKey: 'cart' },
+  { id: 'orders', label: 'Mes Commandes', moduleKey: 'orders' },
+  { id: 'profile', label: 'Mon Profil', moduleKey: 'profile' },
+  { id: 'treasury', label: 'Trésorerie', moduleKey: 'treasury' },
+  { id: 'team', label: 'Mon Équipe', moduleKey: 'team' },
+  { id: 'support', label: 'Support', moduleKey: 'support' }
+];
+
+export const SUPPLIER_PAGES: PageDefinition[] = [
+  { id: 'dashboard', label: 'Accueil', moduleKey: 'dashboard' },
+  { id: 'delivery-mode', label: 'Mode Livreur', moduleKey: 'deliveries' },
+  { id: 'orders', label: 'Commandes', moduleKey: 'orders' },
+  { id: 'deliveries', label: 'Livraisons', moduleKey: 'deliveries' },
+  { id: 'treasury', label: 'Revenus', moduleKey: 'treasury' },
+  { id: 'zones', label: 'Mes Zones', moduleKey: 'zones' },
+  { id: 'pricing', label: 'Produits vendus', moduleKey: 'pricing' },
+  { id: 'team', label: 'Mon Équipe', moduleKey: 'team' },
+  { id: 'history', label: 'Historique', moduleKey: 'history' },
+  { id: 'support', label: 'Support', moduleKey: 'support' },
+  { id: 'profile', label: 'Mon Profil', moduleKey: 'profile' }
+];
+
+export const ADMIN_PAGES: PageDefinition[] = [
+  { id: 'analytics', label: 'Analyses', moduleKey: 'analytics', exclusiveSuperAdmin: false },
+  { id: 'users', label: 'Utilisateurs', moduleKey: 'users', exclusiveSuperAdmin: false },
+  { id: 'orders', label: 'Commandes', moduleKey: 'orders', exclusiveSuperAdmin: false },
+  { id: 'products', label: 'Catalogue Produits', moduleKey: 'products', exclusiveSuperAdmin: false },
+  { id: 'pricing', label: 'Prix de Référence', moduleKey: 'pricing', exclusiveSuperAdmin: false },
+  { id: 'treasury', label: 'Trésorerie', moduleKey: 'treasury', exclusiveSuperAdmin: false },
+  { id: 'commissions', label: 'Mes Commissions', moduleKey: 'commissions', exclusiveSuperAdmin: true },
+  { id: 'zones', label: 'Zones de Livraison', moduleKey: 'zones', exclusiveSuperAdmin: false },
+  { id: 'team', label: 'Mon Équipe', moduleKey: 'team', exclusiveSuperAdmin: true },
+  { id: 'tickets', label: 'Support & Tickets', moduleKey: 'tickets', exclusiveSuperAdmin: false },
+  { id: 'data', label: 'Gestion des Données', moduleKey: 'data', exclusiveSuperAdmin: true },
+  { id: 'settings', label: 'Paramètres', moduleKey: 'settings', exclusiveSuperAdmin: true }
+];
+
+export const PAGES_BY_ORG_TYPE: Record<OrganizationType, PageDefinition[]> = {
+  client: CLIENT_PAGES,
+  supplier: SUPPLIER_PAGES,
+  admin: ADMIN_PAGES
+};
+
+// Super Admin exclusive pages (cannot be assigned to other roles)
+export const SUPER_ADMIN_EXCLUSIVE_PAGES = ['team', 'settings', 'commissions', 'data'];
