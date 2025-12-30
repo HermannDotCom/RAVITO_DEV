@@ -1,5 +1,16 @@
 import { supabase } from '../lib/supabase';
 
+/**
+ * Authentication service for password reset operations.
+ * 
+ * Note: This service uses a dedicated edge function (send-password-reset) that:
+ * 1. Generates reset links directly via Supabase Auth Admin API (more secure)
+ * 2. Handles email sending independently
+ * 
+ * This differs from emailService.sendPasswordResetEmail which requires a pre-generated
+ * reset URL to be passed in. This approach is preferred for security reasons as the
+ * reset link generation happens server-side only.
+ */
 export const authService = {
   /**
    * Envoie un email de réinitialisation de mot de passe

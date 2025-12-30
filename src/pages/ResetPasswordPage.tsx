@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useSimpleRouter } from '../hooks/useSimpleRouter';
 
 type PageState = 'loading' | 'valid' | 'invalid' | 'submitting' | 'success';
 
 export const ResetPasswordPage: React.FC = () => {
+  const { navigate } = useSimpleRouter();
   const [pageState, setPageState] = useState<PageState>('loading');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -88,7 +90,7 @@ export const ResetPasswordPage: React.FC = () => {
 
       // Redirect to login after 3 seconds
       setTimeout(() => {
-        window.location.href = '/login';
+        navigate('/login');
       }, 3000);
     } catch (err: any) {
       console.error('Error resetting password:', err);
@@ -98,7 +100,7 @@ export const ResetPasswordPage: React.FC = () => {
   };
 
   const handleBackToLogin = () => {
-    window.location.href = '/login';
+    navigate('/login');
   };
 
   // Loading state
