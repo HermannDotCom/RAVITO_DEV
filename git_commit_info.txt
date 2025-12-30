@@ -1,4 +1,0 @@
-a7b79de feat: Mise à jour complète de l'identité graphique RAVITO
-
-Branche: main
-Dernier push: Wed Dec 17 23:09:42 2025 -0500
