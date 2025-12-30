@@ -37,7 +37,14 @@ const transformMember = (record: any): OrganizationMember => ({
   invitedAt: new Date(record.invited_at),
   acceptedAt: record.accepted_at ? new Date(record.accepted_at) : null,
   createdAt: new Date(record.created_at),
-  updatedAt: new Date(record.updated_at)
+  updatedAt: new Date(record.updated_at),
+  // New fields
+  customRoleId: record.custom_role_id,
+  isActive: record.is_active !== false,
+  allowedPages: record.allowed_pages || [],
+  passwordSetByOwner: record.password_set_by_owner || false,
+  lastLoginAt: record.last_login_at ? new Date(record.last_login_at) : null,
+  loginCount: record.login_count || 0
 });
 
 /**
@@ -316,5 +323,226 @@ export const createOrganization = async (
   } catch (error) {
     console.error('Error in createOrganization:', error);
     return { success: false, error: 'Erreur lors de la création de l\'organisation' };
+  }
+};
+
+/**
+ * Create a new member directly (no invitation)
+ * This requires an Edge Function to create the user in Supabase Auth
+ */
+export const createMember = async (params: {
+  organizationId: string;
+  email: string;
+  fullName: string;
+  phone?: string;
+  password: string;
+  role: MemberRole;
+  allowedPages?: string[];
+  customRoleId?: string;
+}): Promise<{ success: boolean; error?: string; member?: OrganizationMember }> => {
+  try {
+    // Check if organization can add more members
+    const { data: canAddData, error: canAddError } = await supabase
+      .rpc('can_add_member', { org_id: params.organizationId });
+
+    if (canAddError) {
+      console.error('Error checking member quota:', canAddError);
+      return { success: false, error: 'Erreur lors de la vérification du quota' };
+    }
+
+    if (!canAddData) {
+      return { success: false, error: 'Quota de membres atteint' };
+    }
+
+    // Call Edge Function to create user and member
+    const { data, error } = await supabase.functions.invoke('create-team-member', {
+      body: {
+        organizationId: params.organizationId,
+        email: params.email,
+        fullName: params.fullName,
+        phone: params.phone,
+        password: params.password,
+        role: params.role,
+        allowedPages: params.allowedPages,
+        customRoleId: params.customRoleId
+      }
+    });
+
+    if (error) {
+      console.error('Error creating member:', error);
+      return { success: false, error: error.message || 'Erreur lors de la création du membre' };
+    }
+
+    if (!data || !data.success) {
+      return { success: false, error: data?.error || 'Erreur lors de la création du membre' };
+    }
+
+    return { success: true, member: data.member };
+  } catch (error) {
+    console.error('Error in createMember:', error);
+    return { success: false, error: 'Erreur lors de la création du membre' };
+  }
+};
+
+/**
+ * Toggle member active/inactive status
+ */
+export const toggleMemberStatus = async (
+  memberId: string,
+  isActive: boolean
+): Promise<{ success: boolean; error?: string; member?: OrganizationMember }> => {
+  try {
+    const { data, error } = await supabase
+      .from('organization_members')
+      .update({ 
+        is_active: isActive,
+        status: isActive ? 'active' : 'inactive'
+      })
+      .eq('id', memberId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error toggling member status:', error);
+      return { success: false, error: 'Erreur lors de la mise à jour du statut' };
+    }
+
+    return { success: true, member: transformMember(data) };
+  } catch (error) {
+    console.error('Error in toggleMemberStatus:', error);
+    return { success: false, error: 'Erreur lors de la mise à jour du statut' };
+  }
+};
+
+/**
+ * Update member permissions (pages for Client/Supplier, role for Admin)
+ */
+export const updateMemberPermissions = async (
+  memberId: string,
+  updates: {
+    allowedPages?: string[];
+    customRoleId?: string | null;
+    role?: MemberRole;
+  }
+): Promise<{ success: boolean; error?: string; member?: OrganizationMember }> => {
+  try {
+    const updateData: any = {};
+    
+    if (updates.allowedPages !== undefined) {
+      updateData.allowed_pages = updates.allowedPages;
+    }
+    
+    if (updates.customRoleId !== undefined) {
+      updateData.custom_role_id = updates.customRoleId;
+    }
+    
+    if (updates.role !== undefined) {
+      updateData.role = updates.role;
+    }
+
+    const { data, error } = await supabase
+      .from('organization_members')
+      .update(updateData)
+      .eq('id', memberId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating member permissions:', error);
+      return { success: false, error: 'Erreur lors de la mise à jour des permissions' };
+    }
+
+    return { success: true, member: transformMember(data) };
+  } catch (error) {
+    console.error('Error in updateMemberPermissions:', error);
+    return { success: false, error: 'Erreur lors de la mise à jour des permissions' };
+  }
+};
+
+/**
+ * Get member with profile information
+ */
+export const getMemberWithProfile = async (
+  memberId: string
+): Promise<{ success: boolean; error?: string; member?: any }> => {
+  try {
+    const { data: memberData, error: memberError } = await supabase
+      .from('organization_members')
+      .select('*')
+      .eq('id', memberId)
+      .single();
+
+    if (memberError || !memberData) {
+      return { success: false, error: 'Membre non trouvé' };
+    }
+
+    const member = transformMember(memberData);
+
+    // Get profile if user_id exists
+    if (member.userId) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('full_name, phone, avatar')
+        .eq('id', member.userId)
+        .single();
+
+      if (profileData) {
+        return {
+          success: true,
+          member: {
+            ...member,
+            profile: {
+              fullName: profileData.full_name,
+              phone: profileData.phone,
+              avatar: profileData.avatar
+            }
+          }
+        };
+      }
+    }
+
+    return { success: true, member };
+  } catch (error) {
+    console.error('Error in getMemberWithProfile:', error);
+    return { success: false, error: 'Erreur lors de la récupération du membre' };
+  }
+};
+
+/**
+ * Get all members with their profile information
+ */
+export const getOrganizationMembersWithProfiles = async (
+  orgId: string
+): Promise<any[]> => {
+  try {
+    const { data: members, error } = await supabase
+      .from('organization_members')
+      .select(`
+        *,
+        profiles:user_id (
+          full_name,
+          phone,
+          avatar
+        )
+      `)
+      .eq('organization_id', orgId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching organization members with profiles:', error);
+      return [];
+    }
+
+    return (members || []).map(record => ({
+      ...transformMember(record),
+      profile: record.profiles ? {
+        fullName: record.profiles.full_name,
+        phone: record.profiles.phone,
+        avatar: record.profiles.avatar
+      } : null
+    }));
+  } catch (error) {
+    console.error('Error in getOrganizationMembersWithProfiles:', error);
+    return [];
   }
 };
