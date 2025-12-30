@@ -13,7 +13,7 @@ const corsHeaders = {
 };
 
 interface EmailRequest {
-  type: 'welcome' | 'password_reset' | 'new_order' | 'delivery_confirmation' | 'order_paid' | 'offer_received' | 'offer_accepted' | 'delivery_code' | 'order_cancelled' | 'rating_request';
+  type: 'welcome' | 'welcome_member' | 'password_reset' | 'new_order' | 'delivery_confirmation' | 'order_paid' | 'offer_received' | 'offer_accepted' | 'delivery_code' | 'order_cancelled' | 'rating_request';
   to: string;
   data: Record<string, unknown>;
 }
@@ -255,6 +255,88 @@ function buildWelcomeEmailHtml(data: Record<string, unknown>): string {
   `;
 
   return buildBaseEmailTemplate(content, userEmail);
+}
+
+// Build welcome member email HTML  
+function buildWelcomeMemberEmailHtml(data: Record<string, unknown>): string {
+  const memberName = String(data.memberName || 'Nouveau membre');
+  const organizationName = String(data.organizationName || 'RAVITO');
+  const email = String(data.email || '');
+  const password = String(data.password || '');
+  const role = String(data.role || '');
+  const loginUrl = String(data.loginUrl || 'https://ravito.ci/login');
+
+  const content = `
+    <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
+      <h1 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 28px; font-weight: 700; color: #111827; margin: 0 0 24px 0; line-height: 1.3;">
+        Bienvenue dans l'équipe ${organizationName} ! 👋
+      </h1>
+      
+      <p style="font-size: 16px; line-height: 1.6; color: #4B5563; margin: 0 0 24px 0;">
+        Bonjour <strong>${memberName}</strong>,
+      </p>
+      
+      <p style="font-size: 16px; line-height: 1.6; color: #4B5563; margin: 0 0 24px 0;">
+        Vous avez été ajouté(e) comme membre de l'équipe <strong>${organizationName}</strong> sur RAVITO avec le rôle de <strong>${role}</strong>.
+      </p>
+      
+      <div style="background-color: #FEF3C7; border: 2px solid #F59E0B; border-radius: 12px; padding: 24px; margin: 0 0 24px 0;">
+        <h2 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 18px; font-weight: 600; color: #92400E; margin: 0 0 16px 0;">
+          🔐 Vos identifiants de connexion
+        </h2>
+        
+        <div style="margin-bottom: 12px;">
+          <div style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; font-weight: 600; color: #92400E; margin-bottom: 4px;">
+            Email :
+          </div>
+          <div style="font-family: 'Inter', Arial, sans-serif; font-size: 16px; color: #1F2937; background-color: #FFFFFF; padding: 12px; border-radius: 8px; border: 1px solid #D1D5DB;">
+            ${email}
+          </div>
+        </div>
+        
+        <div>
+          <div style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; font-weight: 600; color: #92400E; margin-bottom: 4px;">
+            Mot de passe temporaire :
+          </div>
+          <div style="font-family: 'Courier New', monospace; font-size: 16px; color: #1F2937; background-color: #FFFFFF; padding: 12px; border-radius: 8px; border: 1px solid #D1D5DB;">
+            ${password}
+          </div>
+        </div>
+        
+        <p style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #92400E; line-height: 1.5; margin: 16px 0 0 0;">
+          ⚠️ <strong>Important :</strong> Nous vous recommandons fortement de changer ce mot de passe lors de votre première connexion pour des raisons de sécurité.
+        </p>
+      </div>
+      
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="${loginUrl}" style="display: inline-block; background-color: #EA580C; color: #FFFFFF; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; box-shadow: 0 4px 6px rgba(234, 88, 12, 0.2);">
+          Se connecter maintenant
+        </a>
+      </div>
+      
+      <div style="background-color: #F3F4F6; border-radius: 12px; padding: 20px; margin: 0 0 24px 0;">
+        <h3 style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 16px; font-weight: 600; color: #111827; margin: 0 0 12px 0;">
+          Pour vous connecter :
+        </h3>
+        <ol style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #4B5563; line-height: 1.6; padding-left: 20px; margin: 0;">
+          <li style="margin-bottom: 8px;">Cliquez sur le bouton "Se connecter maintenant" ci-dessus</li>
+          <li style="margin-bottom: 8px;">Entrez votre adresse email et votre mot de passe temporaire</li>
+          <li style="margin-bottom: 8px;">Une fois connecté(e), changez votre mot de passe dans les paramètres de votre profil</li>
+        </ol>
+      </div>
+      
+      <p style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #6B7280; line-height: 1.6; margin: 0 0 16px 0;">
+        Si vous avez des questions ou rencontrez des difficultés, n'hésitez pas à contacter votre administrateur ou notre équipe support.
+      </p>
+      
+      <p style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #6B7280; line-height: 1.6; margin: 0;">
+        À bientôt sur RAVITO !<br />
+        L'équipe RAVITO 🚀
+      </p>
+    </div>
+  `;
+
+  return buildBaseEmailTemplate(content, email);
 }
 
 // Build password reset email HTML
@@ -943,6 +1025,14 @@ function buildEmailContent(type: string, data: Record<string, unknown>): EmailCo
       return {
         subject: `Bienvenue sur RAVITO, ${userName} ! 🎉`,
         html: buildWelcomeEmailHtml(data),
+      };
+    }
+    case 'welcome_member': {
+      const memberName = String(data.memberName || 'Nouveau membre');
+      const organizationName = String(data.organizationName || 'RAVITO');
+      return {
+        subject: `Bienvenue dans l'équipe ${organizationName} ! 👋`,
+        html: buildWelcomeMemberEmailHtml(data),
       };
     }
     case 'password_reset':

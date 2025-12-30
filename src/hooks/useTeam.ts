@@ -15,8 +15,26 @@ interface UseTeamReturn {
   isLoading: boolean;
   error: string | null;
   inviteMember: (email: string, role: MemberRole) => Promise<boolean>;
+  createMember: (params: {
+    email: string;
+    fullName: string;
+    phone?: string;
+    password: string;
+    role: MemberRole;
+    allowedPages?: string[];
+    customRoleId?: string;
+  }) => Promise<boolean>;
   removeMember: (memberId: string) => Promise<boolean>;
   updateMemberRole: (memberId: string, newRole: MemberRole) => Promise<boolean>;
+  toggleMemberStatus: (memberId: string, isActive: boolean) => Promise<boolean>;
+  updateMemberPermissions: (
+    memberId: string,
+    updates: {
+      allowedPages?: string[];
+      customRoleId?: string | null;
+      role?: MemberRole;
+    }
+  ) => Promise<boolean>;
   refresh: () => Promise<void>;
 }
 
@@ -91,6 +109,40 @@ export const useTeam = (): UseTeamReturn => {
     [organization, loadOrganization]
   );
 
+  // Create a member directly (no invitation)
+  const createMember = useCallback(
+    async (params: {
+      email: string;
+      fullName: string;
+      phone?: string;
+      password: string;
+      role: MemberRole;
+      allowedPages?: string[];
+      customRoleId?: string;
+    }): Promise<boolean> => {
+      if (!organization) {
+        setError('Aucune organisation trouvée');
+        return false;
+      }
+
+      setError(null);
+      const result = await teamService.createMember({
+        organizationId: organization.id,
+        ...params
+      });
+
+      if (result.success) {
+        // Refresh data
+        await loadOrganization();
+        return true;
+      } else {
+        setError(result.error || 'Erreur lors de la création du membre');
+        return false;
+      }
+    },
+    [organization, loadOrganization]
+  );
+
   // Remove a member
   const removeMember = useCallback(
     async (memberId: string): Promise<boolean> => {
@@ -127,6 +179,49 @@ export const useTeam = (): UseTeamReturn => {
     [loadOrganization]
   );
 
+  // Toggle member active/inactive status
+  const toggleMemberStatus = useCallback(
+    async (memberId: string, isActive: boolean): Promise<boolean> => {
+      setError(null);
+      const result = await teamService.toggleMemberStatus(memberId, isActive);
+
+      if (result.success) {
+        // Refresh data
+        await loadOrganization();
+        return true;
+      } else {
+        setError(result.error || 'Erreur lors de la mise à jour du statut');
+        return false;
+      }
+    },
+    [loadOrganization]
+  );
+
+  // Update member permissions
+  const updateMemberPermissions = useCallback(
+    async (
+      memberId: string,
+      updates: {
+        allowedPages?: string[];
+        customRoleId?: string | null;
+        role?: MemberRole;
+      }
+    ): Promise<boolean> => {
+      setError(null);
+      const result = await teamService.updateMemberPermissions(memberId, updates);
+
+      if (result.success) {
+        // Refresh data
+        await loadOrganization();
+        return true;
+      } else {
+        setError(result.error || 'Erreur lors de la mise à jour des permissions');
+        return false;
+      }
+    },
+    [loadOrganization]
+  );
+
   // Refresh function
   const refresh = useCallback(async () => {
     await loadOrganization();
@@ -139,8 +234,11 @@ export const useTeam = (): UseTeamReturn => {
     isLoading,
     error,
     inviteMember,
+    createMember,
     removeMember,
     updateMemberRole,
+    toggleMemberStatus,
+    updateMemberPermissions,
     refresh
   };
 };

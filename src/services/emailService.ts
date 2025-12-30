@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase';
 
 const APP_URL = import.meta.env.VITE_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://ravito.ci');
 
-export type EmailType = 'welcome' | 'password_reset' | 'new_order' | 'delivery_confirmation' | 'order_paid' | 'offer_received' | 'offer_accepted' | 'delivery_code' | 'order_cancelled' | 'rating_request';
+export type EmailType = 'welcome' | 'welcome_member' | 'password_reset' | 'new_order' | 'delivery_confirmation' | 'order_paid' | 'offer_received' | 'offer_accepted' | 'delivery_code' | 'order_cancelled' | 'rating_request';
 
 interface SendEmailParams {
   type: EmailType;
@@ -206,6 +206,28 @@ export const emailService = {
       data: {
         ...params,
         ratingUrl: `${APP_URL}/orders/${params.orderId}/rate`,
+      },
+    });
+  },
+
+  async sendWelcomeMemberEmail(params: {
+    to: string;
+    memberName: string;
+    organizationName: string;
+    email: string;
+    password: string;
+    role: string;
+  }) {
+    return this.send({
+      type: 'welcome_member',
+      to: params.to,
+      data: {
+        memberName: params.memberName,
+        organizationName: params.organizationName,
+        email: params.email,
+        password: params.password,
+        role: params.role,
+        loginUrl: `${APP_URL}/login`,
       },
     });
   },

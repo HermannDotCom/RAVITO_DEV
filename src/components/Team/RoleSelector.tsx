@@ -7,6 +7,7 @@ interface RoleSelectorProps {
   selectedRole: MemberRole | '';
   onChange: (role: MemberRole) => void;
   excludeOwner?: boolean;
+  disabled?: boolean;
 }
 
 /**
@@ -16,7 +17,8 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
   organizationType,
   selectedRole,
   onChange,
-  excludeOwner = true
+  excludeOwner = true,
+  disabled = false
 }) => {
   const availableRoles = ROLES_BY_ORG_TYPE[organizationType].filter(
     role => !excludeOwner || role !== 'owner'
@@ -31,7 +33,8 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
         id="role-select"
         value={selectedRole}
         onChange={(e) => onChange(e.target.value as MemberRole)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+        disabled={disabled}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
       >
         <option value="">Sélectionner un rôle</option>
         {availableRoles.map((role) => (

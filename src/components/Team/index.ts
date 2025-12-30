@@ -1,5 +1,6 @@
 export { TeamPage } from './TeamPage';
 export { InviteMemberModal } from './InviteMemberModal';
+export { CreateMemberModal } from './CreateMemberModal';
 export { MemberCard } from './MemberCard';
 export { QuotaBar } from './QuotaBar';
 export { RoleSelector } from './RoleSelector';
