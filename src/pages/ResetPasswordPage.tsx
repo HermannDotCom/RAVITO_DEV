@@ -5,7 +5,7 @@ import { useSimpleRouter } from '../hooks/useSimpleRouter';
 
 type PageState = 'loading' | 'valid' | 'invalid' | 'submitting' | 'success';
 
-export const ResetPasswordPage: React.FC = () => {
+export const ResetPasswordPage: React. FC = () => {
   const { navigate } = useSimpleRouter();
   const [pageState, setPageState] = useState<PageState>('loading');
   const [password, setPassword] = useState('');
@@ -16,26 +16,50 @@ export const ResetPasswordPage: React.FC = () => {
   const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong'>('weak');
 
   useEffect(() => {
-    // Check if we have a valid recovery session
-    const checkSession = async () => {
+    const handleRecoveryToken = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error || !session) {
-          console.error('No valid session found:', error);
-          setPageState('invalid');
-          return;
-        }
+        // Extraire les paramètres du hash URL
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const type = hashParams.get('type');
 
-        // Valid session found
-        setPageState('valid');
+        console.log('Recovery token check:', { type, hasAccessToken: !!accessToken, hasRefreshToken: !!refreshToken });
+
+        if (type === 'recovery' && accessToken && refreshToken) {
+          // Établir la session avec les tokens de récupération
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (error) {
+            console.error('Error setting session:', error);
+            setPageState('invalid');
+            return;
+          }
+
+          console.log('Session established for password reset');
+          setPageState('valid');
+        } else {
+          // Vérifier si une session recovery existe déjà
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session) {
+            console.log('Existing session found');
+            setPageState('valid');
+          } else {
+            console.log('No valid recovery token or session found');
+            setPageState('invalid');
+          }
+        }
       } catch (err) {
-        console.error('Error checking session:', err);
+        console.error('Error handling recovery token:', err);
         setPageState('invalid');
       }
     };
 
-    checkSession();
+    handleRecoveryToken();
   }, []);
 
   useEffect(() => {
@@ -47,8 +71,8 @@ export const ResetPasswordPage: React.FC = () => {
 
     let strength = 0;
     if (password.length >= 8) strength++;
-    if (password.length >= 12) strength++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+    if (password. length >= 12) strength++;
+    if (/[a-z]/.test(password) && /[A-Z]/. test(password)) strength++;
     if (/[0-9]/.test(password)) strength++;
     if (/[^a-zA-Z0-9]/.test(password)) strength++;
 
@@ -62,12 +86,12 @@ export const ResetPasswordPage: React.FC = () => {
     setError('');
 
     // Validation
-    if (!password || !confirmPassword) {
+    if (! password || !confirmPassword) {
       setError('Veuillez remplir tous les champs');
       return;
     }
 
-    if (password.length < 8) {
+    if (password. length < 8) {
       setError('Le mot de passe doit contenir au moins 8 caractères');
       return;
     }
@@ -80,11 +104,14 @@ export const ResetPasswordPage: React.FC = () => {
     setPageState('submitting');
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
+      const { error:  updateError } = await supabase. auth.updateUser({
         password: password
       });
 
       if (updateError) throw updateError;
+
+      // Déconnecter l'utilisateur après le changement de mot de passe
+      await supabase.auth.signOut();
 
       setPageState('success');
 
@@ -92,10 +119,10 @@ export const ResetPasswordPage: React.FC = () => {
       setTimeout(() => {
         navigate('/login');
       }, 3000);
-    } catch (err: any) {
+    } catch (err:  any) {
       console.error('Error resetting password:', err);
       setPageState('valid');
-      setError(err.message || 'Une erreur est survenue. Veuillez réessayer.');
+      setError(err. message || 'Une erreur est survenue.  Veuillez réessayer.');
     }
   };
 
@@ -109,7 +136,7 @@ export const ResetPasswordPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50 flex items-center justify-center p-4">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-orange-500 mx-auto mb-4" />
-          <p className="text-gray-600">Vérification du lien...</p>
+          <p className="text-gray-600">Vérification du lien... </p>
         </div>
       </div>
     );
@@ -129,7 +156,7 @@ export const ResetPasswordPage: React.FC = () => {
                 Lien invalide ou expiré
               </h2>
               <p className="text-gray-600 mb-6">
-                Ce lien de réinitialisation est invalide ou a expiré. Veuillez demander un nouveau lien.
+                Ce lien de réinitialisation est invalide ou a expiré.  Veuillez demander un nouveau lien. 
               </p>
             </div>
 
@@ -157,10 +184,10 @@ export const ResetPasswordPage: React.FC = () => {
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Mot de passe mis à jour !
+                Mot de passe mis à jour ! 
               </h2>
               <p className="text-gray-600 mb-6">
-                Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé vers la page de connexion...
+                Votre mot de passe a été réinitialisé avec succès.  Vous allez être redirigé vers la page de connexion... 
               </p>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -224,9 +251,9 @@ export const ResetPasswordPage: React.FC = () => {
               {password && (
                 <div className="mt-2">
                   <div className="flex gap-1 mb-1">
-                    <div className={`h-1 flex-1 rounded ${passwordStrength === 'weak' ? 'bg-red-500' : passwordStrength === 'medium' ? 'bg-yellow-500' : 'bg-green-500'}`} />
-                    <div className={`h-1 flex-1 rounded ${passwordStrength === 'medium' || passwordStrength === 'strong' ? passwordStrength === 'medium' ? 'bg-yellow-500' : 'bg-green-500' : 'bg-gray-200'}`} />
-                    <div className={`h-1 flex-1 rounded ${passwordStrength === 'strong' ? 'bg-green-500' : 'bg-gray-200'}`} />
+                    <div className={`h-1 flex-1 rounded ${passwordStrength === 'weak' ? 'bg-red-500' : passwordStrength === 'medium' ?  'bg-yellow-500' : 'bg-green-500'}`} />
+                    <div className={`h-1 flex-1 rounded ${passwordStrength === 'medium' || passwordStrength === 'strong' ? (passwordStrength === 'medium' ? 'bg-yellow-500' : 'bg-green-500') : 'bg-gray-200'}`} />
+                    <div className={`h-1 flex-1 rounded ${passwordStrength === 'strong' ?  'bg-green-500' : 'bg-gray-200'}`} />
                   </div>
                   <p className={`text-xs ${passwordStrength === 'weak' ? 'text-red-600' : passwordStrength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}>
                     {passwordStrength === 'weak' && 'Mot de passe faible'}
@@ -246,7 +273,7 @@ export const ResetPasswordPage: React.FC = () => {
                 <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                 <input
                   id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? 'text' :  'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
@@ -274,12 +301,12 @@ export const ResetPasswordPage: React.FC = () => {
             <button
               type="submit"
               disabled={pageState === 'submitting'}
-              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3.5 rounded-lg font-semibold text-lg hover:from-orange-600 hover:to-orange-700 focus:ring-4 focus:ring-orange-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3.5 rounded-lg font-semibold text-lg hover:from-orange-600 hover:to-orange-700 focus:ring-4 focus:ring-orange-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {pageState === 'submitting' ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Réinitialisation...
+                  Réinitialisation... 
                 </>
               ) : (
                 'Réinitialiser mon mot de passe'
