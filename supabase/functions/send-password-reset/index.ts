@@ -1,3 +1,5 @@
+// supabase/functions/send-password-reset/index.ts
+
 import { createClient } from 'npm:@supabase/supabase-js@2.58.0';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
