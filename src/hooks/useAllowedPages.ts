@@ -92,16 +92,12 @@ export function useAllowedPages(): UseAllowedPagesReturn {
           setIsOwner(true);
           // Get all pages based on user's role from profile
           let allPages: string[] = [];
-          switch (user.role) {
-            case 'client':
-              allPages = CLIENT_PAGES.map(p => p.id);
-              break;
-            case 'supplier':
-              allPages = SUPPLIER_PAGES.map(p => p.id);
-              break;
-            case 'admin':
-              allPages = ADMIN_PAGES.map(p => p.id);
-              break;
+          if (user.role === 'client') {
+            allPages = CLIENT_PAGES.map(p => p.id);
+          } else if (user.role === 'supplier') {
+            allPages = SUPPLIER_PAGES.map(p => p.id);
+          } else if (user.role === 'admin') {
+            allPages = ADMIN_PAGES.map(p => p.id);
           }
           setAllowedPages(allPages);
         } else {

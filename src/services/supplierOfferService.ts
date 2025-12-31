@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { emailService } from './emailService';
+import { getOrganizationOwnerId } from '../utils/organizationUtils';
 
 export interface SupplierOfferItem {
   productId: string;
