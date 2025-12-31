@@ -83,12 +83,8 @@ export function useOrganization(): UseOrganizationReturn {
 
         if (membership && membership.organizations) {
           // User is a member
-          const org = Array.isArray(membership.organizations) 
-            ? membership.organizations[0] 
-            : membership.organizations;
-          
-          setOrganizationId(org.id);
-          setOrganizationType(org.type as 'client' | 'supplier' | 'admin');
+          setOrganizationId(membership.organizations.id);
+          setOrganizationType(membership.organizations.type as 'client' | 'supplier' | 'admin');
           setIsOwner(membership.role === 'owner');
         } else {
           // User has no organization

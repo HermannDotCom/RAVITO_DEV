@@ -35,6 +35,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
   const { allowedPages, isOwner } = useAllowedPages();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
+  /**
+   * Helper function to filter menu items based on allowed pages and module access
+   */
+  const filterMenuItems = (items: Array<{ id: string; label: string; icon: any; moduleKey?: string }>) => {
+    // Filter based on allowed_pages for members, or keep all for owners
+    const filteredByPages = items.filter(item => {
+      // Always show "more" button
+      if (item.id === 'more') return true;
+      
+      // Owners see everything
+      if (isOwner) return true;
+      
+      // Members see only their allowed pages
+      return allowedPages.includes(item.id);
+    });
+
+    // Additional filter based on module access permissions
+    return filteredByPages.filter(item => !item.moduleKey || hasAccess(item.moduleKey));
+  };
+
   const getMainMenuItems = () => {
     if (!user) return [];
 
@@ -80,21 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         return [];
     }
 
-    // Filter based on allowed_pages for members, or keep all for owners
-    // Keep items without id (like "more") always visible
-    const filteredItems = allMenuItems.filter(item => {
-      // Always show "more" button
-      if (item.id === 'more') return true;
-      
-      // Owners see everything
-      if (isOwner) return true;
-      
-      // Members see only their allowed pages
-      return allowedPages.includes(item.id);
-    });
-
-    // Additional filter based on module access permissions
-    return filteredItems.filter(item => !item.moduleKey || hasAccess(item.moduleKey));
+    return filterMenuItems(allMenuItems);
   };
 
   const getSecondaryMenuItems = () => {
@@ -125,17 +131,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         return [];
     }
 
-    // Filter based on allowed_pages for members, or keep all for owners
-    const filteredItems = allSecondaryItems.filter(item => {
-      // Owners see everything
-      if (isOwner) return true;
-      
-      // Members see only their allowed pages
-      return allowedPages.includes(item.id);
-    });
-
-    // Additional filter based on module access permissions
-    return filteredItems.filter(item => !item.moduleKey || hasAccess(item.moduleKey));
+    return filterMenuItems(allSecondaryItems);
   };
 
   const mainMenuItems = getMainMenuItems();

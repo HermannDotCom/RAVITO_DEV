@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { SUPPLIER_PAGES, CLIENT_PAGES, ADMIN_PAGES } from '../types/team';
+import type { UserRole } from '../types';
 
 interface UseAllowedPagesReturn {
   allowedPages: string[];
@@ -9,6 +10,20 @@ interface UseAllowedPagesReturn {
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
+}
+
+/**
+ * Helper function to get all page IDs for a given user role
+ */
+function getAllPagesByRole(role: UserRole): string[] {
+  if (role === 'client') {
+    return CLIENT_PAGES.map(p => p.id);
+  } else if (role === 'supplier') {
+    return SUPPLIER_PAGES.map(p => p.id);
+  } else if (role === 'admin') {
+    return ADMIN_PAGES.map(p => p.id);
+  }
+  return [];
 }
 
 /**
@@ -52,21 +67,7 @@ export function useAllowedPages(): UseAllowedPagesReturn {
       if (ownedOrg) {
         // User is owner - grant all pages for their type
         setIsOwner(true);
-        let allPages: string[] = [];
-        
-        switch (ownedOrg.type) {
-          case 'client':
-            allPages = CLIENT_PAGES.map(p => p.id);
-            break;
-          case 'supplier':
-            allPages = SUPPLIER_PAGES.map(p => p.id);
-            break;
-          case 'admin':
-            allPages = ADMIN_PAGES.map(p => p.id);
-            break;
-        }
-        
-        setAllowedPages(allPages);
+        setAllowedPages(getAllPagesByRole(user.role));
         setIsLoading(false);
         return;
       }
@@ -90,16 +91,7 @@ export function useAllowedPages(): UseAllowedPagesReturn {
         // Check if member has owner role (shouldn't happen but handle it)
         if (membership.role === 'owner') {
           setIsOwner(true);
-          // Get all pages based on user's role from profile
-          let allPages: string[] = [];
-          if (user.role === 'client') {
-            allPages = CLIENT_PAGES.map(p => p.id);
-          } else if (user.role === 'supplier') {
-            allPages = SUPPLIER_PAGES.map(p => p.id);
-          } else if (user.role === 'admin') {
-            allPages = ADMIN_PAGES.map(p => p.id);
-          }
-          setAllowedPages(allPages);
+          setAllowedPages(getAllPagesByRole(user.role));
         } else {
           // Regular member - use allowed_pages
           setIsOwner(false);

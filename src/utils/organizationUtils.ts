@@ -36,10 +36,7 @@ export async function getOrganizationOwnerId(userId: string): Promise<string> {
 
     if (membership && membership.organizations) {
       // User is a member, return organization owner's ID
-      const org = Array.isArray(membership.organizations) 
-        ? membership.organizations[0] 
-        : membership.organizations;
-      return org.owner_id;
+      return membership.organizations.owner_id;
     }
 
     // Fallback to user's own ID if no organization found
