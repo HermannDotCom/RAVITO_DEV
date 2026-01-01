@@ -5,7 +5,7 @@ import { useSimpleRouter } from '../hooks/useSimpleRouter';
 
 type PageState = 'loading' | 'valid' | 'invalid' | 'submitting' | 'success';
 
-export const ResetPasswordPage: React. FC = () => {
+export const ResetPasswordPage: React.FC = () => {
   const { navigate } = useSimpleRouter();
   const [pageState, setPageState] = useState<PageState>('loading');
   const [password, setPassword] = useState('');
@@ -33,16 +33,16 @@ export const ResetPasswordPage: React. FC = () => {
         console.log('Recovery token check:', { 
           type, 
           hasAccessToken: !!accessToken, 
-          hasRefreshToken:  !!refreshToken,
+          hasRefreshToken: !!refreshToken,
           hashLength: hash.length 
         });
 
         // Si on a les tokens dans le hash, établir la session
         if (accessToken && refreshToken) {
-          console.log('Setting session with tokens from hash.. .');
+          console.log('Setting session with tokens from hash...');
           
-          const { data, error:  sessionError } = await supabase.auth.setSession({
-            access_token:  accessToken,
+          const { data, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
             refresh_token: refreshToken,
           });
 
@@ -108,7 +108,7 @@ export const ResetPasswordPage: React. FC = () => {
 
   useEffect(() => {
     // Calculate password strength
-    if (password. length === 0) {
+    if (password.length === 0) {
       setPasswordStrength('weak');
       return;
     }
@@ -116,7 +116,7 @@ export const ResetPasswordPage: React. FC = () => {
     let strength = 0;
     if (password.length >= 8) strength++;
     if (password.length >= 12) strength++;
-    if (/[a-z]/.test(password) && /[A-Z]/. test(password)) strength++;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
     if (/[0-9]/.test(password)) strength++;
     if (/[^a-zA-Z0-9]/.test(password)) strength++;
 
@@ -129,12 +129,12 @@ export const ResetPasswordPage: React. FC = () => {
     e.preventDefault();
     setError('');
 
-    if (! password || !confirmPassword) {
+    if (!password || !confirmPassword) {
       setError('Veuillez remplir tous les champs');
       return;
     }
 
-    if (password. length < 8) {
+    if (password.length < 8) {
       setError('Le mot de passe doit contenir au moins 8 caractères');
       return;
     }
@@ -147,7 +147,7 @@ export const ResetPasswordPage: React. FC = () => {
     setPageState('submitting');
 
     try {
-      const { error:  updateError } = await supabase.auth.updateUser({
+      const { error: updateError } = await supabase.auth.updateUser({
         password: password
       });
 
@@ -159,10 +159,10 @@ export const ResetPasswordPage: React. FC = () => {
       setTimeout(() => {
         navigate('/login');
       }, 3000);
-    } catch (err:  any) {
+    } catch (err: any) {
       console.error('Error resetting password:', err);
       setPageState('valid');
-      setError(err.message || 'Une erreur est survenue.  Veuillez réessayer.');
+      setError(err.message || 'Une erreur est survenue. Veuillez réessayer.');
     }
   };
 
@@ -175,7 +175,7 @@ export const ResetPasswordPage: React. FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50 flex items-center justify-center p-4">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-orange-500 mx-auto mb-4" />
-          <p className="text-gray-600">Vérification du lien... </p>
+          <p className="text-gray-600">Vérification du lien...</p>
         </div>
       </div>
     );
@@ -194,7 +194,7 @@ export const ResetPasswordPage: React. FC = () => {
                 Lien invalide ou expiré
               </h2>
               <p className="text-gray-600 mb-6">
-                Ce lien de réinitialisation est invalide ou a expiré.  Veuillez demander un nouveau lien.
+                Ce lien de réinitialisation est invalide ou a expiré. Veuillez demander un nouveau lien.
               </p>
             </div>
             <button
@@ -220,10 +220,10 @@ export const ResetPasswordPage: React. FC = () => {
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Mot de passe mis à jour ! 
+                Mot de passe mis à jour !
               </h2>
               <p className="text-gray-600 mb-6">
-                Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé vers la page de connexion... 
+                Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé vers la page de connexion...
               </p>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-800">
@@ -309,8 +309,8 @@ export const ResetPasswordPage: React. FC = () => {
                   id="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target. value)}
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus: ring-orange-500 focus: border-orange-500 transition-colors"
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
                   placeholder="Confirmez votre mot de passe"
                   disabled={pageState === 'submitting'}
                 />
@@ -340,7 +340,7 @@ export const ResetPasswordPage: React. FC = () => {
               {pageState === 'submitting' ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Réinitialisation... 
+                  Réinitialisation...
                 </>
               ) : (
                 'Réinitialiser mon mot de passe'
