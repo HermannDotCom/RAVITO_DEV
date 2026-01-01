@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, Eye, EyeOff, CheckCircle, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useSimpleRouter } from '../hooks/useSimpleRouter';
 
 type PageState = 'loading' | 'valid' | 'invalid' | 'submitting' | 'success';
 
 export const ResetPasswordPage: React.FC = () => {
-  const { navigate } = useSimpleRouter();
   const [pageState, setPageState] = useState<PageState>('loading');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -18,11 +16,9 @@ export const ResetPasswordPage: React.FC = () => {
   useEffect(() => {
     const handleRecoveryToken = async () => {
       try {
-        // Log l'URL complète pour debug
         console.log('Current URL:', window.location.href);
         console.log('Hash:', window.location.hash);
         
-        // Extraire les paramètres du hash URL
         const hash = window.location.hash.substring(1);
         const hashParams = new URLSearchParams(hash);
         
@@ -33,16 +29,14 @@ export const ResetPasswordPage: React.FC = () => {
         console.log('Recovery token check:', { 
           type, 
           hasAccessToken: !!accessToken, 
-          hasRefreshToken: !!refreshToken,
-          hashLength: hash.length 
+          hasRefreshToken:  !!refreshToken 
         });
 
-        // Si on a les tokens dans le hash, établir la session
         if (accessToken && refreshToken) {
-          console.log('Setting session with tokens from hash...');
+          console.log('Setting session with tokens from hash.. .');
           
-          const { data, error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
+          const { data, error:  sessionError } = await supabase.auth.setSession({
+            access_token:  accessToken,
             refresh_token: refreshToken,
           });
 
@@ -53,16 +47,14 @@ export const ResetPasswordPage: React.FC = () => {
           }
 
           if (data.session) {
-            console.log('Session established successfully');
+            console. log('Session established successfully');
             setPageState('valid');
             return;
           }
         }
 
-        // Sinon, écouter l'événement PASSWORD_RECOVERY de Supabase
-        console.log('No tokens in hash, checking for existing session or waiting for auth event...');
+        console.log('No tokens in hash, checking for existing session...');
         
-        // Vérifier si une session existe déjà
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
@@ -71,27 +63,20 @@ export const ResetPasswordPage: React.FC = () => {
           return;
         }
 
-        // Attendre un peu pour voir si Supabase déclenche un événement auth
-        // Cela arrive quand Supabase gère automatiquement le token
         const timeoutId = setTimeout(() => {
           console.log('Timeout reached, no session established');
           setPageState('invalid');
         }, 3000);
 
-        // Écouter les changements d'état d'authentification
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-          console.log('Auth state change in ResetPasswordPage:', event);
-          
-          if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+          console.log('Auth event in ResetPasswordPage:', event);
+          if ((event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') && session) {
             clearTimeout(timeoutId);
-            if (session) {
-              console.log('Session received via auth state change');
-              setPageState('valid');
-            }
+            console.log('Session received via auth state change');
+            setPageState('valid');
           }
         });
 
-        // Nettoyer après 3 secondes si rien ne se passe
         return () => {
           clearTimeout(timeoutId);
           subscription.unsubscribe();
@@ -107,16 +92,15 @@ export const ResetPasswordPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Calculate password strength
-    if (password.length === 0) {
+    if (password. length === 0) {
       setPasswordStrength('weak');
       return;
     }
 
     let strength = 0;
     if (password.length >= 8) strength++;
-    if (password.length >= 12) strength++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+    if (password. length >= 12) strength++;
+    if (/[a-z]/.test(password) && /[A-Z]/. test(password)) strength++;
     if (/[0-9]/.test(password)) strength++;
     if (/[^a-zA-Z0-9]/.test(password)) strength++;
 
@@ -134,7 +118,7 @@ export const ResetPasswordPage: React.FC = () => {
       return;
     }
 
-    if (password.length < 8) {
+    if (password. length < 8) {
       setError('Le mot de passe doit contenir au moins 8 caractères');
       return;
     }
@@ -147,27 +131,32 @@ export const ResetPasswordPage: React.FC = () => {
     setPageState('submitting');
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
+      const { error:  updateError } = await supabase. auth.updateUser({
         password: password
       });
 
       if (updateError) throw updateError;
 
-      await supabase.auth.signOut();
+      // Afficher le succès IMMÉDIATEMENT
       setPageState('success');
 
+      // Déconnecter en arrière-plan (sans attendre)
+      supabase.auth.signOut().catch(console.error);
+
+      // Redirection après 3 secondes avec rechargement complet
       setTimeout(() => {
-        navigate('/login');
+        window.location.href = '/login';
       }, 3000);
-    } catch (err: any) {
+
+    } catch (err:  any) {
       console.error('Error resetting password:', err);
       setPageState('valid');
-      setError(err.message || 'Une erreur est survenue. Veuillez réessayer.');
+      setError(err.message || 'Une erreur est survenue.  Veuillez réessayer.');
     }
   };
 
   const handleBackToLogin = () => {
-    navigate('/login');
+    window.location.href = '/login';
   };
 
   if (pageState === 'loading') {
@@ -175,7 +164,7 @@ export const ResetPasswordPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50 flex items-center justify-center p-4">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-orange-500 mx-auto mb-4" />
-          <p className="text-gray-600">Vérification du lien...</p>
+          <p className="text-gray-600">Vérification du lien... </p>
         </div>
       </div>
     );
@@ -194,7 +183,7 @@ export const ResetPasswordPage: React.FC = () => {
                 Lien invalide ou expiré
               </h2>
               <p className="text-gray-600 mb-6">
-                Ce lien de réinitialisation est invalide ou a expiré. Veuillez demander un nouveau lien.
+                Ce lien de réinitialisation est invalide ou a expiré. Veuillez demander un nouveau lien. 
               </p>
             </div>
             <button
@@ -220,10 +209,10 @@ export const ResetPasswordPage: React.FC = () => {
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Mot de passe mis à jour !
+                Mot de passe mis à jour ! 
               </h2>
               <p className="text-gray-600 mb-6">
-                Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé vers la page de connexion...
+                Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé vers la page de connexion... 
               </p>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-800">
@@ -307,7 +296,7 @@ export const ResetPasswordPage: React.FC = () => {
                 <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                 <input
                   id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? 'text' :  'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
@@ -317,7 +306,7 @@ export const ResetPasswordPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-3 text-gray-400 hover: text-gray-600"
                   disabled={pageState === 'submitting'}
                 >
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -340,7 +329,7 @@ export const ResetPasswordPage: React.FC = () => {
               {pageState === 'submitting' ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Réinitialisation...
+                  Réinitialisation... 
                 </>
               ) : (
                 'Réinitialiser mon mot de passe'
