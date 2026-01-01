@@ -29,15 +29,15 @@ export const ResetPasswordPage: React.FC = () => {
         console.log('Recovery token check:', { 
           type, 
           hasAccessToken: !!accessToken, 
-          hasRefreshToken:  !!refreshToken 
+          hasRefreshToken: !!refreshToken 
         });
 
         if (accessToken && refreshToken) {
-          console.log('Setting session with tokens from hash.. .');
+          console.log('Setting session with tokens from hash...');
           
           const { data, error:  sessionError } = await supabase.auth.setSession({
-            access_token:  accessToken,
-            refresh_token: refreshToken,
+            access_token: accessToken,
+            refresh_token:  refreshToken,
           });
 
           if (sessionError) {
@@ -113,7 +113,7 @@ export const ResetPasswordPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (!password || !confirmPassword) {
+    if (! password || !confirmPassword) {
       setError('Veuillez remplir tous les champs');
       return;
     }
@@ -131,22 +131,39 @@ export const ResetPasswordPage: React.FC = () => {
     setPageState('submitting');
 
     try {
-      const { error:  updateError } = await supabase. auth.updateUser({
+      const { error:  updateError } = await supabase.auth.updateUser({
         password: password
       });
 
       if (updateError) throw updateError;
 
-      // Afficher le succès IMMÉDIATEMENT
-      setPageState('success');
-
-      // Déconnecter en arrière-plan (sans attendre)
-      supabase.auth.signOut().catch(console.error);
-
-      // Redirection après 3 secondes avec rechargement complet
+      console.log('Password updated successfully! ');
+      
+      // Nettoyer le localStorage pour éviter les conflits de session
+      localStorage.clear();
+      
+      // Afficher succès et rediriger IMMÉDIATEMENT
+      // On utilise une nouvelle page HTML pour couper complètement le cycle React
+      document.body.innerHTML = `
+        <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #f0fdf4 100%); font-family: system-ui, -apple-system, sans-serif;">
+          <div style="background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); padding: 40px; max-width: 400px; text-align: center;">
+            <div style="width: 64px; height: 64px; background: #dcfce7; border-radius:  50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+            </div>
+            <h2 style="font-size: 24px; font-weight: bold; color: #111827; margin-bottom: 8px;">Mot de passe mis à jour !</h2>
+            <p style="color: #6b7280; margin-bottom: 24px;">Votre mot de passe a été réinitialisé avec succès. </p>
+            <p style="color: #3b82f6; font-size: 14px;">Redirection vers la connexion... </p>
+          </div>
+        </div>
+      `;
+      
+      // Rediriger après 2 secondes
       setTimeout(() => {
         window.location.href = '/login';
-      }, 3000);
+      }, 2000);
 
     } catch (err:  any) {
       console.error('Error resetting password:', err);
@@ -183,7 +200,7 @@ export const ResetPasswordPage: React.FC = () => {
                 Lien invalide ou expiré
               </h2>
               <p className="text-gray-600 mb-6">
-                Ce lien de réinitialisation est invalide ou a expiré. Veuillez demander un nouveau lien. 
+                Ce lien de réinitialisation est invalide ou a expiré.  Veuillez demander un nouveau lien. 
               </p>
             </div>
             <button
@@ -212,7 +229,7 @@ export const ResetPasswordPage: React.FC = () => {
                 Mot de passe mis à jour ! 
               </h2>
               <p className="text-gray-600 mb-6">
-                Votre mot de passe a été réinitialisé avec succès. Vous allez être redirigé vers la page de connexion... 
+                Votre mot de passe a été réinitialisé avec succès. 
               </p>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-800">
@@ -276,7 +293,7 @@ export const ResetPasswordPage: React.FC = () => {
                   <div className="flex gap-1 mb-1">
                     <div className={`h-1 flex-1 rounded ${passwordStrength === 'weak' ? 'bg-red-500' : passwordStrength === 'medium' ?  'bg-yellow-500' : 'bg-green-500'}`} />
                     <div className={`h-1 flex-1 rounded ${passwordStrength === 'medium' || passwordStrength === 'strong' ? (passwordStrength === 'medium' ? 'bg-yellow-500' : 'bg-green-500') : 'bg-gray-200'}`} />
-                    <div className={`h-1 flex-1 rounded ${passwordStrength === 'strong' ?  'bg-green-500' : 'bg-gray-200'}`} />
+                    <div className={`h-1 flex-1 rounded ${passwordStrength === 'strong' ? 'bg-green-500' :  'bg-gray-200'}`} />
                   </div>
                   <p className={`text-xs ${passwordStrength === 'weak' ? 'text-red-600' : passwordStrength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}>
                     {passwordStrength === 'weak' && 'Mot de passe faible'}
@@ -296,7 +313,7 @@ export const ResetPasswordPage: React.FC = () => {
                 <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                 <input
                   id="confirmPassword"
-                  type={showConfirmPassword ? 'text' :  'password'}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors"
@@ -306,7 +323,7 @@ export const ResetPasswordPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover: text-gray-600"
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
                   disabled={pageState === 'submitting'}
                 >
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
