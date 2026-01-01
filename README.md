@@ -51,13 +51,6 @@ L'application sera disponible sur :  **http://localhost:5173**
 
 ---
 
-## 🔐 Comptes de Test
-
-| Rôle | Email | Mot de passe |
-|------|-------|--------------|
-| **Admin** | admin@ravito.ci | Admin@2025!  |
-| **Client** | client1@test.ci | Client@2025! |
-| **Fournisseur** | supplier1@test.ci | Supplier@2025! |
 
 📄 [Documentation complète des comptes de test](./docs/getting-started/test-accounts.md)
 
