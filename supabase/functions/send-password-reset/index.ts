@@ -138,19 +138,10 @@ Deno.serve(async (req) => {
       }
       
       .logo {
-        width: 60px;
-        height: 60px;
-        background-color: #FFFFFF;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-        font-size: 32px;
-        font-weight: 700;
-        color: #F97316;
+        max-width: 180px;
+        height: auto;
+        display: block;
         margin: 0 auto;
-        line-height: 60px;
       }
       
       .email-content {
@@ -269,7 +260,7 @@ Deno.serve(async (req) => {
     <div class="email-wrapper">
       <div class="email-container">
         <div class="email-header">
-          <div class="logo">R</div>
+          <img src="https://hermanndotcom-ravito-z6ri.bolt.host/logo_with_slogan_transparent.png" alt="Ravito - Le ravitaillement qui ne dort jamais" class="logo" />
         </div>
         <div class="email-content">
           <h1 class="title">🔐 Réinitialisation du mot de passe</h1>

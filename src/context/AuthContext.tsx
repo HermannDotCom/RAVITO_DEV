@@ -56,6 +56,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const fetchUserProfile = useCallback(async (userId: string): Promise<boolean> => {
     try {
+      // Vérifier IMMÉDIATEMENT si on est en train de réinitialiser le mot de passe
+      const isResettingPassword = sessionStorage.getItem('resetting_password') === 'true';
+      if (isResettingPassword) {
+        console.log('⏭️ Skipping profile fetch during password reset');
+        return false;
+      }
+
       console.log('Fetching profile for user:', userId);
 
       // Add timeout to prevent infinite loading
@@ -75,13 +82,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ]) as any;
 
       if (error) {
-        // Ignorer silencieusement les erreurs pendant la réinitialisation du mot de passe
-        const isResettingPassword = sessionStorage.getItem('resetting_password') === 'true';
-        if (isResettingPassword) {
-          console.log('Ignoring profile fetch error during password reset');
-          return false;
-        }
-
         console.error('Error fetching profile:', error);
         console.error('Error details:', {
           message: error.message,
