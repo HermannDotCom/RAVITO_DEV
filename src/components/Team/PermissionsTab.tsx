@@ -1,32 +1,55 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Shield, AlertCircle, CheckCircle } from 'lucide-react';
 import { useTeamPermissions } from '../../hooks/useTeamPermissions';
 import { MemberPermissionCard } from './MemberPermissionCard';
-import type { OrganizationMember } from '../../types/team';
+import type { OrganizationMember, Organization, OrganizationType } from '../../types/team';
+import { getPagesByOrganizationType, getAllAdminPages } from '../../constants/pageDefinitions';
+import type { AvailableModule } from '../../types/permissions';
 
 interface PermissionsTabProps {
   organizationId: string;
   members: OrganizationMember[];
   canEdit: boolean;
+  organization?: Organization;
 }
 
 /**
  * Permissions management tab for team page
  * Allows owners to manage module access for team members
+ * CRITICAL: Filters pages by organization type
  */
 export const PermissionsTab: React.FC<PermissionsTabProps> = ({
   organizationId,
   members,
   canEdit,
+  organization,
 }) => {
   const {
-    availableModules,
+    availableModules: originalModules,
     memberPermissions,
     isLoading,
     error,
     updateMemberPermission,
     loadAllPermissions,
   } = useTeamPermissions(organizationId);
+
+  // Filter modules based on organization type
+  const filteredModules = useMemo(() => {
+    if (!organization) return originalModules;
+
+    const orgType = organization.type as OrganizationType;
+    const allowedPages = getPagesByOrganizationType(orgType);
+    const allowedPageIds = new Set(allowedPages.map(p => p.id));
+
+    // Filter modules to only show those that match the organization type
+    return originalModules.filter(module => {
+      // Map module key to page ID (they should match)
+      return allowedPageIds.has(module.key);
+    });
+  }, [organization, originalModules]);
+
+  // Use filtered modules instead of original
+  const availableModules = filteredModules;
 
   const [savingStates, setSavingStates] = useState<Map<string, string>>(new Map());
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -137,6 +160,21 @@ export const PermissionsTab: React.FC<PermissionsTabProps> = ({
           <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-blue-800">
             Vous pouvez consulter les permissions, mais seul le propriétaire peut les modifier.
+          </p>
+        </div>
+      )}
+
+      {/* Organization Type Info */}
+      {organization && (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start space-x-3">
+          <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-orange-800">
+            <strong>Type d'organisation :</strong>{' '}
+            {organization.type === 'client' && 'Client (8 pages disponibles)'}
+            {organization.type === 'supplier' && 'Fournisseur (11 pages disponibles)'}
+            {organization.type === 'admin' && 'Admin (8-12 pages selon le rôle)'}
+            <br />
+            Les permissions affichées sont filtrées selon votre type d'organisation.
           </p>
         </div>
       )}
