@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Phone, Mail, MapPin, Calendar, Star, Package, Shield, Ban, MessageSquare, History, Clock, Activity } from 'lucide-react';
+import { X, Phone, Mail, MapPin, Calendar, Star, Package, Shield, Ban, MessageSquare, History, Clock, Activity, CheckCircle } from 'lucide-react';
 import { UserRole } from '../../types';
 import { activityService, UserActivity } from '../../services/activityService';
 import { supabase } from '../../lib/supabase';
@@ -113,6 +113,46 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
     } catch (error) {
       console.error('Error deactivating account:', error);
       alert('Erreur lors de la désactivation du compte');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleReactivateAccount = async () => {
+    if (!confirm(`Êtes-vous sûr de vouloir réactiver le compte de "${user?.name}" ?`)) {
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_active: true })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      await activityService.logActivity(
+        userId,
+        'account_reactivated',
+        `Compte réactivé par l'administrateur`,
+        { metadata: {} }
+      );
+
+      await supabase.from('notifications').insert({
+        user_id: userId,
+        type: 'account_reactivated',
+        title: 'Compte réactivé',
+        message: `Votre compte a été réactivé. Vous pouvez maintenant vous connecter et utiliser l'application.`,
+        data: {}
+      });
+
+      if (onUserUpdated) onUserUpdated();
+      await loadUserData();
+      alert('✅ Compte réactivé avec succès');
+    } catch (error) {
+      console.error('Error reactivating account:', error);
+      alert('Erreur lors de la réactivation du compte');
     } finally {
       setIsProcessing(false);
     }
@@ -398,16 +438,16 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
               Actions administratives
             </h4>
             <div className="space-y-3">
-              {!showDeactivateConfirm ? (
-                <button
-                  onClick={() => setShowDeactivateConfirm(true)}
-                  disabled={!user.is_active}
-                  className="w-full px-4 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
-                >
-                  <Ban className="h-5 w-5" />
-                  <span>Désactiver le compte</span>
-                </button>
-              ) : (
+              {user.is_active ? (
+                !showDeactivateConfirm ? (
+                  <button
+                    onClick={() => setShowDeactivateConfirm(true)}
+                    className="w-full px-4 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <Ban className="h-5 w-5" />
+                    <span>Désactiver le compte</span>
+                  </button>
+                ) : (
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowDeactivateConfirm(false)}
@@ -424,6 +464,16 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                     {isProcessing ? 'Désactivation...' : 'Confirmer'}
                   </button>
                 </div>
+                )
+              ) : (
+                <button
+                  onClick={handleReactivateAccount}
+                  disabled={isProcessing}
+                  className="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+                >
+                  <CheckCircle className="h-5 w-5" />
+                  <span>{isProcessing ? 'Réactivation...' : 'Réactiver le compte'}</span>
+                </button>
               )}
 
               {!showMessageForm ? (

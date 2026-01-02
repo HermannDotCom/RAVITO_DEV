@@ -38,6 +38,7 @@ import { PermissionProvider } from './context/PermissionContext';
 import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AuthScreen } from './components/Auth/AuthScreen';
+import { DeactivatedAccountModal } from './components/Auth/DeactivatedAccountModal';
 import { SkipLink } from './components/Accessibility/SkipLink';
 import { LandingPage } from './pages/Landing';
 import { CGUPage, MentionsLegalesPage } from './pages/Legal';
@@ -178,6 +179,21 @@ const AppContent: React.FC = () => {
     }
     // For other paths (like /login, /register), show AuthScreen
     return <AuthScreen initialPath={path} />;
+  }
+
+  // Check if user account is deactivated
+  if (user && !user.isActive) {
+    return (
+      <DeactivatedAccountModal
+        userName={user.name || 'Utilisateur'}
+        onContactSupport={() => {
+          // For now, just logout and show message - support system requires active account
+          alert('Pour contacter le support, veuillez envoyer un email à support@ravito.app en mentionnant votre adresse email et votre nom.');
+          logout();
+        }}
+        onLogout={logout}
+      />
+    );
   }
 
   const renderMainContent = () => {

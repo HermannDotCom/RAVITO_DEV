@@ -15,7 +15,8 @@ import {
   MoreHorizontal,
   BarChart3,
   DollarSign,
-  Navigation
+  Navigation,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useModuleAccess } from '../../hooks/useModuleAccess';
@@ -91,6 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'treasury', label: 'Tresorerie', icon: CreditCard, moduleKey: 'treasury' },
           { id: 'commissions', label: 'Mes Commissions', icon: Wallet, moduleKey: 'commissions' },
           { id: 'zones', label: 'Zones de Livraison', icon: MapPin, moduleKey: 'zones' },
+          { id: 'roles', label: 'Gestion des Roles', icon: Shield, moduleKey: 'roles' },
           { id: 'team', label: 'Mon Equipe', icon: Users, moduleKey: 'team' },
           { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare, moduleKey: 'tickets' },
           { id: 'data', label: 'Gestion des Donnees', icon: Settings, moduleKey: 'data' },
