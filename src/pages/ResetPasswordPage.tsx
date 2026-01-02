@@ -131,6 +131,10 @@ export const ResetPasswordPage: React.FC = () => {
     setPageState('submitting');
 
     try {
+      // Marquer qu'on est en train de réinitialiser le mot de passe
+      // pour que AuthContext ignore les erreurs de fetch qui suivent
+      sessionStorage.setItem('resetting_password', 'true');
+
       const { error:  updateError } = await supabase.auth.updateUser({
         password: password
       });
@@ -142,6 +146,9 @@ export const ResetPasswordPage: React.FC = () => {
       // Déconnecter immédiatement pour éviter les boucles infinies
       // causées par l'événement USER_UPDATED dans AuthContext
       await supabase.auth.signOut();
+
+      // Nettoyer le flag
+      sessionStorage.removeItem('resetting_password');
 
       // Nettoyer le localStorage
       localStorage.clear();
@@ -156,6 +163,8 @@ export const ResetPasswordPage: React.FC = () => {
 
     } catch (err:  any) {
       console.error('Error resetting password:', err);
+      // Nettoyer le flag en cas d'erreur
+      sessionStorage.removeItem('resetting_password');
       setPageState('valid');
       setError(err.message || 'Une erreur est survenue.  Veuillez réessayer.');
     }

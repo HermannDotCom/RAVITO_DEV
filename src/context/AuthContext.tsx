@@ -75,6 +75,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ]) as any;
 
       if (error) {
+        // Ignorer silencieusement les erreurs pendant la réinitialisation du mot de passe
+        const isResettingPassword = sessionStorage.getItem('resetting_password') === 'true';
+        if (isResettingPassword) {
+          console.log('Ignoring profile fetch error during password reset');
+          return false;
+        }
+
         console.error('Error fetching profile:', error);
         console.error('Error details:', {
           message: error.message,
