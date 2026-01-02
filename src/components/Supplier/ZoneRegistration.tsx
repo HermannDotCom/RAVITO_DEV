@@ -3,6 +3,7 @@ import { MapPin, CheckCircle, Clock, XCircle, AlertTriangle, X } from 'lucide-re
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { zoneRequestService, ZoneRegistrationRequest } from '../../services/zoneRequestService';
+import { getOrganizationOwnerId } from '../../utils/organizationUtils';
 
 interface Zone {
   id: string;
@@ -54,6 +55,9 @@ export const ZoneRegistration: React.FC = () => {
 
     setIsLoading(true);
     try {
+      // Get organization owner ID to fetch data for the whole organization
+      const organizationOwnerId = await getOrganizationOwnerId(user.id);
+
       const { data, error } = await supabase
         .from('supplier_zones')
         .select(`
@@ -69,7 +73,7 @@ export const ZoneRegistration: React.FC = () => {
             is_active
           )
         `)
-        .eq('supplier_id', user.id)
+        .eq('supplier_id', organizationOwnerId)
         .order('requested_at', { ascending: false });
 
       if (error) throw error;

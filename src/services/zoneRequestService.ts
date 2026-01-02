@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { getOrganizationOwnerId } from '../utils/organizationUtils';
 
 export type ZoneRequestStatus = 'pending' | 'approved' | 'rejected';
 
@@ -62,10 +63,13 @@ export const zoneRequestService = {
     zoneId: string
   ): Promise<ZoneRegistrationRequest | null> {
     try {
+      // Get organization owner ID to fetch data for the whole organization
+      const organizationOwnerId = await getOrganizationOwnerId(supplierId);
+
       const { data, error } = await supabase
         .from('zone_registration_requests')
         .select('*')
-        .eq('supplier_id', supplierId)
+        .eq('supplier_id', organizationOwnerId)
         .eq('zone_id', zoneId)
         .eq('status', 'pending')
         .maybeSingle();
@@ -274,13 +278,16 @@ export const zoneRequestService = {
 
   async getSupplierPendingRequests(supplierId: string): Promise<ZoneRegistrationRequest[]> {
     try {
+      // Get organization owner ID to fetch data for the whole organization
+      const organizationOwnerId = await getOrganizationOwnerId(supplierId);
+
       const { data, error } = await supabase
         .from('zone_registration_requests')
         .select(`
           *,
           zones(name)
         `)
-        .eq('supplier_id', supplierId)
+        .eq('supplier_id', organizationOwnerId)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
