@@ -231,7 +231,10 @@ export const MemberListView: React.FC<MemberListViewProps> = ({
                 </tr>
               ) : (
                 filteredMembers.map((member) => {
-                  const isOwner = member.role === 'owner';
+                  // Dans l'interface Admin, le super_admin est l'équivalent du propriétaire
+                  // Dans les interfaces Client/Supplier, c'est le rôle 'owner'
+                  const isOwner = member.role === 'owner' ||
+                                  (organizationType === 'admin' && member.role === 'super_admin');
 
                   return (
                     <tr key={member.id} className="hover:bg-gray-50 transition-colors">

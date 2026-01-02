@@ -47,7 +47,7 @@ export type SupplierPageId =
   | 'support'
   | 'profile';
 
-export type AdminPageId = 
+export type AdminPageId =
   | 'analytics'
   | 'users'
   | 'orders'
@@ -57,6 +57,7 @@ export type AdminPageId =
   | 'commissions'
   | 'zones'
   | 'team'
+  | 'roles'
   | 'tickets'
   | 'data'
   | 'settings';
@@ -309,6 +310,7 @@ export const ADMIN_PAGES: PageDefinition[] = [
   { id: 'commissions', label: 'Mes Commissions', moduleKey: 'commissions', exclusiveSuperAdmin: true },
   { id: 'zones', label: 'Zones de Livraison', moduleKey: 'zones', exclusiveSuperAdmin: false },
   { id: 'team', label: 'Mon Équipe', moduleKey: 'team', exclusiveSuperAdmin: true },
+  { id: 'roles', label: 'Gestion des Rôles', moduleKey: 'roles', exclusiveSuperAdmin: true },
   { id: 'tickets', label: 'Support & Tickets', moduleKey: 'tickets', exclusiveSuperAdmin: false },
   { id: 'data', label: 'Gestion des Données', moduleKey: 'data', exclusiveSuperAdmin: true },
   { id: 'settings', label: 'Paramètres', moduleKey: 'settings', exclusiveSuperAdmin: true }
@@ -321,4 +323,4 @@ export const PAGES_BY_ORG_TYPE: Record<OrganizationType, PageDefinition[]> = {
 };
 
 // Super Admin exclusive pages (cannot be assigned to other roles)
-export const SUPER_ADMIN_EXCLUSIVE_PAGES = ['team', 'settings', 'commissions', 'data'];
+export const SUPER_ADMIN_EXCLUSIVE_PAGES = ['team', 'roles', 'settings', 'commissions', 'data'];
