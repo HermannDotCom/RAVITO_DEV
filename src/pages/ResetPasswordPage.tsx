@@ -138,31 +138,20 @@ export const ResetPasswordPage: React.FC = () => {
       if (updateError) throw updateError;
 
       console.log('Password updated successfully! ');
-      
-      // Nettoyer le localStorage pour éviter les conflits de session
+
+      // Déconnecter immédiatement pour éviter les boucles infinies
+      // causées par l'événement USER_UPDATED dans AuthContext
+      await supabase.auth.signOut();
+
+      // Nettoyer le localStorage
       localStorage.clear();
-      
-      // Afficher succès et rediriger IMMÉDIATEMENT
-      // On utilise une nouvelle page HTML pour couper complètement le cycle React
-      document.body.innerHTML = `
-        <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #f0fdf4 100%); font-family: system-ui, -apple-system, sans-serif;">
-          <div style="background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); padding: 40px; max-width: 400px; text-align: center;">
-            <div style="width: 64px; height: 64px; background: #dcfce7; border-radius:  50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-            </div>
-            <h2 style="font-size: 24px; font-weight: bold; color: #111827; margin-bottom: 8px;">Mot de passe mis à jour !</h2>
-            <p style="color: #6b7280; margin-bottom: 24px;">Votre mot de passe a été réinitialisé avec succès. </p>
-            <p style="color: #3b82f6; font-size: 14px;">Redirection vers la connexion... </p>
-          </div>
-        </div>
-      `;
-      
-      // Rediriger après 2 secondes
+
+      // Changer l'état pour afficher le succès
+      setPageState('success');
+
+      // Rediriger vers la page de connexion après 2 secondes
       setTimeout(() => {
-        window.location.href = '/login';
+        window.location.replace('/');
       }, 2000);
 
     } catch (err:  any) {
