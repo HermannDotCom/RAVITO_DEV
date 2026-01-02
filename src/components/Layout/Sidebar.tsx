@@ -33,7 +33,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection, onSectionChange }) => {
   const { user } = useAuth();
   const { hasAccess } = useModuleAccess(user?.role === 'admin' ? 'admin' : user?.role === 'supplier' ? 'supplier' : 'client');
-  const { allowedPages, isOwner } = useAllowedPages();
+  const { allowedPages, isOwner, isSuperAdmin } = useAllowedPages();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   /**

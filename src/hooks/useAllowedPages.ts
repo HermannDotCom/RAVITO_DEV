@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { SUPPLIER_PAGES, CLIENT_PAGES, ADMIN_PAGES } from '../types/team';
+import { SUPPLIER_PAGES, CLIENT_PAGES, ADMIN_PAGES, SUPER_ADMIN_EXCLUSIVE_PAGES } from '../types/team';
 import type { UserRole } from '../types';
 
 interface UseAllowedPagesReturn {
   allowedPages: string[];
   isOwner: boolean;
+  isSuperAdmin: boolean;
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
@@ -14,14 +15,20 @@ interface UseAllowedPagesReturn {
 
 /**
  * Helper function to get all page IDs for a given user role
+ * Filters out super admin exclusive pages for non-super admins
  */
-function getAllPagesByRole(role: UserRole): string[] {
+function getAllPagesByRole(role: UserRole, isSuperAdmin: boolean = false): string[] {
   if (role === 'client') {
     return CLIENT_PAGES.map(p => p.id);
   } else if (role === 'supplier') {
     return SUPPLIER_PAGES.map(p => p.id);
   } else if (role === 'admin') {
-    return ADMIN_PAGES.map(p => p.id);
+    const allAdminPages = ADMIN_PAGES.map(p => p.id);
+    // If not super admin, filter out exclusive pages
+    if (!isSuperAdmin) {
+      return allAdminPages.filter(pageId => !SUPER_ADMIN_EXCLUSIVE_PAGES.includes(pageId));
+    }
+    return allAdminPages;
   }
   return [];
 }
@@ -35,6 +42,7 @@ export function useAllowedPages(): UseAllowedPagesReturn {
   const { user } = useAuth();
   const [allowedPages, setAllowedPages] = useState<string[]>([]);
   const [isOwner, setIsOwner] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,6 +51,7 @@ export function useAllowedPages(): UseAllowedPagesReturn {
       setIsLoading(false);
       setAllowedPages([]);
       setIsOwner(false);
+      setIsSuperAdmin(false);
       return;
     }
 
@@ -50,7 +59,21 @@ export function useAllowedPages(): UseAllowedPagesReturn {
       setIsLoading(true);
       setError(null);
 
-      // First check if user is an organization owner
+      // Check if user is super admin
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_super_admin')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Error checking super admin status:', profileError);
+      }
+
+      const userIsSuperAdmin = profileData?.is_super_admin || false;
+      setIsSuperAdmin(userIsSuperAdmin);
+
+      // Check if user is an organization owner
       const { data: ownedOrg, error: ownerError } = await supabase
         .from('organizations')
         .select('id, type')
@@ -65,9 +88,9 @@ export function useAllowedPages(): UseAllowedPagesReturn {
       }
 
       if (ownedOrg) {
-        // User is owner - grant all pages for their type
+        // User is owner - grant pages based on role and super admin status
         setIsOwner(true);
-        setAllowedPages(getAllPagesByRole(user.role));
+        setAllowedPages(getAllPagesByRole(user.role, userIsSuperAdmin));
         setIsLoading(false);
         return;
       }
@@ -91,7 +114,7 @@ export function useAllowedPages(): UseAllowedPagesReturn {
         // Check if member has owner role (shouldn't happen but handle it)
         if (membership.role === 'owner') {
           setIsOwner(true);
-          setAllowedPages(getAllPagesByRole(user.role));
+          setAllowedPages(getAllPagesByRole(user.role, userIsSuperAdmin));
         } else {
           // Regular member - use allowed_pages
           setIsOwner(false);
@@ -122,6 +145,7 @@ export function useAllowedPages(): UseAllowedPagesReturn {
   return {
     allowedPages,
     isOwner,
+    isSuperAdmin,
     isLoading,
     error,
     refresh
