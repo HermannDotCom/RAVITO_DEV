@@ -35,7 +35,15 @@ interface OrderDetailsModalProps {
 const getCrateSummary = (order: Order) => {
   const crateSummary: Record<string, { withConsigne: number; toReturn: number }> = {};
 
+  // Verify that order.items exists and is an array
+  if (!order.items || !Array.isArray(order.items)) {
+    return crateSummary;
+  }
+
   order.items.forEach(item => {
+    // Verify that item and product exist
+    if (!item || !item.product || !item.product.crateType) return;
+
     const crateType = item.product.crateType;
 
     if (!crateSummary[crateType]) {

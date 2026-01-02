@@ -1,22 +1,23 @@
-import { 
-  Home, 
-  ShoppingBag, 
-  ShoppingCart, 
-  Package, 
-  User, 
-  Wallet, 
-  Users, 
-  MessageSquare, 
-  Navigation, 
-  Truck, 
-  MapPin, 
-  DollarSign, 
-  Clock, 
-  BarChart3, 
-  CreditCard, 
-  Database, 
-  Settings, 
-  HelpCircle 
+import {
+  Home,
+  ShoppingBag,
+  ShoppingCart,
+  Package,
+  User,
+  Wallet,
+  Users,
+  MessageSquare,
+  Navigation,
+  Truck,
+  MapPin,
+  DollarSign,
+  Clock,
+  BarChart3,
+  CreditCard,
+  Database,
+  Settings,
+  HelpCircle,
+  Shield
 } from 'lucide-react';
 
 export interface PageDefinition {
@@ -53,7 +54,7 @@ export const SUPPLIER_PAGES: PageDefinition[] = [
   { id: 'profile', label: 'Mon Profil', icon: User },
 ];
 
-// Pour ADMIN (12 pages, dont 4 exclusives Super Admin)
+// Pour ADMIN (13 pages, dont 5 exclusives Super Admin)
 export const ADMIN_PAGES: PageDefinition[] = [
   { id: 'analytics', label: 'Analyses', icon: BarChart3, exclusiveSuperAdmin: false },
   { id: 'users', label: 'Utilisateurs', icon: Users, exclusiveSuperAdmin: false },
@@ -63,6 +64,7 @@ export const ADMIN_PAGES: PageDefinition[] = [
   { id: 'treasury', label: 'Trésorerie', icon: CreditCard, exclusiveSuperAdmin: false },
   { id: 'commissions', label: 'Mes Commissions', icon: Wallet, exclusiveSuperAdmin: true },
   { id: 'zones', label: 'Zones de Livraison', icon: MapPin, exclusiveSuperAdmin: false },
+  { id: 'roles', label: 'Gestion des Rôles', icon: Shield, exclusiveSuperAdmin: true },
   { id: 'team', label: 'Mon Équipe', icon: Users, exclusiveSuperAdmin: true },
   { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare, exclusiveSuperAdmin: false },
   { id: 'data', label: 'Gestion des Données', icon: Database, exclusiveSuperAdmin: true },
@@ -70,7 +72,7 @@ export const ADMIN_PAGES: PageDefinition[] = [
 ];
 
 // Pages exclusives Super Admin (ne peuvent jamais être assignées à d'autres rôles)
-export const SUPER_ADMIN_EXCLUSIVE_PAGES = ['team', 'settings', 'commissions', 'data'];
+export const SUPER_ADMIN_EXCLUSIVE_PAGES = ['team', 'settings', 'commissions', 'data', 'roles'];
 
 // Fonction pour obtenir les pages selon le type d'organisation
 export function getPagesByOrganizationType(orgType: 'client' | 'supplier' | 'admin'): PageDefinition[] {

@@ -101,6 +101,9 @@ export const UserManagement: React.FC = () => {
   };
 
   const filteredUsers = users.filter(user => {
+    // Exclure les Super Admin (role 'admin') de la liste pour tous les utilisateurs
+    if (user.role === 'admin') return false;
+
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
@@ -112,6 +115,9 @@ export const UserManagement: React.FC = () => {
   });
 
   const filteredPendingUsers = pendingUsers.filter(user => {
+    // Exclure les Super Admin (role 'admin') de la liste pour tous les utilisateurs
+    if (user.role === 'admin') return false;
+
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
@@ -198,14 +204,24 @@ export const UserManagement: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const newStatus = !user.isActive;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_active: newStatus })
+        .eq('id', userId);
+
+      if (error) throw error;
 
       setUsers(prev => prev.map(u =>
-        u.id === userId ? { ...u, isActive: !u.isActive } : u
+        u.id === userId ? { ...u, isActive: newStatus } : u
       ));
 
-      const statusText = user.isActive ? 'désactivé' : 'activé';
+      const statusText = newStatus ? 'activé' : 'désactivé';
       alert(`✅ Utilisateur "${user.name}" ${statusText} avec succès!`);
+    } catch (error) {
+      console.error('Error toggling user status:', error);
+      alert('❌ Erreur lors de la modification du statut de l\'utilisateur');
     } finally {
       setIsProcessing(false);
     }
@@ -240,7 +256,8 @@ export const UserManagement: React.FC = () => {
     }).format(d);
   };
 
-  const totalActiveUsers = users.filter(u => u.isActive).length;
+  // Exclure les Super Admin des statistiques
+  const totalActiveUsers = users.filter(u => u.isActive && u.role !== 'admin').length;
   const totalClients = users.filter(u => u.role === 'client').length;
   const totalSuppliers = users.filter(u => u.role === 'supplier').length;
 

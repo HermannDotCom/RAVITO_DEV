@@ -290,10 +290,14 @@ Décrivez votre problème en détail...`,
     };
 
     order.items.forEach(item => {
+      // Only count traditional crate types that use consigne system
+      const crateType = item.product.crateType;
+      if (!crateSummary[crateType]) return;
+
       if (item.withConsigne) {
-        crateSummary[item.product.crateType].withConsigne += item.quantity;
+        crateSummary[crateType].withConsigne += item.quantity;
       } else {
-        crateSummary[item.product.crateType].toReturn += item.quantity;
+        crateSummary[crateType].toReturn += item.quantity;
       }
     });
 
