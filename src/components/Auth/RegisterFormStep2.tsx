@@ -197,21 +197,15 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
       {/* Zone Selection for Clients */}
       {data.role === 'client' && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Zone de livraison <span className="text-red-500">*</span>
-          </label>
           <ZoneSelector
             value={data.zoneId || ''}
             onChange={(zoneId) => {
               updateField('zoneId', zoneId);
               handleBlur('zoneId');
             }}
-            error={touched.zoneId && errors.zoneId}
-            placeholder="Rechercher votre zone..."
+            required={true}
+            error={touched.zoneId ? errors.zoneId : undefined}
           />
-          {touched.zoneId && errors.zoneId && (
-            <p className="mt-1 text-sm text-red-600">{errors.zoneId}</p>
-          )}
         </div>
       )}
 

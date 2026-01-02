@@ -205,7 +205,7 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
               )}
             </div>
             <div className="space-y-8">
-              {user && <PerformanceStats supplierId={user.id} rating={rating} />}
+              {user && <PerformanceStats supplierId={user.id} rating={ownerRating} />}
             </div>
           </div>
         </div>
