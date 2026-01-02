@@ -31,28 +31,36 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection, onSectionChange }) => {
   const { user } = useAuth();
-  const { hasAccess } = useModuleAccess();
+  const { hasAccess } = useModuleAccess(user?.role === 'admin' ? 'admin' : user?.role === 'supplier' ? 'supplier' : 'client');
   const { allowedPages, isOwner } = useAllowedPages();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   /**
    * Helper function to filter menu items based on allowed pages and module access
+   *
+   * Two-stage filtering:
+   * 1. Page-level permissions (allowedPages): Determines which pages a team member can access
+   * 2. Module-level permissions (hasAccess): Determines which features within those pages are available
+   *
+   * Owners bypass both checks and have full access
    */
   const filterMenuItems = (items: Array<{ id: string; label: string; icon: any; moduleKey?: string }>) => {
-    // Filter based on allowed_pages for members, or keep all for owners
-    const filteredByPages = items.filter(item => {
-      // Always show "more" button
-      if (item.id === 'more') return true;
-      
-      // Owners see everything
-      if (isOwner) return true;
-      
-      // Members see only their allowed pages
-      return allowedPages.includes(item.id);
-    });
+    return items.filter(item => {
+      // Skip "more" button here - will be handled separately
+      if (item.id === 'more') return false;
 
-    // Additional filter based on module access permissions
-    return filteredByPages.filter(item => !item.moduleKey || hasAccess(item.moduleKey));
+      // Owners have full access to everything
+      if (isOwner) return true;
+
+      // For team members, BOTH conditions must be true:
+      // 1. The page must be in their allowedPages list
+      const hasPageAccess = allowedPages.includes(item.id);
+      if (!hasPageAccess) return false;
+
+      // 2. If the item has a moduleKey, check module-level permissions
+      const hasModuleAccess = !item.moduleKey || hasAccess(item.moduleKey);
+      return hasModuleAccess;
+    });
   };
 
   const getMainMenuItems = () => {
@@ -67,7 +75,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'catalog', label: 'Catalogue', icon: ShoppingBag, moduleKey: 'catalog' },
           { id: 'cart', label: 'Panier', icon: ShoppingCart, moduleKey: 'cart' },
           { id: 'orders', label: 'Mes Commandes', icon: Package, moduleKey: 'orders' },
-          { id: 'more', label: 'Plus...', icon: MoreHorizontal },
         ];
         break;
       case 'supplier':
@@ -77,7 +84,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'orders', label: 'Commandes', icon: Package, moduleKey: 'orders' },
           { id: 'deliveries', label: 'Livraisons', icon: Truck, moduleKey: 'deliveries' },
           { id: 'treasury', label: 'Revenus', icon: Wallet, moduleKey: 'treasury' },
-          { id: 'more', label: 'Plus...', icon: MoreHorizontal },
         ];
         break;
       case 'admin':
@@ -134,8 +140,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
     return filterMenuItems(allSecondaryItems);
   };
 
-  const mainMenuItems = getMainMenuItems();
+  const baseMainMenuItems = getMainMenuItems();
   const secondaryMenuItems = getSecondaryMenuItems();
+
+  // Add "more" button only if:
+  // 1. User is client or supplier (not admin)
+  // 2. There are secondary items to show
+  const mainMenuItems = React.useMemo(() => {
+    const items = [...baseMainMenuItems];
+
+    if ((user?.role === 'client' || user?.role === 'supplier') && secondaryMenuItems.length > 0) {
+      items.push({ id: 'more', label: 'Plus...', icon: MoreHorizontal });
+    }
+
+    return items;
+  }, [baseMainMenuItems, secondaryMenuItems.length, user?.role]);
 
   const handleMenuItemClick = (itemId: string) => {
     if (itemId === 'more') {
