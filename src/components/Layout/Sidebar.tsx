@@ -36,13 +36,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   /**
-   * Helper function to filter menu items based on allowed pages and module access
+   * Helper function to filter menu items based on allowed pages
    *
-   * Two-stage filtering:
-   * 1. Page-level permissions (allowedPages): Determines which pages a team member can access
-   * 2. Module-level permissions (hasAccess): Determines which features within those pages are available
+   * Filtering logic:
+   * - Owners: Have full access to everything
+   * - Team members: Only see pages in their allowedPages list
    *
-   * Owners bypass both checks and have full access
+   * Note: Module-level permissions (hasAccess) are NOT checked here for team members
+   * because allowed_pages is the source of truth for page access in team context.
    */
   const filterMenuItems = (items: Array<{ id: string; label: string; icon: any; moduleKey?: string }>) => {
     return items.filter(item => {
@@ -52,14 +53,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
       // Owners have full access to everything
       if (isOwner) return true;
 
-      // For team members, BOTH conditions must be true:
-      // 1. The page must be in their allowedPages list
-      const hasPageAccess = allowedPages.includes(item.id);
-      if (!hasPageAccess) return false;
-
-      // 2. If the item has a moduleKey, check module-level permissions
-      const hasModuleAccess = !item.moduleKey || hasAccess(item.moduleKey);
-      return hasModuleAccess;
+      // For team members, check if page is in their allowedPages list
+      return allowedPages.includes(item.id);
     });
   };
 

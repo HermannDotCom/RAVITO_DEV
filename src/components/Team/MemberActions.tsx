@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { MoreVertical, Eye, Shield, Power, Trash2 } from 'lucide-react';
+import React from 'react';
+import { Eye, Edit2, Trash2 } from 'lucide-react';
 import type { OrganizationMember } from '../../types/team';
 
 interface MemberActionsProps {
@@ -14,8 +14,8 @@ interface MemberActionsProps {
 }
 
 /**
- * Dropdown d'actions pour chaque membre
- * Note: Le propriétaire ne peut pas être désactivé ni supprimé
+ * Boutons d'action visibles pour chaque membre
+ * Le propriétaire est en lecture seule (seul le bouton "Voir" est affiché)
  */
 export const MemberActions: React.FC<MemberActionsProps> = ({
   member,
@@ -24,103 +24,56 @@ export const MemberActions: React.FC<MemberActionsProps> = ({
   canRemove,
   onViewDetails,
   onEditPermissions,
-  onToggleStatus,
   onRemove,
 }) => {
-  const [showMenu, setShowMenu] = useState(false);
-
-  const handleViewDetails = () => {
-    setShowMenu(false);
-    onViewDetails(member);
-  };
-
-  const handleEditPermissions = () => {
-    setShowMenu(false);
-    onEditPermissions(member);
-  };
-
-  const handleToggleStatus = () => {
-    setShowMenu(false);
-    onToggleStatus(member);
-  };
-
-  const handleRemove = () => {
-    setShowMenu(false);
-    onRemove(member);
-  };
-
-  // Owner cannot be modified
+  // Owner: read-only, only show "View" button
   if (isOwner) {
     return (
-      <button
-        onClick={handleViewDetails}
-        className="px-3 py-1 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
-      >
-        <Eye className="w-4 h-4 inline mr-1" />
-        Voir
-      </button>
+      <div className="flex items-center justify-end gap-2">
+        <button
+          onClick={() => onViewDetails(member)}
+          className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+          title="Voir les détails"
+          aria-label="Voir les détails"
+        >
+          <Eye className="w-5 h-5" />
+        </button>
+      </div>
     );
   }
 
+  // Regular members: show View, Edit, and Delete buttons
   return (
-    <div className="relative">
+    <div className="flex items-center justify-end gap-2">
       <button
-        onClick={() => setShowMenu(!showMenu)}
-        className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
-        aria-label="Actions"
+        onClick={() => onViewDetails(member)}
+        className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+        title="Voir les détails"
+        aria-label="Voir les détails"
       >
-        <MoreVertical className="w-5 h-5 text-gray-600" />
+        <Eye className="w-5 h-5" />
       </button>
 
-      {showMenu && (
-        <>
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setShowMenu(false)}
-          />
-          <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-            <button
-              onClick={handleViewDetails}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              Voir détails
-            </button>
-            
-            {canEdit && (
-              <button
-                onClick={handleEditPermissions}
-                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-              >
-                <Shield className="w-4 h-4 mr-2" />
-                Modifier permissions
-              </button>
-            )}
+      {canEdit && (
+        <button
+          onClick={() => onEditPermissions(member)}
+          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          title="Modifier les permissions"
+          aria-label="Modifier les permissions"
+        >
+          <Edit2 className="w-5 h-5" />
+        </button>
+      )}
 
-            {canEdit && (
-              <button
-                onClick={handleToggleStatus}
-                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-              >
-                <Power className="w-4 h-4 mr-2" />
-                {member.isActive ? 'Désactiver' : 'Activer'}
-              </button>
-            )}
-
-            {canRemove && (
-              <>
-                <div className="border-t border-gray-200 my-1" />
-                <button
-                  onClick={handleRemove}
-                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Supprimer
-                </button>
-              </>
-            )}
-          </div>
-        </>
+      {canRemove && (
+        <button
+          onClick={() => onRemove(member)}
+          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          title="Supprimer le membre"
+          aria-label="Supprimer le membre"
+        >
+          <Trash2 className="w-5 h-5" />
+        </button>
       )}
     </div>
   );
