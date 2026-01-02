@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { getOrganizationOwnerId } from '../utils/organizationUtils';
 
 export interface TransactionFilters {
   period?: '7d' | '30d' | '90d' | '1y' | 'all';
@@ -65,10 +66,13 @@ export async function getClientFinancialSummary(
   period?: string
 ): Promise<FinancialSummary> {
   try {
+    // Get the organization owner ID (handles both owners and members)
+    const organizationOwnerId = await getOrganizationOwnerId(clientId);
+    
     let query = supabase
       .from('orders')
       .select('id, total_amount, client_commission, payment_status, created_at')
-      .eq('client_id', clientId)
+      .eq('client_id', organizationOwnerId)
       .eq('payment_status', 'paid');
 
     // Apply period filter
@@ -138,6 +142,9 @@ export async function getClientTransactionHistory(
   filters: TransactionFilters
 ): Promise<TransactionRecord[]> {
   try {
+    // Get the organization owner ID (handles both owners and members)
+    const organizationOwnerId = await getOrganizationOwnerId(clientId);
+    
     let query = supabase
       .from('orders')
       .select(`
@@ -151,7 +158,7 @@ export async function getClientTransactionHistory(
         created_at,
         paid_at
       `)
-      .eq('client_id', clientId)
+      .eq('client_id', organizationOwnerId)
       .eq('payment_status', 'paid')
       .order('created_at', { ascending: false });
 
@@ -227,13 +234,16 @@ export async function getClientMonthlyStats(
   year: number
 ): Promise<MonthlyStats[]> {
   try {
+    // Get the organization owner ID (handles both owners and members)
+    const organizationOwnerId = await getOrganizationOwnerId(clientId);
+    
     const startDate = new Date(year, 0, 1);
     const endDate = new Date(year, 11, 31, 23, 59, 59);
 
     const { data, error } = await supabase
       .from('orders')
       .select('id, total_amount, client_commission, created_at')
-      .eq('client_id', clientId)
+      .eq('client_id', organizationOwnerId)
       .eq('payment_status', 'paid')
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString());
@@ -288,10 +298,13 @@ export async function getSupplierFinancialSummary(
   period?: string
 ): Promise<FinancialSummary> {
   try {
+    // Get the organization owner ID (handles both owners and members)
+    const organizationOwnerId = await getOrganizationOwnerId(supplierId);
+    
     let query = supabase
       .from('orders')
       .select('id, total_amount, supplier_commission, net_supplier_amount, payment_status, transferred_at, status, created_at')
-      .eq('supplier_id', supplierId)
+      .eq('supplier_id', organizationOwnerId)
       .eq('status', 'delivered');
 
     // Apply period filter
@@ -369,6 +382,9 @@ export async function getSupplierTransactionHistory(
   filters: TransactionFilters
 ): Promise<TransactionRecord[]> {
   try {
+    // Get the organization owner ID (handles both owners and members)
+    const organizationOwnerId = await getOrganizationOwnerId(supplierId);
+    
     let query = supabase
       .from('orders')
       .select(`
@@ -383,7 +399,7 @@ export async function getSupplierTransactionHistory(
         delivered_at,
         transferred_at
       `)
-      .eq('supplier_id', supplierId)
+      .eq('supplier_id', organizationOwnerId)
       .eq('status', 'delivered')
       .order('delivered_at', { ascending: false });
 
@@ -476,13 +492,16 @@ export async function getSupplierMonthlyStats(
   year: number
 ): Promise<MonthlyStats[]> {
   try {
+    // Get the organization owner ID (handles both owners and members)
+    const organizationOwnerId = await getOrganizationOwnerId(supplierId);
+    
     const startDate = new Date(year, 0, 1);
     const endDate = new Date(year, 11, 31, 23, 59, 59);
 
     const { data, error } = await supabase
       .from('orders')
       .select('id, total_amount, supplier_commission, net_supplier_amount, delivered_at')
-      .eq('supplier_id', supplierId)
+      .eq('supplier_id', organizationOwnerId)
       .eq('status', 'delivered')
       .gte('delivered_at', startDate.toISOString())
       .lte('delivered_at', endDate.toISOString());
@@ -537,10 +556,13 @@ export async function getPendingTransfers(supplierId: string): Promise<{
   orders: { id: string; amount: number; deliveredAt: Date }[];
 }> {
   try {
+    // Get the organization owner ID (handles both owners and members)
+    const organizationOwnerId = await getOrganizationOwnerId(supplierId);
+    
     const { data, error } = await supabase
       .from('orders')
       .select('id, net_supplier_amount, delivered_at')
-      .eq('supplier_id', supplierId)
+      .eq('supplier_id', organizationOwnerId)
       .eq('status', 'delivered')
       .eq('payment_status', 'paid')
       .is('transferred_at', null)

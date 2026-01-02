@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { emailService } from './emailService';
+import { getOrganizationOwnerId } from '../utils/organizationUtils';
 
 export interface SupplierOfferItem {
   productId: string;
@@ -198,10 +199,13 @@ export async function getOffersByOrder(orderId: string): Promise<SupplierOffer[]
 
 export async function getOffersBySupplier(supplierId: string): Promise<SupplierOffer[]> {
   try {
+    // Get the organization owner ID (handles both owners and members)
+    const organizationOwnerId = await getOrganizationOwnerId(supplierId);
+    
     const { data, error } = await supabase
       .from('supplier_offers')
       .select('*')
-      .eq('supplier_id', supplierId)
+      .eq('supplier_id', organizationOwnerId)
       .order('created_at', { ascending: false });
 
     if (error) {

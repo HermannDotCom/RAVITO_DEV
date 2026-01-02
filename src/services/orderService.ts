@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { Order, OrderStatus, CartItem, PaymentMethod } from '../types';
+import { getOrganizationOwnerId } from '../utils/organizationUtils';
 
 export async function createOrder(
   clientId: string,
@@ -92,6 +93,9 @@ export async function createOrder(
 
 export async function getOrdersByClient(clientId: string): Promise<Order[]> {
   try {
+    // Get the organization owner ID (handles both owners and members)
+    const organizationOwnerId = await getOrganizationOwnerId(clientId);
+    
     const { data, error } = await supabase
       .from('orders_with_coords')
       .select(`
@@ -102,7 +106,7 @@ export async function getOrdersByClient(clientId: string): Promise<Order[]> {
         ),
         zone:zones (name)
       `)
-      .eq('client_id', clientId)
+      .eq('client_id', organizationOwnerId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -119,6 +123,9 @@ export async function getOrdersByClient(clientId: string): Promise<Order[]> {
 
 export async function getOrdersBySupplier(supplierId: string): Promise<Order[]> {
   try {
+    // Get the organization owner ID (handles both owners and members)
+    const organizationOwnerId = await getOrganizationOwnerId(supplierId);
+    
     const { data, error } = await supabase
       .from('orders_with_coords')
       .select(`
@@ -129,7 +136,7 @@ export async function getOrdersBySupplier(supplierId: string): Promise<Order[]> 
         ),
         zone:zones (name)
       `)
-      .eq('supplier_id', supplierId)
+      .eq('supplier_id', organizationOwnerId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -163,10 +170,13 @@ export async function getPendingOrders(supplierId?: string): Promise<Order[]> {
       .in('status', ['pending-offers', 'offers-received']);
 
     if (supplierId) {
+      // Get the organization owner ID (handles both owners and members)
+      const organizationOwnerId = await getOrganizationOwnerId(supplierId);
+      
       const { data: supplierZones, error: zonesError } = await supabase
         .from('supplier_zones')
         .select('zone_id')
-        .eq('supplier_id', supplierId)
+        .eq('supplier_id', organizationOwnerId)
         .eq('approval_status', 'approved');
 
       if (zonesError) {
