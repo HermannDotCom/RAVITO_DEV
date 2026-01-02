@@ -151,6 +151,44 @@ export const CommissionsDashboard: React.FC = () => {
     );
   }
 
+  // Show empty state if no data
+  if (!stats || stats.orderCount === 0) {
+    return (
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Mes Commissions</h1>
+          <p className="text-gray-600">Vue d'ensemble des commissions perçues</p>
+        </div>
+        <div className="bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 rounded-2xl p-12 text-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <DollarSign className="h-10 w-10 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">
+            Aucune commission pour {selectedYear}
+          </h2>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            Les commissions seront affichées ici une fois que des commandes auront été payées durant cette période.
+          </p>
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={() => setSelectedYear(selectedYear - 1)}
+              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Année précédente
+            </button>
+            <button
+              onClick={() => setSelectedYear(selectedYear + 1)}
+              disabled={selectedYear >= new Date().getFullYear()}
+              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Année suivante
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="mb-8">

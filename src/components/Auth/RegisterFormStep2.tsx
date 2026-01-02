@@ -54,17 +54,20 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
           delete newErrors.establishmentType;
         }
         break;
-      case 'zoneId':
-        // Le champ zoneId n'est plus obligatoire pour l'inscription client
-        delete newErrors.zoneId;
-        break;
       case 'zones':
         // Le champ zones n'est plus obligatoire pour l'inscription fournisseur
         delete newErrors.zones;
         break;
+      case 'zoneId':
+        if (data.role === 'client' && !data.zoneId) {
+          newErrors.zoneId = 'La zone de livraison est requise';
+        } else {
+          delete newErrors.zoneId;
+        }
+        break;
       case 'address':
-        if (!data.address.trim()) {
-          newErrors.address = 'L\'adresse est requise';
+        if (data.role === 'supplier' && !data.address.trim()) {
+          newErrors.address = 'L\'adresse du dépôt est requise';
         } else {
           delete newErrors.address;
         }
@@ -81,7 +84,7 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
     setTouched({
       businessName: true,
       establishmentType: true,
-
+      zoneId: true,
       zones: true,
       address: true
     });
@@ -97,16 +100,16 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
       if (!data.establishmentType) {
         newErrors.establishmentType = 'Le type d\'établissement est requis';
       }
-      // if (!data.zoneId) {
-      //   newErrors.zoneId = 'La zone de livraison est requise';
-      // }
+      if (!data.zoneId) {
+        newErrors.zoneId = 'La zone de livraison est requise';
+      }
     }
 
     // Les zones ne sont plus requises pour l'inscription des fournisseurs
     // Ils pourront les configurer plus tard dans leur profil
 
-    if (!data.address.trim()) {
-      newErrors.address = 'L\'adresse est requise';
+    if (data.role === 'supplier' && !data.address.trim()) {
+      newErrors.address = 'L\'adresse du dépôt est requise';
     }
 
     setErrors(newErrors);
@@ -191,32 +194,53 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
         </div>
       )}
 
-      {/* Zone Selection removed - Suppliers can configure zones later in their profile */}
-
-      {/* Address */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {data.role === 'client' ? 'Adresse complète' : 'Adresse du dépôt'} <span className="text-red-500">*</span>
-        </label>
-        <div className="relative">
-          <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-          <textarea
-            value={data.address}
-            onChange={(e) => updateField('address', e.target.value)}
-            onBlur={() => handleBlur('address')}
-            rows={3}
-            className={`w-full pl-10 pr-4 py-3 border rounded-xl transition-all duration-300 resize-none ${
-              touched.address && errors.address
-                ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-500 focus:border-red-500'
-                : 'border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500'
-            }`}
-            placeholder="Quartier, rue, repères..."
+      {/* Zone Selection for Clients */}
+      {data.role === 'client' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Zone de livraison <span className="text-red-500">*</span>
+          </label>
+          <ZoneSelector
+            value={data.zoneId || ''}
+            onChange={(zoneId) => {
+              updateField('zoneId', zoneId);
+              handleBlur('zoneId');
+            }}
+            error={touched.zoneId && errors.zoneId}
+            placeholder="Rechercher votre zone..."
           />
+          {touched.zoneId && errors.zoneId && (
+            <p className="mt-1 text-sm text-red-600">{errors.zoneId}</p>
+          )}
         </div>
-        {touched.address && errors.address && (
-          <p className="mt-1 text-sm text-red-600">{errors.address}</p>
-        )}
-      </div>
+      )}
+
+      {/* Address for Suppliers only */}
+      {data.role === 'supplier' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Adresse du dépôt <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <textarea
+              value={data.address}
+              onChange={(e) => updateField('address', e.target.value)}
+              onBlur={() => handleBlur('address')}
+              rows={3}
+              className={`w-full pl-10 pr-4 py-3 border rounded-xl transition-all duration-300 resize-none ${
+                touched.address && errors.address
+                  ? 'border-red-500 bg-red-50 focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                  : 'border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500'
+              }`}
+              placeholder="Quartier, rue, repères..."
+            />
+          </div>
+          {touched.address && errors.address && (
+            <p className="mt-1 text-sm text-red-600">{errors.address}</p>
+          )}
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-3">

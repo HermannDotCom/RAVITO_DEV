@@ -1,6 +1,7 @@
 import React from 'react';
 import { Clock } from 'lucide-react';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
+import { useOrganizationOwnerRating } from '../../hooks/useOrganizationOwnerRating';
 import { useCart } from '../../context/CartContext';
 import { useOrder } from '../../context/OrderContext';
 import {
@@ -19,6 +20,7 @@ interface ClientDashboardProps {
 
 export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
+  const { rating: ownerRating } = useOrganizationOwnerRating();
   const { cart, addToCart } = useCart();
   const { clientCurrentOrder } = useOrder();
 
@@ -61,13 +63,12 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onNavigate }) 
 
   const userName = user?.name || (user as any)?.businessName || 'Utilisateur';
   const zone = (user as any)?.zoneId || user?.address?.split(',')[0];
-  const rating = user?.rating || 5;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-20 lg:pb-0">
       <div className="w-full max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
         <div className="space-y-4 sm:space-y-5 md:space-y-6">
-          <WelcomeHeader userName={userName} zone={zone} rating={rating} />
+          <WelcomeHeader userName={userName} zone={zone} rating={ownerRating} />
 
           <QuickOrderCard onOrderClick={() => onNavigate('catalog')} />
 

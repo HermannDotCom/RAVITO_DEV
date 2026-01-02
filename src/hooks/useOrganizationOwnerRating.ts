@@ -2,39 +2,40 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
-export function useOrganizationName() {
+export function useOrganizationOwnerRating() {
   const { user } = useAuth();
-  const [organizationName, setOrganizationName] = useState<string | null>(null);
+  const [rating, setRating] = useState<number>(5.0);
+  const [totalOrders, setTotalOrders] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!user?.id) {
-      setOrganizationName(null);
+      setRating(5.0);
+      setTotalOrders(0);
       setIsLoading(false);
       return;
     }
 
-    const fetchOrganizationName = async () => {
+    const fetchOwnerRating = async () => {
       try {
         setIsLoading(true);
 
         const { data: ownedOrg } = await supabase
           .from('organizations')
-          .select('name, owner_id, profiles!organizations_owner_id_fkey(business_name)')
+          .select('owner_id')
           .eq('owner_id', user.id)
           .maybeSingle();
 
         if (ownedOrg) {
-          const ownerProfile = ownedOrg.profiles as any;
-          const displayName = ownerProfile?.business_name || ownedOrg.name;
-          setOrganizationName(displayName);
+          setRating(user.rating || 5.0);
+          setTotalOrders(user.totalOrders || 0);
           setIsLoading(false);
           return;
         }
 
         const { data: membership } = await supabase
           .from('organization_members')
-          .select('organization_id, organizations(name, owner_id, profiles!organizations_owner_id_fkey(business_name))')
+          .select('organization_id, organizations(owner_id, profiles!organizations_owner_id_fkey(rating, total_orders))')
           .eq('user_id', user.id)
           .eq('status', 'active')
           .maybeSingle();
@@ -42,22 +43,24 @@ export function useOrganizationName() {
         if (membership && membership.organizations) {
           const org = membership.organizations as any;
           const ownerProfile = org.profiles;
-          const displayName = ownerProfile?.business_name || org.name;
-          setOrganizationName(displayName);
+          setRating(ownerProfile?.rating || 5.0);
+          setTotalOrders(ownerProfile?.total_orders || 0);
         } else {
-          setOrganizationName(null);
+          setRating(user.rating || 5.0);
+          setTotalOrders(user.totalOrders || 0);
         }
 
         setIsLoading(false);
       } catch (error) {
-        console.error('Error fetching organization name:', error);
-        setOrganizationName(null);
+        console.error('Error fetching owner rating:', error);
+        setRating(user.rating || 5.0);
+        setTotalOrders(user.totalOrders || 0);
         setIsLoading(false);
       }
     };
 
-    fetchOrganizationName();
-  }, [user?.id]);
+    fetchOwnerRating();
+  }, [user?.id, user?.rating, user?.totalOrders]);
 
-  return { organizationName, isLoading };
+  return { rating, totalOrders, isLoading };
 }

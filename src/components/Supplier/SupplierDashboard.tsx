@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Clock, Navigation } from 'lucide-react';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
+import { useOrganizationOwnerRating } from '../../hooks/useOrganizationOwnerRating';
 import { useOrder } from '../../context/OrderContext';
 import { useCommission } from '../../context/CommissionContext';
 import {
@@ -20,6 +21,7 @@ interface SupplierDashboardProps {
 
 export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
+  const { rating: ownerRating } = useOrganizationOwnerRating();
   const { availableOrders, updateOrderStatus } = useOrder();
   const { commissionSettings, getSupplierNetAmount } = useCommission();
   const [activeDelivery, setActiveDelivery] = useState<Order | null>(null);
@@ -145,13 +147,12 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
 
   const supplierName = user?.name || (user as any)?.businessName || 'Partenaire';
   const zone = (user as any)?.coverageZone || (user as any)?.zoneId;
-  const rating = user?.rating || 5;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
         <div className="space-y-8">
-          <SupplierHeader supplierName={supplierName} rating={rating} zone={zone} />
+          <SupplierHeader supplierName={supplierName} rating={ownerRating} zone={zone} />
 
           <KPICards
             availableOrders={availableOrders.length}
