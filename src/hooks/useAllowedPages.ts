@@ -73,7 +73,15 @@ export function useAllowedPages(): UseAllowedPagesReturn {
       const userIsSuperAdmin = profileData?.is_super_admin || false;
       setIsSuperAdmin(userIsSuperAdmin);
 
-      // Check if user is an organization owner
+      // ADMINS: Don't need organization - grant direct access to all pages
+      if (user.role === 'admin') {
+        setIsOwner(true);
+        setAllowedPages(getAllPagesByRole(user.role, userIsSuperAdmin));
+        setIsLoading(false);
+        return;
+      }
+
+      // For non-admins: Check if user is an organization owner
       const { data: ownedOrg, error: ownerError } = await supabase
         .from('organizations')
         .select('id, type')

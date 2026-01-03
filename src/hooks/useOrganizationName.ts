@@ -20,30 +20,26 @@ export function useOrganizationName() {
 
         const { data: ownedOrg } = await supabase
           .from('organizations')
-          .select('name, owner_id, profiles!organizations_owner_id_fkey(business_name)')
+          .select('name, owner_id')
           .eq('owner_id', user.id)
           .maybeSingle();
 
         if (ownedOrg) {
-          const ownerProfile = ownedOrg.profiles as any;
-          const displayName = ownerProfile?.business_name || ownedOrg.name;
-          setOrganizationName(displayName);
+          setOrganizationName(ownedOrg.name);
           setIsLoading(false);
           return;
         }
 
         const { data: membership } = await supabase
           .from('organization_members')
-          .select('organization_id, organizations(name, owner_id, profiles!organizations_owner_id_fkey(business_name))')
+          .select('organization_id, organizations(name, owner_id)')
           .eq('user_id', user.id)
           .eq('status', 'active')
           .maybeSingle();
 
         if (membership && membership.organizations) {
           const org = membership.organizations as any;
-          const ownerProfile = org.profiles;
-          const displayName = ownerProfile?.business_name || org.name;
-          setOrganizationName(displayName);
+          setOrganizationName(org.name);
         } else {
           setOrganizationName(null);
         }

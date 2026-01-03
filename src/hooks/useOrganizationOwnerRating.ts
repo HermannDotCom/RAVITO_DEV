@@ -35,14 +35,21 @@ export function useOrganizationOwnerRating() {
 
         const { data: membership } = await supabase
           .from('organization_members')
-          .select('organization_id, organizations(owner_id, profiles!organizations_owner_id_fkey(rating, total_orders))')
+          .select('organization_id, organizations(owner_id)')
           .eq('user_id', user.id)
           .eq('status', 'active')
           .maybeSingle();
 
         if (membership && membership.organizations) {
           const org = membership.organizations as any;
-          const ownerProfile = org.profiles;
+
+          // Fetch owner profile separately
+          const { data: ownerProfile } = await supabase
+            .from('profiles')
+            .select('rating, total_orders')
+            .eq('id', org.owner_id)
+            .maybeSingle();
+
           setRating(ownerProfile?.rating || 5.0);
           setTotalOrders(ownerProfile?.total_orders || 0);
         } else {
