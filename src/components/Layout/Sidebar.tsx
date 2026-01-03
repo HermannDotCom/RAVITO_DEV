@@ -92,6 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'treasury', label: 'Tresorerie', icon: CreditCard, moduleKey: 'treasury' },
           { id: 'commissions', label: 'Mes Commissions', icon: Wallet, moduleKey: 'commissions' },
           { id: 'zones', label: 'Zones de Livraison', icon: MapPin, moduleKey: 'zones' },
+          { id: 'team', label: 'Mon Equipe', icon: Users, moduleKey: 'team' },
           { id: 'roles', label: 'Gestion des Roles', icon: Shield, moduleKey: 'roles' },
           { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare, moduleKey: 'tickets' },
           { id: 'data', label: 'Gestion des Donnees', icon: Settings, moduleKey: 'data' },
