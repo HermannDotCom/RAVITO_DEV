@@ -214,28 +214,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
             })}
           </nav>
 
-          {user && (() => {
-            const displayName = ('businessName' in user && user.businessName) 
-              ? user.businessName 
-              : (user.name || 'Utilisateur');
-            return (
+          {user && (
               <div className="border-t border-gray-200 p-4">
                 <div className="flex items-center">
                   <div className="h-10 w-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-bold">
-                      {displayName.charAt(0).toUpperCase()}
+                      {(user.name || 'U').charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="ml-3">
                     <p className="text-sm font-medium text-gray-900">
-                      {displayName}
+                      {user.name || 'Utilisateur'}
                     </p>
                     <p className="text-xs text-gray-500 capitalize">{user.role}</p>
                   </div>
                 </div>
               </div>
-            );
-          })()}
+            )}
         </div>
       </div>
 
