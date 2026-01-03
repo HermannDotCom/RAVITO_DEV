@@ -309,7 +309,6 @@ export const ADMIN_PAGES: PageDefinition[] = [
   { id: 'treasury', label: 'Trésorerie', moduleKey: 'treasury', exclusiveSuperAdmin: false },
   { id: 'commissions', label: 'Mes Commissions', moduleKey: 'commissions', exclusiveSuperAdmin: true },
   { id: 'zones', label: 'Zones de Livraison', moduleKey: 'zones', exclusiveSuperAdmin: false },
-  { id: 'team', label: 'Mon Équipe', moduleKey: 'team', exclusiveSuperAdmin: true },
   { id: 'roles', label: 'Gestion des Rôles', moduleKey: 'roles', exclusiveSuperAdmin: true },
   { id: 'tickets', label: 'Support & Tickets', moduleKey: 'tickets', exclusiveSuperAdmin: false },
   { id: 'data', label: 'Gestion des Données', moduleKey: 'data', exclusiveSuperAdmin: true },
@@ -323,4 +322,4 @@ export const PAGES_BY_ORG_TYPE: Record<OrganizationType, PageDefinition[]> = {
 };
 
 // Super Admin exclusive pages (cannot be assigned to other roles)
-export const SUPER_ADMIN_EXCLUSIVE_PAGES = ['team', 'roles', 'settings', 'commissions', 'data'];
+export const SUPER_ADMIN_EXCLUSIVE_PAGES = ['roles', 'settings', 'commissions', 'data'];

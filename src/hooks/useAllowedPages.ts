@@ -73,9 +73,10 @@ export function useAllowedPages(): UseAllowedPagesReturn {
       const userIsSuperAdmin = profileData?.is_super_admin || false;
       setIsSuperAdmin(userIsSuperAdmin);
 
-      // ADMINS: Don't need organization - grant direct access to all pages
+      // ADMINS: Don't need organization - grant direct access based on super admin status
       if (user.role === 'admin') {
-        setIsOwner(true);
+        // Super admins are treated as owners
+        setIsOwner(userIsSuperAdmin);
         setAllowedPages(getAllPagesByRole(user.role, userIsSuperAdmin));
         setIsLoading(false);
         return;
