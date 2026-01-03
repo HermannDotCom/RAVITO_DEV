@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Building, Warehouse, MapPin, Beer, Wine, Utensils, Hotel, Music, Map } from 'lucide-react';
 import { RegistrationData } from '../../hooks/useRegistrationForm';
-import { ZoneSelector } from '../Client/ZoneSelector';
+import { ZoneSearchSelector } from '../Client/ZoneSearchSelector';
 
 interface RegisterFormStep2Props {
   data: RegistrationData;
@@ -197,7 +197,7 @@ export const RegisterFormStep2: React.FC<RegisterFormStep2Props> = ({
       {/* Zone Selection for Clients */}
       {data.role === 'client' && (
         <div>
-          <ZoneSelector
+          <ZoneSearchSelector
             value={data.zoneId || ''}
             onChange={(zoneId) => {
               updateField('zoneId', zoneId);
