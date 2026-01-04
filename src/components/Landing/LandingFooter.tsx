@@ -100,7 +100,12 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onNavigate }) => {
                 </button>
               </li>
               <li>
-                <span className="text-gray-400 text-sm">Politique de confidentialité</span>
+                <button
+                  onClick={() => onNavigate('/politique-confidentialite')}
+                  className="text-gray-400 hover:text-orange-400 transition-colors text-sm"
+                >
+                  Politique de confidentialité
+                </button>
               </li>
             </ul>
           </div>

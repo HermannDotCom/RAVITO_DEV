@@ -41,7 +41,7 @@ import { AuthScreen } from './components/Auth/AuthScreen';
 import { DeactivatedAccountModal } from './components/Auth/DeactivatedAccountModal';
 import { SkipLink } from './components/Accessibility/SkipLink';
 import { LandingPage } from './pages/Landing';
-import { CGUPage, CGVPage, MentionsLegalesPage } from './pages/Legal';
+import { CGUPage, CGVPage, MentionsLegalesPage, PolitiqueConfidentialitePage } from './pages/Legal';
 import { useSimpleRouter } from './hooks/useSimpleRouter';
 import { SupplierDashboard } from './components/Supplier/SupplierDashboard';
 import { ProductCatalog } from './components/Client/ProductCatalog';
@@ -153,6 +153,10 @@ const AppContent: React.FC = () => {
 
   if (path === '/mentions-legales') {
     return <MentionsLegalesPage onNavigate={navigate} />;
+  }
+
+  if (path === '/politique-confidentialite') {
+    return <PolitiqueConfidentialitePage onNavigate={navigate} />;
   }
 
   if (path === '/reset-password') {
