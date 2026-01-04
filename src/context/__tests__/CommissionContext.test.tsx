@@ -12,8 +12,8 @@ vi.mock('../../lib/supabase', () => ({
       limit: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
         data: {
-          client_commission_percentage: 8,
-          supplier_commission_percentage: 2,
+          client_commission_percentage: 4,
+          supplier_commission_percentage: 1,
         },
         error: null,
       }),
@@ -56,8 +56,8 @@ describe('CommissionContext', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.commissionSettings.clientCommission).toBe(8);
-    expect(result.current.commissionSettings.supplierCommission).toBe(2);
+    expect(result.current.commissionSettings.clientCommission).toBe(4);
+    expect(result.current.commissionSettings.supplierCommission).toBe(1);
   });
 
   it('should calculate cart total with commission correctly', async () => {
@@ -77,7 +77,7 @@ describe('CommissionContext', () => {
 
     expect(totals.subtotal).toBe(cartSubtotal);
     expect(totals.consigneTotal).toBe(0);
-    expect(totals.clientCommission).toBe(Math.round(cartSubtotal * 0.08));
+    expect(totals.clientCommission).toBe(Math.round(cartSubtotal * 0.04));
     expect(totals.total).toBe(cartSubtotal + totals.clientCommission);
   });
 
@@ -93,8 +93,8 @@ describe('CommissionContext', () => {
     const orderAmount = 50000;
     const netCalculation = result.current.getSupplierNetAmount(orderAmount);
 
-    const expectedBaseAmount = orderAmount / (1 + 0.08);
-    const expectedCommission = Math.round(expectedBaseAmount * 0.02);
+    const expectedBaseAmount = orderAmount / (1 + 0.04);
+    const expectedCommission = Math.round(expectedBaseAmount * 0.01);
     const expectedNetAmount = orderAmount - expectedCommission;
 
     expect(netCalculation.grossAmount).toBeCloseTo(expectedBaseAmount, 0);

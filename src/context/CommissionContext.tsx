@@ -37,8 +37,8 @@ export const useCommission = () => {
 
 export const CommissionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [commissionSettings, setCommissionSettings] = useState<CommissionSettings>({
-    clientCommission: 8,
-    supplierCommission: 2
+    clientCommission: 4,
+    supplierCommission: 1
   });
   const [isLoading, setIsLoading] = useState(true);
 

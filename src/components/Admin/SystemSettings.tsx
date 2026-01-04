@@ -20,8 +20,8 @@ export const SystemSettings: React.FC = () => {
     minimumOrderAmount: 5000, // FCFA
 
     // Commission Settings
-    clientCommission: 8, // percentage
-    supplierCommission: 2, // percentage
+    clientCommission: 4, // percentage
+    supplierCommission: 1, // percentage
 
     // Notification Settings
     smsNotifications: true,

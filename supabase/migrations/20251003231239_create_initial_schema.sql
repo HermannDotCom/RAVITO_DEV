@@ -460,5 +460,5 @@ INSERT INTO commission_settings (
   client_commission_percentage,
   supplier_commission_percentage,
   is_active
-) VALUES (8.0, 2.0, true)
+) VALUES (4.0, 1.0, true)
 ON CONFLICT DO NOTHING;

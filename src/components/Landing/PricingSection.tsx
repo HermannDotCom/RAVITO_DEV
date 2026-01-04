@@ -6,8 +6,8 @@ export const PricingSection: React.FC = () => {
   const { commissionSettings, isLoading } = useCommission();
 
   // Valeurs par défaut en cas de chargement ou d'erreur
-  const clientCommission = commissionSettings.clientCommission || 8;
-  const supplierCommission = commissionSettings.supplierCommission || 2;
+  const clientCommission = commissionSettings.clientCommission || 4;
+  const supplierCommission = commissionSettings.supplierCommission || 1;
 
   return (
     <section id="tarifs" className="py-16 md:py-24 bg-white">
