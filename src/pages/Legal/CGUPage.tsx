@@ -19,7 +19,7 @@ export const CGUPage: React.FC<CGUPageProps> = ({ onNavigate }) => {
               Conditions Générales d'Utilisation
             </h1>
             <p className="text-gray-600">
-              Date de dernière mise à jour : 15 décembre 2025
+              Date de dernière mise à jour : 4 janvier 2026
             </p>
           </div>
 
@@ -75,8 +75,8 @@ export const CGUPage: React.FC<CGUPageProps> = ({ onNavigate }) => {
                 <div className="space-y-3 text-gray-700">
                   <p><strong>4.1 Commissions applicables :</strong></p>
                   <ul className="ml-6 space-y-2">
-                    <li>• Clients : 8% du montant de chaque commande</li>
-                    <li>• Fournisseurs : 2% du montant de chaque livraison</li>
+                    <li>• Clients : 4% du montant de chaque commande</li>
+                    <li>• Fournisseurs : 1% du montant de chaque livraison</li>
                   </ul>
                   <p><strong>4.2</strong> Les commissions sont prélevées automatiquement.</p>
                   <div className="bg-amber-100 border border-amber-600 rounded-lg p-4 my-4">

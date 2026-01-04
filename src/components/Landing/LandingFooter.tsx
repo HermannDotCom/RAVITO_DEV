@@ -85,6 +85,14 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button
+                  onClick={() => onNavigate('/cgv')}
+                  className="text-gray-400 hover:text-orange-400 transition-colors text-sm"
+                >
+                  CGV
+                </button>
+              </li>
+              <li>
+                <button
                   onClick={() => onNavigate('/mentions-legales')}
                   className="text-gray-400 hover:text-orange-400 transition-colors text-sm"
                 >

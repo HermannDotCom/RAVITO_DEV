@@ -41,7 +41,7 @@ import { AuthScreen } from './components/Auth/AuthScreen';
 import { DeactivatedAccountModal } from './components/Auth/DeactivatedAccountModal';
 import { SkipLink } from './components/Accessibility/SkipLink';
 import { LandingPage } from './pages/Landing';
-import { CGUPage, MentionsLegalesPage } from './pages/Legal';
+import { CGUPage, CGVPage, MentionsLegalesPage } from './pages/Legal';
 import { useSimpleRouter } from './hooks/useSimpleRouter';
 import { SupplierDashboard } from './components/Supplier/SupplierDashboard';
 import { ProductCatalog } from './components/Client/ProductCatalog';
@@ -145,6 +145,10 @@ const AppContent: React.FC = () => {
   // Public pages routing (accessible without auth)
   if (path === '/cgu') {
     return <CGUPage onNavigate={navigate} />;
+  }
+
+  if (path === '/cgv') {
+    return <CGVPage onNavigate={navigate} />;
   }
 
   if (path === '/mentions-legales') {

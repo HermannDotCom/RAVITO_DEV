@@ -18,7 +18,7 @@ export const MentionsLegalesPage: React.FC<MentionsLegalesPageProps> = ({ onNavi
               Mentions Légales
             </h1>
             <p className="text-gray-600">
-              Date de dernière mise à jour : 15 décembre 2025
+              Date de dernière mise à jour : 4 janvier 2026
             </p>
           </div>
 
