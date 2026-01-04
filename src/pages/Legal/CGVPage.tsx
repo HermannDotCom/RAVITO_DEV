@@ -179,7 +179,7 @@ export const CGVPage: React.FC<CGVPageProps> = ({ onNavigate }) => {
 
                 <p><strong>6.4 Reversement aux Fournisseurs</strong></p>
                 <p className="ml-4">Après confirmation de la livraison, RAVITO reverse au Fournisseur le montant de la vente diminué de la commission (1%), selon un calendrier de paiement défini.</p>
-                <p className="ml-4">le calendrier de reversement est indicatif et peut varier selon les contraintes techniques ou réglementaires.</p>
+                <p className="ml-4">Le calendrier de reversement est indicatif et peut varier selon les contraintes techniques ou réglementaires.</p>
               </div>
             </section>
 
