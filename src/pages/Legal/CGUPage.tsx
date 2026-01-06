@@ -19,7 +19,7 @@ export const CGUPage: React.FC<CGUPageProps> = ({ onNavigate }) => {
               Conditions Générales d'Utilisation
             </h1>
             <p className="text-gray-600">
-              Date de dernière mise à jour : 4 janvier 2026
+              Date de dernière mise à jour : 5 janvier 2026
             </p>
           </div>
 
@@ -60,6 +60,22 @@ export const CGUPage: React.FC<CGUPageProps> = ({ onNavigate }) => {
                 <p><strong>3.2</strong> L'Utilisateur s'engage à fournir des informations exactes et à jour.</p>
                 <p><strong>3.3</strong> L'Utilisateur est responsable de la confidentialité de ses identifiants.</p>
                 <p><strong>3.4</strong> RAVITO se réserve le droit de refuser ou suspendre tout compte.</p>
+
+                <p><strong>3.5 Sanctions et suspension de compte</strong></p>
+                <p className="ml-4">En cas de manquement aux présentes CGU, RAVITO applique les sanctions graduées suivantes :</p>
+                <ul className="ml-8 space-y-2 list-disc">
+                  <li><strong>1er manquement :</strong> Avertissement écrit (notification par email)</li>
+                  <li><strong>2e manquement :</strong> Suspension temporaire du compte pour une durée de 7 jours</li>
+                  <li><strong>3e manquement :</strong> Radiation définitive du compte sans préavis</li>
+                </ul>
+                <p className="ml-4 mt-2">Sont notamment considérés comme manquements :</p>
+                <ul className="ml-8 space-y-1 list-disc">
+                  <li>Non-paiement des commissions dues à RAVITO</li>
+                  <li>Fourniture de fausses informations ou documents frauduleux</li>
+                  <li>Publication d'avis abusifs, diffamatoires ou mensongers</li>
+                  <li>Tentative de contournement du système de paiement de la plateforme</li>
+                  <li>Comportement nuisible envers les autres utilisateurs</li>
+                </ul>
               </div>
             </section>
 
@@ -82,7 +98,7 @@ export const CGUPage: React.FC<CGUPageProps> = ({ onNavigate }) => {
                   <div className="bg-amber-100 border border-amber-600 rounded-lg p-4 my-4">
                     <p className="font-bold text-amber-900 mb-2">⚠️ IMPORTANT :</p>
                     <p className="text-amber-900"><strong>4.3</strong> Les tarifs sont susceptibles d'évoluer à tout moment.</p>
-                    <p className="text-amber-900"><strong>4.4</strong> RAVITO se réserve le droit de mettre en place un système d'abonnement mensuel obligatoire.</p>
+                    <p className="text-amber-900"><strong>4.4 Services premium optionnels :</strong> RAVITO propose des services premium optionnels sous forme d'abonnement mensuel facultatif, incluant des fonctionnalités avancées telles que la priorité sur les offres et des outils d'analytics améliorés. Toute mise en place ou modification d'offres premium sera notifiée aux utilisateurs avec un préavis de 30 jours.</p>
                   </div>
                   <p><strong>4.5</strong> Toute modification tarifaire sera notifiée avec un préavis raisonnable.</p>
                   <p><strong>4.6 Modes de paiement :</strong> Orange Money, Wave, MTN Mobile Money, Moov Money, Carte bancaire.</p>
@@ -148,6 +164,7 @@ export const CGUPage: React.FC<CGUPageProps> = ({ onNavigate }) => {
                 <p><strong>8.4</strong> RAVITO n'est pas responsable des retards, erreurs ou manquements des Fournisseurs.</p>
                 <p><strong>8.5</strong> RAVITO peut néanmoins intervenir en tant que médiateur en cas de litige.</p>
                 <p><strong>8.6</strong> RAVITO s'efforce d'assurer la disponibilité de la Plateforme mais ne garantit pas un fonctionnement ininterrompu.</p>
+                <p><strong>8.7 Articulation avec les CGV :</strong> Pour tous les aspects commerciaux et transactionnels (tarification, paiements, livraison, garanties), les Conditions Générales de Vente (CGV) de RAVITO prévalent en cas de conflit ou de contradiction entre les CGU et les CGV.</p>
               </div>
             </section>
 
@@ -220,9 +237,14 @@ export const CGUPage: React.FC<CGUPageProps> = ({ onNavigate }) => {
                 ARTICLE 14 - DROIT APPLICABLE
               </h2>
               <div className="space-y-3 text-gray-700">
-                <p><strong>14.1</strong> Les présentes CGU sont soumises au droit ivoirien.</p>
-                <p><strong>14.2</strong> En cas de litige, les parties s'efforceront de trouver une solution amiable.</p>
-                <p><strong>14.3</strong> À défaut, les tribunaux d'Abidjan seront compétents.</p>
+                <p><strong>14.1</strong> Les présentes CGU sont soumises au droit ivoirien, notamment :</p>
+                <ul className="ml-8 space-y-1 list-disc">
+                  <li>Ordonnance n° 2017-500 du 2 août 2017 relative aux échanges électroniques (article 9 sur la clarté des conditions)</li>
+                  <li>Acte Uniforme OHADA relatif au droit commercial général (article 116 sur l'équité contractuelle)</li>
+                  <li>Loi n° 2013-450 du 19 juin 2013 relative à la protection des données à caractère personnel</li>
+                </ul>
+                <p className="mt-3"><strong>14.2</strong> En cas de litige, les parties s'efforceront de trouver une solution amiable.</p>
+                <p><strong>14.3</strong> À défaut, les tribunaux compétents d'Abidjan, Côte d'Ivoire, seront compétents.</p>
               </div>
             </section>
 

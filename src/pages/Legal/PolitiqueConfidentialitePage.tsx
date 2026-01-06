@@ -22,7 +22,7 @@ export const PolitiqueConfidentialitePage: React.FC<PolitiqueConfidentialitePage
               Politique de Confidentialité
             </h1>
             <p className="text-gray-600">
-              Date de dernière mise à jour : 4 janvier 2026
+              Date de dernière mise à jour : 5 janvier 2026
             </p>
           </div>
 
@@ -198,6 +198,13 @@ export const PolitiqueConfidentialitePage: React.FC<PolitiqueConfidentialitePage
 
                 <p><strong>4.4 Intérêt légitime</strong></p>
                 <p className="ml-4">Nous traitons certaines données sur la base de notre intérêt légitime à améliorer notre service et à prévenir la fraude.</p>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                  <p className="font-semibold text-blue-900 mb-2">Cadre légal ivoirien</p>
+                  <p className="text-blue-800 text-sm">
+                    Le traitement de vos données personnelles est effectué conformément à la <strong>Loi n° 2013-450 du 19 juin 2013 relative à la protection des données à caractère personnel</strong> en Côte d'Ivoire et à l'Acte Uniforme OHADA.
+                  </p>
+                </div>
               </div>
             </section>
 

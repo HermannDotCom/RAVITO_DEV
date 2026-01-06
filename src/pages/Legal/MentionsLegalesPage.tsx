@@ -18,7 +18,7 @@ export const MentionsLegalesPage: React.FC<MentionsLegalesPageProps> = ({ onNavi
               Mentions Légales
             </h1>
             <p className="text-gray-600">
-              Date de dernière mise à jour : 4 janvier 2026
+              Date de dernière mise à jour : 5 janvier 2026
             </p>
           </div>
 
@@ -31,15 +31,17 @@ export const MentionsLegalesPage: React.FC<MentionsLegalesPageProps> = ({ onNavi
               </h2>
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
                 <div className="space-y-2 text-gray-700">
-                  <p><strong>Raison sociale :</strong> <span className="text-amber-600">[À COMPLÉTER]</span></p>
-                  <p><strong>Forme juridique :</strong> <span className="text-amber-600">[À COMPLÉTER]</span></p>
-                  <p><strong>Capital social :</strong> <span className="text-amber-600">[À COMPLÉTER]</span></p>
-                  <p><strong>Numéro RCCM :</strong> <span className="text-amber-600">[À COMPLÉTER]</span></p>
-                  <p><strong>Siège social :</strong> Abidjan, Côte d'Ivoire</p>
-                  <p><strong>Adresse :</strong> <span className="text-amber-600">[À COMPLÉTER]</span></p>
-                  <p><strong>Téléphone :</strong> <span className="text-amber-600">[À COMPLÉTER]</span></p>
+                  <p><strong>Raison sociale :</strong> RAVITO SAS</p>
+                  <p><strong>Forme juridique :</strong> Société par Actions Simplifiée (SAS)</p>
+                  <p><strong>Capital social :</strong> 1 000 000 FCFA</p>
+                  <p><strong>Numéro RCCM :</strong> ABJ-2026-B-<span className="text-amber-600">[Numéro CEPICI à obtenir]</span></p>
+                  <p><strong>Immatriculation CEPICI :</strong> <span className="text-amber-600">[À obtenir]</span></p>
+                  <p><strong>Numéro TVA :</strong> <span className="text-amber-600">[À obtenir]</span></p>
+                  <p><strong>Code APE :</strong> 4791Z (Vente à distance)</p>
+                  <p><strong>Siège social :</strong> <span className="text-amber-600">[Adresse complète à Abidjan Sud, ex: Zone 4, Rue X, Immeuble Y]</span></p>
+                  <p><strong>Téléphone :</strong> +225 07 09 81 19 59</p>
                   <p><strong>Email :</strong> <a href="mailto:contact@ravito.ci" className="text-orange-500 hover:text-orange-600">contact@ravito.ci</a></p>
-                  <p><strong>Directeur de la publication :</strong> <span className="text-amber-600">[À COMPLÉTER]</span></p>
+                  <p><strong>Directeur de la publication :</strong> Hermann N'GUESSAN, Gérant</p>
                 </div>
               </div>
             </section>
@@ -53,6 +55,8 @@ export const MentionsLegalesPage: React.FC<MentionsLegalesPageProps> = ({ onNavi
                 <p><strong>Hébergeur :</strong> Vercel Inc.</p>
                 <p><strong>Adresse :</strong> 340 S Lemon Ave #4133, Walnut, CA 91789, USA</p>
                 <p><strong>Site web :</strong> <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-600">vercel.com</a></p>
+                <p className="mt-3"><strong>Transferts internationaux :</strong></p>
+                <p className="ml-4">Les données hébergées aux États-Unis sont protégées par des Clauses Contractuelles Types (CCT) conformes aux standards internationaux de protection des données pour les transferts Côte d'Ivoire - USA.</p>
               </div>
             </section>
 
@@ -191,14 +195,19 @@ export const MentionsLegalesPage: React.FC<MentionsLegalesPageProps> = ({ onNavi
             {/* Section 8 */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                8. DROIT APPLICABLE
+                8. CADRE LÉGAL ET RÉGLEMENTAIRE
               </h2>
               <div className="space-y-3 text-gray-700">
                 <p>
-                  Les présentes mentions légales sont soumises au droit ivoirien.
+                  Les présentes mentions légales sont établies conformément à :
                 </p>
-                <p>
-                  En cas de litige et à défaut d'accord amiable, le litige sera porté devant les tribunaux compétents d'Abidjan.
+                <ul className="ml-8 space-y-1 list-disc">
+                  <li>Ordonnance n° 2017-500 du 2 août 2017 relative aux échanges électroniques (Côte d'Ivoire)</li>
+                  <li>Acte Uniforme OHADA relatif au droit commercial général (révisé en 2010)</li>
+                  <li>Loi n° 2013-450 du 19 juin 2013 relative à la protection des données à caractère personnel</li>
+                </ul>
+                <p className="mt-3">
+                  En cas de litige et à défaut d'accord amiable, le litige sera porté devant les tribunaux compétents d'Abidjan, Côte d'Ivoire.
                 </p>
               </div>
             </section>

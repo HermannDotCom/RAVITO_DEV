@@ -19,7 +19,7 @@ export const CGVPage: React.FC<CGVPageProps> = ({ onNavigate }) => {
               Conditions Générales de Vente
             </h1>
             <p className="text-gray-600">
-              Date de dernière mise à jour : 4 janvier 2026
+              Date de dernière mise à jour : 5 janvier 2026
             </p>
           </div>
 
@@ -178,8 +178,10 @@ export const CGVPage: React.FC<CGVPageProps> = ({ onNavigate }) => {
                 <p className="ml-4">Les paiements sont sécurisés et gérés par des prestataires de paiement certifiés. RAVITO ne conserve aucune donnée bancaire.</p>
 
                 <p><strong>6.4 Reversement aux Fournisseurs</strong></p>
-                <p className="ml-4">Après confirmation de la livraison, RAVITO reverse au Fournisseur le montant de la vente diminué de la commission (1%), selon un calendrier de paiement défini.</p>
-                <p className="ml-4">Le calendrier de reversement est indicatif et peut varier selon les contraintes techniques ou réglementaires.</p>
+                <p className="ml-4">RAVITO reverse au Fournisseur le montant de la vente diminué de la commission de 1% sous 48 heures ouvrables après confirmation de livraison (code saisi par le client).</p>
+                <p className="ml-4"><strong>Exemple :</strong> Pour une commande de 500 000 FCFA, le fournisseur recevra 495 000 FCFA (500 000 - 5 000).</p>
+                <p className="ml-4"><strong>Délais :</strong> Si la confirmation intervient un week-end ou jour férié, le reversement est effectué le lundi ouvrable suivant.</p>
+                <p className="ml-4"><strong>Retard exceptionnel :</strong> En cas de retard technique exceptionnel, RAVITO notifiera le fournisseur et appliquera une majoration de 0,5% par jour de retard, plafonnée à 5 jours maximum.</p>
               </div>
             </section>
 
@@ -280,8 +282,9 @@ export const CGVPage: React.FC<CGVPageProps> = ({ onNavigate }) => {
                 <p><strong>11.2 Service support</strong></p>
                 <p className="ml-4">Pour toute réclamation, contacter le support RAVITO à : <a href="mailto:support@ravito.ci" className="text-orange-500 hover:text-orange-600">support@ravito.ci</a></p>
 
-                <p><strong>11.3 Juridiction compétente</strong></p>
-                <p className="ml-4">À défaut d'accord amiable, les litiges relèvent de la compétence des tribunaux d'Abidjan, Côte d'Ivoire.</p>
+                <p><strong>11.3 Conciliation et juridiction compétente</strong></p>
+                <p className="ml-4">En cas de litige persistant, les parties peuvent recourir gratuitement à la conciliation proposée par le CEPICI (Centre de Promotion des Investissements en Côte d'Ivoire) à Abidjan.</p>
+                <p className="ml-4">En cas d'échec de la conciliation, les tribunaux compétents d'Abidjan, Côte d'Ivoire, auront compétence exclusive pour statuer sur le litige.</p>
               </div>
             </section>
 
@@ -303,15 +306,47 @@ export const CGVPage: React.FC<CGVPageProps> = ({ onNavigate }) => {
                 ARTICLE 13 - DROIT APPLICABLE
               </h2>
               <div className="space-y-3 text-gray-700">
-                <p><strong>13.1</strong> Les présentes CGV sont régies par le droit ivoirien.</p>
-                <p><strong>13.2</strong> Tout litige relatif à l'interprétation ou à l'exécution des présentes sera soumis aux tribunaux compétents d'Abidjan.</p>
+                <p><strong>13.1</strong> Les présentes CGV sont régies par le droit ivoirien et notamment par :</p>
+                <ul className="ml-8 space-y-1 list-disc">
+                  <li>L'Acte Uniforme OHADA relatif au droit commercial général (articles 153-160 sur les intermédiaires)</li>
+                  <li>La loi n° 2016-412 du 15 juin 2016 relative à la consommation (article 12 sur la transparence)</li>
+                  <li>L'ordonnance n° 2017-500 du 2 août 2017 relative aux échanges électroniques</li>
+                </ul>
+                <p className="mt-3"><strong>13.2</strong> Tout litige relatif à l'interprétation ou à l'exécution des présentes sera soumis aux tribunaux compétents d'Abidjan.</p>
               </div>
             </section>
 
-            {/* Article 14 */}
+            {/* Article 14 - NOUVEAU */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                ARTICLE 14 - CONTACT
+                ARTICLE 14 - FORCE MAJEURE
+              </h2>
+              <div className="space-y-3 text-gray-700">
+                <p><strong>14.1 Définition</strong></p>
+                <p className="ml-4">Sont considérés comme cas de force majeure, conformément à l'article 1148 du Code civil harmonisé OHADA, les événements suivants :</p>
+                <ul className="ml-8 space-y-1 list-disc">
+                  <li>Panne majeure des prestataires de paiement (Wave, Orange Money, MTN, Moov, etc.)</li>
+                  <li>Cyberattaque visant la plateforme ou ses infrastructures</li>
+                  <li>Catastrophe naturelle (inondation, tremblement de terre, etc.)</li>
+                  <li>Grève générale affectant les services essentiels</li>
+                  <li>Décision administrative ou gouvernementale empêchant l'activité</li>
+                </ul>
+
+                <p><strong>14.2 Notification</strong></p>
+                <p className="ml-4">En cas de survenance d'un événement de force majeure, RAVITO notifiera les utilisateurs par email et/ou SMS dans un délai de 48 heures.</p>
+
+                <p><strong>14.3 Exonération de responsabilité</strong></p>
+                <p className="ml-4">RAVITO est exonéré de toute responsabilité pendant la durée de l'événement de force majeure et pendant une période de 7 jours suivant la fin de cet événement pour permettre la reprise normale des activités.</p>
+
+                <p><strong>14.4 Reprise des obligations</strong></p>
+                <p className="ml-4">Les parties reprennent l'exécution de leurs obligations contractuelles dès la cessation de l'événement de force majeure, sans qu'aucune indemnité ne soit due de part et d'autre.</p>
+              </div>
+            </section>
+
+            {/* Article 15 */}
+            <section className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                ARTICLE 15 - CONTACT
               </h2>
               <div className="space-y-2 text-gray-700">
                 <p>Pour toute question relative aux présentes CGV :</p>
