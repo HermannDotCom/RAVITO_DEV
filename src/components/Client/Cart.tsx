@@ -109,13 +109,17 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
                     <div className="flex-1 min-w-0 pr-2">
                       <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">{item.product.name}</h3>
                       <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{item.product.description}</p>
-                      <Badge
-                        variant="default"
-                        size="sm"
-                        className="mt-1"
-                      >
-                        {item.product.brand} - {item.product.crateType}
-                      </Badge>
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        <Badge
+                          variant="default"
+                          size="sm"
+                        >
+                          {item.product.brand} - {item.product.crateType}
+                        </Badge>
+                        <span className="text-xs text-gray-600">
+                          {formatPrice(item.product.pricePerUnit)}/caisse
+                        </span>
+                      </div>
                     </div>
                     <button
                       onClick={() => removeFromCart(item.product.id)}

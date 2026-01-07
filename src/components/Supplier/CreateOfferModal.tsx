@@ -130,7 +130,10 @@ export const CreateOfferModal: React.FC<CreateOfferModalProps> = ({ order, onClo
     const offerItems = validItems.map(item => ({
       productId: item.productId,
       quantity: item.quantity,
-      withConsigne: item.withConsigne
+      withConsigne: item.withConsigne,
+      unitPrice: item.unitPrice,
+      cratePrice: item.cratePrice,
+      consignPrice: item.consignPrice
     }));
 
     const result = await createSupplierOffer(

@@ -6,6 +6,9 @@ export interface SupplierOfferItem {
   productId: string;
   quantity: number;
   withConsigne: boolean;
+  unitPrice?: number;
+  cratePrice?: number;
+  consignPrice?: number;
 }
 
 export interface SupplierOffer {

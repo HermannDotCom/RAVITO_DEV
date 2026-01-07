@@ -185,9 +185,10 @@ export const ReceivedOffers: React.FC<ReceivedOffersProps> = ({ order, onOfferAc
               {offer.modifiedItems.map((item: any, idx: number) => {
                 const originalItem = order.items.find(oi => oi.product.id === item.productId);
                 const hasChanged = originalItem && originalItem.quantity !== item.quantity;
-                const unitPrice = originalItem?.product.pricePerUnit || originalItem?.product.unitPrice || 0;
-                const cratePrice = originalItem?.product.cratePrice || (unitPrice * (originalItem?.product.bottlesPerCrate || 1));
-                const consignPrice = originalItem?.product.consignPrice || originalItem?.product.consigneAmount || 0;
+
+                // Utiliser les prix de l'offre en priorité, sinon fallback sur order.items
+                const cratePrice = item.cratePrice || originalItem?.product.cratePrice || 0;
+                const consignPrice = item.consignPrice || originalItem?.product.consignPrice || originalItem?.product.consigneAmount || 0;
 
                 const itemSubtotal = cratePrice * item.quantity;
                 const itemConsigne = item.withConsigne ? consignPrice * item.quantity : 0;
