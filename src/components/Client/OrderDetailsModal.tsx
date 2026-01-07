@@ -277,16 +277,17 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
                 {['offers-received', 'awaiting-payment', 'paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating'].includes(order.status) && order.baseAmount ? (
                   <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm text-blue-800">
-                      <strong>Prix de l'offre acceptée</strong> - Les quantités et prix proviennent du fournisseur.
+                      <strong>Prix de l'offre acceptée</strong> - Les quantités et prix proviennent du fournisseur sélectionné.
                     </p>
                   </div>
                 ) : null}
 
                 <div className="space-y-4">
                   {order.items.map((item, index) => {
-                    const unitPrice = item.product.pricePerUnit || item.product.unitPrice || 0;
-                    const cratePrice = item.product.cratePrice || (unitPrice * (item.product.bottlesPerCrate || 1));
-                    const consignPrice = item.product.consignPrice || item.product.consigneAmount || 0;
+                    // Utiliser les prix de order_items (prix fournisseur) si disponibles
+                    const unitPrice = item.unitPrice || item.product.unitPrice || 0;
+                    const cratePrice = item.cratePrice || item.product.cratePrice || 0;
+                    const consignPrice = item.consignPrice || item.product.consignPrice || item.product.consigneAmount || 0;
 
                     const itemSubtotal = cratePrice * item.quantity;
                     const itemConsigne = item.withConsigne ? consignPrice * item.quantity : 0;
@@ -314,6 +315,9 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
                             </span>
                           </div>
                           <div className="space-y-1">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600">PU: {formatPrice(unitPrice)}/bouteille</span>
+                            </div>
                             <div className="flex items-center justify-between text-sm text-gray-600">
                               <span>{item.quantity} caisses × {formatPrice(cratePrice)}</span>
                               <span className="font-medium text-gray-900">{formatPrice(itemSubtotal)}</span>
@@ -334,6 +338,36 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
                     );
                   })}
                 </div>
+
+                {/* Totaux détaillés */}
+                {order.baseAmount && (
+                  <div className="mt-6 pt-4 border-t border-gray-300 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Sous-total produits:</span>
+                      <span className="font-medium text-gray-900">{formatPrice(order.baseAmount - (order.consigneTotal || 0))}</span>
+                    </div>
+                    {order.consigneTotal > 0 && (
+                      <div className="flex justify-between text-sm text-orange-600">
+                        <span>Consignes:</span>
+                        <span className="font-medium">{formatPrice(order.consigneTotal)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
+                      <span className="text-gray-600">Sous-total:</span>
+                      <span className="font-semibold text-gray-900">{formatPrice(order.baseAmount)}</span>
+                    </div>
+                    {order.clientCommissionAmount && (
+                      <div className="flex justify-between text-sm text-orange-600">
+                        <span>Commission RAVITO (4%):</span>
+                        <span className="font-semibold">{formatPrice(order.clientCommissionAmount)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between pt-2 border-t-2 border-gray-900">
+                      <span className="font-bold text-gray-900">Total à régler:</span>
+                      <span className="font-bold text-xl text-gray-900">{formatPrice(order.totalAmount)}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Crate Management */}

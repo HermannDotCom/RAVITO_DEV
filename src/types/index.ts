@@ -137,6 +137,10 @@ export interface CartItem {
   product: Product;
   quantity: number;
   withConsigne: boolean;
+  unitPrice?: number;
+  cratePrice?: number;
+  consignPrice?: number;
+  subtotal?: number;
 }
 
 export interface Order {
