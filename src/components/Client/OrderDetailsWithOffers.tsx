@@ -149,39 +149,102 @@ export const OrderDetailsWithOffers: React.FC<OrderDetailsWithOffersProps> = ({
               <Package className="h-5 w-5 mr-2" />
               Produits commandés
             </h3>
-            <div className="space-y-2">
-              {order.items.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {item.product.name}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {item.quantity} caisses × {formatPrice(item.product.cratePrice)}
-                      {item.withConsigne && ' + consigne'}
-                    </p>
+
+            {order.status === 'pending-offers' ? (
+              <>
+                <div className="space-y-2">
+                  {order.items.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                    >
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {item.product.name}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {item.quantity} caisses × {formatPrice(item.product.cratePrice)}
+                          {item.withConsigne && ' + consigne'}
+                        </p>
+                      </div>
+                      <p className="font-semibold text-gray-900 dark:text-white">
+                        {formatPrice(
+                          item.product.cratePrice * item.quantity +
+                            (item.withConsigne ? item.product.consignPrice * item.quantity : 0)
+                        )}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <div className="flex justify-between font-semibold text-lg">
+                    <span className="text-gray-900 dark:text-white">Total estimé</span>
+                    <span className="text-blue-600 dark:text-blue-400">
+                      {formatPrice(order.totalAmount)}
+                    </span>
                   </div>
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    {formatPrice(
-                      item.product.cratePrice * item.quantity +
-                        (item.withConsigne ? item.product.consignPrice * item.quantity : 0)
-                    )}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg mb-3">
+                  <p className="text-sm text-blue-800 dark:text-blue-300">
+                    <strong>Prix de l'offre acceptée</strong> - Les quantités et prix proviennent du fournisseur sélectionné.
                   </p>
                 </div>
-              ))}
-            </div>
+                <div className="space-y-2">
+                  {order.items.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                    >
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {item.product.name}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Quantité: {item.quantity} caisses
+                          {item.withConsigne && ' (avec consigne)'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-            <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <div className="flex justify-between font-semibold text-lg">
-                <span className="text-gray-900 dark:text-white">Total</span>
-                <span className="text-blue-600 dark:text-blue-400">
-                  {formatPrice(order.totalAmount)}
-                </span>
-              </div>
-            </div>
+                <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg space-y-2">
+                  {order.baseAmount && order.clientCommissionAmount ? (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Montant offre</span>
+                        <span className="text-gray-900 dark:text-white font-medium">
+                          {formatPrice(order.baseAmount)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Commission RAVITO (4%)</span>
+                        <span className="text-orange-600 dark:text-orange-400 font-medium">
+                          {formatPrice(order.clientCommissionAmount)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between font-bold text-lg border-t-2 border-gray-400 dark:border-gray-500 pt-2">
+                        <span className="text-gray-900 dark:text-white">Total à payer</span>
+                        <span className="text-blue-600 dark:text-blue-400">
+                          {formatPrice(order.totalAmount)}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex justify-between font-semibold text-lg">
+                      <span className="text-gray-900 dark:text-white">Total</span>
+                      <span className="text-blue-600 dark:text-blue-400">
+                        {formatPrice(order.totalAmount)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           {showOffers && (

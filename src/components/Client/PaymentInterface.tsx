@@ -118,14 +118,39 @@ export const PaymentInterface: React.FC<PaymentInterfaceProps> = ({
           )}
 
           <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-700 dark:text-gray-300 font-medium">
-                Montant à payer
-              </span>
-              <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {formatPrice(order.totalAmount)}
-              </span>
-            </div>
+            {order.baseAmount && order.clientCommissionAmount ? (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Montant offre</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {formatPrice(order.baseAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Commission RAVITO (4%)</span>
+                  <span className="font-medium text-orange-600 dark:text-orange-400">
+                    {formatPrice(order.clientCommissionAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-blue-300 dark:border-blue-700">
+                  <span className="text-gray-700 dark:text-gray-300 font-semibold">
+                    Total à payer
+                  </span>
+                  <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {formatPrice(order.totalAmount)}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  Montant à payer
+                </span>
+                <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  {formatPrice(order.totalAmount)}
+                </span>
+              </div>
+            )}
           </div>
 
           <div>

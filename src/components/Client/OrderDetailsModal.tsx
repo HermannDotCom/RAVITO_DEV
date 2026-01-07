@@ -217,15 +217,40 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
                     <span className="text-gray-600">Mode de paiement:</span>
                     <span className="font-medium text-gray-900">{getPaymentMethodLabel(order.paymentMethod)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Montant total:</span>
-                    <span className="font-bold text-gray-900">{formatPrice(order.totalAmount)}</span>
-                  </div>
-                  {order.consigneTotal > 0 && (
-                    <div className="flex justify-between text-orange-600">
-                      <span>Consignes incluses:</span>
-                      <span className="font-medium">{formatPrice(order.consigneTotal)}</span>
-                    </div>
+                  {order.baseAmount && order.clientCommissionAmount ? (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Montant offre:</span>
+                        <span className="font-medium text-gray-700">{formatPrice(order.baseAmount)}</span>
+                      </div>
+                      {order.consigneTotal > 0 && (
+                        <div className="flex justify-between text-sm text-orange-600">
+                          <span>Dont consignes:</span>
+                          <span className="font-medium">{formatPrice(order.consigneTotal)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Commission RAVITO (4%):</span>
+                        <span className="font-medium text-orange-600">{formatPrice(order.clientCommissionAmount)}</span>
+                      </div>
+                      <div className="flex justify-between pt-2 border-t border-green-300">
+                        <span className="text-gray-600 font-semibold">Montant total payé:</span>
+                        <span className="font-bold text-gray-900">{formatPrice(order.totalAmount)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Montant total:</span>
+                        <span className="font-bold text-gray-900">{formatPrice(order.totalAmount)}</span>
+                      </div>
+                      {order.consigneTotal > 0 && (
+                        <div className="flex justify-between text-orange-600">
+                          <span>Consignes incluses:</span>
+                          <span className="font-medium">{formatPrice(order.consigneTotal)}</span>
+                        </div>
+                      )}
+                    </>
                   )}
                   <div className="flex justify-between">
                     <span className="text-gray-600">Statut paiement:</span>

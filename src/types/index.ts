@@ -146,6 +146,8 @@ export interface Order {
   supplierId?: string;
   items: CartItem[];
   totalAmount: number;
+  baseAmount?: number;
+  clientCommissionAmount?: number;
   status: OrderStatus;
   consigneTotal: number;
   deliveryAddress: string;

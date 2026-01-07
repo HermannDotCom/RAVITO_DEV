@@ -229,18 +229,36 @@ export const ReceivedOffers: React.FC<ReceivedOffersProps> = ({ order, onOfferAc
             )}
 
             <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Sous-total produits</span>
+                <span className="text-gray-900 dark:text-white">
+                  {formatPrice(offer.totalAmount - offer.consigneTotal)}
+                </span>
+              </div>
               {offer.consigneTotal > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Consigne</span>
+                  <span className="text-gray-600 dark:text-gray-400">Consignes</span>
                   <span className="text-gray-900 dark:text-white">
                     {formatPrice(offer.consigneTotal)}
                   </span>
                 </div>
               )}
-              <div className="flex justify-between font-semibold text-lg border-t border-gray-300 dark:border-gray-600 pt-2">
+              <div className="flex justify-between text-sm border-t border-gray-300 dark:border-gray-600 pt-2">
+                <span className="text-gray-600 dark:text-gray-400">Total fournisseur</span>
+                <span className="text-gray-900 dark:text-white font-medium">
+                  {formatPrice(offer.totalAmount)}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Commission RAVITO (4%)</span>
+                <span className="text-orange-600 dark:text-orange-400 font-medium">
+                  {formatPrice(Math.round(offer.totalAmount * 0.04))}
+                </span>
+              </div>
+              <div className="flex justify-between font-bold text-lg border-t-2 border-gray-400 dark:border-gray-500 pt-2">
                 <span className="text-gray-900 dark:text-white">Total à payer</span>
                 <span className="text-blue-600 dark:text-blue-400">
-                  {formatPrice(offer.totalAmount)}
+                  {formatPrice(offer.totalAmount + Math.round(offer.totalAmount * 0.04))}
                 </span>
               </div>
             </div>

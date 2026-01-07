@@ -20,16 +20,8 @@ export const PaymentFlow: React.FC<PaymentFlowProps> = ({
   const [step, setStep] = useState<'method' | 'confirm' | 'processing'>('method');
   const [error, setError] = useState('');
 
-  // Calculate totals
-  const subtotal = order.items.reduce((sum, item) => 
-    sum + (item.product.pricePerUnit * item.quantity), 0
-  );
-  
-  const consigneTotal = order.items.reduce((sum, item) => 
-    sum + (item.withConsigne ? item.product.consigneAmount * item.quantity : 0), 0
-  );
-  
-  const total = subtotal + consigneTotal;
+  // Use order.totalAmount which includes commission after offer acceptance
+  const total = order.totalAmount;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR').format(price) + ' FCFA';
@@ -115,10 +107,27 @@ export const PaymentFlow: React.FC<PaymentFlowProps> = ({
           {/* Order Summary */}
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-gray-600 mb-2">Commande #{order.id}</p>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-700">Montant total :</span>
-              <span className="text-2xl font-bold text-orange-600">{formatPrice(total)}</span>
-            </div>
+            {order.baseAmount && order.clientCommissionAmount ? (
+              <>
+                <div className="flex justify-between items-center text-sm mb-1">
+                  <span className="text-gray-600">Montant offre :</span>
+                  <span className="font-medium text-gray-700">{formatPrice(order.baseAmount)}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm mb-2">
+                  <span className="text-gray-600">Commission RAVITO (4%) :</span>
+                  <span className="font-medium text-orange-600">{formatPrice(order.clientCommissionAmount)}</span>
+                </div>
+                <div className="flex justify-between items-center mb-2 pt-2 border-t border-orange-300">
+                  <span className="text-gray-700 font-semibold">Total à payer :</span>
+                  <span className="text-2xl font-bold text-orange-600">{formatPrice(total)}</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-gray-700">Montant total :</span>
+                <span className="text-2xl font-bold text-orange-600">{formatPrice(total)}</span>
+              </div>
+            )}
             <p className="text-xs text-gray-500">
               {order.items.length} article(s) - Livraison à {order.deliveryAddress}
             </p>
