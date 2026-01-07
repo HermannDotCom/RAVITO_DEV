@@ -164,9 +164,22 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
   );
 
   // Combiner la commande en cours avec l'historique (éviter les doublons)
-  const allUserOrders = clientCurrentOrder
-    ? [clientCurrentOrder, ...userOrders.filter(o => o.id !== clientCurrentOrder.id)]
-    : userOrders;
+  // Utiliser un Map pour garantir l'unicité par ID
+  const allUserOrders = useMemo(() => {
+    const ordersMap = new Map<string, Order>();
+
+    // Ajouter d'abord toutes les commandes de l'historique
+    userOrders.forEach(order => {
+      ordersMap.set(order.id, order);
+    });
+
+    // Écraser avec la commande en cours si elle existe (version la plus récente)
+    if (clientCurrentOrder) {
+      ordersMap.set(clientCurrentOrder.id, clientCurrentOrder);
+    }
+
+    return Array.from(ordersMap.values());
+  }, [clientCurrentOrder, userOrders]);
 
   // Memoize order IDs to prevent unnecessary re-renders
   const orderIds = useMemo(() => allUserOrders.map(o => o.id), [allUserOrders]);

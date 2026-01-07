@@ -273,43 +273,66 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
               {/* Items */}
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Articles commandés</h3>
+
+                {['offers-received', 'awaiting-payment', 'paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating'].includes(order.status) && order.baseAmount ? (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Prix de l'offre acceptée</strong> - Les quantités et prix proviennent du fournisseur.
+                    </p>
+                  </div>
+                ) : null}
+
                 <div className="space-y-4">
-                  {order.items.map((item, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                      <img
-                        src={item.product.imageUrl}
-                        alt={item.product.name}
-                        className="h-16 w-16 rounded-lg object-cover"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span className="font-semibold text-gray-900">{item.product.name}</span>
-                          <span className={`px-2 py-1 text-xs font-medium rounded ${
-                            item.product.brand === 'Flag' || item.product.brand === 'Solibra' || item.product.brand === 'Beaufort' 
-                              ? 'bg-blue-100 text-blue-700' 
-                              : 'bg-red-100 text-red-700'
-                          }`}>
-                            {item.product.brand}
-                          </span>
-                          <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
-                            {item.product.crateType}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm text-gray-600">
-                            <span>Quantité: {item.quantity}</span>
-                            {item.withConsigne && (
-                              <span className="ml-3 text-orange-600 font-medium">+ Consigne incluse</span>
-                            )}
+                  {order.items.map((item, index) => {
+                    const unitPrice = item.product.pricePerUnit || item.product.unitPrice || 0;
+                    const cratePrice = item.product.cratePrice || (unitPrice * (item.product.bottlesPerCrate || 1));
+                    const consignPrice = item.product.consignPrice || item.product.consigneAmount || 0;
+
+                    const itemSubtotal = cratePrice * item.quantity;
+                    const itemConsigne = item.withConsigne ? consignPrice * item.quantity : 0;
+                    const itemTotal = itemSubtotal + itemConsigne;
+
+                    return (
+                      <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                        <img
+                          src={item.product.imageUrl}
+                          alt={item.product.name}
+                          className="h-16 w-16 rounded-lg object-cover"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="font-semibold text-gray-900">{item.product.name}</span>
+                            <span className={`px-2 py-1 text-xs font-medium rounded ${
+                              item.product.brand === 'Flag' || item.product.brand === 'Solibra' || item.product.brand === 'Beaufort'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                              {item.product.brand}
+                            </span>
+                            <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
+                              {item.product.crateType}
+                            </span>
                           </div>
-                          <span className="font-bold text-gray-900">
-                            {formatPrice(item.product.pricePerUnit * item.quantity + 
-                              (item.withConsigne ? item.product.consigneAmount * item.quantity : 0))}
-                          </span>
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-sm text-gray-600">
+                              <span>{item.quantity} caisses × {formatPrice(cratePrice)}</span>
+                              <span className="font-medium text-gray-900">{formatPrice(itemSubtotal)}</span>
+                            </div>
+                            {item.withConsigne && (
+                              <div className="flex items-center justify-between text-xs text-orange-600">
+                                <span>+ Consigne ({item.quantity} × {formatPrice(consignPrice)})</span>
+                                <span className="font-medium">{formatPrice(itemConsigne)}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center justify-between pt-1 border-t border-gray-200">
+                              <span className="text-sm font-medium text-gray-700">Total ligne</span>
+                              <span className="font-bold text-gray-900">{formatPrice(itemTotal)}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 

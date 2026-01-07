@@ -185,29 +185,44 @@ export const ReceivedOffers: React.FC<ReceivedOffersProps> = ({ order, onOfferAc
               {offer.modifiedItems.map((item: any, idx: number) => {
                 const originalItem = order.items.find(oi => oi.product.id === item.productId);
                 const hasChanged = originalItem && originalItem.quantity !== item.quantity;
+                const unitPrice = originalItem?.product.pricePerUnit || originalItem?.product.unitPrice || 0;
+                const cratePrice = originalItem?.product.cratePrice || (unitPrice * (originalItem?.product.bottlesPerCrate || 1));
+                const consignPrice = originalItem?.product.consignPrice || originalItem?.product.consigneAmount || 0;
+
+                const itemSubtotal = cratePrice * item.quantity;
+                const itemConsigne = item.withConsigne ? consignPrice * item.quantity : 0;
+                const itemTotal = itemSubtotal + itemConsigne;
 
                 return (
                   <div
                     key={idx}
-                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                    className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
                   >
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {originalItem?.product.name || 'Produit'}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Quantité: {item.quantity} caisses
-                        {hasChanged && (
-                          <span className="ml-2 text-orange-600 dark:text-orange-400">
-                            (demandé: {originalItem?.quantity})
-                          </span>
-                        )}
-                      </p>
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {originalItem?.product.name || 'Produit'}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {item.quantity} caisses × {formatPrice(cratePrice)}
+                          {hasChanged && (
+                            <span className="ml-2 text-orange-600 dark:text-orange-400">
+                              (demandé: {originalItem?.quantity})
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          {formatPrice(itemTotal)}
+                        </p>
+                      </div>
                     </div>
                     {item.withConsigne && (
-                      <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded">
-                        Consigne
-                      </span>
+                      <div className="flex items-center justify-between text-xs text-orange-600 dark:text-orange-400 mt-1">
+                        <span>+ Consigne ({item.quantity} × {formatPrice(consignPrice)})</span>
+                        <span className="font-medium">{formatPrice(itemConsigne)}</span>
+                      </div>
                     )}
                   </div>
                 );
