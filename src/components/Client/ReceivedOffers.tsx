@@ -186,9 +186,22 @@ export const ReceivedOffers: React.FC<ReceivedOffersProps> = ({ order, onOfferAc
                 const originalItem = order.items.find(oi => oi.product.id === item.productId);
                 const hasChanged = originalItem && originalItem.quantity !== item.quantity;
 
-                // Utiliser les prix de l'offre en priorité, sinon fallback sur order.items
-                const cratePrice = item.cratePrice || originalItem?.product.cratePrice || 0;
-                const consignPrice = item.consignPrice || originalItem?.product.consignPrice || originalItem?.product.consigneAmount || 0;
+                // Si les prix sont dans l'offre, les utiliser directement
+                // Sinon, calculer à partir du total de l'offre (rétrocompatibilité)
+                let cratePrice = item.cratePrice || 0;
+                let consignPrice = item.consignPrice || originalItem?.product.consignPrice || 0;
+                let unitPrice = item.unitPrice || 0;
+
+                // Si pas de prix dans l'offre, calculer proportionnellement
+                if (!cratePrice) {
+                  const totalQuantity = offer.modifiedItems.reduce((sum: number, i: any) => sum + i.quantity, 0);
+                  const avgPricePerCrate = Math.round((offer.totalAmount - offer.consigneTotal) / totalQuantity);
+                  cratePrice = avgPricePerCrate;
+
+                  // Estimer le prix unitaire
+                  const bottlesPerCrate = originalItem?.product.bottlesPerCrate || 24;
+                  unitPrice = Math.round(cratePrice / bottlesPerCrate);
+                }
 
                 const itemSubtotal = cratePrice * item.quantity;
                 const itemConsigne = item.withConsigne ? consignPrice * item.quantity : 0;
@@ -203,6 +216,9 @@ export const ReceivedOffers: React.FC<ReceivedOffersProps> = ({ order, onOfferAc
                       <div className="flex-1">
                         <p className="font-medium text-gray-900 dark:text-white">
                           {originalItem?.product.name || 'Produit'}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          PU: {formatPrice(unitPrice)}/bouteille
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           {item.quantity} caisses × {formatPrice(cratePrice)}
