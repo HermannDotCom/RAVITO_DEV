@@ -1,0 +1,3 @@
+-- Cette migration a été fusionnée dans 20260108011733_fix_admin_rating_dependencies.sql
+-- pour éviter les conflits et assurer une exécution atomique.
+-- Ce fichier est conservé comme placeholder vide.
