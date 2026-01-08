@@ -215,6 +215,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS on_new_rating ON public.ratings;
 CREATE TRIGGER on_new_rating
 AFTER INSERT ON public.ratings
 FOR EACH ROW
