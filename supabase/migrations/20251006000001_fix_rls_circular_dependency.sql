@@ -1,140 +1,59 @@
-/*
-  # Fix RLS Circular Dependency - Complete Solution
+-- Migration consolidée pour supprimer l'ancienne fonction is_admin() et TOUTES ses dépendances.
+-- Cette migration est maintenant la seule source de vérité pour le nettoyage.
 
-  ## Problem Analysis
-  1. Helper functions (is_admin, is_approved_user, has_role) query the profiles table
-  2. Profiles table policies call these functions
-  3. This creates infinite recursion causing queries to hang forever
-  4. JWT token issues compound the problem
+-- Étape 1: Supprimer toutes les politiques RLS connues qui dépendaient de la fonction is_admin().
+-- L'utilisation de "IF EXISTS" garantit que ce script peut être exécuté sans erreur même si une politique a déjà été supprimée.
 
-  ## Solution
-  1. Recreate helper functions with STABLE + SECURITY DEFINER + bypassing RLS
-  2. Use pg_catalog.current_setting to get auth.uid directly
-  3. Rebuild all policies without circular dependencies
-  4. Ensure simple path for users to read their own profile
-
-  ## Security
-  - Users can only see their own profile
-  - Admins can see all profiles
-  - No circular dependencies
-  - Functions bypass RLS safely with SECURITY DEFINER
-*/
-
--- ============================================================================
--- STEP 1: Drop all existing problematic policies
--- ============================================================================
-
+-- Politiques sur la table ''profiles''
+DROP POLICY IF EXISTS "Admins can delete profiles" ON profiles;
 DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
 DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
 DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+DROP POLICY IF EXISTS "Admins can update any profile" ON profiles;
 
--- ============================================================================
--- STEP 2: Recreate helper functions WITHOUT circular dependencies
--- ============================================================================
+-- Politiques sur la table ''products''
+DROP POLICY IF EXISTS "Authenticated users can view active products" ON products;
+DROP POLICY IF EXISTS "Admins can insert products" ON products;
+DROP POLICY IF EXISTS "Admins can update products" ON products;
+DROP POLICY IF EXISTS "Admins can delete products" ON products;
 
--- Drop existing functions
+-- Politiques sur la table ''orders''
+DROP POLICY IF EXISTS "Users can view relevant orders" ON orders;
+DROP POLICY IF EXISTS "Users can update relevant orders" ON orders;
+DROP POLICY IF EXISTS "Admins can delete orders" ON orders;
+
+-- Politiques sur la table ''order_items''
+DROP POLICY IF EXISTS "Users can view order items of their orders" ON order_items;
+DROP POLICY IF EXISTS "Users can insert order items for their orders" ON order_items;
+DROP POLICY IF EXISTS "Admins can update order items" ON order_items;
+DROP POLICY IF EXISTS "Admins can delete order items" ON order_items;
+
+-- Politiques sur la table ''ratings''
+DROP POLICY IF EXISTS "Users can view ratings appropriately" ON ratings;
+
+-- Politiques sur la table ''delivery_zones''
+DROP POLICY IF EXISTS "Admins can insert delivery zones" ON delivery_zones;
+DROP POLICY IF EXISTS "Admins can update delivery zones" ON delivery_zones;
+DROP POLICY IF EXISTS "Admins can delete delivery zones" ON delivery_zones;
+
+-- Politiques sur la table ''supplier_zones''
+DROP POLICY IF EXISTS "Suppliers can register for zones" ON supplier_zones;
+DROP POLICY IF EXISTS "Suppliers can update their zones" ON supplier_zones;
+DROP POLICY IF EXISTS "Admins can delete supplier zones" ON supplier_zones;
+
+-- Politiques sur la table ''payment_methods''
+DROP POLICY IF EXISTS "Users can view own payment methods" ON payment_methods;
+DROP POLICY IF EXISTS "Users can update own payment methods" ON payment_methods;
+DROP POLICY IF EXISTS "Users can delete own payment methods" ON payment_methods;
+
+-- Politiques sur la table ''commission_settings''
+DROP POLICY IF EXISTS "Admins can insert commission settings" ON commission_settings;
+DROP POLICY IF EXISTS "Admins can update commission settings" ON commission_settings;
+DROP POLICY IF EXISTS "Admins can delete commission settings" ON commission_settings;
+
+-- Étape 2: Supprimer les anciennes fonctions de test de rôle une fois toutes les dépendances résolues.
 DROP FUNCTION IF EXISTS is_admin();
 DROP FUNCTION IF EXISTS is_approved_user();
 DROP FUNCTION IF EXISTS has_role(user_role);
 
--- Recreate is_admin with STABLE and bypassing RLS
-CREATE OR REPLACE FUNCTION is_admin()
-RETURNS boolean
-LANGUAGE plpgsql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  user_role text;
-BEGIN
-  -- Get role directly, bypassing RLS because of SECURITY DEFINER
-  SELECT role INTO user_role
-  FROM profiles
-  WHERE id = auth.uid()
-  LIMIT 1;
-
-  RETURN COALESCE(user_role = 'admin', false);
-END;
-$$;
-
--- Recreate is_approved_user with STABLE and bypassing RLS
-CREATE OR REPLACE FUNCTION is_approved_user()
-RETURNS boolean
-LANGUAGE plpgsql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  user_approved boolean;
-  user_active boolean;
-BEGIN
-  -- Get approval status directly, bypassing RLS
-  SELECT is_approved, is_active INTO user_approved, user_active
-  FROM profiles
-  WHERE id = auth.uid()
-  LIMIT 1;
-
-  RETURN COALESCE(user_approved AND user_active, false);
-END;
-$$;
-
--- Recreate has_role with STABLE and bypassing RLS
-CREATE OR REPLACE FUNCTION has_role(check_role user_role)
-RETURNS boolean
-LANGUAGE plpgsql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  user_role_value user_role;
-BEGIN
-  -- Get role directly, bypassing RLS
-  SELECT role INTO user_role_value
-  FROM profiles
-  WHERE id = auth.uid()
-  LIMIT 1;
-
-  RETURN COALESCE(user_role_value = check_role, false);
-END;
-$$;
-
--- ============================================================================
--- STEP 3: Create NEW simple policies without circular dependency
--- ============================================================================
-
--- Policy 1: Users can ALWAYS view their own profile (no function calls)
-CREATE POLICY "Users can view own profile"
-  ON profiles FOR SELECT
-  TO authenticated
-  USING (id = auth.uid());
-
--- Policy 2: Admins can view all profiles (function is now safe)
-CREATE POLICY "Admins can view all profiles"
-  ON profiles FOR SELECT
-  TO authenticated
-  USING (is_admin());
-
--- Policy 3: Users can update their own profile
-CREATE POLICY "Users can update own profile"
-  ON profiles FOR UPDATE
-  TO authenticated
-  USING (id = auth.uid())
-  WITH CHECK (id = auth.uid());
-
--- Policy 4: Admins can update any profile
-CREATE POLICY "Admins can update any profile"
-  ON profiles FOR UPDATE
-  TO authenticated
-  USING (is_admin())
-  WITH CHECK (is_admin());
-
--- ============================================================================
--- STEP 4: Grant proper permissions
--- ============================================================================
-
-GRANT EXECUTE ON FUNCTION is_admin() TO authenticated;
-GRANT EXECUTE ON FUNCTION is_approved_user() TO authenticated;
-GRANT EXECUTE ON FUNCTION has_role(user_role) TO authenticated;
+-- Fin de la migration de nettoyage. Le terrain est propre.
