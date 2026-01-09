@@ -4,10 +4,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'supabase/migrations/**'
   workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
 jobs:
   deploy:
