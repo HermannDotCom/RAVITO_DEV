@@ -3,6 +3,7 @@ import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Navigation, Archive,
 import { Order, OrderStatus, CrateType } from '../../types';
 import { useOrder } from '../../context/OrderContext';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
+import { useToast } from '../../context/ToastContext';
 import { supabase } from '../../lib/supabase';
 import { RatingBadge } from '../Shared/RatingBadge';
 
@@ -26,6 +27,7 @@ interface TeamMember {
 export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }) => {
   const { user, getAccessRestrictions } = useProfileSecurity();
   const { supplierActiveDeliveries, updateOrderStatus, assignDeliveryDriver } = useOrder();
+  const { showToast } = useToast();
   const [clientProfiles, setClientProfiles] = useState<Record<string, ClientProfile>>({});
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [selectedOrderForDelivery, setSelectedOrderForDelivery] = useState<Order | null>(null);
@@ -348,13 +350,17 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
   const handleAssignDriver = async () => {
     if (!selectedOrderForAssignment || !selectedDriver) return;
 
+    const driverName = teamMembers.find(m => m.id === selectedDriver)?.name || 'le livreur';
+    const orderNumber = selectedOrderForAssignment.orderNumber || selectedOrderForAssignment.id.substring(0, 8);
+
     const success = await assignDeliveryDriver(selectedOrderForAssignment.id, selectedDriver);
     if (success) {
+      showToast(`Livraison affectée à ${driverName} avec succès`, 'success');
       setShowAssignModal(false);
       setSelectedOrderForAssignment(null);
       setSelectedDriver('');
     } else {
-      alert('Erreur lors de l\'affectation du livreur. Veuillez réessayer.');
+      showToast('Erreur lors de l\'affectation du livreur. Veuillez réessayer.', 'error');
     }
   };
 
