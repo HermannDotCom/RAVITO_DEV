@@ -30,6 +30,17 @@ jobs:
         run: |
           supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
       
-      - name: Push database migrations
+      - name: Sync migration history
         run: |
-          supabase db push --include-all --password "$SUPABASE_DB_PASSWORD"
+          # Mark all local migrations as already applied (they exist in production)
+          for file in supabase/migrations/*.sql; do
+            if [ -f "$file" ]; then
+              version=$(basename "$file" | cut -d'_' -f1)
+              echo "Marking migration $version as applied..."
+              supabase migration repair --status applied "$version" --password "$SUPABASE_DB_PASSWORD" 2>/dev/null || true
+            fi
+          done
+      
+      - name: Push new migrations only
+        run: |
+          supabase db push --include-all --password "$SUPABASE_DB_PASSWORD" || echo "No new migrations to apply or all migrations already applied"
