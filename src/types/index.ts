@@ -180,6 +180,7 @@ export interface Order {
   assignedDeliveryAt?: Date;
   assignedDeliveryBy?: string;
   deliveredByUserId?: string;
+  packagingSnapshot?: Record<string, number>;
 }
 
 export type OrderStatus =

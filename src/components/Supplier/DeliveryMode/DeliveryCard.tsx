@@ -219,8 +219,23 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({
           <div className="text-gray-700">{delivery.itemsSummary}</div>
         </div>
 
-        {/* Packaging to Collect */}
-        {delivery.packagingToCollect > 0 && (
+        {/* Packaging to Collect - New Grouped Design */}
+        {delivery.packagingSnapshot && Object.keys(delivery.packagingSnapshot).length > 0 ? (
+          <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
+            <div className="flex items-center gap-2 mb-3">
+              <Package className="h-5 w-5 text-amber-600" />
+              <span className="font-semibold text-gray-900">Casiers à récupérer</span>
+            </div>
+            <div className="flex flex-wrap gap-3 justify-center">
+              {Object.entries(delivery.packagingSnapshot).map(([crateType, quantity]) => (
+                <div key={crateType} className="flex flex-col items-center bg-white rounded-lg p-3 shadow-sm border border-gray-200">
+                  <span className="text-2xl font-bold text-amber-600">{quantity}</span>
+                  <span className="text-xs text-gray-600 font-medium">{crateType}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : delivery.packagingToCollect > 0 && (
           <div className="text-xs text-gray-600 p-3 bg-amber-50 rounded-xl border border-amber-200">
             <div className="flex items-center gap-2 mb-2">
               <Package className="h-4 w-4 text-amber-600" />

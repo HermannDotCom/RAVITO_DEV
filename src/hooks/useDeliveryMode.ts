@@ -127,6 +127,7 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
         itemsSummary,
         packagingToCollect,
         packagingDetails,
+        packagingSnapshot: order.packagingSnapshot,
       };
     } catch (err) {
       console.error('Error mapping order to delivery:', err);
@@ -205,6 +206,7 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
             // Include both field names for backward compatibility with legacy code
             deliveryConfirmationCode: order.delivery_confirmation_code,
             delivery_confirmation_code: order.delivery_confirmation_code,
+            packagingSnapshot: order.packaging_snapshot,
             createdAt: new Date(order.created_at),
             acceptedAt: order.accepted_at ? new Date(order.accepted_at) : undefined,
             deliveredAt: order.delivered_at ? new Date(order.delivered_at) : undefined,

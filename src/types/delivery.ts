@@ -40,6 +40,7 @@ export interface DeliveryOrder {
   // Packaging/consigne info
   packagingToCollect: number;
   packagingDetails: string;
+  packagingSnapshot?: Record<string, number>; // {"C12V": 2, "C24": 3}
 }
 
 /**
