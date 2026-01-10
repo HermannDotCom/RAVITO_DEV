@@ -57,7 +57,8 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
           .rpc('get_client_info_for_order', { p_order_id: order.id });
         
         if (!rpcError && data) {
-          clientData = data;
+          // RPC returns an array of rows, get the first one
+          clientData = Array.isArray(data) ? data[0] : data;
         }
       } catch (rpcErr) {
         console.warn('RPC not available, using fallback query:', rpcErr);
@@ -95,6 +96,13 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
         .map(item => `${item.quantity}x ${item.product.name}`)
         .join(', ');
 
+      // Calculate packaging to collect (consigne items)
+      const consigneItems = order.items.filter(item => item.withConsigne);
+      const packagingToCollect = consigneItems.reduce((sum, item) => sum + item.quantity, 0);
+      const packagingDetails = consigneItems.length > 0
+        ? consigneItems.map(item => `${item.quantity}x ${item.product.name}`).join(', ')
+        : '';
+
       // Use consistent field name for confirmation code
       const confirmationCode = order.delivery_confirmation_code || order.deliveryConfirmationCode || '';
 
@@ -117,6 +125,8 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
         confirmationCode,
         itemsCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
         itemsSummary,
+        packagingToCollect,
+        packagingDetails,
       };
     } catch (err) {
       console.error('Error mapping order to delivery:', err);

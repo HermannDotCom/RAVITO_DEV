@@ -36,6 +36,10 @@ export interface DeliveryOrder {
   // Items summary
   itemsCount: number;
   itemsSummary: string;
+  
+  // Packaging/consigne info
+  packagingToCollect: number;
+  packagingDetails: string;
 }
 
 /**
