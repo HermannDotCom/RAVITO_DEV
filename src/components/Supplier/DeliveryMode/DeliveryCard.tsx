@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Phone, Navigation, Play, CheckCircle, Clock, DollarSign } from 'lucide-react';
+import { MapPin, Phone, Navigation, Play, CheckCircle, Clock, DollarSign, Package } from 'lucide-react';
 import { DeliveryOrder } from '../../../types/delivery';
 
 interface DeliveryCardProps {
@@ -218,6 +218,19 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({
           <div className="font-semibold mb-1">Articles ({delivery.itemsCount})</div>
           <div className="text-gray-700">{delivery.itemsSummary}</div>
         </div>
+
+        {/* Packaging to Collect */}
+        {delivery.packagingToCollect > 0 && (
+          <div className="text-xs text-gray-600 p-3 bg-amber-50 rounded-xl border border-amber-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Package className="h-4 w-4 text-amber-600" />
+              <div className="font-semibold text-amber-900">
+                Emballages à récupérer: {delivery.packagingToCollect} casier{delivery.packagingToCollect > 1 ? 's' : ''}
+              </div>
+            </div>
+            <div className="text-gray-700 pl-6">{delivery.packagingDetails}</div>
+          </div>
+        )}
       </div>
 
       {/* Actions */}
