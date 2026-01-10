@@ -79,41 +79,61 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
   useEffect(() => {
     const loadTeamMembers = async () => {
       if (!user?.id) return;
-      
-      // Get organization for the current user
-      const { data: orgData, error: orgError } = await supabase
+
+      // Get organization for the current user (handles both owner and member cases)
+      // First, check if user is an owner
+      const { data: ownedOrgs } = await supabase
         .from('organizations')
         .select('id')
-        .eq('owner_id', user.id)
-        .single();
-      
-      if (orgError) {
-        console.error('Error loading organization:', orgError);
+        .eq('owner_id', user.id);
+
+      let organizationId: string | null = null;
+
+      if (ownedOrgs && ownedOrgs.length > 0) {
+        // User is an owner - use first organization (suppliers typically have one)
+        organizationId = ownedOrgs[0].id;
+      } else {
+        // User might be a member - check organization_members
+        const { data: memberData } = await supabase
+          .from('organization_members')
+          .select('organization_id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (memberData) {
+          organizationId = memberData.organization_id;
+        }
+      }
+
+      if (!organizationId) {
+        console.log('No organization found for user');
         return;
       }
-      
-      if (!orgData) return;
-      
+
       // Get members with driver/delivery role
       const { data: members, error: membersError } = await supabase
         .from('organization_members')
-        .select('user_id, profiles(id, name, business_name)')
-        .eq('organization_id', orgData.id)
+        .select('user_id, profiles!inner(id, name, business_name)')
+        .eq('organization_id', organizationId)
+        .eq('status', 'active')
+        .eq('is_active', true)
         .in('role', ['driver', 'delivery', 'employee', 'manager']);
-      
+
       if (membersError) {
         console.error('Error loading team members:', membersError);
         return;
       }
-      
+
       if (members) {
-        setTeamMembers(members.map((m: { user_id: string; profiles: { id: string; name: string; business_name?: string } | null }) => ({
+        const validMembers = members.filter((m: any) => m.profiles);
+        setTeamMembers(validMembers.map((m: { user_id: string; profiles: { id: string; name: string; business_name?: string } }) => ({
           id: m.user_id,
-          name: m.profiles?.name || m.profiles?.business_name || 'Membre'
+          name: m.profiles.name || m.profiles.business_name || 'Membre'
         })));
       }
     };
-    
+
     loadTeamMembers();
   }, [user]);
 

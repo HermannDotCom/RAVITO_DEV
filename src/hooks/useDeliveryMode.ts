@@ -202,8 +202,23 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
           };
         });
       } else {
-        // Fallback to supplier orders (for suppliers managing their own deliveries)
-        orders = await getOrdersBySupplier(user.id);
+        // Check if user is owner or manager who can see all orders
+        const { data: memberData } = await supabase
+          .from('organization_members')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        // If user is a regular driver with no assigned orders, show empty list
+        // Only owners/managers should see all orders
+        if (memberData && memberData.role === 'driver') {
+          // Driver with no assigned orders - show empty list
+          orders = [];
+        } else {
+          // Owner or manager - fallback to supplier orders (for suppliers managing their own deliveries)
+          orders = await getOrdersBySupplier(user.id);
+        }
       }
       
       // Filter to delivery-relevant orders only
