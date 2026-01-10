@@ -111,10 +111,10 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
         return;
       }
 
-      // Get members with driver/delivery role
-      const { data: members, error: membersError } = await supabase
+      // Get members with driver/delivery role - without join to avoid RLS issues
+      const { data: membersList, error: membersError } = await supabase
         .from('organization_members')
-        .select('user_id, profiles!inner(id, name, business_name)')
+        .select('user_id, role')
         .eq('organization_id', organizationId)
         .eq('status', 'active')
         .eq('is_active', true)
@@ -125,13 +125,35 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
         return;
       }
 
-      if (members) {
-        const validMembers = members.filter((m: any) => m.profiles);
-        setTeamMembers(validMembers.map((m: { user_id: string; profiles: { id: string; name: string; business_name?: string } }) => ({
-          id: m.user_id,
-          name: m.profiles.name || m.profiles.business_name || 'Membre'
-        })));
+      if (!membersList || membersList.length === 0) {
+        console.log('No members found in organization');
+        setTeamMembers([]);
+        return;
       }
+
+      // Fetch profiles separately for each member to avoid RLS join issues
+      const profilePromises = membersList.map(async (member) => {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, name, business_name')
+          .eq('id', member.user_id)
+          .maybeSingle();
+
+        if (!profile) {
+          return null;
+        }
+
+        return {
+          id: member.user_id,
+          name: profile.name || profile.business_name || 'Membre'
+        };
+      });
+
+      const profiles = await Promise.all(profilePromises);
+      const validProfiles = profiles.filter((p): p is TeamMember => p !== null);
+
+      console.log(`Loaded ${validProfiles.length} team members`);
+      setTeamMembers(validProfiles);
     };
 
     loadTeamMembers();
