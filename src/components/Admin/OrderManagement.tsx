@@ -255,10 +255,16 @@ export const OrderManagement: React.FC = () => {
     };
 
     order.items.forEach(item => {
+      const crateType = item.product.crateType;
+      // Only count consignable types: consign_price > 0 AND NOT CARTON
+      const isConsignable = item.product.consignPrice > 0 && !crateType.startsWith('CARTON');
+      
+      if (!crateSummary[crateType] || !isConsignable) return;
+      
       if (item.withConsigne) {
-        crateSummary[item.product.crateType].withConsigne += item.quantity;
+        crateSummary[crateType].withConsigne += item.quantity;
       } else {
-        crateSummary[item.product.crateType].toReturn += item.quantity;
+        crateSummary[crateType].toReturn += item.quantity;
       }
     });
 

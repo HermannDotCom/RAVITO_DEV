@@ -291,8 +291,11 @@ Décrivez votre problème en détail...`,
 
     order.items.forEach(item => {
       // Only count traditional crate types that use consigne system
+      // CARTON types are disposable and excluded
       const crateType = item.product.crateType;
-      if (!crateSummary[crateType]) return;
+      const isConsignable = item.product.consignPrice > 0 && !crateType.startsWith('CARTON');
+      
+      if (!crateSummary[crateType] || !isConsignable) return;
 
       if (item.withConsigne) {
         crateSummary[crateType].withConsigne += item.quantity;
