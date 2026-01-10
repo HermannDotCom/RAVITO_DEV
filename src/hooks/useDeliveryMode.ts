@@ -96,11 +96,15 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
         .map(item => `${item.quantity}x ${item.product.name}`)
         .join(', ');
 
-      // Calculate packaging to collect (consigne items)
-      const consigneItems = order.items.filter(item => item.withConsigne);
-      const packagingToCollect = consigneItems.reduce((sum, item) => sum + item.quantity, 0);
-      const packagingDetails = consigneItems.length > 0
-        ? consigneItems.map(item => `${item.quantity}x ${item.product.name}`).join(', ')
+      // Calculate packaging to collect (all consignable items, not just withConsigne=true)
+      const consignablePackaging = order.items.filter(item =>
+        item.product.consignPrice > 0 &&
+        item.product.crateType &&
+        !item.product.crateType.startsWith('CARTON')
+      );
+      const packagingToCollect = consignablePackaging.reduce((sum, item) => sum + item.quantity, 0);
+      const packagingDetails = consignablePackaging.length > 0
+        ? consignablePackaging.map(item => `${item.quantity}x ${item.product.name}`).join(', ')
         : '';
 
       // Use consistent field name for confirmation code
@@ -110,14 +114,15 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
       let packagingSnapshot = order.packagingSnapshot;
 
       if (!packagingSnapshot || Object.keys(packagingSnapshot).length === 0) {
-        // Calculate from items with consigne, EXCLUDING CARTON types (disposable)
-        const consignableItems = order.items.filter(item => 
-          item.withConsigne && 
+        // Calculate from ALL consignable items (regardles of withConsigne flag)
+        // EXCLUDING CARTON types (disposable)
+        // This matches the logic used by Client and Supplier views
+        const consignableItems = order.items.filter(item =>
           item.product.consignPrice > 0 &&  // Prix consigne > 0
           item.product.crateType &&
           !item.product.crateType.startsWith('CARTON')  // Exclure cartons
         );
-        
+
         if (consignableItems.length > 0) {
           const snapshotMap: Record<string, number> = {};
           consignableItems.forEach(item => {
