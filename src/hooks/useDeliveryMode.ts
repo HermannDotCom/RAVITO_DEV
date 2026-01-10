@@ -106,6 +106,25 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
       // Use consistent field name for confirmation code
       const confirmationCode = order.delivery_confirmation_code || order.deliveryConfirmationCode || '';
 
+      // Calculate packagingSnapshot if absent (fallback for orders pre-PR#150)
+      let packagingSnapshot = order.packagingSnapshot;
+
+      if (!packagingSnapshot || Object.keys(packagingSnapshot).length === 0) {
+        // Calculate from items with consigne
+        if (consigneItems.length > 0) {
+          const snapshotMap: Record<string, number> = {};
+          consigneItems.forEach(item => {
+            const crateType = item.product.crateType;
+            if (crateType) {
+              snapshotMap[crateType] = (snapshotMap[crateType] || 0) + item.quantity;
+            }
+          });
+          if (Object.keys(snapshotMap).length > 0) {
+            packagingSnapshot = snapshotMap;
+          }
+        }
+      }
+
       return {
         id: order.id,
         orderNumber: order.id.slice(0, 8).toUpperCase(),
@@ -127,7 +146,7 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
         itemsSummary,
         packagingToCollect,
         packagingDetails,
-        packagingSnapshot: order.packagingSnapshot,
+        packagingSnapshot,
       };
     } catch (err) {
       console.error('Error mapping order to delivery:', err);
