@@ -45,6 +45,12 @@ const getCrateSummary = (order: Order) => {
     if (!item || !item.product || !item.product.crateType) return;
 
     const crateType = item.product.crateType;
+    
+    // CARTON types are disposable and should never be counted as consignable
+    // Only count if: consignPrice > 0 AND crateType does NOT start with 'CARTON'
+    const isConsignable = item.product.consignPrice > 0 && !crateType.startsWith('CARTON');
+    
+    if (!isConsignable) return;  // Skip CARTON and non-consignable items
 
     if (!crateSummary[crateType]) {
       crateSummary[crateType] = { withConsigne: 0, toReturn: 0 };

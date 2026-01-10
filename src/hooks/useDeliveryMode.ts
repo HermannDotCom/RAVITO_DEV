@@ -110,10 +110,17 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
       let packagingSnapshot = order.packagingSnapshot;
 
       if (!packagingSnapshot || Object.keys(packagingSnapshot).length === 0) {
-        // Calculate from items with consigne
-        if (consigneItems.length > 0) {
+        // Calculate from items with consigne, EXCLUDING CARTON types (disposable)
+        const consignableItems = order.items.filter(item => 
+          item.withConsigne && 
+          item.product.consignPrice > 0 &&  // Prix consigne > 0
+          item.product.crateType &&
+          !item.product.crateType.startsWith('CARTON')  // Exclure cartons
+        );
+        
+        if (consignableItems.length > 0) {
           const snapshotMap: Record<string, number> = {};
-          consigneItems.forEach(item => {
+          consignableItems.forEach(item => {
             const crateType = item.product.crateType;
             if (crateType) {
               snapshotMap[crateType] = (snapshotMap[crateType] || 0) + item.quantity;

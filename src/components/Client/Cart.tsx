@@ -39,7 +39,7 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
   const { subtotal, consigneTotal } = getCartTotal();
   const { clientCommission, total } = getCartTotalWithCommission(cart, subtotal, consigneTotal);
 
-  // Calculate crate summary
+  // Calculate crate summary - EXCLUDING CARTON types (disposable)
   const getCrateSummary = () => {
     const crateSummary: { [key in CrateType]: number } = {
       C24: 0,
@@ -49,8 +49,12 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
     };
 
     cart.forEach(item => {
-      if (!item.withConsigne) {
-        crateSummary[item.product.crateType] += item.quantity;
+      const crateType = item.product.crateType;
+      // Only count consignable types (not CARTONs) without consigne as "to return"
+      const isConsignable = item.product.consignPrice > 0 && !crateType.startsWith('CARTON');
+      
+      if (!item.withConsigne && isConsignable && crateType in crateSummary) {
+        crateSummary[crateType as keyof typeof crateSummary] += item.quantity;
       }
     });
 
@@ -150,17 +154,20 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
                         </button>
                       </div>
 
-                      <div className="flex items-center">
-                        <label className="flex items-center space-x-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={item.withConsigne}
-                            onChange={(e) => updateCartItem(item.product.id, item.quantity, e.target.checked)}
-                            className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                          />
-                          <span className="text-sm font-medium text-gray-700">Avec consigne</span>
-                        </label>
-                      </div>
+                      {/* Only show consigne option for consignable products (not CARTONs) */}
+                      {item.product.consignPrice > 0 && !item.product.crateType.startsWith('CARTON') && (
+                        <div className="flex items-center">
+                          <label className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={item.withConsigne}
+                              onChange={(e) => updateCartItem(item.product.id, item.quantity, e.target.checked)}
+                              className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Avec consigne</span>
+                          </label>
+                        </div>
+                      )}
                     </div>
 
                     <div className="text-right">
@@ -175,17 +182,24 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
                     </div>
                   </div>
 
-                  {item.withConsigne && (
+                  {item.withConsigne && item.product.consignPrice > 0 && !item.product.crateType.startsWith('CARTON') && (
                     <div className="mt-3 flex items-center space-x-2 text-xs bg-orange-50 text-orange-700 p-2 rounded">
                       <AlertCircle className="h-4 w-4" />
                       <span>Consigne incluse - Pas de casiers vides à rendre</span>
                     </div>
                   )}
                   
-                  {!item.withConsigne && (
+                  {!item.withConsigne && item.product.consignPrice > 0 && !item.product.crateType.startsWith('CARTON') && (
                     <div className="mt-3 flex items-center space-x-2 text-xs bg-blue-50 text-blue-700 p-2 rounded">
                       <Archive className="h-4 w-4" />
                       <span>Casiers vides à rendre : {item.quantity} casier(s) {item.product.crateType} (interchangeables)</span>
+                    </div>
+                  )}
+                  
+                  {item.product.crateType.startsWith('CARTON') && (
+                    <div className="mt-3 flex items-center space-x-2 text-xs bg-gray-50 text-gray-600 p-2 rounded">
+                      <Package className="h-4 w-4" />
+                      <span>Emballage jetable - Pas de consigne ni de casiers à rendre</span>
                     </div>
                   )}
                 </div>

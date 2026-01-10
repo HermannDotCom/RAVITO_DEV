@@ -251,8 +251,8 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
 
   const getCrateSummary = (order: Order) => {
     // Initialize summary for traditional crate types used in consigne management
-    // Note: Other crate types (CARTON24, PACK6, PACK12, C20) don't use the traditional
-    // crate consigne system and are intentionally excluded from this summary
+    // Note: CARTON types (CARTON24, CARTON12, etc.) are disposable and excluded
+    // Other crate types (PACK6, PACK12, C20) don't use the traditional crate consigne system
     const crateSummary: { [key in CrateType]: { withConsigne: number; toReturn: number } } = {
       C24: { withConsigne: 0, toReturn: 0 },
       C12: { withConsigne: 0, toReturn: 0 },
@@ -271,9 +271,12 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
       
       const crateType = item.product.crateType as CrateType;
       
-      // Verify that the crateType is a valid key of crateSummary
+      // Verify consignability: must have consign_price > 0 AND NOT start with 'CARTON'
+      const isConsignable = item.product.consignPrice > 0 && !crateType.startsWith('CARTON');
+      
+      // Verify that the crateType is a valid key of crateSummary and is consignable
       // This filters out non-traditional crate types like CARTON24, PACK6, etc.
-      if (!crateType || !crateSummary[crateType]) return;
+      if (!crateType || !crateSummary[crateType] || !isConsignable) return;
       
       const quantity = item.quantity || 0;
       
