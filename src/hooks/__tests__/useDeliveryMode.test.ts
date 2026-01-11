@@ -1,6 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { useDeliveryMode } from '../useDeliveryMode';
 import { Order, CartItem } from '../../types';
 
 // Mock dependencies
