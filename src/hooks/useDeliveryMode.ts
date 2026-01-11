@@ -96,15 +96,18 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
         .map(item => `${item.quantity}x ${item.product.name}`)
         .join(', ');
 
-      // Calculate packaging to collect (all consignable items, not just withConsigne=true)
-      const consignablePackaging = order.items.filter(item =>
+      // Calculate packaging to collect (only items WITHOUT consigne paid)
+      // When withConsigne = true, client paid and keeps the crate
+      // When withConsigne = false, driver must collect the empty crate
+      const itemsToCollect = order.items.filter(item =>
         item.product.consignPrice > 0 &&
         item.product.crateType &&
-        !item.product.crateType.startsWith('CARTON')
+        !item.product.crateType.startsWith('CARTON') &&
+        !item.withConsigne  // Only items WITHOUT consigne paid
       );
-      const packagingToCollect = consignablePackaging.reduce((sum, item) => sum + item.quantity, 0);
-      const packagingDetails = consignablePackaging.length > 0
-        ? consignablePackaging.map(item => `${item.quantity}x ${item.product.name}`).join(', ')
+      const packagingToCollect = itemsToCollect.reduce((sum, item) => sum + item.quantity, 0);
+      const packagingDetails = itemsToCollect.length > 0
+        ? itemsToCollect.map(item => `${item.quantity}x ${item.product.name}`).join(', ')
         : '';
 
       // Use consistent field name for confirmation code
@@ -114,18 +117,20 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
       let packagingSnapshot = order.packagingSnapshot;
 
       if (!packagingSnapshot || Object.keys(packagingSnapshot).length === 0) {
-        // Calculate from ALL consignable items (regardles of withConsigne flag)
+        // Calculate from items WITHOUT consigne paid (withConsigne = false)
+        // When withConsigne = true, client paid and keeps the crate
+        // When withConsigne = false, driver must collect the empty crate
         // EXCLUDING CARTON types (disposable)
-        // This matches the logic used by Client and Supplier views
-        const consignableItems = order.items.filter(item =>
+        const itemsToReturn = order.items.filter(item =>
           item.product.consignPrice > 0 &&  // Prix consigne > 0
           item.product.crateType &&
-          !item.product.crateType.startsWith('CARTON')  // Exclure cartons
+          !item.product.crateType.startsWith('CARTON') &&  // Exclure cartons
+          !item.withConsigne  // Only items WITHOUT consigne paid
         );
 
-        if (consignableItems.length > 0) {
+        if (itemsToReturn.length > 0) {
           const snapshotMap: Record<string, number> = {};
-          consignableItems.forEach(item => {
+          itemsToReturn.forEach(item => {
             const crateType = item.product.crateType;
             if (crateType) {
               snapshotMap[crateType] = (snapshotMap[crateType] || 0) + item.quantity;
