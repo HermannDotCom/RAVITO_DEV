@@ -16,7 +16,8 @@ import {
   BarChart3,
   DollarSign,
   Navigation,
-  Shield
+  Shield,
+  ClipboardList
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useModuleAccess } from '../../hooks/useModuleAccess';
@@ -116,6 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         allSecondaryItems = [
           { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
           { id: 'treasury', label: 'Trésorerie', icon: Wallet, moduleKey: 'treasury' },
+          { id: 'activity', label: 'Gestion Activité', icon: ClipboardList, moduleKey: 'activity' },
           { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
           { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
         ];

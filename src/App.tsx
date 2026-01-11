@@ -77,6 +77,7 @@ import { ClientDashboard } from './components/Client/ClientDashboard';
 import { OrderHistory } from './components/Client/OrderHistory';
 import { ClientTreasury } from './components/Client/ClientTreasury';
 import { ContactSupport } from './components/Client/ContactSupport';
+import { ActivityPage } from './components/Client/Activity/ActivityPage';
 import { SupplierContactSupport } from './components/Supplier/ContactSupport';
 import { KenteLoader } from './components/ui/KenteLoader';
 import { TicketManagement } from './components/Admin/TicketManagement';
@@ -235,6 +236,8 @@ const AppContent: React.FC = () => {
             return <OrderHistory onNavigate={setActiveSection} initialOrderIdToRate={orderIdToRate} onOrderRated={handleOrderRated} />;
           case 'treasury':
             return <ClientTreasury />;
+          case 'activity':
+            return <ActivityPage />;
           case 'team':
             return <TeamPage />;
           case 'notifications':
