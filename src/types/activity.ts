@@ -70,7 +70,7 @@ export interface DailyStockLine {
 export interface DailyPackaging {
   id: string;
   dailySheetId: string;
-  crateType: string; // B33, B65, B100, B50V, B100V
+  crateType: string; // B33=24x33cl, B65=12x65cl, B100=Bock 100cl, B50V=Vin 50cl, B100V=Vin 100cl
   qtyFullStart: number; // Casiers pleins matin
   qtyEmptyStart: number; // Casiers vides matin
   qtyReceived: number; // Casiers reçus (livraisons RAVITO)

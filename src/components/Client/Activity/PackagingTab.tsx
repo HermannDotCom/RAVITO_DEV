@@ -8,6 +8,22 @@ interface PackagingTabProps {
   onUpdatePackaging: (packagingId: string, data: UpdatePackagingData) => Promise<boolean>;
 }
 
+// Packaging difference calculation formula
+// Écart = Total Final - (Total Initial + Reçus - Rendus - Consignes Payées)
+// A zero difference indicates perfect balance
+const calculatePackagingDifference = (
+  totalStart: number,
+  totalEnd: number | undefined,
+  qtyReceived: number,
+  qtyReturned: number,
+  qtyConsignesPaid: number
+): number | undefined => {
+  if (totalEnd === null || totalEnd === undefined) {
+    return undefined;
+  }
+  return totalEnd - (totalStart + qtyReceived - qtyReturned - qtyConsignesPaid);
+};
+
 export const PackagingTab: React.FC<PackagingTabProps> = ({
   packaging,
   isReadOnly,
@@ -65,15 +81,12 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
       : pkg.qtyEmptyEnd;
 
     const totalStart = qtyFullStart + qtyEmptyStart;
+    const totalEnd = (qtyFullEnd !== null && qtyFullEnd !== undefined) &&
+                     (qtyEmptyEnd !== null && qtyEmptyEnd !== undefined)
+      ? qtyFullEnd + qtyEmptyEnd
+      : undefined;
     
-    if (qtyFullEnd !== null && qtyFullEnd !== undefined && 
-        qtyEmptyEnd !== null && qtyEmptyEnd !== undefined) {
-      const totalEnd = qtyFullEnd + qtyEmptyEnd;
-      // Écart = Total Final - (Total Initial + Reçus - Rendus - Consignes Payées)
-      return totalEnd - (totalStart + pkg.qtyReceived - pkg.qtyReturned - qtyConsignesPaid);
-    }
-    
-    return undefined;
+    return calculatePackagingDifference(totalStart, totalEnd, pkg.qtyReceived, pkg.qtyReturned, qtyConsignesPaid);
   };
 
   return (
