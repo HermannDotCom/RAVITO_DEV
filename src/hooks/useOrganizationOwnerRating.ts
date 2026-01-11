@@ -27,8 +27,15 @@ export function useOrganizationOwnerRating() {
           .maybeSingle();
 
         if (ownedOrg) {
-          setRating(user.rating || 5.0);
-          setTotalOrders(user.totalOrders || 0);
+          // Query database directly for the most up-to-date rating
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('rating, total_orders')
+            .eq('id', user.id)
+            .single();
+
+          setRating(profileData?.rating || 5.0);
+          setTotalOrders(profileData?.total_orders || 0);
           setIsLoading(false);
           return;
         }
@@ -53,8 +60,15 @@ export function useOrganizationOwnerRating() {
           setRating(ownerProfile?.rating || 5.0);
           setTotalOrders(ownerProfile?.total_orders || 0);
         } else {
-          setRating(user.rating || 5.0);
-          setTotalOrders(user.totalOrders || 0);
+          // Query database directly for the most up-to-date rating
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('rating, total_orders')
+            .eq('id', user.id)
+            .single();
+
+          setRating(profileData?.rating || 5.0);
+          setTotalOrders(profileData?.total_orders || 0);
         }
 
         setIsLoading(false);
@@ -67,7 +81,7 @@ export function useOrganizationOwnerRating() {
     };
 
     fetchOwnerRating();
-  }, [user?.id, user?.rating, user?.totalOrders]);
+  }, [user?.id]);
 
   return { rating, totalOrders, isLoading };
 }
