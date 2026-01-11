@@ -980,6 +980,11 @@ const mapExpense = (data: any): DailyExpense => ({
   createdAt: data.created_at
 });
 
+/**
+ * Maps raw database EstablishmentProduct to camelCase format
+ * Note: Uses 'any' type for raw DB response to match existing pattern in this file
+ * The nested 'product' field is kept as-is for UI compatibility
+ */
 const mapEstablishmentProduct = (data: any): EstablishmentProduct => ({
   id: data.id,
   organizationId: data.organization_id,
