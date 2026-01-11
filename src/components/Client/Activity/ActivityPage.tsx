@@ -250,7 +250,10 @@ export const ActivityPage: React. FC = () => {
 
       {/* Product Config Modal */}
       {showConfigModal && (
-        <ProductConfigModal onClose={() => setShowConfigModal(false)} />
+        <ProductConfigModal 
+          onClose={() => setShowConfigModal(false)} 
+          onProductsUpdated={reload}
+        />
       )}
     </div>
   );
