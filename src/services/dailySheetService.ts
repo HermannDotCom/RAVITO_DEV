@@ -7,8 +7,8 @@ import { DailySheet, DailyStockLine, DailyPackaging, DailyExpense } from '../typ
  */
 export const getUserOrganizationId = async (userId: string): Promise<string | null> => {
   // First check if user owns an organization
-  const { data:  ownedOrg } = await supabase
-    .from('organizations')
+  const { data: ownedOrg } = await supabase
+    . from('organizations')
     .select('id')
     .eq('owner_id', userId)
     .maybeSingle();
@@ -44,21 +44,21 @@ export const getOrCreateDailySheet = async (
       throw new Error('Vous devez appartenir à une organisation pour utiliser cette fonctionnalité.');
     }
 
-    // First try to get existing sheet
-    const { data: existingSheet, error: fetchError } = await supabase
+    // First try to get existing sheet (using array response to avoid RLS issues)
+    const { data: existingSheets, error: fetchError } = await supabase
       .from('daily_sheets')
       .select('*')
       .eq('organization_id', organizationId)
-      .eq('sheet_date', date)
-      .maybeSingle();
+      .eq('sheet_date', date);
 
-    if (fetchError && fetchError.code !== 'PGRST116') {
+    if (fetchError) {
       console.error('Error fetching daily sheet:', fetchError);
       throw fetchError;
     }
 
-    if (existingSheet) {
-      return mapDailySheet(existingSheet);
+    // If sheet exists, return it
+    if (existingSheets && existingSheets.length > 0) {
+      return mapDailySheet(existingSheets[0]);
     }
 
     // Create new sheet using the RPC function
@@ -69,12 +69,26 @@ export const getOrCreateDailySheet = async (
       });
 
     if (createError) {
+      // If duplicate key error (race condition), try to fetch again
+      if (createError.code === '23505') {
+        console.log('Sheet was created by another request, fetching.. .');
+        const { data: retrySheets } = await supabase
+          .from('daily_sheets')
+          .select('*')
+          .eq('organization_id', organizationId)
+          .eq('sheet_date', date);
+        
+        if (retrySheets && retrySheets.length > 0) {
+          return mapDailySheet(retrySheets[0]);
+        }
+      }
+      
       console.error('Error creating daily sheet:', createError);
       throw createError;
     }
 
     // Fetch the newly created sheet
-    const { data:  newSheet, error: newFetchError } = await supabase
+    const { data: newSheet, error:  newFetchError } = await supabase
       .from('daily_sheets')
       .select('*')
       .eq('id', newSheetId)
@@ -260,14 +274,14 @@ export const updateDailySheet = async (
     dbUpdates.opening_cash = updates.openingCash;
   }
   if (updates.closingCash !== undefined) {
-    dbUpdates.closing_cash = updates.closingCash;
+    dbUpdates.closing_cash = updates. closingCash;
   }
   if (updates.notes !== undefined) {
     dbUpdates.notes = updates.notes;
   }
 
   const { error } = await supabase
-    .from('daily_sheets')
+    . from('daily_sheets')
     .update(dbUpdates)
     .eq('id', sheetId);
 
@@ -365,14 +379,14 @@ export const upsertEstablishmentProduct = async (
   }
 
   const { error } = await supabase
-    .from('establishment_products')
+    . from('establishment_products')
     .upsert({
       organization_id: organizationId,
       product_id: productId,
       selling_price: sellingPrice,
       is_active: true
     }, {
-      onConflict:  'organization_id,product_id'
+      onConflict: 'organization_id,product_id'
     });
 
   if (error) {
@@ -392,20 +406,20 @@ const mapDailySheet = (data: any): DailySheet => ({
   status: data.status,
   openingCash: data.opening_cash || 0,
   closingCash: data.closing_cash,
-  theoreticalRevenue: data.theoretical_revenue || 0,
+  theoreticalRevenue:  data.theoretical_revenue || 0,
   cashDifference: data.cash_difference,
   expensesTotal: data.expenses_total || 0,
   notes: data.notes,
   closedAt: data.closed_at,
-  closedBy: data.closed_by,
+  closedBy: data. closed_by,
   createdAt: data.created_at,
-  updatedAt: data.updated_at
+  updatedAt: data. updated_at
 });
 
-const mapStockLine = (data:  any): DailyStockLine => ({
-  id: data. id,
+const mapStockLine = (data: any): DailyStockLine => ({
+  id: data.id,
   dailySheetId: data.daily_sheet_id,
-  productId: data.product_id,
+  productId: data. product_id,
   initialStock: data.initial_stock || 0,
   ravitoSupply: data.ravito_supply || 0,
   externalSupply: data.external_supply || 0,
