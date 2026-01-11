@@ -1,24 +1,196 @@
-import React from 'react';
-import { Settings, X } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Settings, X, Search, Plus, Trash2, Save } from 'lucide-react';
+import { useOrganization } from '../../../hooks/useOrganization';
+import {
+  getAllEstablishmentProducts,
+  searchCatalogProducts,
+  addEstablishmentProduct,
+  updateEstablishmentProduct,
+  deleteEstablishmentProduct,
+} from '../../../services/dailySheetService';
 
 interface ProductConfigModalProps {
   onClose: () => void;
 }
 
-/**
- * ProductConfigModal - Configuration des prix de vente
- * 
- * TODO: Implement full product configuration functionality
- * This modal should allow:
- * - Listing all products
- * - Setting selling prices for each product
- * - Setting minimum stock alerts
- * - Activating/deactivating products
- */
+interface ConfiguredProduct {
+  id: string;
+  organizationId: string;
+  productId: string;
+  sellingPrice: number;
+  isActive: boolean;
+  product: {
+    id: string;
+    name: string;
+    reference: string;
+    brand: string;
+    category: string;
+    crate_type: string;  // Database returns snake_case
+    crate_price: number; // Database returns snake_case
+    image_url: string;   // Database returns snake_case
+  };
+}
+
+interface CatalogProduct {
+  id: string;
+  name: string;
+  reference: string;
+  brand: string;
+  category: string;
+  crate_type: string;  // Database returns snake_case
+  crate_price: number; // Database returns snake_case
+  image_url: string;   // Database returns snake_case
+}
+
+const PRODUCT_CATEGORIES = [
+  { value: 'all', label: 'Toutes les catégories' },
+  { value: 'biere', label: '🍺 Bières' },
+  { value: 'soda', label: '🥤 Sodas' },
+  { value: 'vin', label: '🍷 Vins' },
+  { value: 'eau', label: '💧 Eaux' },
+  { value: 'spiritueux', label: '🥃 Spiritueux' },
+];
+
 export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose }) => {
+  const { organizationId } = useOrganization();
+  const [configuredProducts, setConfiguredProducts] = useState<ConfiguredProduct[]>([]);
+  const [searchResults, setSearchResults] = useState<CatalogProduct[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
+  const [editingPrices, setEditingPrices] = useState<{ [key: string]: number }>({});
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Load configured products
+  const loadConfiguredProducts = useCallback(async () => {
+    if (!organizationId) return;
+    
+    setLoading(true);
+    const { data, error } = await getAllEstablishmentProducts(organizationId);
+    
+    if (error) {
+      setMessage({ type: 'error', text: error });
+    } else {
+      setConfiguredProducts(data || []);
+    }
+    setLoading(false);
+  }, [organizationId]);
+
+  useEffect(() => {
+    loadConfiguredProducts();
+  }, [loadConfiguredProducts]);
+
+  // Search products with debounce
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchQuery.length >= 3) {
+        setSearching(true);
+        const excludeIds = configuredProducts.map(p => p.productId);
+        const { data, error } = await searchCatalogProducts(
+          searchQuery,
+          selectedCategory,
+          excludeIds
+        );
+        
+        if (!error && data) {
+          setSearchResults(data);
+        }
+        setSearching(false);
+      } else {
+        setSearchResults([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, selectedCategory, configuredProducts]);
+
+  // Add product
+  const handleAddProduct = async (product: CatalogProduct) => {
+    if (!organizationId) return;
+
+    const { success, error } = await addEstablishmentProduct(
+      organizationId,
+      product.id,
+      product.crate_price // Default to crate price from database
+    );
+
+    if (success) {
+      setMessage({ type: 'success', text: 'Produit ajouté avec succès' });
+      await loadConfiguredProducts();
+      setSearchQuery('');
+      setSearchResults([]);
+    } else {
+      setMessage({ type: 'error', text: error || 'Erreur lors de l\'ajout' });
+    }
+
+    setTimeout(() => setMessage(null), 3000);
+  };
+
+  // Update price with debounce
+  const handlePriceChange = (productId: string, newPrice: number) => {
+    setEditingPrices({ ...editingPrices, [productId]: newPrice });
+  };
+
+  const handleSavePrice = async (id: string, price: number) => {
+    const { success, error } = await updateEstablishmentProduct(id, { sellingPrice: price });
+    
+    if (success) {
+      setMessage({ type: 'success', text: 'Prix mis à jour' });
+      await loadConfiguredProducts();
+      const newEditingPrices = { ...editingPrices };
+      delete newEditingPrices[id];
+      setEditingPrices(newEditingPrices);
+    } else {
+      setMessage({ type: 'error', text: error || 'Erreur lors de la mise à jour' });
+    }
+
+    setTimeout(() => setMessage(null), 3000);
+  };
+
+  // Toggle active status
+  const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    const { success, error } = await updateEstablishmentProduct(id, { isActive: !currentStatus });
+    
+    if (success) {
+      setMessage({ type: 'success', text: currentStatus ? 'Produit désactivé' : 'Produit activé' });
+      await loadConfiguredProducts();
+    } else {
+      setMessage({ type: 'error', text: error || 'Erreur lors de la mise à jour' });
+    }
+
+    setTimeout(() => setMessage(null), 3000);
+  };
+
+  // Delete product
+  const handleDeleteProduct = async (id: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir retirer ce produit ?')) return;
+
+    const { success, error } = await deleteEstablishmentProduct(id);
+    
+    if (success) {
+      setMessage({ type: 'success', text: 'Produit retiré' });
+      await loadConfiguredProducts();
+    } else {
+      setMessage({ type: 'error', text: error || 'Erreur lors de la suppression' });
+    }
+
+    setTimeout(() => setMessage(null), 3000);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR').format(amount);
+  };
+
+  const calculateMargin = (sellingPrice: number, cratePrice: number) => {
+    const margin = sellingPrice - cratePrice;
+    const marginPercent = cratePrice > 0 ? ((margin / cratePrice) * 100).toFixed(1) : '0';
+    return { margin, marginPercent };
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-amber-50">
           <div className="flex items-center gap-3">
@@ -33,26 +205,160 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
-          <div className="text-center py-12">
-            <Settings className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h4 className="text-lg font-medium text-slate-700 mb-2">
-              Configuration des prix de vente
-            </h4>
-            <p className="text-sm text-slate-600 mb-6">
-              Cette fonctionnalité permet de configurer les prix de vente au client final
-              pour chaque produit de votre établissement.
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto text-left">
-              <p className="text-sm text-blue-900 font-medium mb-2">À implémenter :</p>
-              <ul className="text-sm text-blue-800 space-y-1 ml-4 list-disc">
-                <li>Liste de tous les produits disponibles</li>
-                <li>Saisie du prix de vente par produit</li>
-                <li>Configuration des alertes de stock minimum</li>
-                <li>Activation/désactivation des produits</li>
-              </ul>
+        {/* Message Toast */}
+        {message && (
+          <div className={`mx-4 mt-4 p-3 rounded-lg ${
+            message.type === 'success' 
+              ? 'bg-green-50 text-green-800 border border-green-200' 
+              : 'bg-red-50 text-red-800 border border-red-200'
+          }`}>
+            {message.text}
+          </div>
+        )}
+
+        {/* Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          {/* Search Section */}
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-slate-700 mb-3">Ajouter un produit</h4>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Rechercher un produit (min. 3 caractères)..."
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                />
+              </div>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+              >
+                {PRODUCT_CATEGORIES.map(cat => (
+                  <option key={cat.value} value={cat.value}>{cat.label}</option>
+                ))}
+              </select>
             </div>
+
+            {/* Search Results */}
+            {searching && (
+              <div className="mt-3 text-center text-slate-500 text-sm">Recherche en cours...</div>
+            )}
+            {searchResults.length > 0 && (
+              <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
+                {searchResults.map(product => (
+                  <div key={product.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <img 
+                      src={product.image_url} 
+                      alt={product.name}
+                      className="w-12 h-12 object-cover rounded"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-slate-900 text-sm truncate">{product.name}</p>
+                      <p className="text-xs text-slate-600">{product.brand} • {product.crate_type} • {formatCurrency(product.crate_price)} FCFA</p>
+                    </div>
+                    <button
+                      onClick={() => handleAddProduct(product)}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm font-medium"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Ajouter
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Configured Products */}
+          <div>
+            <h4 className="text-sm font-semibold text-slate-700 mb-3">
+              Produits configurés ({configuredProducts.length})
+            </h4>
+            
+            {loading ? (
+              <div className="text-center py-8 text-slate-500">Chargement...</div>
+            ) : configuredProducts.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">
+                <p>Aucun produit configuré</p>
+                <p className="text-xs mt-1">Utilisez la recherche ci-dessus pour ajouter des produits</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {configuredProducts.map(item => {
+                  const currentPrice = editingPrices[item.id] ?? item.sellingPrice;
+                  const { margin, marginPercent } = calculateMargin(currentPrice, item.product.crate_price);
+                  const hasUnsavedChanges = editingPrices[item.id] !== undefined && editingPrices[item.id] !== item.sellingPrice;
+
+                  return (
+                    <div 
+                      key={item.id} 
+                      className={`flex items-center gap-3 p-3 rounded-lg border ${
+                        item.isActive ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-300 opacity-60'
+                      }`}
+                    >
+                      <img 
+                        src={item.product.image_url} 
+                        alt={item.product.name}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-slate-900 text-sm truncate">{item.product.name}</p>
+                        <p className="text-xs text-slate-600">{item.product.brand} • Prix RAVITO: {formatCurrency(item.product.crate_price)} F</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              value={currentPrice}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                // Allow empty string for clearing, otherwise parse as float
+                                handlePriceChange(item.id, val === '' ? 0 : parseFloat(val) || 0);
+                              }}
+                              className="w-24 px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                            />
+                            <span className="text-xs text-slate-600">FCFA</span>
+                            {hasUnsavedChanges && (
+                              <button
+                                onClick={() => handleSavePrice(item.id, currentPrice)}
+                                className="p-1 text-green-600 hover:text-green-700"
+                                title="Sauvegarder"
+                              >
+                                <Save className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                          <p className={`text-xs ${margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {margin >= 0 ? '+' : ''}{formatCurrency(margin)} F ({marginPercent}%)
+                          </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={item.isActive}
+                            onChange={() => handleToggleActive(item.id, item.isActive)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                        </label>
+                        <button
+                          onClick={() => handleDeleteProduct(item.id)}
+                          className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 

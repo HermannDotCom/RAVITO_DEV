@@ -574,6 +574,219 @@ export const upsertEstablishmentProduct = async (
   }
 };
 
+/**
+ * Search catalog products
+ */
+export const searchCatalogProducts = async (
+  query: string,
+  category?: string,
+  excludeProductIds?: string[]
+): Promise<{ data: any[] | null; error: string | null }> => {
+  try {
+    let queryBuilder = supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true);
+
+    // Apply category filter
+    if (category && category !== 'all') {
+      queryBuilder = queryBuilder.eq('category', category);
+    }
+
+    // Apply search filter (name, reference, or brand)
+    if (query && query.length >= 3) {
+      queryBuilder = queryBuilder.or(
+        `name.ilike.%${query}%,reference.ilike.%${query}%,brand.ilike.%${query}%`
+      );
+    }
+
+    // Exclude already configured products - Using array filter for safety
+    if (excludeProductIds && excludeProductIds.length > 0) {
+      // Validate all IDs are valid UUIDs to prevent injection
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const validIds = excludeProductIds.filter(id => uuidRegex.test(id));
+      
+      if (validIds.length > 0) {
+        queryBuilder = queryBuilder.filter('id', 'not.in', `(${validIds.join(',')})`);
+      }
+    }
+
+    // Limit results
+    queryBuilder = queryBuilder.limit(20);
+
+    const { data, error } = await queryBuilder;
+
+    if (error) {
+      console.error('Error searching catalog products:', error);
+      return {
+        data: null,
+        error: error.message || 'Failed to search products'
+      };
+    }
+
+    return {
+      data: data || [],
+      error: null
+    };
+  } catch (err: any) {
+    console.error('Error in searchCatalogProducts:', err);
+    return {
+      data: null,
+      error: err.message || 'An unexpected error occurred'
+    };
+  }
+};
+
+/**
+ * Add a product to establishment configuration
+ */
+export const addEstablishmentProduct = async (
+  organizationId: string,
+  productId: string,
+  sellingPrice: number
+): Promise<{ success: boolean; error: string | null }> => {
+  try {
+    const { error } = await supabase
+      .from('establishment_products')
+      .insert({
+        organization_id: organizationId,
+        product_id: productId,
+        selling_price: sellingPrice,
+        is_active: true
+      });
+
+    if (error) {
+      console.error('Error adding establishment product:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to add product'
+      };
+    }
+
+    return { success: true, error: null };
+  } catch (err: any) {
+    console.error('Error in addEstablishmentProduct:', err);
+    return {
+      success: false,
+      error: err.message || 'An unexpected error occurred'
+    };
+  }
+};
+
+/**
+ * Update an establishment product (price or active status)
+ */
+export const updateEstablishmentProduct = async (
+  id: string,
+  updates: { sellingPrice?: number; isActive?: boolean }
+): Promise<{ success: boolean; error: string | null }> => {
+  try {
+    const dbUpdates: Record<string, any> = {};
+
+    if (updates.sellingPrice !== undefined) {
+      dbUpdates.selling_price = updates.sellingPrice;
+    }
+    if (updates.isActive !== undefined) {
+      dbUpdates.is_active = updates.isActive;
+    }
+
+    const { error } = await supabase
+      .from('establishment_products')
+      .update(dbUpdates)
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating establishment product:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to update product'
+      };
+    }
+
+    return { success: true, error: null };
+  } catch (err: any) {
+    console.error('Error in updateEstablishmentProduct:', err);
+    return {
+      success: false,
+      error: err.message || 'An unexpected error occurred'
+    };
+  }
+};
+
+/**
+ * Delete an establishment product
+ */
+export const deleteEstablishmentProduct = async (
+  id: string
+): Promise<{ success: boolean; error: string | null }> => {
+  try {
+    const { error } = await supabase
+      .from('establishment_products')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting establishment product:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to delete product'
+      };
+    }
+
+    return { success: true, error: null };
+  } catch (err: any) {
+    console.error('Error in deleteEstablishmentProduct:', err);
+    return {
+      success: false,
+      error: err.message || 'An unexpected error occurred'
+    };
+  }
+};
+
+/**
+ * Get all configured establishment products (including inactive)
+ */
+export const getAllEstablishmentProducts = async (
+  organizationId: string
+): Promise<{ data: any[] | null; error: string | null }> => {
+  try {
+    if (!organizationId) {
+      return {
+        data: [],
+        error: null
+      };
+    }
+
+    const { data, error } = await supabase
+      .from('establishment_products')
+      .select(`
+        *,
+        product:products(id, name, reference, brand, category, crate_type, crate_price, image_url)
+      `)
+      .eq('organization_id', organizationId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching all establishment products:', error);
+      return {
+        data: null,
+        error: error.message || 'Failed to fetch products'
+      };
+    }
+
+    return {
+      data: data || [],
+      error: null
+    };
+  } catch (err: any) {
+    console.error('Error in getAllEstablishmentProducts:', err);
+    return {
+      data: null,
+      error: err.message || 'An unexpected error occurred'
+    };
+  }
+};
+
 // ============================================
 // MAPPERS
 // ============================================

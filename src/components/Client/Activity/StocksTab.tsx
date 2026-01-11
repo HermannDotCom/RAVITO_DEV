@@ -10,6 +10,7 @@ interface StocksTabProps {
   syncing: boolean;
   onUpdateStockLine: (lineId: string, data: UpdateStockLineData) => Promise<boolean>;
   onSyncDeliveries: () => Promise<boolean>;
+  onOpenConfig?: () => void;
 }
 
 export const StocksTab: React.FC<StocksTabProps> = ({
@@ -19,6 +20,7 @@ export const StocksTab: React.FC<StocksTabProps> = ({
   syncing,
   onUpdateStockLine,
   onSyncDeliveries,
+  onOpenConfig,
 }) => {
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<{ externalSupply?: number; finalStock?: number }>(
@@ -337,8 +339,17 @@ export const StocksTab: React.FC<StocksTabProps> = ({
       {stockLines.length === 0 && (
         <div className="text-center py-12 text-slate-500">
           <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p>Aucun produit configuré</p>
-          <p className="text-sm mt-1">Configurez vos prix de vente dans les paramètres</p>
+          <p className="font-medium">Aucun produit configuré</p>
+          <p className="text-sm mt-1 mb-4">Configurez vos prix de vente dans les paramètres</p>
+          {onOpenConfig && (
+            <button
+              onClick={onOpenConfig}
+              className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium inline-flex items-center gap-2"
+            >
+              <Package className="w-4 h-4" />
+              Configurer mes produits
+            </button>
+          )}
         </div>
       )}
     </div>
