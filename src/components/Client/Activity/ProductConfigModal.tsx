@@ -52,6 +52,7 @@ const PRODUCT_CATEGORIES = [
   { value: 'spiritueux', label: '🥃 Spiritueux' },
 ];
 
+// Constants for crate bottle counts and calculations
 const CRATE_BOTTLE_COUNT: Record<string, number> = {
   'C24': 24,    // 24 bouteilles de 33cl
   'C12': 12,    // 12 bouteilles de 65cl
@@ -63,6 +64,9 @@ const CRATE_BOTTLE_COUNT: Record<string, number> = {
   'PACK6': 6,
   'PACK12': 12,
 };
+
+const DEFAULT_BOTTLE_COUNT = 24; // Nombre de bouteilles par défaut si type non reconnu
+const DEFAULT_MARKUP_MULTIPLIER = 1.4; // Marge de 40% par défaut
 
 export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose, onProductsUpdated }) => {
   const { organizationId } = useOrganization();
@@ -122,10 +126,10 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose,
   const handleAddProduct = async (product: CatalogProduct) => {
     if (!organizationId) return;
 
-    // Calculer un prix de vente suggéré (coût unitaire + 40% de marge)
+    // Calculer un prix de vente suggéré (coût unitaire + marge par défaut)
     const bottleCount = getBottleCount(product.crate_type);
     const unitCost = Math.round(product.crate_price / bottleCount);
-    const suggestedPrice = Math.round(unitCost * 1.4); // +40% de marge par défaut
+    const suggestedPrice = Math.round(unitCost * DEFAULT_MARKUP_MULTIPLIER);
 
     const { success, error } = await addEstablishmentProduct(
       organizationId,
@@ -210,7 +214,7 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose,
 
   // Fonction pour obtenir le nombre de bouteilles par type de casier
   const getBottleCount = (crateType: string): number => {
-    return CRATE_BOTTLE_COUNT[crateType] || 24;
+    return CRATE_BOTTLE_COUNT[crateType] || DEFAULT_BOTTLE_COUNT;
   };
 
   // Fonction pour calculer le coût unitaire (par bouteille)
