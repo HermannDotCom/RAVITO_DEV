@@ -273,8 +273,8 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                       </span>
                     ) : (
                       totalEnd !== undefined && (
-                        <span className="text-green-600 font-medium inline-flex items-center gap-1">
-                          <CheckCircle className="w-4 h-4" />
+                        <span className="text-green-600 font-medium inline-flex items-center gap-1" aria-label="Comptage conforme">
+                          <CheckCircle className="w-4 h-4" aria-hidden="true" />
                         </span>
                       )
                     )}
@@ -304,12 +304,14 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                           <button
                             onClick={() => handleSave(pkg.id)}
                             className="px-2 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                            aria-label="Sauvegarder les modifications"
                           >
                             ✓
                           </button>
                           <button
                             onClick={handleCancel}
                             className="px-2 py-1 bg-slate-300 text-slate-700 rounded text-xs hover:bg-slate-400"
+                            aria-label="Annuler les modifications"
                           >
                             ✗
                           </button>
