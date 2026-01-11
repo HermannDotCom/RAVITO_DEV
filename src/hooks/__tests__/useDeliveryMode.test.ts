@@ -53,40 +53,43 @@ describe('useDeliveryMode - Packaging Snapshot Fallback', () => {
     vi.clearAllMocks();
   });
 
-  it('should calculate packagingSnapshot from items when snapshot is NULL', async () => {
+  it('should calculate packagingSnapshot only from items WITHOUT consigne paid', async () => {
     // Create a mock order WITHOUT packaging snapshot (pre-PR#150 order)
+    // This tests the real-world scenario from issue #9376583e:
+    // - 4x Awooyo (withConsigne: true) → Client keeps crates, driver does NOT collect
+    // - 3x Beaufort (withConsigne: false) → Client doesn't keep, driver MUST collect
     const mockOrderItems: CartItem[] = [
       {
         product: {
           id: '1',
-          reference: 'BG-001',
-          name: 'Bière Castel 33cl',
+          reference: 'AWOOYO-001',
+          name: 'Awooyo 33cl',
           category: 'biere' as const,
-          brand: 'Castel',
+          brand: 'Awooyo',
           crateType: 'C24',
           unitPrice: 650,
           cratePrice: 15600,
-          consignPrice: 1000,
+          consignPrice: 3000,
           volume: '33cl',
           isActive: true,
           imageUrl: '',
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        quantity: 2,
-        withConsigne: true,
+        quantity: 4,
+        withConsigne: true,  // Client PAID consigne → keeps crate
       },
       {
         product: {
           id: '2',
-          reference: 'BG-002',
-          name: 'Coca Cola 33cl',
-          category: 'soda' as const,
-          brand: 'Coca Cola',
-          crateType: 'C12',
+          reference: 'BEAUFORT-001',
+          name: 'Beaufort 33cl',
+          category: 'biere' as const,
+          brand: 'Beaufort',
+          crateType: 'C24',
           unitPrice: 500,
-          cratePrice: 6000,
-          consignPrice: 500,
+          cratePrice: 12000,
+          consignPrice: 3000,
           volume: '33cl',
           isActive: true,
           imageUrl: '',
@@ -94,7 +97,7 @@ describe('useDeliveryMode - Packaging Snapshot Fallback', () => {
           updatedAt: new Date(),
         },
         quantity: 3,
-        withConsigne: true,
+        withConsigne: false,  // Client did NOT pay → driver must collect
       },
       {
         product: {
@@ -114,18 +117,18 @@ describe('useDeliveryMode - Packaging Snapshot Fallback', () => {
           updatedAt: new Date(),
         },
         quantity: 1,
-        withConsigne: true,
+        withConsigne: false,
       },
     ];
 
     const mockOrder: Order = {
-      id: '12A639A2-test-order',
+      id: '9376583e',
       clientId: 'client-123',
       supplierId: 'test-supplier-id',
       items: mockOrderItems,
       totalAmount: 50000,
       status: 'delivering',
-      consigneTotal: 1500,
+      consigneTotal: 12000,
       deliveryAddress: '123 Test Street, Abidjan',
       coordinates: { lat: 5.3599517, lng: -4.0082563 },
       paymentMethod: 'cash',
@@ -135,14 +138,19 @@ describe('useDeliveryMode - Packaging Snapshot Fallback', () => {
       packagingSnapshot: undefined, // This is NULL in the database
     };
 
-    // Manually test the mapOrderToDelivery logic
-    const consigneItems = mockOrder.items.filter(item => item.withConsigne);
+    // Manually test the mapOrderToDelivery logic (matching the fix)
+    const itemsToReturn = mockOrder.items.filter(item =>
+      item.product.consignPrice > 0 &&
+      item.product.crateType &&
+      !item.product.crateType.startsWith('CARTON') &&
+      !item.withConsigne  // Only items WITHOUT consigne paid
+    );
     let packagingSnapshot = mockOrder.packagingSnapshot;
 
     if (!packagingSnapshot || Object.keys(packagingSnapshot).length === 0) {
-      if (consigneItems.length > 0) {
+      if (itemsToReturn.length > 0) {
         const snapshotMap: Record<string, number> = {};
-        consigneItems.forEach(item => {
+        itemsToReturn.forEach(item => {
           const crateType = item.product.crateType;
           if (crateType) {
             snapshotMap[crateType] = (snapshotMap[crateType] || 0) + item.quantity;
@@ -155,11 +163,11 @@ describe('useDeliveryMode - Packaging Snapshot Fallback', () => {
     }
 
     // Verify the calculated snapshot
+    // Should only include 3x Beaufort (C24), NOT the 4x Awooyo (paid consigne)
+    // Should NOT include CARTON24 (disposable)
     expect(packagingSnapshot).toBeDefined();
     expect(packagingSnapshot).toEqual({
-      C24: 2,
-      C12: 3,
-      CARTON24: 1,
+      C24: 3,  // Only Beaufort, NOT Awooyo
     });
   });
 
@@ -183,7 +191,7 @@ describe('useDeliveryMode - Packaging Snapshot Fallback', () => {
           updatedAt: new Date(),
         },
         quantity: 2,
-        withConsigne: true,
+        withConsigne: false,  // Even though this would be counted...
       },
     ];
 
@@ -206,13 +214,18 @@ describe('useDeliveryMode - Packaging Snapshot Fallback', () => {
     };
 
     // Manually test the mapOrderToDelivery logic
-    const consigneItems = mockOrder.items.filter(item => item.withConsigne);
+    const itemsToReturn = mockOrder.items.filter(item =>
+      item.product.consignPrice > 0 &&
+      item.product.crateType &&
+      !item.product.crateType.startsWith('CARTON') &&
+      !item.withConsigne
+    );
     let packagingSnapshot = mockOrder.packagingSnapshot;
 
     if (!packagingSnapshot || Object.keys(packagingSnapshot).length === 0) {
-      if (consigneItems.length > 0) {
+      if (itemsToReturn.length > 0) {
         const snapshotMap: Record<string, number> = {};
-        consigneItems.forEach(item => {
+        itemsToReturn.forEach(item => {
           const crateType = item.product.crateType;
           if (crateType) {
             snapshotMap[crateType] = (snapshotMap[crateType] || 0) + item.quantity;
@@ -229,7 +242,7 @@ describe('useDeliveryMode - Packaging Snapshot Fallback', () => {
     expect(packagingSnapshot).not.toEqual({ C24: 2 }); // Should NOT recalculate
   });
 
-  it('should handle orders with no consigne items', async () => {
+  it('should handle orders with only consigne-paid items (no crates to collect)', async () => {
     const mockOrderItems: CartItem[] = [
       {
         product: {
@@ -249,12 +262,101 @@ describe('useDeliveryMode - Packaging Snapshot Fallback', () => {
           updatedAt: new Date(),
         },
         quantity: 2,
-        withConsigne: false, // No consigne
+        withConsigne: true, // Client paid → keeps crate
       },
     ];
 
     const mockOrder: Order = {
-      id: 'order-no-consigne',
+      id: 'order-all-consigne-paid',
+      clientId: 'client-123',
+      supplierId: 'test-supplier-id',
+      items: mockOrderItems,
+      totalAmount: 50000,
+      status: 'delivering',
+      consigneTotal: 2000,
+      deliveryAddress: '123 Test Street, Abidjan',
+      coordinates: { lat: 5.3599517, lng: -4.0082563 },
+      paymentMethod: 'cash',
+      paymentStatus: 'paid',
+      createdAt: new Date('2024-01-01'),
+      acceptedAt: new Date('2024-01-01'),
+      packagingSnapshot: undefined,
+    };
+
+    // Manually test the mapOrderToDelivery logic
+    const itemsToReturn = mockOrder.items.filter(item =>
+      item.product.consignPrice > 0 &&
+      item.product.crateType &&
+      !item.product.crateType.startsWith('CARTON') &&
+      !item.withConsigne  // Only items WITHOUT consigne paid
+    );
+    let packagingSnapshot = mockOrder.packagingSnapshot;
+
+    if (!packagingSnapshot || Object.keys(packagingSnapshot).length === 0) {
+      if (itemsToReturn.length > 0) {
+        const snapshotMap: Record<string, number> = {};
+        itemsToReturn.forEach(item => {
+          const crateType = item.product.crateType;
+          if (crateType) {
+            snapshotMap[crateType] = (snapshotMap[crateType] || 0) + item.quantity;
+          }
+        });
+        if (Object.keys(snapshotMap).length > 0) {
+          packagingSnapshot = snapshotMap;
+        }
+      }
+    }
+
+    // Verify no snapshot is created when all items have consigne paid
+    expect(packagingSnapshot).toBeUndefined();
+  });
+
+  it('should calculate packagingSnapshot for items without consigne (withConsigne: false)', async () => {
+    const mockOrderItems: CartItem[] = [
+      {
+        product: {
+          id: '1',
+          reference: 'BG-001',
+          name: 'Bière Castel 33cl',
+          category: 'biere' as const,
+          brand: 'Castel',
+          crateType: 'C24',
+          unitPrice: 650,
+          cratePrice: 15600,
+          consignPrice: 1000,
+          volume: '33cl',
+          isActive: true,
+          imageUrl: '',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        quantity: 5,
+        withConsigne: false, // Client did NOT pay → driver collects
+      },
+      {
+        product: {
+          id: '2',
+          reference: 'SODA-001',
+          name: 'Coca Cola 50cl',
+          category: 'soda' as const,
+          brand: 'Coca Cola',
+          crateType: 'C12',
+          unitPrice: 500,
+          cratePrice: 6000,
+          consignPrice: 500,
+          volume: '50cl',
+          isActive: true,
+          imageUrl: '',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        quantity: 2,
+        withConsigne: false, // Client did NOT pay → driver collects
+      },
+    ];
+
+    const mockOrder: Order = {
+      id: 'order-no-consigne-paid',
       clientId: 'client-123',
       supplierId: 'test-supplier-id',
       items: mockOrderItems,
@@ -271,13 +373,18 @@ describe('useDeliveryMode - Packaging Snapshot Fallback', () => {
     };
 
     // Manually test the mapOrderToDelivery logic
-    const consigneItems = mockOrder.items.filter(item => item.withConsigne);
+    const itemsToReturn = mockOrder.items.filter(item =>
+      item.product.consignPrice > 0 &&
+      item.product.crateType &&
+      !item.product.crateType.startsWith('CARTON') &&
+      !item.withConsigne
+    );
     let packagingSnapshot = mockOrder.packagingSnapshot;
 
     if (!packagingSnapshot || Object.keys(packagingSnapshot).length === 0) {
-      if (consigneItems.length > 0) {
+      if (itemsToReturn.length > 0) {
         const snapshotMap: Record<string, number> = {};
-        consigneItems.forEach(item => {
+        itemsToReturn.forEach(item => {
           const crateType = item.product.crateType;
           if (crateType) {
             snapshotMap[crateType] = (snapshotMap[crateType] || 0) + item.quantity;
@@ -289,7 +396,11 @@ describe('useDeliveryMode - Packaging Snapshot Fallback', () => {
       }
     }
 
-    // Verify no snapshot is created when no consigne items
-    expect(packagingSnapshot).toBeUndefined();
+    // Verify snapshot includes all items with withConsigne: false
+    expect(packagingSnapshot).toBeDefined();
+    expect(packagingSnapshot).toEqual({
+      C24: 5,
+      C12: 2,
+    });
   });
 });
