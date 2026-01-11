@@ -10,17 +10,17 @@ import { SummaryTab } from './SummaryTab';
 import { ActivityTab } from '../../../types/activity';
 import { KenteLoader } from '../../ui/KenteLoader';
 
-export const ActivityPage: React.FC = () => {
+export const ActivityPage: React. FC = () => {
   const { user } = useAuth();
-  const { organization, loading: orgLoading } = useOrganization();
+  // ✅ CORRECTION ICI - utiliser organizationId et isLoading
+  const { organizationId, isLoading: orgLoading } = useOrganization();
   const [activeTab, setActiveTab] = useState<ActivityTab>('stocks');
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
 
-  // Get organization ID from hook
-  const organizationId = organization?.id || '';
-
+  // organizationId est déjà une string, pas besoin de organization?. id
+  
   const {
     currentDate,
     sheet,
