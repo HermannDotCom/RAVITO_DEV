@@ -1,79 +1,80 @@
 import { supabase } from '../lib/supabase';
-import {
-  DailySheet,
-  DailyStockLine,
-  DailyPackaging,
-  DailyExpense,
-  EstablishmentProduct,
-  UpdateStockLineData,
-  UpdatePackagingData,
-  AddExpenseData,
-  CloseSheetData,
-  UpsertEstablishmentProductData,
-} from '../types/activity';
-
-// ============================================
-// DAILY SHEET OPERATIONS
-// ============================================
+import { DailySheet, DailyStockLine, DailyPackaging, DailyExpense } from '../types/activity';
 
 /**
- * Get or create daily sheet for a specific date
+ * Get the organization ID for the current user
+ * Checks if user is owner or member of an organization
  */
-export async function getOrCreateDailySheet(
-  organizationId: string,
-  date: string // YYYY-MM-DD format
-): Promise<{ data: DailySheet | null; error: string | null }> {
+export const getUserOrganizationId = async (userId: string): Promise<string | null> => {
+  // First check if user owns an organization
+  const { data:  ownedOrg } = await supabase
+    .from('organizations')
+    .select('id')
+    .eq('owner_id', userId)
+    .maybeSingle();
+
+  if (ownedOrg?. id) {
+    return ownedOrg.id;
+  }
+
+  // Then check if user is a member of an organization
+  const { data: membership } = await supabase
+    .from('organization_members')
+    .select('organization_id')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  return membership?.organization_id || null;
+};
+
+/**
+ * Get or create a daily sheet for the given organization and date
+ */
+export const getOrCreateDailySheet = async (
+  userId: string,
+  date: string
+): Promise<DailySheet | null> => {
   try {
-    // Try to get existing sheet
+    // Get the user's organization ID
+    const organizationId = await getUserOrganizationId(userId);
+    
+    if (!organizationId) {
+      console.error('User does not belong to any organization');
+      throw new Error('Vous devez appartenir à une organisation pour utiliser cette fonctionnalité.');
+    }
+
+    // First try to get existing sheet
     const { data: existingSheet, error: fetchError } = await supabase
       .from('daily_sheets')
       .select('*')
       .eq('organization_id', organizationId)
       .eq('sheet_date', date)
-      .single();
+      .maybeSingle();
 
     if (fetchError && fetchError.code !== 'PGRST116') {
-      // PGRST116 means no rows returned, which is fine
       console.error('Error fetching daily sheet:', fetchError);
-      return { data: null, error: fetchError.message };
+      throw fetchError;
     }
 
     if (existingSheet) {
-      return {
-        data: {
-          id: existingSheet.id,
-          organizationId: existingSheet.organization_id,
-          sheetDate: existingSheet.sheet_date,
-          status: existingSheet.status,
-          openingCash: existingSheet.opening_cash,
-          closingCash: existingSheet.closing_cash,
-          theoreticalRevenue: existingSheet.theoretical_revenue,
-          cashDifference: existingSheet.cash_difference,
-          expensesTotal: existingSheet.expenses_total,
-          notes: existingSheet.notes,
-          closedAt: existingSheet.closed_at,
-          closedBy: existingSheet.closed_by,
-          createdAt: existingSheet.created_at,
-          updatedAt: existingSheet.updated_at,
-        },
-        error: null,
-      };
+      return mapDailySheet(existingSheet);
     }
 
-    // Create new sheet with carryover function
+    // Create new sheet using the RPC function
     const { data: newSheetId, error: createError } = await supabase
       .rpc('create_daily_sheet_with_carryover', {
         p_organization_id: organizationId,
-        p_date: date,
+        p_date: date
       });
 
     if (createError) {
       console.error('Error creating daily sheet:', createError);
-      return { data: null, error: createError.message };
+      throw createError;
     }
 
     // Fetch the newly created sheet
-    const { data: newSheet, error: newFetchError } = await supabase
+    const { data:  newSheet, error: newFetchError } = await supabase
       .from('daily_sheets')
       .select('*')
       .eq('id', newSheetId)
@@ -81,540 +82,358 @@ export async function getOrCreateDailySheet(
 
     if (newFetchError) {
       console.error('Error fetching new daily sheet:', newFetchError);
-      return { data: null, error: newFetchError.message };
+      throw newFetchError;
     }
 
-    return {
-      data: {
-        id: newSheet.id,
-        organizationId: newSheet.organization_id,
-        sheetDate: newSheet.sheet_date,
-        status: newSheet.status,
-        openingCash: newSheet.opening_cash,
-        closingCash: newSheet.closing_cash,
-        theoreticalRevenue: newSheet.theoretical_revenue,
-        cashDifference: newSheet.cash_difference,
-        expensesTotal: newSheet.expenses_total,
-        notes: newSheet.notes,
-        closedAt: newSheet.closed_at,
-        closedBy: newSheet.closed_by,
-        createdAt: newSheet.created_at,
-        updatedAt: newSheet.updated_at,
-      },
-      error: null,
-    };
-  } catch (error: any) {
-    console.error('Unexpected error in getOrCreateDailySheet:', error);
-    return { data: null, error: error.message || 'Unknown error' };
+    return mapDailySheet(newSheet);
+  } catch (error) {
+    console.error('Error in getOrCreateDailySheet:', error);
+    throw error;
   }
-}
-
-// ============================================
-// STOCK LINES OPERATIONS
-// ============================================
+};
 
 /**
- * Get daily stock lines with product details
+ * Get stock lines for a daily sheet
  */
-export async function getDailyStockLines(
-  sheetId: string
-): Promise<{ data: DailyStockLine[] | null; error: string | null }> {
-  try {
-    const { data, error } = await supabase
-      .from('daily_stock_lines')
-      .select(`
-        *,
-        product:products(*)
-      `)
-      .eq('daily_sheet_id', sheetId)
-      .order('product(name)', { ascending: true });
+export const getDailyStockLines = async (sheetId: string): Promise<DailyStockLine[]> => {
+  const { data, error } = await supabase
+    .from('daily_stock_lines')
+    .select(`
+      *,
+      product: products(id, name, reference, crate_type, image_url)
+    `)
+    .eq('daily_sheet_id', sheetId);
 
-    if (error) {
-      console.error('Error fetching stock lines:', error);
-      return { data: null, error: error.message };
-    }
-
-    const stockLines: DailyStockLine[] = data.map((line: any) => ({
-      id: line.id,
-      dailySheetId: line.daily_sheet_id,
-      productId: line.product_id,
-      initialStock: line.initial_stock,
-      ravitoSupply: line.ravito_supply,
-      externalSupply: line.external_supply,
-      finalStock: line.final_stock,
-      createdAt: line.created_at,
-      updatedAt: line.updated_at,
-      product: line.product ? {
-        id: line.product.id,
-        reference: line.product.reference,
-        name: line.product.name,
-        category: line.product.category,
-        brand: line.product.brand,
-        crateType: line.product.crate_type,
-        unitPrice: line.product.unit_price,
-        cratePrice: line.product.crate_price,
-        consignPrice: line.product.consign_price,
-        description: line.product.description,
-        alcoholContent: line.product.alcohol_content,
-        volume: line.product.volume,
-        isActive: line.product.is_active,
-        imageUrl: line.product.image_url,
-        createdAt: line.product.created_at,
-        updatedAt: line.product.updated_at,
-      } : undefined,
-    }));
-
-    return { data: stockLines, error: null };
-  } catch (error: any) {
-    console.error('Unexpected error in getDailyStockLines:', error);
-    return { data: null, error: error.message || 'Unknown error' };
+  if (error) {
+    console.error('Error fetching stock lines:', error);
+    throw error;
   }
-}
+
+  return (data || []).map(mapStockLine);
+};
 
 /**
  * Update a stock line
  */
-export async function updateStockLine(
+export const updateStockLine = async (
   lineId: string,
-  updates: UpdateStockLineData
-): Promise<{ success: boolean; error: string | null }> {
-  try {
-    const updateData: any = {};
-    if (updates.externalSupply !== undefined) {
-      updateData.external_supply = updates.externalSupply;
-    }
-    if (updates.finalStock !== undefined) {
-      updateData.final_stock = updates.finalStock;
-    }
-
-    const { error } = await supabase
-      .from('daily_stock_lines')
-      .update(updateData)
-      .eq('id', lineId);
-
-    if (error) {
-      console.error('Error updating stock line:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, error: null };
-  } catch (error: any) {
-    console.error('Unexpected error in updateStockLine:', error);
-    return { success: false, error: error.message || 'Unknown error' };
+  updates: Partial<Pick<DailyStockLine, 'externalSupply' | 'finalStock'>>
+): Promise<void> => {
+  const dbUpdates:  Record<string, any> = {};
+  
+  if (updates.externalSupply !== undefined) {
+    dbUpdates.external_supply = updates.externalSupply;
   }
-}
+  if (updates.finalStock !== undefined) {
+    dbUpdates.final_stock = updates.finalStock;
+  }
 
-// ============================================
-// PACKAGING OPERATIONS
-// ============================================
+  const { error } = await supabase
+    .from('daily_stock_lines')
+    .update(dbUpdates)
+    .eq('id', lineId);
+
+  if (error) {
+    console.error('Error updating stock line:', error);
+    throw error;
+  }
+};
 
 /**
- * Get daily packaging tracking
+ * Get packaging lines for a daily sheet
  */
-export async function getDailyPackaging(
-  sheetId: string
-): Promise<{ data: DailyPackaging[] | null; error: string | null }> {
-  try {
-    const { data, error } = await supabase
-      .from('daily_packaging')
-      .select('*')
-      .eq('daily_sheet_id', sheetId)
-      .order('crate_type', { ascending: true });
+export const getDailyPackaging = async (sheetId: string): Promise<DailyPackaging[]> => {
+  const { data, error } = await supabase
+    .from('daily_packaging')
+    .select('*')
+    .eq('daily_sheet_id', sheetId);
 
-    if (error) {
-      console.error('Error fetching daily packaging:', error);
-      return { data: null, error: error.message };
-    }
-
-    const packaging: DailyPackaging[] = data.map((pkg: any) => ({
-      id: pkg.id,
-      dailySheetId: pkg.daily_sheet_id,
-      crateType: pkg.crate_type,
-      qtyFullStart: pkg.qty_full_start,
-      qtyEmptyStart: pkg.qty_empty_start,
-      qtyReceived: pkg.qty_received,
-      qtyReturned: pkg.qty_returned,
-      qtyFullEnd: pkg.qty_full_end,
-      qtyEmptyEnd: pkg.qty_empty_end,
-      createdAt: pkg.created_at,
-      updatedAt: pkg.updated_at,
-    }));
-
-    return { data: packaging, error: null };
-  } catch (error: any) {
-    console.error('Unexpected error in getDailyPackaging:', error);
-    return { data: null, error: error.message || 'Unknown error' };
+  if (error) {
+    console.error('Error fetching packaging:', error);
+    throw error;
   }
-}
+
+  return (data || []).map(mapPackaging);
+};
 
 /**
- * Update packaging quantities
+ * Update a packaging line
  */
-export async function updatePackaging(
+export const updatePackaging = async (
   packagingId: string,
-  updates: UpdatePackagingData
-): Promise<{ success: boolean; error: string | null }> {
-  try {
-    const updateData: any = {};
-    if (updates.qtyFullEnd !== undefined) {
-      updateData.qty_full_end = updates.qtyFullEnd;
-    }
-    if (updates.qtyEmptyEnd !== undefined) {
-      updateData.qty_empty_end = updates.qtyEmptyEnd;
-    }
-
-    const { error } = await supabase
-      .from('daily_packaging')
-      .update(updateData)
-      .eq('id', packagingId);
-
-    if (error) {
-      console.error('Error updating packaging:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, error: null };
-  } catch (error: any) {
-    console.error('Unexpected error in updatePackaging:', error);
-    return { success: false, error: error.message || 'Unknown error' };
+  updates: Partial<Pick<DailyPackaging, 'qtyReturned' | 'qtyFullEnd' | 'qtyEmptyEnd'>>
+): Promise<void> => {
+  const dbUpdates: Record<string, any> = {};
+  
+  if (updates.qtyReturned !== undefined) {
+    dbUpdates.qty_returned = updates. qtyReturned;
   }
-}
+  if (updates.qtyFullEnd !== undefined) {
+    dbUpdates.qty_full_end = updates.qtyFullEnd;
+  }
+  if (updates.qtyEmptyEnd !== undefined) {
+    dbUpdates.qty_empty_end = updates.qtyEmptyEnd;
+  }
 
-// ============================================
-// EXPENSES OPERATIONS
-// ============================================
+  const { error } = await supabase
+    .from('daily_packaging')
+    .update(dbUpdates)
+    .eq('id', packagingId);
+
+  if (error) {
+    console.error('Error updating packaging:', error);
+    throw error;
+  }
+};
 
 /**
- * Get daily expenses
+ * Get expenses for a daily sheet
  */
-export async function getDailyExpenses(
-  sheetId: string
-): Promise<{ data: DailyExpense[] | null; error: string | null }> {
-  try {
-    const { data, error } = await supabase
-      .from('daily_expenses')
-      .select('*')
-      .eq('daily_sheet_id', sheetId)
-      .order('created_at', { ascending: false });
+export const getDailyExpenses = async (sheetId: string): Promise<DailyExpense[]> => {
+  const { data, error } = await supabase
+    .from('daily_expenses')
+    .select('*')
+    .eq('daily_sheet_id', sheetId)
+    .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching daily expenses:', error);
-      return { data: null, error: error.message };
-    }
-
-    const expenses: DailyExpense[] = data.map((exp: any) => ({
-      id: exp.id,
-      dailySheetId: exp.daily_sheet_id,
-      label: exp.label,
-      amount: exp.amount,
-      category: exp.category,
-      createdAt: exp.created_at,
-    }));
-
-    return { data: expenses, error: null };
-  } catch (error: any) {
-    console.error('Unexpected error in getDailyExpenses:', error);
-    return { data: null, error: error.message || 'Unknown error' };
+  if (error) {
+    console.error('Error fetching expenses:', error);
+    throw error;
   }
-}
+
+  return (data || []).map(mapExpense);
+};
 
 /**
  * Add a new expense
  */
-export async function addExpense(
+export const addExpense = async (
   sheetId: string,
-  expenseData: AddExpenseData
-): Promise<{ data: DailyExpense | null; error: string | null }> {
-  try {
-    const { data, error } = await supabase
-      .from('daily_expenses')
-      .insert({
-        daily_sheet_id: sheetId,
-        label: expenseData.label,
-        amount: expenseData.amount,
-        category: expenseData.category,
-      })
-      .select()
-      .single();
+  label: string,
+  amount: number,
+  category: string = 'other'
+): Promise<DailyExpense> => {
+  const { data, error } = await supabase
+    .from('daily_expenses')
+    .insert({
+      daily_sheet_id:  sheetId,
+      label,
+      amount,
+      category
+    })
+    .select()
+    .single();
 
-    if (error) {
-      console.error('Error adding expense:', error);
-      return { data: null, error: error.message };
-    }
-
-    // Update expenses_total in daily_sheet
-    await updateExpensesTotal(sheetId);
-
-    return {
-      data: {
-        id: data.id,
-        dailySheetId: data.daily_sheet_id,
-        label: data.label,
-        amount: data.amount,
-        category: data.category,
-        createdAt: data.created_at,
-      },
-      error: null,
-    };
-  } catch (error: any) {
-    console.error('Unexpected error in addExpense:', error);
-    return { data: null, error: error.message || 'Unknown error' };
+  if (error) {
+    console.error('Error adding expense:', error);
+    throw error;
   }
-}
+
+  return mapExpense(data);
+};
 
 /**
  * Delete an expense
  */
-export async function deleteExpense(
-  expenseId: string,
-  sheetId: string
-): Promise<{ success: boolean; error: string | null }> {
-  try {
-    const { error } = await supabase
-      .from('daily_expenses')
-      .delete()
-      .eq('id', expenseId);
+export const deleteExpense = async (expenseId: string): Promise<void> => {
+  const { error } = await supabase
+    . from('daily_expenses')
+    .delete()
+    .eq('id', expenseId);
 
-    if (error) {
-      console.error('Error deleting expense:', error);
-      return { success: false, error: error.message };
-    }
-
-    // Update expenses_total in daily_sheet
-    await updateExpensesTotal(sheetId);
-
-    return { success: true, error: null };
-  } catch (error: any) {
-    console.error('Unexpected error in deleteExpense:', error);
-    return { success: false, error: error.message || 'Unknown error' };
+  if (error) {
+    console.error('Error deleting expense:', error);
+    throw error;
   }
-}
+};
 
 /**
- * Helper: Update expenses total in daily sheet
+ * Update daily sheet (opening cash, closing cash, notes)
  */
-async function updateExpensesTotal(sheetId: string): Promise<void> {
-  try {
-    const { data: expenses } = await supabase
-      .from('daily_expenses')
-      .select('amount')
-      .eq('daily_sheet_id', sheetId);
-
-    const total = expenses?.reduce((sum, exp) => sum + exp.amount, 0) || 0;
-
-    await supabase
-      .from('daily_sheets')
-      .update({ expenses_total: total })
-      .eq('id', sheetId);
-  } catch (error) {
-    console.error('Error updating expenses total:', error);
-  }
-}
-
-// ============================================
-// SHEET CLOSURE
-// ============================================
-
-/**
- * Close the daily sheet
- */
-export async function closeDailySheet(
+export const updateDailySheet = async (
   sheetId: string,
-  closeData: CloseSheetData,
-  userId: string
-): Promise<{ success: boolean; error: string | null }> {
-  try {
-    // Get the sheet to calculate theoretical revenue
-    const { data: stockLines } = await getDailyStockLines(sheetId);
-    const { data: sheet } = await supabase
-      .from('daily_sheets')
-      .select('*, organization_id')
-      .eq('id', sheetId)
-      .single();
-
-    if (!sheet || !stockLines) {
-      return { success: false, error: 'Sheet or stock lines not found' };
-    }
-
-    // Calculate theoretical revenue from stock lines
-    const { data: establishmentProducts } = await getEstablishmentProducts(sheet.organization_id);
-    
-    let theoreticalRevenue = 0;
-    if (establishmentProducts) {
-      stockLines.forEach((line) => {
-        if (line.finalStock !== null && line.finalStock !== undefined) {
-          const totalSupply = line.ravitoSupply + line.externalSupply;
-          const salesQty = line.initialStock + totalSupply - line.finalStock;
-          
-          if (salesQty > 0) {
-            const estProduct = establishmentProducts.find(ep => ep.productId === line.productId);
-            if (estProduct) {
-              theoreticalRevenue += salesQty * estProduct.sellingPrice;
-            }
-          }
-        }
-      });
-    }
-
-    // Calculate cash difference
-    const cashDifference = closeData.closingCash - (sheet.opening_cash + theoreticalRevenue - sheet.expenses_total);
-
-    // Update the sheet
-    const { error } = await supabase
-      .from('daily_sheets')
-      .update({
-        status: 'closed',
-        closing_cash: closeData.closingCash,
-        theoretical_revenue: theoreticalRevenue,
-        cash_difference: cashDifference,
-        notes: closeData.notes || null,
-        closed_at: new Date().toISOString(),
-        closed_by: userId,
-      })
-      .eq('id', sheetId);
-
-    if (error) {
-      console.error('Error closing daily sheet:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, error: null };
-  } catch (error: any) {
-    console.error('Unexpected error in closeDailySheet:', error);
-    return { success: false, error: error.message || 'Unknown error' };
+  updates: Partial<Pick<DailySheet, 'openingCash' | 'closingCash' | 'notes'>>
+): Promise<void> => {
+  const dbUpdates: Record<string, any> = {};
+  
+  if (updates.openingCash !== undefined) {
+    dbUpdates.opening_cash = updates.openingCash;
   }
-}
+  if (updates.closingCash !== undefined) {
+    dbUpdates.closing_cash = updates.closingCash;
+  }
+  if (updates.notes !== undefined) {
+    dbUpdates.notes = updates.notes;
+  }
 
-// ============================================
-// SYNC RAVITO DELIVERIES
-// ============================================
+  const { error } = await supabase
+    .from('daily_sheets')
+    .update(dbUpdates)
+    .eq('id', sheetId);
+
+  if (error) {
+    console.error('Error updating daily sheet:', error);
+    throw error;
+  }
+};
+
+/**
+ * Close a daily sheet
+ */
+export const closeDailySheet = async (
+  sheetId: string,
+  closingCash: number,
+  theoreticalRevenue: number,
+  expensesTotal: number,
+  userId: string
+): Promise<void> => {
+  const cashDifference = closingCash - theoreticalRevenue + expensesTotal;
+
+  const { error } = await supabase
+    .from('daily_sheets')
+    .update({
+      status: 'closed',
+      closing_cash: closingCash,
+      theoretical_revenue: theoreticalRevenue,
+      expenses_total: expensesTotal,
+      cash_difference: cashDifference,
+      closed_at: new Date().toISOString(),
+      closed_by: userId
+    })
+    .eq('id', sheetId);
+
+  if (error) {
+    console.error('Error closing daily sheet:', error);
+    throw error;
+  }
+};
 
 /**
  * Sync RAVITO deliveries to daily sheet
  */
-export async function syncRavitoDeliveries(
-  sheetId: string
-): Promise<{ success: boolean; error: string | null }> {
-  try {
-    const { error } = await supabase
-      .rpc('sync_ravito_deliveries_to_daily_sheet', {
-        p_sheet_id: sheetId,
-      });
+export const syncRavitoDeliveries = async (sheetId: string): Promise<void> => {
+  const { error } = await supabase
+    .rpc('sync_ravito_deliveries_to_daily_sheet', {
+      p_sheet_id: sheetId
+    });
 
-    if (error) {
-      console.error('Error syncing RAVITO deliveries:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, error: null };
-  } catch (error: any) {
-    console.error('Unexpected error in syncRavitoDeliveries:', error);
-    return { success: false, error: error.message || 'Unknown error' };
+  if (error) {
+    console.error('Error syncing RAVITO deliveries:', error);
+    throw error;
   }
-}
-
-// ============================================
-// ESTABLISHMENT PRODUCTS
-// ============================================
+};
 
 /**
- * Get establishment products (selling prices)
+ * Get establishment products for configuration
  */
-export async function getEstablishmentProducts(
-  organizationId: string
-): Promise<{ data: EstablishmentProduct[] | null; error: string | null }> {
-  try {
-    const { data, error } = await supabase
-      .from('establishment_products')
-      .select(`
-        *,
-        product:products(*)
-      `)
-      .eq('organization_id', organizationId)
-      .order('product(name)', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching establishment products:', error);
-      return { data: null, error: error.message };
-    }
-
-    const products: EstablishmentProduct[] = data.map((ep: any) => ({
-      id: ep.id,
-      organizationId: ep.organization_id,
-      productId: ep.product_id,
-      sellingPrice: ep.selling_price,
-      isActive: ep.is_active,
-      minStockAlert: ep.min_stock_alert,
-      createdAt: ep.created_at,
-      updatedAt: ep.updated_at,
-      product: ep.product ? {
-        id: ep.product.id,
-        reference: ep.product.reference,
-        name: ep.product.name,
-        category: ep.product.category,
-        brand: ep.product.brand,
-        crateType: ep.product.crate_type,
-        unitPrice: ep.product.unit_price,
-        cratePrice: ep.product.crate_price,
-        consignPrice: ep.product.consign_price,
-        description: ep.product.description,
-        alcoholContent: ep.product.alcohol_content,
-        volume: ep.product.volume,
-        isActive: ep.product.is_active,
-        imageUrl: ep.product.image_url,
-        createdAt: ep.product.created_at,
-        updatedAt: ep.product.updated_at,
-      } : undefined,
-    }));
-
-    return { data: products, error: null };
-  } catch (error: any) {
-    console.error('Unexpected error in getEstablishmentProducts:', error);
-    return { data: null, error: error.message || 'Unknown error' };
+export const getEstablishmentProducts = async (userId: string): Promise<any[]> => {
+  const organizationId = await getUserOrganizationId(userId);
+  
+  if (!organizationId) {
+    return [];
   }
-}
+
+  const { data, error } = await supabase
+    .from('establishment_products')
+    .select(`
+      *,
+      product:products(id, name, reference, crate_type, image_url)
+    `)
+    .eq('organization_id', organizationId)
+    .eq('is_active', true);
+
+  if (error) {
+    console.error('Error fetching establishment products:', error);
+    throw error;
+  }
+
+  return data || [];
+};
 
 /**
- * Upsert (create or update) establishment product
+ * Add or update an establishment product
  */
-export async function upsertEstablishmentProduct(
-  productData: UpsertEstablishmentProductData
-): Promise<{ data: EstablishmentProduct | null; error: string | null }> {
-  try {
-    const { data, error } = await supabase
-      .from('establishment_products')
-      .upsert({
-        organization_id: productData.organizationId,
-        product_id: productData.productId,
-        selling_price: productData.sellingPrice,
-        is_active: productData.isActive !== undefined ? productData.isActive : true,
-        min_stock_alert: productData.minStockAlert || 0,
-      }, {
-        onConflict: 'organization_id,product_id',
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error upserting establishment product:', error);
-      return { data: null, error: error.message };
-    }
-
-    return {
-      data: {
-        id: data.id,
-        organizationId: data.organization_id,
-        productId: data.product_id,
-        sellingPrice: data.selling_price,
-        isActive: data.is_active,
-        minStockAlert: data.min_stock_alert,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
-      },
-      error: null,
-    };
-  } catch (error: any) {
-    console.error('Unexpected error in upsertEstablishmentProduct:', error);
-    return { data: null, error: error.message || 'Unknown error' };
+export const upsertEstablishmentProduct = async (
+  userId: string,
+  productId:  string,
+  sellingPrice: number
+): Promise<void> => {
+  const organizationId = await getUserOrganizationId(userId);
+  
+  if (!organizationId) {
+    throw new Error('User does not belong to any organization');
   }
-}
+
+  const { error } = await supabase
+    .from('establishment_products')
+    .upsert({
+      organization_id: organizationId,
+      product_id: productId,
+      selling_price: sellingPrice,
+      is_active: true
+    }, {
+      onConflict:  'organization_id,product_id'
+    });
+
+  if (error) {
+    console.error('Error upserting establishment product:', error);
+    throw error;
+  }
+};
+
+// ============================================
+// MAPPERS
+// ============================================
+
+const mapDailySheet = (data: any): DailySheet => ({
+  id: data.id,
+  organizationId: data.organization_id,
+  sheetDate: data.sheet_date,
+  status: data.status,
+  openingCash: data.opening_cash || 0,
+  closingCash: data.closing_cash,
+  theoreticalRevenue: data.theoretical_revenue || 0,
+  cashDifference: data.cash_difference,
+  expensesTotal: data.expenses_total || 0,
+  notes: data.notes,
+  closedAt: data.closed_at,
+  closedBy: data.closed_by,
+  createdAt: data.created_at,
+  updatedAt: data.updated_at
+});
+
+const mapStockLine = (data:  any): DailyStockLine => ({
+  id: data. id,
+  dailySheetId: data.daily_sheet_id,
+  productId: data.product_id,
+  initialStock: data.initial_stock || 0,
+  ravitoSupply: data.ravito_supply || 0,
+  externalSupply: data.external_supply || 0,
+  finalStock: data.final_stock,
+  product: data.product,
+  createdAt: data.created_at,
+  updatedAt: data.updated_at
+});
+
+const mapPackaging = (data: any): DailyPackaging => ({
+  id: data.id,
+  dailySheetId:  data.daily_sheet_id,
+  crateType: data.crate_type,
+  qtyFullStart: data.qty_full_start || 0,
+  qtyEmptyStart: data.qty_empty_start || 0,
+  qtyReceived: data.qty_received || 0,
+  qtyReturned: data.qty_returned || 0,
+  qtyFullEnd: data.qty_full_end,
+  qtyEmptyEnd: data.qty_empty_end,
+  createdAt: data.created_at,
+  updatedAt: data.updated_at
+});
+
+const mapExpense = (data: any): DailyExpense => ({
+  id: data.id,
+  dailySheetId:  data.daily_sheet_id,
+  label: data.label,
+  amount: data.amount,
+  category: data.category || 'other',
+  createdAt: data.created_at
+});
