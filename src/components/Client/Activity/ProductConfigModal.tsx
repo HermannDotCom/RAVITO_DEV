@@ -25,9 +25,9 @@ interface ConfiguredProduct {
     reference: string;
     brand: string;
     category: string;
-    crateType: string;
-    cratePrice: number;
-    imageUrl: string;
+    crate_type: string;  // Database returns snake_case
+    crate_price: number; // Database returns snake_case
+    image_url: string;   // Database returns snake_case
   };
 }
 
@@ -37,9 +37,9 @@ interface CatalogProduct {
   reference: string;
   brand: string;
   category: string;
-  crateType: string;
-  cratePrice: number;
-  imageUrl: string;
+  crate_type: string;  // Database returns snake_case
+  crate_price: number; // Database returns snake_case
+  image_url: string;   // Database returns snake_case
 }
 
 const PRODUCT_CATEGORIES = [
@@ -112,7 +112,7 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
     const { success, error } = await addEstablishmentProduct(
       organizationId,
       product.id,
-      product.cratePrice // Default to crate price
+      product.crate_price // Use snake_case - Default to crate price
     );
 
     if (success) {
@@ -252,13 +252,13 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
                 {searchResults.map(product => (
                   <div key={product.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
                     <img 
-                      src={product.imageUrl} 
+                      src={product.image_url} 
                       alt={product.name}
                       className="w-12 h-12 object-cover rounded"
                     />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-slate-900 text-sm truncate">{product.name}</p>
-                      <p className="text-xs text-slate-600">{product.brand} • {product.crateType} • {formatCurrency(product.cratePrice)} FCFA</p>
+                      <p className="text-xs text-slate-600">{product.brand} • {product.crate_type} • {formatCurrency(product.crate_price)} FCFA</p>
                     </div>
                     <button
                       onClick={() => handleAddProduct(product)}
@@ -290,7 +290,7 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
               <div className="space-y-2">
                 {configuredProducts.map(item => {
                   const currentPrice = editingPrices[item.id] ?? item.sellingPrice;
-                  const { margin, marginPercent } = calculateMargin(currentPrice, item.product.cratePrice);
+                  const { margin, marginPercent } = calculateMargin(currentPrice, item.product.crate_price);
                   const hasUnsavedChanges = editingPrices[item.id] !== undefined && editingPrices[item.id] !== item.sellingPrice;
 
                   return (
@@ -301,13 +301,13 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
                       }`}
                     >
                       <img 
-                        src={item.product.imageUrl} 
+                        src={item.product.image_url} 
                         alt={item.product.name}
                         className="w-12 h-12 object-cover rounded"
                       />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-slate-900 text-sm truncate">{item.product.name}</p>
-                        <p className="text-xs text-slate-600">{item.product.brand} • Prix RAVITO: {formatCurrency(item.product.cratePrice)} F</p>
+                        <p className="text-xs text-slate-600">{item.product.brand} • Prix RAVITO: {formatCurrency(item.product.crate_price)} F</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="text-right">
@@ -315,7 +315,7 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
                             <input
                               type="number"
                               value={currentPrice}
-                              onChange={(e) => handlePriceChange(item.id, parseInt(e.target.value) || 0)}
+                              onChange={(e) => handlePriceChange(item.id, parseFloat(e.target.value) || 0)}
                               className="w-24 px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                             />
                             <span className="text-xs text-slate-600">FCFA</span>
