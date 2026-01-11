@@ -96,15 +96,18 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
         .map(item => `${item.quantity}x ${item.product.name}`)
         .join(', ');
 
-      // Calculate packaging to collect (all consignable items, not just withConsigne=true)
-      const consignablePackaging = order.items.filter(item =>
+      // Calculate packaging to collect (only items WITHOUT consigne paid)
+      // When withConsigne = true, client paid and keeps the crate
+      // When withConsigne = false, driver must collect the empty crate
+      const itemsToCollect = order.items.filter(item =>
         item.product.consignPrice > 0 &&
         item.product.crateType &&
-        !item.product.crateType.startsWith('CARTON')
+        !item.product.crateType.startsWith('CARTON') &&
+        !item.withConsigne  // Only items WITHOUT consigne paid
       );
-      const packagingToCollect = consignablePackaging.reduce((sum, item) => sum + item.quantity, 0);
-      const packagingDetails = consignablePackaging.length > 0
-        ? consignablePackaging.map(item => `${item.quantity}x ${item.product.name}`).join(', ')
+      const packagingToCollect = itemsToCollect.reduce((sum, item) => sum + item.quantity, 0);
+      const packagingDetails = itemsToCollect.length > 0
+        ? itemsToCollect.map(item => `${item.quantity}x ${item.product.name}`).join(', ')
         : '';
 
       // Use consistent field name for confirmation code
