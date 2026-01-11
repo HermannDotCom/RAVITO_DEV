@@ -165,7 +165,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                     <div className="text-xs">
                       <p className="font-bold text-red-900">Écart détecté: {difference}</p>
                       <p className="text-red-800">
-                        {difference! > 0 ? 'Casiers en surplus' : 'Casiers manquants'}
+                        {difference > 0 ? 'Casiers en surplus' : 'Casiers manquants'}
                       </p>
                     </div>
                   </div>
@@ -278,13 +278,13 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                     {hasDiscrepancy ? (
                       <span
                         className={`inline-flex items-center gap-1 px-2 py-1 rounded font-medium ${
-                          difference! < 0
+                          difference < 0
                             ? 'bg-red-100 text-red-700'
                             : 'bg-amber-100 text-amber-700'
                         }`}
                       >
                         <AlertTriangle className="w-3 h-3" />
-                        {difference! > 0 ? '+' : ''}{difference}
+                        {difference > 0 ? '+' : ''}{difference}
                       </span>
                     ) : (
                       totalEnd !== undefined && (
