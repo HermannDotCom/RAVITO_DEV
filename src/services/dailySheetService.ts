@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { DailySheet, DailyStockLine, DailyPackaging, DailyExpense } from '../types/activity';
+import { DailySheet, DailyStockLine, DailyPackaging, DailyExpense, EstablishmentProduct } from '../types/activity';
 
 /**
  * Get the organization ID for the current user
@@ -548,7 +548,7 @@ export const syncRavitoDeliveries = async (
  */
 export const getEstablishmentProducts = async (
   organizationId: string
-): Promise<{ data: any[] | null; error: string | null }> => {
+): Promise<{ data: EstablishmentProduct[] | null; error: string | null }> => {
   try {
     if (!organizationId) {
       return {
@@ -561,7 +561,7 @@ export const getEstablishmentProducts = async (
       .from('establishment_products')
       .select(`
         *,
-        product:products(id, name, reference, crate_type, image_url)
+        product:products(id, name, reference, crate_type, crate_price, image_url)
       `)
       .eq('organization_id', organizationId)
       .eq('is_active', true);
@@ -575,7 +575,7 @@ export const getEstablishmentProducts = async (
     }
 
     return {
-      data: data || [],
+      data: (data || []).map(mapEstablishmentProduct),
       error: null
     };
   } catch (err: any) {
@@ -792,7 +792,7 @@ export const deleteEstablishmentProduct = async (
  */
 export const getAllEstablishmentProducts = async (
   organizationId: string
-): Promise<{ data: any[] | null; error: string | null }> => {
+): Promise<{ data: EstablishmentProduct[] | null; error: string | null }> => {
   try {
     if (!organizationId) {
       return {
@@ -819,7 +819,7 @@ export const getAllEstablishmentProducts = async (
     }
 
     return {
-      data: data || [],
+      data: (data || []).map(mapEstablishmentProduct),
       error: null
     };
   } catch (err: any) {
@@ -978,4 +978,16 @@ const mapExpense = (data: any): DailyExpense => ({
   amount: data.amount,
   category: data.category || 'other',
   createdAt: data.created_at
+});
+
+const mapEstablishmentProduct = (data: any): EstablishmentProduct => ({
+  id: data.id,
+  organizationId: data.organization_id,
+  productId: data.product_id,
+  sellingPrice: data.selling_price,
+  isActive: data.is_active ?? true,
+  minStockAlert: data.min_stock_alert || 0,
+  createdAt: data.created_at,
+  updatedAt: data.updated_at,
+  product: data.product
 });
