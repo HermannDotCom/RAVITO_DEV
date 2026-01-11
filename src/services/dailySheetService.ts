@@ -172,12 +172,14 @@ export const getDailyStockLines = async (
       // Continuer sans les prix plutôt que d'échouer
     }
 
-    // 3. Créer un map des prix de vente par product_id
+    // 3. Créer un map des prix de vente par product_id (produits actifs uniquement)
     const priceMap = new Map<string, number>();
     if (estProducts) {
-      estProducts.forEach(ep => {
-        priceMap.set(ep.product_id, ep.selling_price);
-      });
+      estProducts
+        .filter(ep => ep.is_active)
+        .forEach(ep => {
+          priceMap.set(ep.product_id, ep.selling_price);
+        });
     }
 
     // 4. Mapper les stock lines avec les prix de vente
