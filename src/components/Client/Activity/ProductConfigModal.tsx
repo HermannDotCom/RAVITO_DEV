@@ -112,7 +112,7 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
     const { success, error } = await addEstablishmentProduct(
       organizationId,
       product.id,
-      product.crate_price // Use snake_case - Default to crate price
+      product.crate_price // Default to crate price from database
     );
 
     if (success) {
@@ -315,7 +315,11 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
                             <input
                               type="number"
                               value={currentPrice}
-                              onChange={(e) => handlePriceChange(item.id, parseFloat(e.target.value) || 0)}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                // Allow empty string for clearing, otherwise parse as float
+                                handlePriceChange(item.id, val === '' ? 0 : parseFloat(val) || 0);
+                              }}
                               className="w-24 px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                             />
                             <span className="text-xs text-slate-600">FCFA</span>

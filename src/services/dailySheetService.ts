@@ -600,14 +600,14 @@ export const searchCatalogProducts = async (
       );
     }
 
-    // Exclude already configured products - Fixed SQL injection vulnerability
+    // Exclude already configured products - Using array filter for safety
     if (excludeProductIds && excludeProductIds.length > 0) {
       // Validate all IDs are valid UUIDs to prevent injection
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       const validIds = excludeProductIds.filter(id => uuidRegex.test(id));
       
       if (validIds.length > 0) {
-        queryBuilder = queryBuilder.not('id', 'in', `(${validIds.join(',')})`);
+        queryBuilder = queryBuilder.filter('id', 'not.in', `(${validIds.join(',')})`);
       }
     }
 
