@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ClipboardList, Calendar, CheckCircle, XCircle } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
+import { useOrganization } from '../../../hooks/useOrganization';
 import { useActivityManagement } from './hooks/useActivityManagement';
 import { StocksTab } from './StocksTab';
 import { PackagingTab } from './PackagingTab';
@@ -11,13 +12,14 @@ import { KenteLoader } from '../../ui/KenteLoader';
 
 export const ActivityPage: React.FC = () => {
   const { user } = useAuth();
+  const { organization, loading: orgLoading } = useOrganization();
   const [activeTab, setActiveTab] = useState<ActivityTab>('stocks');
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
 
-  // Get organization ID from user
-  const organizationId = (user as any)?.organizationId || user?.id;
+  // Get organization ID from hook
+  const organizationId = organization?.id || '';
 
   const {
     currentDate,
@@ -50,10 +52,24 @@ export const ActivityPage: React.FC = () => {
     handleChangeDate(newDate);
   };
 
-  if (loading) {
+  if (loading || orgLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <KenteLoader />
+      </div>
+    );
+  }
+
+  if (!organizationId) {
+    return (
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6 text-center">
+          <XCircle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+          <h3 className="text-lg font-bold text-amber-900 mb-2">Organisation requise</h3>
+          <p className="text-amber-800">
+            Vous devez appartenir à une organisation pour utiliser le module Gestion Activité.
+          </p>
+        </div>
       </div>
     );
   }
