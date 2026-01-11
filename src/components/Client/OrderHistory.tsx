@@ -57,39 +57,40 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
   // Statuts post-paiement où l'identité du fournisseur est révélée
   const REVEALED_STATUSES: OrderStatus[] = ['paid', 'preparing', 'delivering', 'delivered', 'awaiting-rating'];
 
+  // Extract loadSupplierProfiles as a reusable function
+  const loadSupplierProfiles = useCallback(async () => {
+    if (!user) return;
+
+    // Use the new function that filters by payment status
+    const { data: profiles, error } = await supabase
+      .rpc('get_supplier_profiles_for_client', { client_user_id: user.id });
+
+    if (error) {
+      console.error('Error loading supplier profiles:', error);
+      return;
+    }
+
+    const profilesMap: Record<string, SupplierProfile> = {};
+
+    if (profiles) {
+      for (const profile of profiles) {
+        profilesMap[profile.id] = {
+          id: profile.id,
+          name: profile.name,
+          business_name: profile.business_name,
+          phone: profile.phone,
+          rating: profile.rating
+        };
+      }
+    }
+
+    setSupplierProfiles(profilesMap);
+  }, [user]);
+
   // Load supplier profiles ONLY for paid orders (respects anonymity rules)
   useEffect(() => {
-    const loadSupplierProfiles = async () => {
-      if (!user) return;
-
-      // Use the new function that filters by payment status
-      const { data: profiles, error } = await supabase
-        .rpc('get_supplier_profiles_for_client', { client_user_id: user.id });
-
-      if (error) {
-        console.error('Error loading supplier profiles:', error);
-        return;
-      }
-
-      const profilesMap: Record<string, SupplierProfile> = {};
-
-      if (profiles) {
-        for (const profile of profiles) {
-          profilesMap[profile.id] = {
-            id: profile.id,
-            name: profile.name,
-            business_name: profile.business_name,
-            phone: profile.phone,
-            rating: profile.rating
-          };
-        }
-      }
-
-      setSupplierProfiles(profilesMap);
-    };
-
     loadSupplierProfiles();
-  }, [allOrders, user]);
+  }, [loadSupplierProfiles, allOrders]);
 
   // Synchroniser les commandes sélectionnées avec les mises à jour du contexte
   useEffect(() => {
@@ -850,6 +851,8 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                   setShowRatingModal(false);
                   setSelectedOrderForRating(null);
                   await refreshOrders();
+                  // Refresh supplier profiles to get updated ratings
+                  await loadSupplierProfiles();
                 }}
                 onCancel={() => {
                   setShowRatingModal(false);

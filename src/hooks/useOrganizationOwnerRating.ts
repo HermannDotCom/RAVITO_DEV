@@ -2,6 +2,32 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
+/**
+ * Helper function to fetch rating and total orders for a given user ID
+ */
+async function fetchUserRatingData(userId: string): Promise<{ rating: number; totalOrders: number }> {
+  try {
+    const { data: profileData, error } = await supabase
+      .from('profiles')
+      .select('rating, total_orders')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching user rating data:', error);
+      return { rating: 5.0, totalOrders: 0 };
+    }
+
+    return {
+      rating: profileData?.rating || 5.0,
+      totalOrders: profileData?.total_orders || 0
+    };
+  } catch (error) {
+    console.error('Unexpected error fetching user rating data:', error);
+    return { rating: 5.0, totalOrders: 0 };
+  }
+}
+
 export function useOrganizationOwnerRating() {
   const { user } = useAuth();
   const [rating, setRating] = useState<number>(5.0);
@@ -27,8 +53,10 @@ export function useOrganizationOwnerRating() {
           .maybeSingle();
 
         if (ownedOrg) {
-          setRating(user.rating || 5.0);
-          setTotalOrders(user.totalOrders || 0);
+          // Query database directly for the most up-to-date rating
+          const { rating: userRating, totalOrders: userTotalOrders } = await fetchUserRatingData(user.id);
+          setRating(userRating);
+          setTotalOrders(userTotalOrders);
           setIsLoading(false);
           return;
         }
@@ -43,23 +71,21 @@ export function useOrganizationOwnerRating() {
         if (membership && membership.organizations) {
           const org = membership.organizations as any;
 
-          // Fetch owner profile separately
-          const { data: ownerProfile } = await supabase
-            .from('profiles')
-            .select('rating, total_orders')
-            .eq('id', org.owner_id)
-            .maybeSingle();
-
-          setRating(ownerProfile?.rating || 5.0);
-          setTotalOrders(ownerProfile?.total_orders || 0);
+          // Fetch owner profile rating
+          const { rating: ownerRating, totalOrders: ownerTotalOrders } = await fetchUserRatingData(org.owner_id);
+          setRating(ownerRating);
+          setTotalOrders(ownerTotalOrders);
         } else {
-          setRating(user.rating || 5.0);
-          setTotalOrders(user.totalOrders || 0);
+          // Query database directly for the most up-to-date rating
+          const { rating: userRating, totalOrders: userTotalOrders } = await fetchUserRatingData(user.id);
+          setRating(userRating);
+          setTotalOrders(userTotalOrders);
         }
 
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching owner rating:', error);
+        // Fallback to cached values if database query fails
         setRating(user.rating || 5.0);
         setTotalOrders(user.totalOrders || 0);
         setIsLoading(false);
@@ -67,7 +93,7 @@ export function useOrganizationOwnerRating() {
     };
 
     fetchOwnerRating();
-  }, [user?.id, user?.rating, user?.totalOrders]);
+  }, [user?.id]);
 
   return { rating, totalOrders, isLoading };
 }

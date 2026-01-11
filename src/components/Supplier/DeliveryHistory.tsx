@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Calendar, Package, Star, MapPin, Clock, Filter, Search, X, Navigation, Archive, CheckCircle, MessageSquare } from 'lucide-react';
 import { useOrder } from '../../context/OrderContext';
 import { useRating } from '../../context/RatingContext';
@@ -70,59 +70,60 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
     [allOrders, user?.id]
   );
 
+  // Extract loadClientProfilesAndRatings as a reusable function
+  const loadClientProfilesAndRatings = useCallback(async () => {
+    if (!user) return;
+
+    // Load client profiles
+    const { data: profiles, error: profilesError } = await supabase
+      .rpc('get_client_profiles_for_supplier', { supplier_user_id: user.id });
+
+    if (profilesError) {
+      console.error('Error loading client profiles:', profilesError);
+    } else {
+      const profilesMap: Record<string, ClientProfile> = {};
+
+      if (profiles) {
+        for (const profile of profiles) {
+          profilesMap[profile.id] = {
+            id: profile.id,
+            name: profile.name,
+            business_name: profile.business_name,
+            phone: profile.phone,
+            rating: profile.rating
+          };
+        }
+      }
+
+      setClientProfiles(profilesMap);
+    }
+
+    // Load order-specific ratings where the supplier is the recipient
+    if (supplierCompletedDeliveries.length > 0) {
+      const orderIds = supplierCompletedDeliveries.map(o => o.id);
+
+      const { data, error } = await supabase
+        .from('ratings')
+        .select('order_id, overall')
+        .in('order_id', orderIds)
+        .eq('to_user_id', user.id);
+
+      if (error) {
+        console.error('Error loading order ratings:', error);
+      } else {
+        const ratingsMap: Record<string, number | null> = {};
+        data?.forEach(r => {
+          ratingsMap[r.order_id] = r.overall;
+        });
+        setOrderRatings(ratingsMap);
+      }
+    }
+  }, [user, supplierCompletedDeliveries]);
+
   // Load client profiles and order ratings ONLY for paid deliveries (respects anonymity rules)
   useEffect(() => {
-    const loadClientProfilesAndRatings = async () => {
-      if (!user) return;
-
-      // Load client profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .rpc('get_client_profiles_for_supplier', { supplier_user_id: user.id });
-
-      if (profilesError) {
-        console.error('Error loading client profiles:', profilesError);
-      } else {
-        const profilesMap: Record<string, ClientProfile> = {};
-
-        if (profiles) {
-          for (const profile of profiles) {
-            profilesMap[profile.id] = {
-              id: profile.id,
-              name: profile.name,
-              business_name: profile.business_name,
-              phone: profile.phone,
-              rating: profile.rating
-            };
-          }
-        }
-
-        setClientProfiles(profilesMap);
-      }
-
-      // Load order-specific ratings where the supplier is the recipient
-      if (supplierCompletedDeliveries.length > 0) {
-        const orderIds = supplierCompletedDeliveries.map(o => o.id);
-
-        const { data, error } = await supabase
-          .from('ratings')
-          .select('order_id, overall')
-          .in('order_id', orderIds)
-          .eq('to_user_id', user.id);
-
-        if (error) {
-          console.error('Error loading order ratings:', error);
-        } else {
-          const ratingsMap: Record<string, number | null> = {};
-          data?.forEach(r => {
-            ratingsMap[r.order_id] = r.overall;
-          });
-          setOrderRatings(ratingsMap);
-        }
-      }
-    };
-
     loadClientProfilesAndRatings();
-  }, [supplierCompletedDeliveries, user]);
+  }, [loadClientProfilesAndRatings]);
 
   // Auto-open rating modal when initialOrderIdToRate is provided
   useEffect(() => {
@@ -695,9 +696,11 @@ Décrivez votre problème en détail...`,
                 toUserId={selectedOrderForRating.clientId}
                 toUserRole="client"
                 otherPartyName={getClientName(selectedOrderForRating.clientId)}
-                onSubmit={() => {
+                onSubmit={async () => {
                   setShowRatingModal(false);
                   setSelectedOrderForRating(null);
+                  // Refresh client profiles to get updated ratings
+                  await loadClientProfilesAndRatings();
                 }}
                 onCancel={() => {
                   setShowRatingModal(false);
