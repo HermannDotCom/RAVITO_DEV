@@ -284,11 +284,20 @@ export const getDailyPackaging = async (
  */
 export const updatePackaging = async (
   packagingId: string,
-  updates: Partial<Pick<DailyPackaging, 'qtyReturned' | 'qtyFullEnd' | 'qtyEmptyEnd'>>
+  updates: Partial<Pick<DailyPackaging, 'qtyFullStart' | 'qtyEmptyStart' | 'qtyConsignesPaid' | 'qtyReturned' | 'qtyFullEnd' | 'qtyEmptyEnd' | 'notes'>>
 ): Promise<{ success: boolean; error: string | null }> => {
   try {
     const dbUpdates: Record<string, any> = {};
 
+    if (updates.qtyFullStart !== undefined) {
+      dbUpdates.qty_full_start = updates.qtyFullStart;
+    }
+    if (updates.qtyEmptyStart !== undefined) {
+      dbUpdates.qty_empty_start = updates.qtyEmptyStart;
+    }
+    if (updates.qtyConsignesPaid !== undefined) {
+      dbUpdates.qty_consignes_paid = updates.qtyConsignesPaid;
+    }
     if (updates.qtyReturned !== undefined) {
       dbUpdates.qty_returned = updates.qtyReturned;
     }
@@ -297,6 +306,9 @@ export const updatePackaging = async (
     }
     if (updates.qtyEmptyEnd !== undefined) {
       dbUpdates.qty_empty_end = updates.qtyEmptyEnd;
+    }
+    if (updates.notes !== undefined) {
+      dbUpdates.notes = updates.notes;
     }
 
     const { error } = await supabase
@@ -965,8 +977,10 @@ const mapPackaging = (data: any): DailyPackaging => ({
   qtyEmptyStart: data.qty_empty_start || 0,
   qtyReceived: data.qty_received || 0,
   qtyReturned: data.qty_returned || 0,
+  qtyConsignesPaid: data.qty_consignes_paid || 0,
   qtyFullEnd: data.qty_full_end,
   qtyEmptyEnd: data.qty_empty_end,
+  notes: data.notes || '',
   createdAt: data.created_at,
   updatedAt: data.updated_at
 });

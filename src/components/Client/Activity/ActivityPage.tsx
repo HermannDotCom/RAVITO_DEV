@@ -91,8 +91,8 @@ export const ActivityPage: React. FC = () => {
   }
 
   const tabs: { id: ActivityTab; label: string; badge?: number }[] = [
-    { id: 'stocks', label: 'Stocks' },
-    { id: 'packaging', label: 'Casiers', badge: calculations.packagingAlerts.length },
+    { id: 'stocks', label: 'Ventes' },
+    { id: 'packaging', label: 'Gestion Emballages', badge: calculations.packagingAlerts.length },
     { id: 'cash', label: 'Caisse' },
     { id: 'summary', label: 'Synthèse' },
   ];

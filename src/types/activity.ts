@@ -70,13 +70,15 @@ export interface DailyStockLine {
 export interface DailyPackaging {
   id: string;
   dailySheetId: string;
-  crateType: string; // C12, C24, C12V, C6, C20, etc.
+  crateType: string; // B33, B65, B100, B50V, B100V
   qtyFullStart: number; // Casiers pleins matin
   qtyEmptyStart: number; // Casiers vides matin
   qtyReceived: number; // Casiers reçus (livraisons RAVITO)
   qtyReturned: number; // Casiers rendus aux fournisseurs
+  qtyConsignesPaid: number; // Nombre de casiers dont la consigne a été payée
   qtyFullEnd?: number; // Casiers pleins soir (saisie manuelle)
   qtyEmptyEnd?: number; // Casiers vides soir (saisie manuelle)
+  notes?: string; // Observations libres (casse, vol, perte, etc.)
   createdAt: string;
   updatedAt: string;
   
@@ -166,8 +168,12 @@ export interface UpdateStockLineData {
 }
 
 export interface UpdatePackagingData {
+  qtyFullStart?: number;  // Éditable jour 1
+  qtyEmptyStart?: number;  // Éditable jour 1
+  qtyConsignesPaid?: number;  // Consignes payées
   qtyFullEnd?: number;
   qtyEmptyEnd?: number;
+  notes?: string;  // Observations
 }
 
 export interface AddExpenseData {
@@ -200,12 +206,9 @@ export const EXPENSE_CATEGORIES = {
 } as const;
 
 export const CRATE_TYPE_LABELS = {
-  C12: 'Casier 12 bouteilles',
-  C24: 'Casier 24 bouteilles',
-  C12V: 'Casier 12 bouteilles (verre)',
-  C6: 'Casier 6 bouteilles',
-  C20: 'Casier 20 bouteilles',
-  CARTON24: 'Carton 24 unités',
-  PACK6: 'Pack 6 unités',
-  PACK12: 'Pack 12 unités',
+  B33: 'Casier 33cl/30cl (24 bout.)',    // Ex C24
+  B65: 'Casier 65cl/50cl (12 bout.)',    // Ex C12
+  B100: 'Casier Bock 100cl',              // Bock uniquement
+  B50V: 'Casier Vin 50cl',                // Valpière 50cl
+  B100V: 'Casier Vin 100cl',              // Valpière 100cl
 } as const;
