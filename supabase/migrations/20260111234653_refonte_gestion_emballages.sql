@@ -136,8 +136,8 @@ BEGIN
   FROM (
     SELECT 
       CASE 
-        WHEN p.crate_type IN ('C24') THEN 'B33'
-        WHEN p.crate_type IN ('C12') THEN 'B65'
+        WHEN p.crate_type = 'C24' THEN 'B33'
+        WHEN p.crate_type = 'C12' THEN 'B65'
         ELSE p.crate_type
       END as mapped_crate_type,
       SUM(oi.quantity) as total_qty
@@ -165,8 +165,8 @@ BEGIN
   FROM (
     SELECT 
       CASE 
-        WHEN p.crate_type IN ('C24') THEN 'B33'
-        WHEN p.crate_type IN ('C12') THEN 'B65'
+        WHEN p.crate_type = 'C24' THEN 'B33'
+        WHEN p.crate_type = 'C12' THEN 'B65'
         ELSE p.crate_type
       END as mapped_crate_type,
       SUM(oi.quantity) as total_qty

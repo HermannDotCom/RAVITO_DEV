@@ -262,7 +262,6 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                       totalEnd !== undefined && (
                         <span className="text-green-600 font-medium inline-flex items-center gap-1">
                           <CheckCircle className="w-4 h-4" />
-                          ✓ OK
                         </span>
                       )
                     )}
@@ -519,7 +518,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                 {!hasDiscrepancy && totalEnd !== undefined && (
                   <div className="flex items-center gap-2 p-2 bg-green-100 border border-green-300 rounded">
                     <CheckCircle className="w-4 h-4 text-green-600" />
-                    <p className="text-xs font-medium text-green-900">✓ Comptage conforme</p>
+                    <p className="text-xs font-medium text-green-900">Comptage conforme</p>
                   </div>
                 )}
               </div>
