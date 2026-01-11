@@ -989,5 +989,5 @@ const mapEstablishmentProduct = (data: any): EstablishmentProduct => ({
   minStockAlert: data.min_stock_alert || 0,
   createdAt: data.created_at,
   updatedAt: data.updated_at,
-  product: data.product
+  product: data.product as any // Keep as-is for UI compatibility
 });
