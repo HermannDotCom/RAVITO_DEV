@@ -137,7 +137,7 @@ export const getDailyStockLines = async (
       .from('daily_stock_lines')
       .select(`
         *,
-        product: products(id, name, reference, crate_type, image_url)
+        product: products(id, name, reference, brand, crate_type, crate_price, image_url)
       `)
       .eq('daily_sheet_id', sheetId);
 
@@ -782,6 +782,98 @@ export const getAllEstablishmentProducts = async (
     console.error('Error in getAllEstablishmentProducts:', err);
     return {
       data: null,
+      error: err.message || 'An unexpected error occurred'
+    };
+  }
+};
+
+/**
+ * Add a product to the daily sheet tracking
+ * Creates an entry in establishment_products (if not exists) + daily_stock_lines
+ */
+export const addProductToDailySheet = async (
+  organizationId: string,
+  dailySheetId: string,
+  productId: string,
+  initialStock: number,
+  sellingPrice: number
+): Promise<{ success: boolean; error: string | null }> => {
+  try {
+    // First, upsert into establishment_products
+    const { error: estError } = await supabase
+      .from('establishment_products')
+      .upsert({
+        organization_id: organizationId,
+        product_id: productId,
+        selling_price: sellingPrice,
+        is_active: true
+      }, {
+        onConflict: 'organization_id,product_id'
+      });
+
+    if (estError) {
+      console.error('Error upserting establishment product:', estError);
+      return {
+        success: false,
+        error: estError.message || 'Failed to configure product'
+      };
+    }
+
+    // Then, insert into daily_stock_lines
+    const { error: stockError } = await supabase
+      .from('daily_stock_lines')
+      .insert({
+        daily_sheet_id: dailySheetId,
+        product_id: productId,
+        initial_stock: initialStock,
+        ravito_supply: 0,
+        external_supply: 0
+      });
+
+    if (stockError) {
+      console.error('Error adding stock line:', stockError);
+      return {
+        success: false,
+        error: stockError.message || 'Failed to add product to daily tracking'
+      };
+    }
+
+    return { success: true, error: null };
+  } catch (err: any) {
+    console.error('Error in addProductToDailySheet:', err);
+    return {
+      success: false,
+      error: err.message || 'An unexpected error occurred'
+    };
+  }
+};
+
+/**
+ * Remove a product from the daily sheet tracking
+ * Deletes the entry from daily_stock_lines
+ */
+export const removeProductFromDailySheet = async (
+  stockLineId: string
+): Promise<{ success: boolean; error: string | null }> => {
+  try {
+    const { error } = await supabase
+      .from('daily_stock_lines')
+      .delete()
+      .eq('id', stockLineId);
+
+    if (error) {
+      console.error('Error removing stock line:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to remove product'
+      };
+    }
+
+    return { success: true, error: null };
+  } catch (err: any) {
+    console.error('Error in removeProductFromDailySheet:', err);
+    return {
+      success: false,
       error: err.message || 'An unexpected error occurred'
     };
   }

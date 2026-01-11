@@ -1,3 +1,14 @@
+/**
+ * @deprecated This modal is deprecated and no longer used.
+ * Product configuration has been integrated directly into StocksTab.tsx
+ * as per the requirements to simplify the user experience and respect the app's design.
+ * 
+ * This file is kept for reference purposes only.
+ * 
+ * Date: 2026-01-11
+ * Reason: Complete refactoring of Stocks tab to integrate product configuration inline
+ */
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Settings, X, Search, Plus, Trash2, Save } from 'lucide-react';
 import { useOrganization } from '../../../hooks/useOrganization';
