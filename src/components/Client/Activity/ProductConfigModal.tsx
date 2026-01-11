@@ -11,6 +11,7 @@ import {
 
 interface ProductConfigModalProps {
   onClose: () => void;
+  onProductsUpdated?: () => void;  // Callback optionnel
 }
 
 interface ConfiguredProduct {
@@ -51,7 +52,19 @@ const PRODUCT_CATEGORIES = [
   { value: 'spiritueux', label: '🥃 Spiritueux' },
 ];
 
-export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose }) => {
+const CRATE_BOTTLE_COUNT: Record<string, number> = {
+  'C24': 24,    // 24 bouteilles de 33cl
+  'C12': 12,    // 12 bouteilles de 65cl
+  'C12V': 12,   // 12 bouteilles de 75cl (vin)
+  'C6': 6,      // 6 bouteilles de 1.5L
+  'C20': 20,    // 20 bouteilles
+  'CARTON24': 24,
+  'CARTON6': 6,
+  'PACK6': 6,
+  'PACK12': 12,
+};
+
+export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose, onProductsUpdated }) => {
   const { organizationId } = useOrganization();
   const [configuredProducts, setConfiguredProducts] = useState<ConfiguredProduct[]>([]);
   const [searchResults, setSearchResults] = useState<CatalogProduct[]>([]);
@@ -109,10 +122,15 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
   const handleAddProduct = async (product: CatalogProduct) => {
     if (!organizationId) return;
 
+    // Calculer un prix de vente suggéré (coût unitaire + 40% de marge)
+    const bottleCount = getBottleCount(product.crate_type);
+    const unitCost = Math.round(product.crate_price / bottleCount);
+    const suggestedPrice = Math.round(unitCost * 1.4); // +40% de marge par défaut
+
     const { success, error } = await addEstablishmentProduct(
       organizationId,
       product.id,
-      product.crate_price // Default to crate price from database
+      suggestedPrice  // Prix suggéré à la bouteille, pas au casier
     );
 
     if (success) {
@@ -178,14 +196,35 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
     setTimeout(() => setMessage(null), 3000);
   };
 
+  // Handle modal close with callback
+  const handleClose = () => {
+    if (onProductsUpdated) {
+      onProductsUpdated();
+    }
+    onClose();
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR').format(amount);
   };
 
-  const calculateMargin = (sellingPrice: number, cratePrice: number) => {
-    const margin = sellingPrice - cratePrice;
-    const marginPercent = cratePrice > 0 ? ((margin / cratePrice) * 100).toFixed(1) : '0';
-    return { margin, marginPercent };
+  // Fonction pour obtenir le nombre de bouteilles par type de casier
+  const getBottleCount = (crateType: string): number => {
+    return CRATE_BOTTLE_COUNT[crateType] || 24;
+  };
+
+  // Fonction pour calculer le coût unitaire (par bouteille)
+  const calculateUnitCost = (cratePrice: number, crateType: string): number => {
+    const bottleCount = getBottleCount(crateType);
+    return Math.round(cratePrice / bottleCount);
+  };
+
+  // Fonction pour calculer la marge (par bouteille vs coût unitaire)
+  const calculateMargin = (sellingPrice: number, cratePrice: number, crateType: string) => {
+    const unitCost = calculateUnitCost(cratePrice, crateType);
+    const margin = sellingPrice - unitCost;
+    const marginPercent = unitCost > 0 ? ((margin / unitCost) * 100).toFixed(1) : '0';
+    return { unitCost, margin, marginPercent };
   };
 
   return (
@@ -198,7 +237,7 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
             <h3 className="text-lg font-bold text-slate-900">Configuration des Produits</h3>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-slate-400 hover:text-slate-600"
           >
             <X className="w-5 h-5" />
@@ -249,26 +288,32 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
             )}
             {searchResults.length > 0 && (
               <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
-                {searchResults.map(product => (
-                  <div key={product.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <img 
-                      src={product.image_url} 
-                      alt={product.name}
-                      className="w-12 h-12 object-cover rounded"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 text-sm truncate">{product.name}</p>
-                      <p className="text-xs text-slate-600">{product.brand} • {product.crate_type} • {formatCurrency(product.crate_price)} FCFA</p>
+                {searchResults.map(product => {
+                  const unitCost = calculateUnitCost(product.crate_price, product.crate_type);
+                  const bottleCount = getBottleCount(product.crate_type);
+                  
+                  return (
+                    <div key={product.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                      <img 
+                        src={product.image_url} 
+                        alt={product.name}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-slate-900 text-sm truncate">{product.name}</p>
+                        <p className="text-xs text-slate-600">{product.brand} • {product.crate_type} ({bottleCount} bout.)</p>
+                        <p className="text-xs text-slate-600">Casier: {formatCurrency(product.crate_price)} F → {formatCurrency(unitCost)} F/bout.</p>
+                      </div>
+                      <button
+                        onClick={() => handleAddProduct(product)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm font-medium"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Ajouter
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handleAddProduct(product)}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm font-medium"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Ajouter
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -290,27 +335,30 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
               <div className="space-y-2">
                 {configuredProducts.map(item => {
                   const currentPrice = editingPrices[item.id] ?? item.sellingPrice;
-                  const { margin, marginPercent } = calculateMargin(currentPrice, item.product.crate_price);
+                  const { unitCost, margin, marginPercent } = calculateMargin(currentPrice, item.product.crate_price, item.product.crate_type);
                   const hasUnsavedChanges = editingPrices[item.id] !== undefined && editingPrices[item.id] !== item.sellingPrice;
+                  const bottleCount = getBottleCount(item.product.crate_type);
 
                   return (
                     <div 
                       key={item.id} 
-                      className={`flex items-center gap-3 p-3 rounded-lg border ${
+                      className={`flex items-start gap-3 p-3 rounded-lg border ${
                         item.isActive ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-300 opacity-60'
                       }`}
                     >
                       <img 
                         src={item.product.image_url} 
                         alt={item.product.name}
-                        className="w-12 h-12 object-cover rounded"
+                        className="w-12 h-12 object-cover rounded flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-slate-900 text-sm truncate">{item.product.name}</p>
-                        <p className="text-xs text-slate-600">{item.product.brand} • Prix RAVITO: {formatCurrency(item.product.crate_price)} F</p>
+                        <p className="text-xs text-slate-600">{item.product.brand} • {item.product.crate_type} ({bottleCount} bouteilles)</p>
+                        <p className="text-xs text-slate-600">Casier: {formatCurrency(item.product.crate_price)} F → {formatCurrency(unitCost)} F/bouteille</p>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col items-end gap-2">
                         <div className="text-right">
+                          <label className="block text-xs text-slate-600 mb-1">Prix vente/bouteille</label>
                           <div className="flex items-center gap-1">
                             <input
                               type="number"
@@ -322,7 +370,7 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
                               }}
                               className="w-24 px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                             />
-                            <span className="text-xs text-slate-600">FCFA</span>
+                            <span className="text-xs text-slate-600">F</span>
                             {hasUnsavedChanges && (
                               <button
                                 onClick={() => handleSavePrice(item.id, currentPrice)}
@@ -333,26 +381,31 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
                               </button>
                             )}
                           </div>
-                          <p className={`text-xs ${margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {margin >= 0 ? '+' : ''}{formatCurrency(margin)} F ({marginPercent}%)
+                          <p className={`text-xs mt-1 ${margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            Marge: {margin >= 0 ? '+' : ''}{formatCurrency(margin)} F ({marginPercent}%)
                           </p>
                         </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={item.isActive}
-                            onChange={() => handleToggleActive(item.id, item.isActive)}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                        </label>
-                        <button
-                          onClick={() => handleDeleteProduct(item.id)}
-                          className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
-                          title="Supprimer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <div className="text-center">
+                            <p className="text-xs text-slate-600 mb-1">{item.isActive ? 'Actif' : 'Inactif'}</p>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={item.isActive}
+                                onChange={() => handleToggleActive(item.id, item.isActive)}
+                                className="sr-only peer"
+                              />
+                              <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteProduct(item.id)}
+                            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -365,7 +418,7 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({ onClose 
         {/* Footer */}
         <div className="flex justify-end gap-3 p-4 border-t border-slate-200 bg-slate-50">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 font-medium"
           >
             Fermer
