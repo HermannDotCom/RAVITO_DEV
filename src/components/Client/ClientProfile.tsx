@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { PaymentMethod } from '../../types';
 import { ZoneSelector } from './ZoneSelector';
 import { LocationPicker } from '../Shared/LocationPicker';
+import { RatingBadge } from '../Shared/RatingBadge';
 
 export const ClientProfile: React.FC = () => {
   const { user } = useAuth();
@@ -61,26 +62,40 @@ export const ClientProfile: React.FC = () => {
     try {
       console.log('Loading stats for user:', user.id);
 
-      const { data: orders, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('client_id', user.id)
-        .order('created_at', { ascending: false });
+      // Fetch orders and profile rating in parallel
+      const [ordersResult, profileResult] = await Promise.all([
+        supabase
+          .from('orders')
+          .select('*')
+          .eq('client_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('profiles')
+          .select('rating')
+          .eq('id', user.id)
+          .single()
+      ]);
 
-      if (error) {
-        console.error('Error loading orders:', error);
-        throw error;
+      if (ordersResult.error) {
+        console.error('Error loading orders:', ordersResult.error);
+        throw ordersResult.error;
       }
 
-      console.log('Orders loaded:', orders);
+      if (profileResult.error) {
+        console.error('Error loading profile rating:', profileResult.error);
+        // Don't throw, just log - rating is non-critical
+      }
 
-      const completedOrders = orders?.filter(o => o.status === 'delivered') || [];
+      console.log('Orders loaded:', ordersResult.data);
+      console.log('Profile rating loaded:', profileResult.data?.rating);
+
+      const completedOrders = ordersResult.data?.filter(o => o.status === 'delivered') || [];
 
       setStats({
-        totalOrders: orders?.length || 0,
+        totalOrders: ordersResult.data?.length || 0,
         completedOrders: completedOrders.length,
-        rating: 0,
-        lastOrderDate: orders && orders.length > 0 ? orders[0].created_at : null
+        rating: profileResult.data?.rating || 0,
+        lastOrderDate: ordersResult.data && ordersResult.data.length > 0 ? ordersResult.data[0].created_at : null
       });
 
       setHasLoadedStats(true);
@@ -234,7 +249,26 @@ export const ClientProfile: React.FC = () => {
               </span>
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-1">{formData.name}</h2>
-            <p className="text-gray-600 mb-4">{formData.responsiblePerson}</p>
+            <p className="text-gray-600 mb-2">{formData.responsiblePerson}</p>
+            
+            {/* Rating Display - similar to SupplierProfile */}
+            <div className="flex items-center justify-center space-x-1 mb-4">
+              {stats.rating > 0 ? (
+                <RatingBadge
+                  rating={stats.rating}
+                  reviewCount={stats.completedOrders}
+                  userId={user?.id || ''}
+                  userType="client"
+                  userName={formData.name}
+                  size="md"
+                />
+              ) : (
+                <div className="flex items-center space-x-1 text-gray-500">
+                  <Star className="h-4 w-4" />
+                  <span className="text-sm">Pas encore de note</span>
+                </div>
+              )}
+            </div>
 
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-center space-x-2 text-green-600">
@@ -268,6 +302,16 @@ export const ClientProfile: React.FC = () => {
                   <span className="text-sm text-gray-600">Commandes livrées</span>
                 </div>
                 <span className="font-bold text-gray-900">{stats.completedOrders}</span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Star className="h-4 w-4 text-yellow-600" />
+                  <span className="text-sm text-gray-600">Note moyenne</span>
+                </div>
+                <span className="font-bold text-gray-900">
+                  {stats.rating > 0 ? stats.rating.toFixed(1) : 'N/A'}
+                </span>
               </div>
 
               <div className="flex items-center justify-between">
