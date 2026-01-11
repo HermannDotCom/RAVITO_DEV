@@ -130,10 +130,12 @@ export const getOrCreateDailySheet = async (
  * Get stock lines for a daily sheet
  */
 export const getDailyStockLines = async (
-  sheetId: string
+  sheetId: string,
+  organizationId?: string
 ): Promise<{ data: DailyStockLine[] | null; error: string | null }> => {
   try {
-    const { data, error } = await supabase
+    // 1. Récupérer les stock lines avec le produit
+    const { data: stockLines, error: stockError } = await supabase
       .from('daily_stock_lines')
       .select(`
         *,
@@ -141,16 +143,58 @@ export const getDailyStockLines = async (
       `)
       .eq('daily_sheet_id', sheetId);
 
-    if (error) {
-      console.error('Error fetching stock lines:', error);
+    if (stockError) {
+      console.error('Error fetching stock lines:', stockError);
       return {
         data: null,
-        error: error.message || 'Failed to fetch stock lines'
+        error: stockError.message || 'Failed to fetch stock lines'
       };
     }
 
+    // Si pas d'organizationId, retourner sans les prix de vente
+    if (!organizationId || !stockLines || stockLines.length === 0) {
+      return {
+        data: (stockLines || []).map(line => mapStockLine(line)),
+        error: null
+      };
+    }
+
+    // 2. Récupérer les prix de vente depuis establishment_products
+    const productIds = stockLines.map(line => line.product_id);
+    const { data: estProducts, error: estError } = await supabase
+      .from('establishment_products')
+      .select('product_id, selling_price, is_active')
+      .eq('organization_id', organizationId)
+      .in('product_id', productIds);
+
+    if (estError) {
+      console.error('Error fetching establishment products:', estError);
+      // Continuer sans les prix plutôt que d'échouer
+    }
+
+    // 3. Créer un map des prix de vente par product_id (produits actifs uniquement)
+    const priceMap = new Map<string, number>();
+    if (estProducts) {
+      estProducts
+        .filter(ep => ep.is_active)
+        .forEach(ep => {
+          priceMap.set(ep.product_id, ep.selling_price);
+        });
+    }
+
+    // 4. Mapper les stock lines avec les prix de vente
+    const mappedLines = stockLines.map(line => {
+      const mapped = mapStockLine(line);
+      return {
+        ...mapped,
+        establishmentProduct: {
+          sellingPrice: priceMap.get(line.product_id) || 0
+        }
+      };
+    });
+
     return {
-      data: (data || []).map(mapStockLine),
+      data: mappedLines,
       error: null
     };
   } catch (err: any) {

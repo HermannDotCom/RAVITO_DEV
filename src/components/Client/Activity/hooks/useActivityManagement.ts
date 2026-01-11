@@ -74,7 +74,7 @@ export function useActivityManagement({
         expensesResult,
         productsResult,
       ] = await Promise.all([
-        getDailyStockLines(sheetData.id),
+        getDailyStockLines(sheetData.id, organizationId),
         getDailyPackaging(sheetData.id),
         getDailyExpenses(sheetData.id),
         getEstablishmentProducts(organizationId),

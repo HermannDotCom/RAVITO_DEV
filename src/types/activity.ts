@@ -61,7 +61,7 @@ export interface DailyStockLine {
   
   // Jointures optionnelles
   product?: Product;
-  establishmentProduct?: EstablishmentProduct;
+  establishmentProduct?: EstablishmentProduct | { sellingPrice: number };
 }
 
 // ============================================

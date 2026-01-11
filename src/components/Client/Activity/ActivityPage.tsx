@@ -104,7 +104,7 @@ export const ActivityPage: React. FC = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
                 <ClipboardList className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -161,7 +161,7 @@ export const ActivityPage: React. FC = () => {
                     relative px-3 py-2 sm:px-4 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-colors
                     ${
                       activeTab === tab.id
-                        ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-md'
+                        ? 'bg-orange-500 text-white shadow-md'
                         : 'text-slate-600 hover:bg-slate-100'
                     }
                   `}
