@@ -39,35 +39,46 @@ export const PackagingTab: React. FC<PackagingTabProps> = ({
   const [editValues, setEditValues] = useState<UpdatePackagingData>({});
   const { consignableTypes, loading: crateTypesLoading, getCrateLabel } = useCrateTypes();
   
-  // Flag pour éviter la boucle infinie - sync une seule fois par dailySheetId
+   // Flag pour éviter la boucle infinie - sync une seule fois par dailySheetId
   const hasSyncedRef = useRef<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  // Function to synchronize packaging types (wrapped with useCallback)
-  const syncPackagingTypes = useCallback(async (sheetId: string) => {
+  // Function to synchronize packaging types - NE PAS appeler onPackagingSynced dedans
+  const syncPackagingTypes = useCallback(async (sheetId: string): Promise<boolean> => {
     try {
-      const { error } = await supabase. rpc('sync_daily_packaging_types', {
+      setIsSyncing(true);
+      const { error } = await supabase.rpc('sync_daily_packaging_types', {
         p_daily_sheet_id: sheetId
       });
       
       if (error) {
         console.error('Error syncing packaging types:', error);
-      } else if (onPackagingSynced) {
-        // Refresh the data after sync
-        onPackagingSynced();
+        return false;
       }
+      return true;
     } catch (err) {
       console.error('Error syncing packaging types:', err);
+      return false;
+    } finally {
+      setIsSyncing(false);
     }
-  }, [onPackagingSynced]);
+  }, []); // ← PAS de dépendance à onPackagingSynced ! 
 
-  // Call sync ONCE per dailySheetId - using ref to prevent infinite loop
+  // Sync une seule fois au montage, puis appeler onPackagingSynced UNE SEULE FOIS
   useEffect(() => {
-    if (dailySheetId && hasSyncedRef.current !== dailySheetId) {
-      hasSyncedRef.current = dailySheetId;
-      syncPackagingTypes(dailySheetId);
-    }
-  }, [dailySheetId, syncPackagingTypes]);
-
+    const doSync = async () => {
+      if (dailySheetId && hasSyncedRef.current !== dailySheetId) {
+        hasSyncedRef.current = dailySheetId;
+        const success = await syncPackagingTypes(dailySheetId);
+        if (success && onPackagingSynced) {
+          // Appel unique après la sync réussie
+          onPackagingSynced();
+        }
+      }
+    };
+    doSync();
+  }, [dailySheetId]); // ← Dépendance UNIQUEMENT sur dailySheetId
+  
   const handleEdit = (pkg: DailyPackaging) => {
     setEditingId(pkg.id);
     setEditValues({
