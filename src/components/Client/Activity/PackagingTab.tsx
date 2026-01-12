@@ -6,15 +6,12 @@ import { supabase } from '../../../lib/supabase';
 
 interface PackagingTabProps {
   packaging: DailyPackaging[];
-  dailySheetId: string;
+  dailySheetId:  string;
   isReadOnly: boolean;
   onUpdatePackaging: (packagingId: string, data: UpdatePackagingData) => Promise<boolean>;
-  onPackagingSynced?:  () => void; // Callback to refresh after sync
+  onPackagingSynced?:  () => void;
 }
 
-// Packaging difference calculation formula
-// Écart = Total Final - (Total Initial + Reçus - Rendus - Consignes Payées)
-// A zero difference indicates perfect balance
 const calculatePackagingDifference = (
   totalStart: number,
   totalEnd: number | undefined,
@@ -39,11 +36,11 @@ export const PackagingTab: React. FC<PackagingTabProps> = ({
   const [editValues, setEditValues] = useState<UpdatePackagingData>({});
   const { consignableTypes, loading: crateTypesLoading, getCrateLabel } = useCrateTypes();
   
-   // Flag pour éviter la boucle infinie - sync une seule fois par dailySheetId
+  // Flag pour éviter la boucle infinie - sync une seule fois par dailySheetId
   const hasSyncedRef = useRef<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Function to synchronize packaging types - NE PAS appeler onPackagingSynced dedans
+  // Function to synchronize packaging types - SANS dépendance à onPackagingSynced
   const syncPackagingTypes = useCallback(async (sheetId: string): Promise<boolean> => {
     try {
       setIsSyncing(true);
@@ -62,23 +59,28 @@ export const PackagingTab: React. FC<PackagingTabProps> = ({
     } finally {
       setIsSyncing(false);
     }
-  }, []); // ← PAS de dépendance à onPackagingSynced ! 
+  }, []);
 
-  // Sync une seule fois au montage, puis appeler onPackagingSynced UNE SEULE FOIS
+  // Ref stable pour onPackagingSynced pour éviter les re-renders
+  const onPackagingSyncedRef = useRef(onPackagingSynced);
+  useEffect(() => {
+    onPackagingSyncedRef.current = onPackagingSynced;
+  }, [onPackagingSynced]);
+
+  // Sync une seule fois au montage par dailySheetId
   useEffect(() => {
     const doSync = async () => {
       if (dailySheetId && hasSyncedRef.current !== dailySheetId) {
         hasSyncedRef.current = dailySheetId;
         const success = await syncPackagingTypes(dailySheetId);
-        if (success && onPackagingSynced) {
-          // Appel unique après la sync réussie
-          onPackagingSynced();
+        if (success && onPackagingSyncedRef.current) {
+          onPackagingSyncedRef.current();
         }
       }
     };
     doSync();
-  }, [dailySheetId]); // ← Dépendance UNIQUEMENT sur dailySheetId
-  
+  }, [dailySheetId, syncPackagingTypes]);
+
   const handleEdit = (pkg: DailyPackaging) => {
     setEditingId(pkg.id);
     setEditValues({
@@ -87,7 +89,7 @@ export const PackagingTab: React. FC<PackagingTabProps> = ({
       qtyConsignesPaid: pkg.qtyConsignesPaid || 0,
       qtyFullEnd: pkg.qtyFullEnd || undefined,
       qtyEmptyEnd: pkg.qtyEmptyEnd || undefined,
-      notes:  pkg.notes || '',
+      notes: pkg.notes || '',
     });
   };
 
@@ -105,47 +107,46 @@ export const PackagingTab: React. FC<PackagingTabProps> = ({
   };
 
   const getCrateTypeLabel = (crateType: string): string => {
-    // Use dynamic label from crate_types via useCrateTypes hook
     return getCrateLabel(crateType);
   };
 
   // Filter packaging data to only show active consignable types (memoized)
   const filteredPackaging = useMemo(() => {
-    if (crateTypesLoading) {
-      return packaging; // Show all during loading to avoid flickering
+    if (crateTypesLoading || isSyncing) {
+      return packaging;
     }
     return packaging.filter(item => {
       const crateType = consignableTypes. find(ct => ct.code === item.crateType);
-      return crateType !== undefined; // Only show if type is consignable and active
+      return crateType !== undefined;
     });
-  }, [packaging, consignableTypes, crateTypesLoading]);
+  }, [packaging, consignableTypes, crateTypesLoading, isSyncing]);
 
-  const calculateDifference = (pkg: DailyPackaging, editingValues?: UpdatePackagingData): number | undefined => {
+  const calculateDifference = (pkg: DailyPackaging, editingValues?:  UpdatePackagingData): number | undefined => {
     const isEditing = editingId === pkg.id && editingValues;
     
     const qtyFullStart = isEditing && editingValues. qtyFullStart !== undefined 
       ? editingValues.qtyFullStart 
-      : pkg. qtyFullStart;
+      : pkg.qtyFullStart;
     const qtyEmptyStart = isEditing && editingValues.qtyEmptyStart !== undefined 
       ? editingValues.qtyEmptyStart 
-      : pkg. qtyEmptyStart;
+      : pkg.qtyEmptyStart;
     const qtyConsignesPaid = isEditing && editingValues.qtyConsignesPaid !== undefined 
       ? editingValues.qtyConsignesPaid 
-      : (pkg. qtyConsignesPaid || 0);
+      : (pkg.qtyConsignesPaid || 0);
     const qtyFullEnd = isEditing && editingValues.qtyFullEnd !== undefined 
       ? editingValues.qtyFullEnd 
       : pkg.qtyFullEnd;
     const qtyEmptyEnd = isEditing && editingValues.qtyEmptyEnd !== undefined 
-      ? editingValues. qtyEmptyEnd 
+      ? editingValues.qtyEmptyEnd 
       : pkg.qtyEmptyEnd;
 
     const totalStart = qtyFullStart + qtyEmptyStart;
     const totalEnd = (qtyFullEnd !== null && qtyFullEnd !== undefined) &&
                      (qtyEmptyEnd !== null && qtyEmptyEnd !== undefined)
       ? qtyFullEnd + qtyEmptyEnd
-      : undefined;
+      :  undefined;
     
-    return calculatePackagingDifference(totalStart, totalEnd, pkg. qtyReceived, pkg.qtyReturned, qtyConsignesPaid);
+    return calculatePackagingDifference(totalStart, totalEnd, pkg.qtyReceived, pkg.qtyReturned, qtyConsignesPaid);
   };
 
   return (
@@ -187,7 +188,7 @@ export const PackagingTab: React. FC<PackagingTabProps> = ({
             </tr>
           </thead>
           <tbody>
-            {filteredPackaging.map((pkg) => {
+            {filteredPackaging. map((pkg) => {
               const isEditing = editingId === pkg.id;
               
               const qtyFullStart = isEditing && editValues.qtyFullStart !== undefined 
@@ -205,7 +206,7 @@ export const PackagingTab: React. FC<PackagingTabProps> = ({
               const qtyEmptyEnd = isEditing && editValues.qtyEmptyEnd !== undefined 
                 ? editValues.qtyEmptyEnd 
                 : pkg.qtyEmptyEnd;
-              const notes = isEditing && editValues.notes !== undefined 
+              const notes = isEditing && editValues. notes !== undefined 
                 ? editValues.notes 
                 : (pkg.notes || '');
               
@@ -276,7 +277,7 @@ export const PackagingTab: React. FC<PackagingTabProps> = ({
                         min="0"
                         value={editValues.qtyConsignesPaid ?? ''}
                         onChange={(e) =>
-                          setEditValues({ ... editValues, qtyConsignesPaid: parseInt(e.target.value) || 0 })
+                          setEditValues({ ...editValues, qtyConsignesPaid: parseInt(e.target.value) || 0 })
                         }
                         className="w-20 px-2 py-1 border border-slate-300 rounded text-center"
                       />
@@ -504,7 +505,7 @@ export const PackagingTab: React. FC<PackagingTabProps> = ({
                             min="0"
                             value={editValues.qtyConsignesPaid ?? ''}
                             onChange={(e) =>
-                              setEditValues({ ...editValues, qtyConsignesPaid: parseInt(e.target.value) || 0 })
+                              setEditValues({ ...editValues, qtyConsignesPaid:  parseInt(e.target.value) || 0 })
                             }
                             className="w-16 px-2 py-1 border border-slate-300 rounded text-center"
                           />
@@ -618,17 +619,17 @@ export const PackagingTab: React. FC<PackagingTabProps> = ({
         })}
       </div>
 
-      {filteredPackaging.length === 0 && ! crateTypesLoading && (
+      {filteredPackaging.length === 0 && ! crateTypesLoading && ! isSyncing && (
         <div className="text-center py-12 text-slate-500">
           <Package2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>Aucun emballage consignable actif configuré</p>
         </div>
       )}
 
-      {crateTypesLoading && (
+      {(crateTypesLoading || isSyncing) && (
         <div className="text-center py-12 text-slate-500">
           <Package2 className="w-12 h-12 mx-auto mb-3 opacity-50 animate-pulse" />
-          <p>Chargement des types d'emballages...</p>
+          <p>Chargement des types d'emballages... </p>
         </div>
       )}
     </div>
