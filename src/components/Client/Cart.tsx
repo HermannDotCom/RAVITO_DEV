@@ -41,17 +41,22 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
 
   // Calculate crate summary - EXCLUDING CARTON types (disposable)
   const getCrateSummary = () => {
-    const crateSummary: { [key in CrateType]: number } = {
-      C24: 0,
-      C12: 0,
-      C12V: 0,
-      C6: 0
+    const crateSummary: { [key in 'B33' | 'B65' | 'B100' | 'B50V' | 'B100V']: number } = {
+      B33: 0,
+      B65: 0,
+      B100: 0,
+      B50V: 0,
+      B100V: 0
     };
 
     cart.forEach(item => {
       const crateType = item.product.crateType;
-      // Only count consignable types (not CARTONs) without consigne as "to return"
-      const isConsignable = item.product.consignPrice > 0 && !crateType.startsWith('CARTON');
+      // Only count consignable types (B33, B65, B100, B50V, B100V) without consigne as "to return"
+      const isConsignable = item.product.consignPrice > 0 && 
+                            !crateType.startsWith('CARTON') && 
+                            !crateType.startsWith('PACK') &&
+                            crateType !== 'C6' && 
+                            crateType !== 'C20';
       
       if (!item.withConsigne && isConsignable && crateType in crateSummary) {
         crateSummary[crateType as keyof typeof crateSummary] += item.quantity;
@@ -64,14 +69,15 @@ export const Cart: React.FC<CartProps> = ({ onCheckout }) => {
   const crateSummary = getCrateSummary();
   const totalCratesToReturn = Object.values(crateSummary).reduce((sum, count) => sum + count, 0);
 
-  const getCrateTypeDescription = (crateType: CrateType) => {
-    const descriptions = {
-      C24: '24 bouteilles de 33cl',
-      C12: '12 bouteilles de 66cl', 
-      C12V: '12 bouteilles de 75cl',
-      C6: '6 bouteilles de 1.5L'
+  const getCrateTypeDescription = (crateType: string) => {
+    const descriptions: Record<string, string> = {
+      B33: '24 bouteilles de 33cl',
+      B65: '12 bouteilles de 65cl',
+      B100: 'Bock 100cl',
+      B50V: 'Vin 50cl',
+      B100V: 'Vin 100cl',
     };
-    return descriptions[crateType];
+    return descriptions[crateType] || crateType;
   };
 
   const formatPrice = (price: number) => {

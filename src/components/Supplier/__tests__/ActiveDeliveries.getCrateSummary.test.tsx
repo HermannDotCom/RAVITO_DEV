@@ -3,11 +3,12 @@ import { Order, CrateType } from '../../../types';
 
 // Extract the getCrateSummary logic for testing
 function getCrateSummary(order: Order) {
-  const crateSummary: { [key in CrateType]: { withConsigne: number; toReturn: number } } = {
-    C24: { withConsigne: 0, toReturn: 0 },
-    C12: { withConsigne: 0, toReturn: 0 },
-    C12V: { withConsigne: 0, toReturn: 0 },
-    C6: { withConsigne: 0, toReturn: 0 }
+  const crateSummary: { [key: string]: { withConsigne: number; toReturn: number } } = {
+    B33: { withConsigne: 0, toReturn: 0 },
+    B65: { withConsigne: 0, toReturn: 0 },
+    B100: { withConsigne: 0, toReturn: 0 },
+    B50V: { withConsigne: 0, toReturn: 0 },
+    B100V: { withConsigne: 0, toReturn: 0 }
   };
   
   // Verify that order.items exists and is an array
@@ -19,10 +20,10 @@ function getCrateSummary(order: Order) {
     // Triple verification: item exists, product exists, crateType exists and is valid
     if (!item || !item.product) return;
     
-    const crateType = item.product.crateType as CrateType;
+    const crateType = item.product.crateType;
     
     // Verify that the crateType is a valid key of crateSummary
-    if (!crateType || !crateSummary[crateType]) return;
+    if (!crateType || !(crateType in crateSummary)) return;
     
     const quantity = item.quantity || 0;
     
@@ -42,7 +43,7 @@ describe('ActiveDeliveries - getCrateSummary', () => {
     name: 'Test Product',
     category: 'biere' as const,
     brand: 'Test Brand',
-    crateType: 'C24' as CrateType,
+    crateType: 'B33' as CrateType,
     unitPrice: 1000,
     cratePrice: 24000,
     consignPrice: 3000,
@@ -71,16 +72,16 @@ describe('ActiveDeliveries - getCrateSummary', () => {
     const order = { ...baseOrder, items: undefined as any };
     const result = getCrateSummary(order);
     
-    expect(result.C24).toEqual({ withConsigne: 0, toReturn: 0 });
-    expect(result.C12).toEqual({ withConsigne: 0, toReturn: 0 });
+    expect(result.B33).toEqual({ withConsigne: 0, toReturn: 0 });
+    expect(result.B65).toEqual({ withConsigne: 0, toReturn: 0 });
   });
 
   it('should handle order with null items', () => {
     const order = { ...baseOrder, items: null as any };
     const result = getCrateSummary(order);
     
-    expect(result.C24).toEqual({ withConsigne: 0, toReturn: 0 });
-    expect(result.C12).toEqual({ withConsigne: 0, toReturn: 0 });
+    expect(result.B33).toEqual({ withConsigne: 0, toReturn: 0 });
+    expect(result.B65).toEqual({ withConsigne: 0, toReturn: 0 });
   });
 
   it('should handle item with undefined product', () => {
@@ -92,7 +93,7 @@ describe('ActiveDeliveries - getCrateSummary', () => {
     };
     const result = getCrateSummary(order);
     
-    expect(result.C24).toEqual({ withConsigne: 0, toReturn: 0 });
+    expect(result.B33).toEqual({ withConsigne: 0, toReturn: 0 });
   });
 
   it('should handle item with null product', () => {
@@ -104,7 +105,7 @@ describe('ActiveDeliveries - getCrateSummary', () => {
     };
     const result = getCrateSummary(order);
     
-    expect(result.C24).toEqual({ withConsigne: 0, toReturn: 0 });
+    expect(result.B33).toEqual({ withConsigne: 0, toReturn: 0 });
   });
 
   it('should handle product with invalid crateType', () => {
@@ -120,7 +121,7 @@ describe('ActiveDeliveries - getCrateSummary', () => {
     };
     const result = getCrateSummary(order);
     
-    expect(result.C24).toEqual({ withConsigne: 0, toReturn: 0 });
+    expect(result.B33).toEqual({ withConsigne: 0, toReturn: 0 });
   });
 
   it('should handle item with undefined quantity', () => {
@@ -137,7 +138,7 @@ describe('ActiveDeliveries - getCrateSummary', () => {
     const result = getCrateSummary(order);
     
     // Should default quantity to 0
-    expect(result.C24).toEqual({ withConsigne: 0, toReturn: 0 });
+    expect(result.B33).toEqual({ withConsigne: 0, toReturn: 0 });
   });
 
   it('should correctly count items with consigne', () => {
@@ -149,7 +150,7 @@ describe('ActiveDeliveries - getCrateSummary', () => {
     };
     const result = getCrateSummary(order);
     
-    expect(result.C24).toEqual({ withConsigne: 5, toReturn: 0 });
+    expect(result.B33).toEqual({ withConsigne: 5, toReturn: 0 });
   });
 
   it('should correctly count items without consigne', () => {
@@ -161,25 +162,25 @@ describe('ActiveDeliveries - getCrateSummary', () => {
     };
     const result = getCrateSummary(order);
     
-    expect(result.C24).toEqual({ withConsigne: 0, toReturn: 3 });
+    expect(result.B33).toEqual({ withConsigne: 0, toReturn: 3 });
   });
 
   it('should handle mixed items with different crate types', () => {
     const order: Order = {
       ...baseOrder,
       items: [
-        { product: { ...mockProduct, crateType: 'C24' }, quantity: 5, withConsigne: true },
-        { product: { ...mockProduct, crateType: 'C24' }, quantity: 3, withConsigne: false },
-        { product: { ...mockProduct, crateType: 'C12' }, quantity: 2, withConsigne: true },
-        { product: { ...mockProduct, crateType: 'C12V' }, quantity: 4, withConsigne: false }
+        { product: { ...mockProduct, crateType: 'B33' }, quantity: 5, withConsigne: true },
+        { product: { ...mockProduct, crateType: 'B33' }, quantity: 3, withConsigne: false },
+        { product: { ...mockProduct, crateType: 'B65' }, quantity: 2, withConsigne: true },
+        { product: { ...mockProduct, crateType: 'B100V' }, quantity: 4, withConsigne: false }
       ]
     };
     const result = getCrateSummary(order);
     
-    expect(result.C24).toEqual({ withConsigne: 5, toReturn: 3 });
-    expect(result.C12).toEqual({ withConsigne: 2, toReturn: 0 });
-    expect(result.C12V).toEqual({ withConsigne: 0, toReturn: 4 });
-    expect(result.C6).toEqual({ withConsigne: 0, toReturn: 0 });
+    expect(result.B33).toEqual({ withConsigne: 5, toReturn: 3 });
+    expect(result.B65).toEqual({ withConsigne: 2, toReturn: 0 });
+    expect(result.B100V).toEqual({ withConsigne: 0, toReturn: 4 });
+    expect(result.B50V).toEqual({ withConsigne: 0, toReturn: 0 });
   });
 
   it('should handle mixed valid and invalid items', () => {
@@ -188,13 +189,13 @@ describe('ActiveDeliveries - getCrateSummary', () => {
       items: [
         { product: mockProduct, quantity: 5, withConsigne: true },
         { product: undefined as any, quantity: 10, withConsigne: false },
-        { product: { ...mockProduct, crateType: 'C12' }, quantity: 2, withConsigne: false },
+        { product: { ...mockProduct, crateType: 'B65' }, quantity: 2, withConsigne: false },
         null as any
       ]
     };
     const result = getCrateSummary(order);
     
-    expect(result.C24).toEqual({ withConsigne: 5, toReturn: 0 });
-    expect(result.C12).toEqual({ withConsigne: 0, toReturn: 2 });
+    expect(result.B33).toEqual({ withConsigne: 5, toReturn: 0 });
+    expect(result.B65).toEqual({ withConsigne: 0, toReturn: 2 });
   });
 });
