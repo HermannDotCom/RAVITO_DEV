@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Settings, Bell, CreditCard, Package, Clock, Shield, Save, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useCommission } from '../../context/CommissionContext';
+import { CrateTypesSettings } from './Settings/CrateTypesSettings';
 
 export const SystemSettings: React.FC = () => {
   const { commissionSettings, refreshCommissionSettings } = useCommission();
@@ -529,6 +530,9 @@ export const SystemSettings: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Crate Types Settings */}
+        <CrateTypesSettings />
 
         {/* Security Settings */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
