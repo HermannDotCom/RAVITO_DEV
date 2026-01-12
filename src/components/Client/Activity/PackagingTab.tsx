@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package2, AlertTriangle, CheckCircle } from 'lucide-react';
 import { DailyPackaging, UpdatePackagingData, CRATE_TYPE_LABELS } from '../../../types/activity';
+import { useCrateTypes } from '../../../hooks/useCrateTypes';
+import { supabase } from '../../../lib/supabase';
 
 interface PackagingTabProps {
   packaging: DailyPackaging[];
+  dailySheetId: string;
   isReadOnly: boolean;
   onUpdatePackaging: (packagingId: string, data: UpdatePackagingData) => Promise<boolean>;
+  onPackagingSynced?: () => void; // Callback pour refresh après sync
 }
 
 // Packaging difference calculation formula
@@ -26,11 +30,39 @@ const calculatePackagingDifference = (
 
 export const PackagingTab: React.FC<PackagingTabProps> = ({
   packaging,
+  dailySheetId,
   isReadOnly,
   onUpdatePackaging,
+  onPackagingSynced,
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<UpdatePackagingData>({});
+  const { consignableTypes, loading: crateTypesLoading, getCrateLabel } = useCrateTypes();
+
+  // Fonction pour synchroniser les types
+  const syncPackagingTypes = async (sheetId: string) => {
+    try {
+      const { error } = await supabase.rpc('sync_daily_packaging_types', {
+        p_daily_sheet_id: sheetId
+      });
+      
+      if (error) {
+        console.error('Error syncing packaging types:', error);
+      } else if (onPackagingSynced) {
+        // Refresh les données après sync
+        onPackagingSynced();
+      }
+    } catch (err) {
+      console.error('Error syncing packaging types:', err);
+    }
+  };
+
+  // Appeler au chargement du composant
+  useEffect(() => {
+    if (dailySheetId) {
+      syncPackagingTypes(dailySheetId);
+    }
+  }, [dailySheetId]);
 
   const handleEdit = (pkg: DailyPackaging) => {
     setEditingId(pkg.id);
@@ -58,8 +90,15 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
   };
 
   const getCrateTypeLabel = (crateType: string): string => {
-    return CRATE_TYPE_LABELS[crateType as keyof typeof CRATE_TYPE_LABELS] || crateType;
+    // Use dynamic label from crate_types via useCrateTypes hook
+    return getCrateLabel(crateType);
   };
+
+  // Filtrer les données de packaging pour n'afficher que les consignables actifs
+  const filteredPackaging = packaging.filter(item => {
+    const crateType = consignableTypes.find(ct => ct.code === item.crateType);
+    return crateType !== undefined; // N'afficher que si le type est consignable et actif
+  });
 
   const calculateDifference = (pkg: DailyPackaging, editingValues?: UpdatePackagingData): number | undefined => {
     const isEditing = editingId === pkg.id && editingValues;
@@ -128,7 +167,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
             </tr>
           </thead>
           <tbody>
-            {packaging.map((pkg) => {
+            {filteredPackaging.map((pkg) => {
               const isEditing = editingId === pkg.id;
               
               const qtyFullStart = isEditing && editValues.qtyFullStart !== undefined 
@@ -335,7 +374,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
 
       {/* Mobile card view */}
       <div className="lg:hidden space-y-3">
-        {packaging.map((pkg) => {
+        {filteredPackaging.map((pkg) => {
           const isEditing = editingId === pkg.id;
           
           const qtyFullStart = isEditing && editValues.qtyFullStart !== undefined 
@@ -559,10 +598,10 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
         })}
       </div>
 
-      {packaging.length === 0 && (
+      {filteredPackaging.length === 0 && (
         <div className="text-center py-12 text-slate-500">
           <Package2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p>Aucun emballage configuré</p>
+          <p>Aucun emballage consignable actif configuré</p>
         </div>
       )}
     </div>
