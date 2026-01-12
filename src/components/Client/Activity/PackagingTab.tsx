@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Package2, AlertTriangle, CheckCircle } from 'lucide-react';
 import { DailyPackaging, UpdatePackagingData } from '../../../types/activity';
 import { useCrateTypes } from '../../../hooks/useCrateTypes';
@@ -9,7 +9,7 @@ interface PackagingTabProps {
   dailySheetId: string;
   isReadOnly: boolean;
   onUpdatePackaging: (packagingId: string, data: UpdatePackagingData) => Promise<boolean>;
-  onPackagingSynced?: () => void; // Callback pour refresh après sync
+  onPackagingSynced?: () => void; // Callback to refresh after sync
 }
 
 // Packaging difference calculation formula
@@ -39,8 +39,8 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
   const [editValues, setEditValues] = useState<UpdatePackagingData>({});
   const { consignableTypes, loading: crateTypesLoading, getCrateLabel } = useCrateTypes();
 
-  // Fonction pour synchroniser les types (wrapped with useCallback)
-  const syncPackagingTypes = React.useCallback(async (sheetId: string) => {
+  // Function to synchronize packaging types (wrapped with useCallback)
+  const syncPackagingTypes = useCallback(async (sheetId: string) => {
     try {
       const { error } = await supabase.rpc('sync_daily_packaging_types', {
         p_daily_sheet_id: sheetId
@@ -49,7 +49,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
       if (error) {
         console.error('Error syncing packaging types:', error);
       } else if (onPackagingSynced) {
-        // Refresh les données après sync
+        // Refresh the data after sync
         onPackagingSynced();
       }
     } catch (err) {
@@ -57,7 +57,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
     }
   }, [onPackagingSynced]);
 
-  // Appeler au chargement du composant
+  // Call on component mount
   useEffect(() => {
     if (dailySheetId) {
       syncPackagingTypes(dailySheetId);
@@ -94,14 +94,14 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
     return getCrateLabel(crateType);
   };
 
-  // Filtrer les données de packaging pour n'afficher que les consignables actifs (memoized)
-  const filteredPackaging = React.useMemo(() => {
+  // Filter packaging data to only show active consignable types (memoized)
+  const filteredPackaging = useMemo(() => {
     if (crateTypesLoading) {
       return packaging; // Show all during loading to avoid flickering
     }
     return packaging.filter(item => {
       const crateType = consignableTypes.find(ct => ct.code === item.crateType);
-      return crateType !== undefined; // N'afficher que si le type est consignable et actif
+      return crateType !== undefined; // Only show if type is consignable and active
     });
   }, [packaging, consignableTypes, crateTypesLoading]);
 
