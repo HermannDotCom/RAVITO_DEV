@@ -42,7 +42,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Grant execute permissions
 GRANT EXECUTE ON FUNCTION sync_daily_packaging_types(UUID) TO authenticated;
 
-COMMENT ON FUNCTION sync_daily_packaging_types IS 'Synchronise les types d emballages consignables avec la feuille journalière';
+COMMENT ON FUNCTION sync_daily_packaging_types IS 'Synchronise les types d''emballages consignables avec la feuille journalière';
 
 -- ============================================
 -- Mise à jour de create_daily_sheet_with_carryover
@@ -134,4 +134,4 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Grant execute permissions
 GRANT EXECUTE ON FUNCTION create_daily_sheet_with_carryover(UUID, DATE) TO authenticated;
 
-COMMENT ON FUNCTION create_daily_sheet_with_carryover IS 'Crée une nouvelle feuille journalière avec report des données de J-1 et synchronisation des types d emballages';
+COMMENT ON FUNCTION create_daily_sheet_with_carryover IS 'Crée une nouvelle feuille journalière avec report des données de J-1 et synchronisation des types d''emballages';

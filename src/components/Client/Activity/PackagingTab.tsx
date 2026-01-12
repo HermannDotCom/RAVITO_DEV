@@ -39,8 +39,8 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
   const [editValues, setEditValues] = useState<UpdatePackagingData>({});
   const { consignableTypes, loading: crateTypesLoading, getCrateLabel } = useCrateTypes();
 
-  // Fonction pour synchroniser les types
-  const syncPackagingTypes = async (sheetId: string) => {
+  // Fonction pour synchroniser les types (wrapped with useCallback)
+  const syncPackagingTypes = React.useCallback(async (sheetId: string) => {
     try {
       const { error } = await supabase.rpc('sync_daily_packaging_types', {
         p_daily_sheet_id: sheetId
@@ -55,14 +55,14 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
     } catch (err) {
       console.error('Error syncing packaging types:', err);
     }
-  };
+  }, [onPackagingSynced]);
 
   // Appeler au chargement du composant
   useEffect(() => {
     if (dailySheetId) {
       syncPackagingTypes(dailySheetId);
     }
-  }, [dailySheetId]);
+  }, [dailySheetId, syncPackagingTypes]);
 
   const handleEdit = (pkg: DailyPackaging) => {
     setEditingId(pkg.id);
