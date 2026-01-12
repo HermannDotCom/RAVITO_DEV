@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Package2, AlertTriangle, CheckCircle } from 'lucide-react';
-import { DailyPackaging, UpdatePackagingData, CRATE_TYPE_LABELS } from '../../../types/activity';
+import { DailyPackaging, UpdatePackagingData } from '../../../types/activity';
 import { useCrateTypes } from '../../../hooks/useCrateTypes';
 import { supabase } from '../../../lib/supabase';
 
