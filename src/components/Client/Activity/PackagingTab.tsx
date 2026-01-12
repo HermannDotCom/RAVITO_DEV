@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Package2, AlertTriangle, CheckCircle } from 'lucide-react';
 import { DailyPackaging, UpdatePackagingData } from '../../../types/activity';
 import { useCrateTypes } from '../../../hooks/useCrateTypes';
@@ -9,7 +9,7 @@ interface PackagingTabProps {
   dailySheetId: string;
   isReadOnly: boolean;
   onUpdatePackaging: (packagingId: string, data: UpdatePackagingData) => Promise<boolean>;
-  onPackagingSynced?: () => void; // Callback to refresh after sync
+  onPackagingSynced?:  () => void; // Callback to refresh after sync
 }
 
 // Packaging difference calculation formula
@@ -28,7 +28,7 @@ const calculatePackagingDifference = (
   return totalEnd - (totalStart + qtyReceived - qtyReturned - qtyConsignesPaid);
 };
 
-export const PackagingTab: React.FC<PackagingTabProps> = ({
+export const PackagingTab: React. FC<PackagingTabProps> = ({
   packaging,
   dailySheetId,
   isReadOnly,
@@ -38,11 +38,14 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<UpdatePackagingData>({});
   const { consignableTypes, loading: crateTypesLoading, getCrateLabel } = useCrateTypes();
+  
+  // Flag pour éviter la boucle infinie - sync une seule fois par dailySheetId
+  const hasSyncedRef = useRef<string | null>(null);
 
   // Function to synchronize packaging types (wrapped with useCallback)
   const syncPackagingTypes = useCallback(async (sheetId: string) => {
     try {
-      const { error } = await supabase.rpc('sync_daily_packaging_types', {
+      const { error } = await supabase. rpc('sync_daily_packaging_types', {
         p_daily_sheet_id: sheetId
       });
       
@@ -57,9 +60,10 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
     }
   }, [onPackagingSynced]);
 
-  // Call on component mount
+  // Call sync ONCE per dailySheetId - using ref to prevent infinite loop
   useEffect(() => {
-    if (dailySheetId) {
+    if (dailySheetId && hasSyncedRef.current !== dailySheetId) {
+      hasSyncedRef.current = dailySheetId;
       syncPackagingTypes(dailySheetId);
     }
   }, [dailySheetId, syncPackagingTypes]);
@@ -72,7 +76,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
       qtyConsignesPaid: pkg.qtyConsignesPaid || 0,
       qtyFullEnd: pkg.qtyFullEnd || undefined,
       qtyEmptyEnd: pkg.qtyEmptyEnd || undefined,
-      notes: pkg.notes || '',
+      notes:  pkg.notes || '',
     });
   };
 
@@ -100,7 +104,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
       return packaging; // Show all during loading to avoid flickering
     }
     return packaging.filter(item => {
-      const crateType = consignableTypes.find(ct => ct.code === item.crateType);
+      const crateType = consignableTypes. find(ct => ct.code === item.crateType);
       return crateType !== undefined; // Only show if type is consignable and active
     });
   }, [packaging, consignableTypes, crateTypesLoading]);
@@ -108,20 +112,20 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
   const calculateDifference = (pkg: DailyPackaging, editingValues?: UpdatePackagingData): number | undefined => {
     const isEditing = editingId === pkg.id && editingValues;
     
-    const qtyFullStart = isEditing && editingValues.qtyFullStart !== undefined 
+    const qtyFullStart = isEditing && editingValues. qtyFullStart !== undefined 
       ? editingValues.qtyFullStart 
-      : pkg.qtyFullStart;
+      : pkg. qtyFullStart;
     const qtyEmptyStart = isEditing && editingValues.qtyEmptyStart !== undefined 
       ? editingValues.qtyEmptyStart 
-      : pkg.qtyEmptyStart;
+      : pkg. qtyEmptyStart;
     const qtyConsignesPaid = isEditing && editingValues.qtyConsignesPaid !== undefined 
       ? editingValues.qtyConsignesPaid 
-      : (pkg.qtyConsignesPaid || 0);
+      : (pkg. qtyConsignesPaid || 0);
     const qtyFullEnd = isEditing && editingValues.qtyFullEnd !== undefined 
       ? editingValues.qtyFullEnd 
       : pkg.qtyFullEnd;
     const qtyEmptyEnd = isEditing && editingValues.qtyEmptyEnd !== undefined 
-      ? editingValues.qtyEmptyEnd 
+      ? editingValues. qtyEmptyEnd 
       : pkg.qtyEmptyEnd;
 
     const totalStart = qtyFullStart + qtyEmptyStart;
@@ -130,7 +134,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
       ? qtyFullEnd + qtyEmptyEnd
       : undefined;
     
-    return calculatePackagingDifference(totalStart, totalEnd, pkg.qtyReceived, pkg.qtyReturned, qtyConsignesPaid);
+    return calculatePackagingDifference(totalStart, totalEnd, pkg. qtyReceived, pkg.qtyReturned, qtyConsignesPaid);
   };
 
   return (
@@ -147,7 +151,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
           Écart = Total Final - (Total Initial + Reçus - Rendus - Consignes Payées)
         </p>
         <p className="text-xs mt-1">
-          Un écart de 0 indique que tout est en ordre. Utilisez les observations pour justifier tout écart.
+          Un écart de 0 indique que tout est en ordre.  Utilisez les observations pour justifier tout écart.
         </p>
       </div>
 
@@ -168,7 +172,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
               <th className="text-center py-3 px-2 font-semibold border border-orange-200">Total Final</th>
               <th className="text-center py-3 px-2 font-semibold border border-orange-200">Écart</th>
               <th className="text-center py-3 px-2 font-semibold border border-orange-200">Observation</th>
-              {!isReadOnly && <th className="text-center py-3 px-2 font-semibold border border-orange-200">Actions</th>}
+              {! isReadOnly && <th className="text-center py-3 px-2 font-semibold border border-orange-200">Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -221,7 +225,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                       <input
                         type="number"
                         min="0"
-                        value={editValues.qtyFullStart ?? ''}
+                        value={editValues.qtyFullStart ??  ''}
                         onChange={(e) =>
                           setEditValues({ ...editValues, qtyFullStart: parseInt(e.target.value) || 0 })
                         }
@@ -234,7 +238,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                   
                   {/* Vides Initial - Editable */}
                   <td className="py-3 px-2 text-center border border-orange-200">
-                    {isEditing ? (
+                    {isEditing ?  (
                       <input
                         type="number"
                         min="0"
@@ -261,7 +265,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                         min="0"
                         value={editValues.qtyConsignesPaid ?? ''}
                         onChange={(e) =>
-                          setEditValues({ ...editValues, qtyConsignesPaid: parseInt(e.target.value) || 0 })
+                          setEditValues({ ... editValues, qtyConsignesPaid: parseInt(e.target.value) || 0 })
                         }
                         className="w-20 px-2 py-1 border border-slate-300 rounded text-center"
                       />
@@ -283,7 +287,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                         className="w-20 px-2 py-1 border border-slate-300 rounded text-center"
                       />
                     ) : (
-                      qtyFullEnd ?? '-'
+                      qtyFullEnd ??  '-'
                     )}
                   </td>
                   
@@ -293,7 +297,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                       <input
                         type="number"
                         min="0"
-                        value={editValues.qtyEmptyEnd ?? ''}
+                        value={editValues.qtyEmptyEnd ??  ''}
                         onChange={(e) =>
                           setEditValues({ ...editValues, qtyEmptyEnd: parseInt(e.target.value) || 0 })
                         }
@@ -305,7 +309,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                   </td>
                   
                   <td className="py-3 px-2 text-center font-medium border border-orange-200">
-                    {totalEnd ?? '-'}
+                    {totalEnd ??  '-'}
                   </td>
                   
                   {/* Écart */}
@@ -341,7 +345,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                     )}
                   </td>
                   
-                  {!isReadOnly && (
+                  {! isReadOnly && (
                     <td className="py-3 px-2 text-center border border-orange-200">
                       {isEditing ? (
                         <div className="flex gap-1 justify-center">
@@ -394,7 +398,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
           const qtyFullEnd = isEditing && editValues.qtyFullEnd !== undefined 
             ? editValues.qtyFullEnd 
             : pkg.qtyFullEnd;
-          const qtyEmptyEnd = isEditing && editValues.qtyEmptyEnd !== undefined 
+          const qtyEmptyEnd = isEditing && editValues. qtyEmptyEnd !== undefined 
             ? editValues.qtyEmptyEnd 
             : pkg.qtyEmptyEnd;
           const notes = isEditing && editValues.notes !== undefined 
@@ -426,10 +430,10 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                   </h3>
                   <p className="text-xs text-slate-600">{pkg.crateType}</p>
                 </div>
-                {!isReadOnly && !isEditing && (
+                {! isReadOnly && ! isEditing && (
                   <button
                     onClick={() => handleEdit(pkg)}
-                    className="text-xs text-orange-600 hover:text-orange-700 font-medium"
+                    className="text-xs text-orange-600 hover: text-orange-700 font-medium"
                   >
                     Modifier
                   </button>
@@ -442,7 +446,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                     <p className="text-slate-600 mb-1 font-medium">Comptage Initial</p>
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-600">Pleins:</span>
+                        <span className="text-slate-600">Pleins: </span>
                         {isEditing ? (
                           <input
                             type="number"
@@ -465,7 +469,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                             min="0"
                             value={editValues.qtyEmptyStart ?? ''}
                             onChange={(e) =>
-                              setEditValues({ ...editValues, qtyEmptyStart: parseInt(e.target.value) || 0 })
+                              setEditValues({ ...editValues, qtyEmptyStart: parseInt(e. target.value) || 0 })
                             }
                             className="w-16 px-2 py-1 border border-slate-300 rounded text-center"
                           />
@@ -473,7 +477,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                           <span className="font-medium">{qtyEmptyStart}</span>
                         )}
                       </div>
-                      <p className="font-bold text-slate-900 pt-1 border-t border-slate-300">Total: {totalStart}</p>
+                      <p className="font-bold text-slate-900 pt-1 border-t border-slate-300">Total:  {totalStart}</p>
                     </div>
                   </div>
                   <div>
@@ -510,14 +514,14 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                         <input
                           type="number"
                           min="0"
-                          value={editValues.qtyFullEnd ?? ''}
+                          value={editValues. qtyFullEnd ?? ''}
                           onChange={(e) =>
                             setEditValues({ ...editValues, qtyFullEnd: parseInt(e.target.value) || 0 })
                           }
                           className="w-16 px-2 py-1 border border-slate-300 rounded text-center"
                         />
                       ) : (
-                        <span className="font-medium">{qtyFullEnd ?? '-'}</span>
+                        <span className="font-medium">{qtyFullEnd ??  '-'}</span>
                       )}
                     </div>
                     <div className="flex items-center justify-between">
@@ -533,7 +537,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                           className="w-16 px-2 py-1 border border-slate-300 rounded text-center"
                         />
                       ) : (
-                        <span className="font-medium">{qtyEmptyEnd ?? '-'}</span>
+                        <span className="font-medium">{qtyEmptyEnd ??  '-'}</span>
                       )}
                     </div>
                     {totalEnd !== undefined && (
@@ -566,7 +570,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                   <div className="flex items-center gap-2 mt-2 p-2 bg-red-100 border border-red-300 rounded">
                     <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
                     <div className="text-xs">
-                      <p className="font-bold text-red-900">Écart détecté: {difference > 0 ? '+' : ''}{difference}</p>
+                      <p className="font-bold text-red-900">Écart détecté:  {difference > 0 ? '+' : ''}{difference}</p>
                       <p className="text-red-800">
                         {difference > 0 ? 'Casiers en surplus' : 'Casiers manquants'}
                       </p>
@@ -574,7 +578,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
                   </div>
                 )}
                 
-                {!hasDiscrepancy && totalEnd !== undefined && (
+                {! hasDiscrepancy && totalEnd !== undefined && (
                   <div className="flex items-center gap-2 p-2 bg-green-100 border border-green-300 rounded">
                     <CheckCircle className="w-4 h-4 text-green-600" />
                     <p className="text-xs font-medium text-green-900">Comptage conforme</p>
@@ -603,7 +607,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
         })}
       </div>
 
-      {filteredPackaging.length === 0 && !crateTypesLoading && (
+      {filteredPackaging.length === 0 && ! crateTypesLoading && (
         <div className="text-center py-12 text-slate-500">
           <Package2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>Aucun emballage consignable actif configuré</p>
