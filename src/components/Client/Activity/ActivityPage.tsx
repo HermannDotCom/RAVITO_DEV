@@ -207,8 +207,10 @@ export const ActivityPage: React. FC = () => {
           {activeTab === 'packaging' && (
             <PackagingTab
               packaging={packaging}
+              dailySheetId={sheet.id}
               isReadOnly={sheet?.status === 'closed'}
               onUpdatePackaging={handleUpdatePackaging}
+              onPackagingSynced={reload}
             />
           )}
 

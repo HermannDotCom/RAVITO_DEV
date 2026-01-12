@@ -24,7 +24,7 @@ export const useCrateTypes = () => {
     fetchCrateTypes();
   }, [fetchCrateTypes]);
 
-  const consignableTypes = crateTypes.filter(ct => ct.isConsignable);
+  const consignableTypes = crateTypes.filter(ct => ct.isConsignable && ct.isActive);
 
   const createEmptyCrateSummary = useCallback(() => {
     const summary: Record<string, number> = {};

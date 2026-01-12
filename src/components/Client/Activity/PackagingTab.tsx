@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Package2, AlertTriangle, CheckCircle } from 'lucide-react';
-import { DailyPackaging, UpdatePackagingData, CRATE_TYPE_LABELS } from '../../../types/activity';
+import { DailyPackaging, UpdatePackagingData } from '../../../types/activity';
+import { useCrateTypes } from '../../../hooks/useCrateTypes';
+import { supabase } from '../../../lib/supabase';
 
 interface PackagingTabProps {
   packaging: DailyPackaging[];
+  dailySheetId: string;
   isReadOnly: boolean;
   onUpdatePackaging: (packagingId: string, data: UpdatePackagingData) => Promise<boolean>;
+  onPackagingSynced?: () => void; // Callback to refresh after sync
 }
 
 // Packaging difference calculation formula
@@ -26,11 +30,39 @@ const calculatePackagingDifference = (
 
 export const PackagingTab: React.FC<PackagingTabProps> = ({
   packaging,
+  dailySheetId,
   isReadOnly,
   onUpdatePackaging,
+  onPackagingSynced,
 }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<UpdatePackagingData>({});
+  const { consignableTypes, loading: crateTypesLoading, getCrateLabel } = useCrateTypes();
+
+  // Function to synchronize packaging types (wrapped with useCallback)
+  const syncPackagingTypes = useCallback(async (sheetId: string) => {
+    try {
+      const { error } = await supabase.rpc('sync_daily_packaging_types', {
+        p_daily_sheet_id: sheetId
+      });
+      
+      if (error) {
+        console.error('Error syncing packaging types:', error);
+      } else if (onPackagingSynced) {
+        // Refresh the data after sync
+        onPackagingSynced();
+      }
+    } catch (err) {
+      console.error('Error syncing packaging types:', err);
+    }
+  }, [onPackagingSynced]);
+
+  // Call on component mount
+  useEffect(() => {
+    if (dailySheetId) {
+      syncPackagingTypes(dailySheetId);
+    }
+  }, [dailySheetId, syncPackagingTypes]);
 
   const handleEdit = (pkg: DailyPackaging) => {
     setEditingId(pkg.id);
@@ -58,8 +90,20 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
   };
 
   const getCrateTypeLabel = (crateType: string): string => {
-    return CRATE_TYPE_LABELS[crateType as keyof typeof CRATE_TYPE_LABELS] || crateType;
+    // Use dynamic label from crate_types via useCrateTypes hook
+    return getCrateLabel(crateType);
   };
+
+  // Filter packaging data to only show active consignable types (memoized)
+  const filteredPackaging = useMemo(() => {
+    if (crateTypesLoading) {
+      return packaging; // Show all during loading to avoid flickering
+    }
+    return packaging.filter(item => {
+      const crateType = consignableTypes.find(ct => ct.code === item.crateType);
+      return crateType !== undefined; // Only show if type is consignable and active
+    });
+  }, [packaging, consignableTypes, crateTypesLoading]);
 
   const calculateDifference = (pkg: DailyPackaging, editingValues?: UpdatePackagingData): number | undefined => {
     const isEditing = editingId === pkg.id && editingValues;
@@ -128,7 +172,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
             </tr>
           </thead>
           <tbody>
-            {packaging.map((pkg) => {
+            {filteredPackaging.map((pkg) => {
               const isEditing = editingId === pkg.id;
               
               const qtyFullStart = isEditing && editValues.qtyFullStart !== undefined 
@@ -335,7 +379,7 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
 
       {/* Mobile card view */}
       <div className="lg:hidden space-y-3">
-        {packaging.map((pkg) => {
+        {filteredPackaging.map((pkg) => {
           const isEditing = editingId === pkg.id;
           
           const qtyFullStart = isEditing && editValues.qtyFullStart !== undefined 
@@ -559,10 +603,17 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
         })}
       </div>
 
-      {packaging.length === 0 && (
+      {filteredPackaging.length === 0 && !crateTypesLoading && (
         <div className="text-center py-12 text-slate-500">
           <Package2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p>Aucun emballage configuré</p>
+          <p>Aucun emballage consignable actif configuré</p>
+        </div>
+      )}
+
+      {crateTypesLoading && (
+        <div className="text-center py-12 text-slate-500">
+          <Package2 className="w-12 h-12 mx-auto mb-3 opacity-50 animate-pulse" />
+          <p>Chargement des types d'emballages...</p>
         </div>
       )}
     </div>
