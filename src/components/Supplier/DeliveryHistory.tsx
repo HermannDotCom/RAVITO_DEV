@@ -283,11 +283,12 @@ Décrivez votre problème en détail...`,
 
   // Helper function to calculate crate summary for an order
   const getCrateSummary = (order: Order) => {
-    const crateSummary: { [key in CrateType]: { withConsigne: number; toReturn: number } } = {
-      C24: { withConsigne: 0, toReturn: 0 },
-      C12: { withConsigne: 0, toReturn: 0 },
-      C12V: { withConsigne: 0, toReturn: 0 },
-      C6: { withConsigne: 0, toReturn: 0 }
+    const crateSummary: { [key: string]: { withConsigne: number; toReturn: number } } = {
+      B33: { withConsigne: 0, toReturn: 0 },
+      B65: { withConsigne: 0, toReturn: 0 },
+      B100: { withConsigne: 0, toReturn: 0 },
+      B50V: { withConsigne: 0, toReturn: 0 },
+      B100V: { withConsigne: 0, toReturn: 0 }
     };
 
     order.items.forEach(item => {
@@ -296,7 +297,7 @@ Décrivez votre problème en détail...`,
       const crateType = item.product.crateType;
       const isConsignable = item.product.consignPrice > 0 && !crateType.startsWith('CARTON');
       
-      if (!crateSummary[crateType] || !isConsignable) return;
+      if (!(crateType in crateSummary) || !isConsignable) return;
 
       if (item.withConsigne) {
         crateSummary[crateType].withConsigne += item.quantity;

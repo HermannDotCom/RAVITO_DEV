@@ -247,11 +247,12 @@ export const OrderManagement: React.FC = () => {
   };
 
   const getCrateSummary = (order: Order) => {
-    const crateSummary: { [key in CrateType]: { withConsigne: number; toReturn: number } } = {
-      C24: { withConsigne: 0, toReturn: 0 },
-      C12: { withConsigne: 0, toReturn: 0 },
-      C12V: { withConsigne: 0, toReturn: 0 },
-      C6: { withConsigne: 0, toReturn: 0 }
+    const crateSummary: { [key: string]: { withConsigne: number; toReturn: number } } = {
+      B33: { withConsigne: 0, toReturn: 0 },
+      B65: { withConsigne: 0, toReturn: 0 },
+      B100: { withConsigne: 0, toReturn: 0 },
+      B50V: { withConsigne: 0, toReturn: 0 },
+      B100V: { withConsigne: 0, toReturn: 0 }
     };
 
     order.items.forEach(item => {
@@ -259,7 +260,7 @@ export const OrderManagement: React.FC = () => {
       // Only count consignable types: consign_price > 0 AND NOT CARTON
       const isConsignable = item.product.consignPrice > 0 && !crateType.startsWith('CARTON');
       
-      if (!crateSummary[crateType] || !isConsignable) return;
+      if (!(crateType in crateSummary) || !isConsignable) return;
       
       if (item.withConsigne) {
         crateSummary[crateType].withConsigne += item.quantity;
@@ -284,9 +285,11 @@ export const OrderManagement: React.FC = () => {
     const StatusIcon = statusInfo.icon;
     const crateSummary = getCrateSummary(order);
     const totalCratesToReturn = Object.values(crateSummary).reduce((sum, crate) => sum + crate.toReturn, 0);
-    const totalConsigneAmount = Object.entries(crateSummary).reduce((sum, [crateType, counts]) => {
-      const consignePrice = crateType === 'C12V' ? 4000 : crateType === 'C6' ? 2000 : 3000;
-      return sum + (counts.withConsigne * consignePrice);
+    const totalConsigneAmount = order.items.reduce((sum, item) => {
+      if (item.withConsigne) {
+        return sum + (item.product.consignPrice * item.quantity);
+      }
+      return sum;
     }, 0);
 
     return (

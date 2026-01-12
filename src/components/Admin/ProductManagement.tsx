@@ -18,7 +18,7 @@ export const ProductManagement: React.FC = () => {
     name: '',
     category: 'biere',
     brand: '',
-    crateType: 'C24',
+    crateType: 'B33',
     unitPrice: 0,
     cratePrice: 0,
     consignPrice: 3000,
@@ -38,21 +38,36 @@ export const ProductManagement: React.FC = () => {
   ];
 
   const crateTypes: { value: CrateType; label: string; description: string }[] = [
-    { value: 'C24', label: 'C24', description: '24 bouteilles (33cl)' },
-    { value: 'C12', label: 'C12', description: '12 bouteilles (66cl)' },
-    { value: 'C12V', label: 'C12V', description: '12 bouteilles (75cl)' },
-    { value: 'C6', label: 'C6', description: '6 bouteilles (1.5L)' }
+    { value: 'B33', label: 'B33', description: 'Casier 33cl/30cl (24 bouteilles)' },
+    { value: 'B65', label: 'B65', description: 'Casier 65cl/50cl (12 bouteilles)' },
+    { value: 'B100', label: 'B100', description: 'Casier Bock 100cl' },
+    { value: 'B50V', label: 'B50V', description: 'Casier Vin Valpière 50cl' },
+    { value: 'B100V', label: 'B100V', description: 'Casier Vin Valpière 100cl' },
+    { value: 'C6', label: 'C6', description: '6 bouteilles (1.5L)' },
+    { value: 'C20', label: 'C20', description: 'Casier 20 bouteilles' },
+    { value: 'CARTON24', label: 'CARTON24', description: 'Carton 24 (jetable)' },
+    { value: 'PACK6', label: 'PACK6', description: 'Pack 6 (jetable)' },
+    { value: 'PACK12', label: 'PACK12', description: 'Pack 12 (jetable)' }
   ];
 
   const getDefaultConsignPrice = (crateType: CrateType): number => {
     switch (crateType) {
-      case 'C24':
-      case 'C12':
+      case 'B33':
+      case 'B65':
         return 3000;
-      case 'C12V':
-        return 4000;
+      case 'B100':
+      case 'B100V':
+        return 3000;
+      case 'B50V':
+        return 3000;
       case 'C6':
         return 2000;
+      case 'C20':
+        return 3000;
+      case 'CARTON24':
+      case 'PACK6':
+      case 'PACK12':
+        return 0; // Disposable, no consigne
       default:
         return 3000;
     }
@@ -149,7 +164,7 @@ export const ProductManagement: React.FC = () => {
       name: '',
       category: 'biere',
       brand: '',
-      crateType: 'C24',
+      crateType: 'B33',
       unitPrice: 0,
       cratePrice: 0,
       consignPrice: 3000,
@@ -218,7 +233,7 @@ export const ProductManagement: React.FC = () => {
                 name: '',
                 category: 'biere',
                 brand: '',
-                crateType: 'C24',
+                crateType: 'B33',
                 unitPrice: 0,
                 cratePrice: 0,
                 consignPrice: 3000,

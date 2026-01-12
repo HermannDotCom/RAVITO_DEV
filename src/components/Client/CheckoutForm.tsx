@@ -38,16 +38,18 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
 
   // Calculate crate summary
   const getCrateSummary = () => {
-    const crateSummary: { [key in CrateType]: number } = {
-      C24: 0,
-      C12: 0,
-      C12V: 0,
-      C6: 0
+    const crateSummary: { [key in 'B33' | 'B65' | 'B100' | 'B50V' | 'B100V']: number } = {
+      B33: 0,
+      B65: 0,
+      B100: 0,
+      B50V: 0,
+      B100V: 0
     };
 
     cart.forEach(item => {
-      if (!item.withConsigne) {
-        crateSummary[item.product.crateType] += item.quantity;
+      const crateType = item.product.crateType;
+      if (!item.withConsigne && crateType in crateSummary) {
+        crateSummary[crateType as keyof typeof crateSummary] += item.quantity;
       }
     });
 
@@ -209,9 +211,10 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({ onConfirm, onBack })
                         <div className="text-lg font-bold text-blue-700">{count}</div>
                         <div className="text-blue-600 text-sm">{crateType}</div>
                         <div className="text-blue-500 text-xs mt-1">
-                          {crateType === 'C24' ? '24×33cl' : 
-                           crateType === 'C12' ? '12×66cl' : 
-                           crateType === 'C12V' ? '12×75cl' : '6×1.5L'}
+                          {crateType === 'B33' ? '24×33cl' : 
+                           crateType === 'B65' ? '12×65cl' : 
+                           crateType === 'B100' ? 'Bock 100cl' :
+                           crateType === 'B50V' ? 'Vin 50cl' : 'Vin 100cl'}
                         </div>
                       </div>
                     )

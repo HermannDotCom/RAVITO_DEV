@@ -41,9 +41,11 @@ const PRODUCT_CATEGORIES = [
 ];
 
 const CRATE_BOTTLE_COUNT: Record<string, number> = {
-  'C24': 24,
-  'C12': 12,
-  'C12V': 12,
+  'B33': 24,
+  'B65': 12,
+  'B100': 1,
+  'B50V': 1,
+  'B100V': 1,
   'C6': 6,
   'C20': 20,
   'CARTON24': 24,
@@ -398,7 +400,7 @@ export const StocksTab: React.FC<StocksTabProps> = ({
 
           // Calculate margin
           const cratePrice = line.product?.crate_price || 0;
-          const crateType = line.product?.crate_type || 'C24';
+          const crateType = line.product?.crate_type || 'B33';
           const { margin } = calculateMargin(sellingPrice, cratePrice, crateType);
 
           return (
@@ -543,7 +545,7 @@ export const StocksTab: React.FC<StocksTabProps> = ({
 
               // Calculate margin
               const cratePrice = line.product?.crate_price || 0;
-              const crateType = line.product?.crate_type || 'C24';
+              const crateType = line.product?.crate_type || 'B33';
               const { margin, marginPercent } = calculateMargin(sellingPrice, cratePrice, crateType);
 
               return (

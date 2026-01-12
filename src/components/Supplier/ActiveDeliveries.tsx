@@ -253,11 +253,12 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
     // Initialize summary for traditional crate types used in consigne management
     // Note: CARTON types (CARTON24, CARTON12, etc.) are disposable and excluded
     // Other crate types (PACK6, PACK12, C20) don't use the traditional crate consigne system
-    const crateSummary: { [key in CrateType]: { withConsigne: number; toReturn: number } } = {
-      C24: { withConsigne: 0, toReturn: 0 },
-      C12: { withConsigne: 0, toReturn: 0 },
-      C12V: { withConsigne: 0, toReturn: 0 },
-      C6: { withConsigne: 0, toReturn: 0 }
+    const crateSummary: { [key: string]: { withConsigne: number; toReturn: number } } = {
+      B33: { withConsigne: 0, toReturn: 0 },
+      B65: { withConsigne: 0, toReturn: 0 },
+      B100: { withConsigne: 0, toReturn: 0 },
+      B50V: { withConsigne: 0, toReturn: 0 },
+      B100V: { withConsigne: 0, toReturn: 0 }
     };
     
     // Verify that order.items exists and is an array
@@ -269,14 +270,14 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
       // Triple verification: item exists, product exists, crateType exists and is valid
       if (!item || !item.product) return;
       
-      const crateType = item.product.crateType as CrateType;
+      const crateType = item.product.crateType;
       
       // Verify consignability: must have consign_price > 0 AND NOT start with 'CARTON'
       const isConsignable = item.product.consignPrice > 0 && !crateType.startsWith('CARTON');
       
       // Verify that the crateType is a valid key of crateSummary and is consignable
       // This filters out non-traditional crate types like CARTON24, PACK6, etc.
-      if (!crateType || !crateSummary[crateType] || !isConsignable) return;
+      if (!crateType || !(crateType in crateSummary) || !isConsignable) return;
       
       const quantity = item.quantity || 0;
       
@@ -437,9 +438,11 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
             const nextAction = getNextAction(order.status);
             const crateSummary = getCrateSummary(order);
             const totalCratesToReturn = Object.values(crateSummary).reduce((sum, crate) => sum + crate.toReturn, 0);
-            const totalConsigneAmount = Object.entries(crateSummary).reduce((sum, [crateType, counts]) => {
-              const consignePrice = crateType === 'C12V' ? 4000 : crateType === 'C6' ? 2000 : 3000;
-              return sum + (counts.withConsigne * consignePrice);
+            const totalConsigneAmount = order.items.reduce((sum, item) => {
+              if (item.withConsigne) {
+                return sum + (item.product.consignPrice * item.quantity);
+              }
+              return sum;
             }, 0);
 
             const clientProfile = clientProfiles[order.clientId];
