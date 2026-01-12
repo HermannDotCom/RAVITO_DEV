@@ -94,11 +94,16 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
     return getCrateLabel(crateType);
   };
 
-  // Filtrer les données de packaging pour n'afficher que les consignables actifs
-  const filteredPackaging = packaging.filter(item => {
-    const crateType = consignableTypes.find(ct => ct.code === item.crateType);
-    return crateType !== undefined; // N'afficher que si le type est consignable et actif
-  });
+  // Filtrer les données de packaging pour n'afficher que les consignables actifs (memoized)
+  const filteredPackaging = React.useMemo(() => {
+    if (crateTypesLoading) {
+      return packaging; // Show all during loading to avoid flickering
+    }
+    return packaging.filter(item => {
+      const crateType = consignableTypes.find(ct => ct.code === item.crateType);
+      return crateType !== undefined; // N'afficher que si le type est consignable et actif
+    });
+  }, [packaging, consignableTypes, crateTypesLoading]);
 
   const calculateDifference = (pkg: DailyPackaging, editingValues?: UpdatePackagingData): number | undefined => {
     const isEditing = editingId === pkg.id && editingValues;
@@ -598,10 +603,17 @@ export const PackagingTab: React.FC<PackagingTabProps> = ({
         })}
       </div>
 
-      {filteredPackaging.length === 0 && (
+      {filteredPackaging.length === 0 && !crateTypesLoading && (
         <div className="text-center py-12 text-slate-500">
           <Package2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>Aucun emballage consignable actif configuré</p>
+        </div>
+      )}
+
+      {crateTypesLoading && (
+        <div className="text-center py-12 text-slate-500">
+          <Package2 className="w-12 h-12 mx-auto mb-3 opacity-50 animate-pulse" />
+          <p>Chargement des types d'emballages...</p>
         </div>
       )}
     </div>
