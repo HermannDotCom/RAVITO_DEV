@@ -1,5 +1,5 @@
 -- ============================================
--- Fonction pour synchroniser les types d''emballages
+-- Fonction pour synchroniser les types d'emballages
 -- ============================================
 
 CREATE OR REPLACE FUNCTION sync_daily_packaging_types(p_daily_sheet_id UUID)
@@ -21,6 +21,8 @@ BEGIN
       qty_empty_start, 
       qty_received, 
       qty_returned, 
+      qty_full_end,        -- Ajouté
+      qty_empty_end,       -- Ajouté
       qty_consignes_paid, 
       notes
     )
@@ -31,6 +33,8 @@ BEGIN
       0, 
       0, 
       0, 
+      NULL,               -- qty_full_end initial NULL
+      NULL,               -- qty_empty_end initial NULL
       0, 
       NULL
     )
@@ -46,6 +50,7 @@ COMMENT ON FUNCTION sync_daily_packaging_types IS 'Synchronise les types d''emba
 
 -- ============================================
 -- Mise à jour de create_daily_sheet_with_carryover
+-- AVEC LES BONNES COLONNES qty_full_end/qty_empty_end
 -- ============================================
 
 CREATE OR REPLACE FUNCTION create_daily_sheet_with_carryover(
@@ -70,17 +75,40 @@ BEGIN
   WHERE organization_id = p_organization_id
     AND sheet_date = p_date - INTERVAL '1 day';
 
-  -- Reporter les emballages de J-1
+  -- Reporter les emballages de J-1 (en utilisant qty_full_end/qty_empty_end de J-1)
   IF v_previous_sheet_id IS NOT NULL THEN
     FOR v_crate IN 
       SELECT crate_type, 
-             COALESCE(qty_full_end, qty_full_start) as full_start,
-             COALESCE(qty_empty_end, qty_empty_start) as empty_start
+             COALESCE(qty_full_end, qty_full_start, 0) as full_start,  -- Prend qty_full_end de J-1 si existe
+             COALESCE(qty_empty_end, qty_empty_start, 0) as empty_start  -- Prend qty_empty_end de J-1 si existe
       FROM daily_packaging 
       WHERE daily_sheet_id = v_previous_sheet_id
     LOOP
-      INSERT INTO daily_packaging (daily_sheet_id, crate_type, qty_full_start, qty_empty_start, qty_received, qty_returned, qty_consignes_paid, notes)
-      VALUES (v_sheet_id, v_crate.crate_type, v_crate.full_start, v_crate.empty_start, 0, 0, 0, NULL);
+      INSERT INTO daily_packaging (
+        daily_sheet_id, 
+        crate_type, 
+        qty_full_start, 
+        qty_empty_start, 
+        qty_received, 
+        qty_returned, 
+        qty_full_end, 
+        qty_empty_end,
+        qty_consignes_paid, 
+        notes
+      )
+      VALUES (
+        v_sheet_id, 
+        v_crate.crate_type, 
+        v_crate.full_start, 
+        v_crate.empty_start, 
+        0, 
+        0, 
+        NULL,  -- qty_full_end initial NULL pour la nouvelle journée
+        NULL,  -- qty_empty_end initial NULL pour la nouvelle journée
+        0, 
+        NULL
+      )
+      ON CONFLICT (daily_sheet_id, crate_type) DO NOTHING;
     END LOOP;
     
     -- Ajouter les nouveaux types consignables qui n'étaient pas dans J-1
@@ -89,8 +117,31 @@ BEGIN
       WHERE is_consignable = true AND is_active = true
       AND code NOT IN (SELECT crate_type FROM daily_packaging WHERE daily_sheet_id = v_sheet_id)
     LOOP
-      INSERT INTO daily_packaging (daily_sheet_id, crate_type, qty_full_start, qty_empty_start, qty_received, qty_returned, qty_consignes_paid, notes)
-      VALUES (v_sheet_id, v_crate_type.code, 0, 0, 0, 0, 0, NULL);
+      INSERT INTO daily_packaging (
+        daily_sheet_id, 
+        crate_type, 
+        qty_full_start, 
+        qty_empty_start, 
+        qty_received, 
+        qty_returned, 
+        qty_full_end, 
+        qty_empty_end,
+        qty_consignes_paid, 
+        notes
+      )
+      VALUES (
+        v_sheet_id, 
+        v_crate_type.code, 
+        0, 
+        0, 
+        0, 
+        0, 
+        NULL,  -- qty_full_end initial NULL
+        NULL,  -- qty_empty_end initial NULL
+        0, 
+        NULL
+      )
+      ON CONFLICT (daily_sheet_id, crate_type) DO NOTHING;
     END LOOP;
     
     -- Carry over stock lines
@@ -111,8 +162,31 @@ BEGIN
       WHERE is_consignable = true AND is_active = true
       ORDER BY display_order
     LOOP
-      INSERT INTO daily_packaging (daily_sheet_id, crate_type, qty_full_start, qty_empty_start, qty_received, qty_returned, qty_consignes_paid, notes)
-      VALUES (v_sheet_id, v_crate_type.code, 0, 0, 0, 0, 0, NULL);
+      INSERT INTO daily_packaging (
+        daily_sheet_id, 
+        crate_type, 
+        qty_full_start, 
+        qty_empty_start, 
+        qty_received, 
+        qty_returned, 
+        qty_full_end, 
+        qty_empty_end,
+        qty_consignes_paid, 
+        notes
+      )
+      VALUES (
+        v_sheet_id, 
+        v_crate_type.code, 
+        0, 
+        0, 
+        0, 
+        0, 
+        NULL,  -- qty_full_end initial NULL
+        NULL,  -- qty_empty_end initial NULL
+        0, 
+        NULL
+      )
+      ON CONFLICT (daily_sheet_id, crate_type) DO NOTHING;
     END LOOP;
       
     -- Initialize with all active establishment products
