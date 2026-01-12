@@ -84,9 +84,11 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
   const StatusIcon = statusInfo.icon;
   const crateSummary = getCrateSummary(order);
   const totalCratesToReturn = Object.values(crateSummary).reduce((sum, crate) => sum + crate.toReturn, 0);
-  const totalConsigneAmount = Object.entries(crateSummary).reduce((sum, [crateType, counts]) => {
-    const consignePrice = crateType === 'C12V' ? 4000 : crateType === 'C6' ? 2000 : 3000;
-    return sum + (counts.withConsigne * consignePrice);
+  const totalConsigneAmount = order.items.reduce((sum, item) => {
+    if (item.withConsigne) {
+      return sum + (item.product.consignPrice * item.quantity);
+    }
+    return sum;
   }, 0);
 
   // Memoize supplier profile data
