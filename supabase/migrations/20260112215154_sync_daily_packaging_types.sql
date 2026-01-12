@@ -1,5 +1,5 @@
 -- ============================================
--- Fonction pour synchroniser les types d'emballages
+-- Fonction pour synchroniser les types d''emballages
 -- ============================================
 
 CREATE OR REPLACE FUNCTION sync_daily_packaging_types(p_daily_sheet_id UUID)
