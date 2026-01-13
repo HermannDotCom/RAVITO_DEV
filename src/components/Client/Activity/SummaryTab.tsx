@@ -106,7 +106,8 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
       });
     } catch (error) {
       console.error('Error exporting PDF:', error);
-      alert('Erreur lors de l\'export du PDF. Veuillez réessayer.');
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      alert(`Erreur lors de l'export du PDF: ${errorMessage}\n\nVeuillez réessayer.`);
     } finally {
       setExportingPDF(false);
     }

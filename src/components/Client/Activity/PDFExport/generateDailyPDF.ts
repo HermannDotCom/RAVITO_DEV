@@ -530,7 +530,8 @@ export const generateDailyPDF = async (data: DailyPDFData): Promise<void> => {
     
     // Generate filename: "RAVITO_[Etablissement]_[Date].pdf"
     const dateStr = data.sheet.sheetDate.replace(/-/g, '');
-    const establishmentName = data.establishment.name.replace(/[^a-zA-Z0-9]/g, '_');
+    // Preserve accented characters common in French names
+    const establishmentName = data.establishment.name.replace(/[^\w\u00C0-\u017F]/g, '_');
     const filename = `RAVITO_${establishmentName}_${dateStr}.pdf`;
     
     // Download PDF
@@ -538,6 +539,7 @@ export const generateDailyPDF = async (data: DailyPDFData): Promise<void> => {
     
   } catch (error) {
     console.error('Error generating PDF:', error);
-    throw new Error('Erreur lors de la génération du PDF');
+    const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+    throw new Error(`Erreur lors de la génération du PDF: ${errorMessage}`);
   }
 };
