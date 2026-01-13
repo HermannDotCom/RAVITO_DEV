@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wallet, Plus, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Wallet, Plus, Trash2, TrendingUp, TrendingDown, Check } from 'lucide-react';
 import { DailySheet, DailyExpense, AddExpenseData, EXPENSE_CATEGORIES } from '../../../types/activity';
 import { ExpenseModal } from './ExpenseModal';
 
@@ -36,10 +36,9 @@ export const CashTab: React.FC<CashTabProps> = ({
     setOpeningCash(sheet?.openingCash || 0);
   }, [sheet?.openingCash]);
 
-  const handleOpeningCashChange = async (value: number) => {
-    setOpeningCash(value);
+  const handleSaveOpeningCash = async () => {
     if (onUpdateOpeningCash) {
-      await onUpdateOpeningCash(value);
+      await onUpdateOpeningCash(openingCash);
     }
   };
 
@@ -189,15 +188,27 @@ export const CashTab: React.FC<CashTabProps> = ({
                 {formatCurrency(sheet?.openingCash || 0)} FCFA
               </span>
             ) : (
-              <input
-                type="number"
-                min="0"
-                step="100"
-                value={openingCash}
-                onChange={(e) => handleOpeningCashChange(parseInt(e.target.value) || 0)}
-                className="w-32 px-2 py-1 text-right border border-slate-300 rounded font-medium"
-                placeholder="0"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  step="100"
+                  value={openingCash}
+                  onChange={(e) => setOpeningCash(parseInt(e.target.value) || 0)}
+                  className="w-32 px-2 py-1 text-right border border-slate-300 rounded font-medium"
+                  placeholder="0"
+                />
+                <span className="text-slate-500">FCFA</span>
+                {openingCash !== (sheet?.openingCash || 0) && (
+                  <button
+                    onClick={handleSaveOpeningCash}
+                    className="p-1.5 bg-green-600 text-white rounded hover:bg-green-700"
+                    title="Enregistrer"
+                  >
+                    <Check className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
@@ -228,9 +239,9 @@ export const CashTab: React.FC<CashTabProps> = ({
           {/* Actual closing cash (if closed) */}
           {sheet?.status === 'closed' && sheet.closingCash !== null && (
             <>
-              <div className="flex items-center justify-between py-2 border-b border-slate-200">
-                <span className="text-slate-700">Caisse comptée (soir)</span>
-                <span className="font-medium text-slate-900">
+              <div className="flex items-center justify-between py-3 bg-green-50 rounded-lg px-3 border border-green-200">
+                <span className="font-bold text-green-900">Caisse finale réelle</span>
+                <span className="font-bold text-green-900 text-lg">
                   {formatCurrency(sheet.closingCash)} FCFA
                 </span>
               </div>
