@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { CheckCircle2, AlertTriangle, TrendingUp, TrendingDown, Package, Package2, Wallet, Lock, FileText, Minus } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, TrendingUp, TrendingDown, Package, Package2, Wallet, Lock, FileText, Minus, FileDown } from 'lucide-react';
 import { DailySheet, DailyStockLine, DailyPackaging, DailyExpense, CloseSheetData } from '../../../types/activity';
 import { useCrateTypes } from '../../../hooks/useCrateTypes';
+import { useOrganizationName } from '../../../hooks/useOrganizationName';
+import { generateDailyPDF } from './PDFExport/generateDailyPDF';
 
 interface SummaryTabProps {
   sheet: DailySheet | null;
@@ -35,7 +37,9 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
   const [notes, setNotes] = useState<string>('');
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
   const { consignableTypes } = useCrateTypes();
+  const { organizationName } = useOrganizationName();
 
   // Calculate displayed cash difference with fallback for old data
   const displayedCashDifference = sheet?.cashDifference ?? 
@@ -79,6 +83,35 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
     }
   };
 
+  const handleExportPDF = async () => {
+    if (!sheet) return;
+    
+    setExportingPDF(true);
+    try {
+      // Calculate total sales for summary
+      const totalSales = stockLines.reduce((sum, line) => sum + (line.salesQty || 0), 0);
+      
+      await generateDailyPDF({
+        establishment: {
+          name: organizationName || 'Établissement',
+        },
+        sheet,
+        stockLines,
+        expenses,
+        packaging,
+        calculations: {
+          ...calculations,
+          totalSales,
+        },
+      });
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Erreur lors de l\'export du PDF. Veuillez réessayer.');
+    } finally {
+      setExportingPDF(false);
+    }
+  };
+
   // Calculate missing data
   const missingFinalStocks = stockLines.filter(
     (line) => line.finalStock === null || line.finalStock === undefined
@@ -102,22 +135,32 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
       {isReadOnly ? (
         <>
           <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <Lock className="w-8 h-8 text-green-600" />
-              <div>
-                <h3 className="font-bold text-green-900 text-lg">Journée clôturée</h3>
-                <p className="text-sm text-green-700">
-                  Cette journée a été clôturée le{' '}
-                  {sheet?.closedAt &&
-                    new Date(sheet.closedAt).toLocaleString('fr-FR', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                </p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Lock className="w-8 h-8 text-green-600" />
+                <div>
+                  <h3 className="font-bold text-green-900 text-lg">Journée clôturée</h3>
+                  <p className="text-sm text-green-700">
+                    Cette journée a été clôturée le{' '}
+                    {sheet?.closedAt &&
+                      new Date(sheet.closedAt).toLocaleString('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={handleExportPDF}
+                disabled={exportingPDF}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-lg hover:from-amber-700 hover:to-amber-800 font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              >
+                <FileDown className="w-4 h-4" />
+                {exportingPDF ? 'Export...' : 'Exporter PDF'}
+              </button>
             </div>
           </div>
 
