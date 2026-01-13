@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ClipboardList, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { ClipboardList, Calendar, CheckCircle, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { useOrganization } from '../../../hooks/useOrganization';
 import { useActivityManagement } from './hooks/useActivityManagement';
@@ -49,6 +49,19 @@ export const ActivityPage: React. FC = () => {
     const newDate = e.target.value;
     setSelectedDate(newDate);
     handleChangeDate(newDate);
+  };
+
+  const navigateDate = (days: number) => {
+    const current = new Date(selectedDate);
+    current.setDate(current.getDate() + days);
+    const newDate = current.toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Don't navigate beyond today's date
+    if (newDate <= today) {
+      setSelectedDate(newDate);
+      handleChangeDate(newDate);
+    }
   };
 
   const handleUpdateOpeningCash = async (amount: number): Promise<boolean> => {
@@ -137,16 +150,31 @@ export const ActivityPage: React. FC = () => {
           {/* Date selector and status */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              {/* Date picker */}
+              {/* Date picker with navigation arrows */}
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-slate-400" />
+                <button
+                  onClick={() => navigateDate(-1)}
+                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                  title="Jour précédent"
+                >
+                  <ChevronLeft className="w-5 h-5 text-slate-600" />
+                </button>
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={handleDateChange}
-                  disabled={sheet?.status === 'closed'}
-                  className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
+                  max={new Date().toISOString().split('T')[0]}
+                  className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                 />
+                <button
+                  onClick={() => navigateDate(1)}
+                  disabled={selectedDate >= new Date().toISOString().split('T')[0]}
+                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                  title="Jour suivant"
+                >
+                  <ChevronRight className="w-5 h-5 text-slate-600" />
+                </button>
               </div>
 
               {/* Status badge */}

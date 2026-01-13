@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { CheckCircle2, AlertTriangle, TrendingUp, TrendingDown, Package, Package2, Wallet, Lock } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, TrendingUp, TrendingDown, Package, Package2, Wallet, Lock, FileText, Minus } from 'lucide-react';
 import { DailySheet, DailyStockLine, DailyPackaging, DailyExpense, CloseSheetData } from '../../../types/activity';
 import { useCrateTypes } from '../../../hooks/useCrateTypes';
 
@@ -94,25 +94,40 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
 
       {/* Status banner */}
       {isReadOnly ? (
-        <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
-          <div className="flex items-center gap-3">
-            <Lock className="w-8 h-8 text-green-600" />
-            <div>
-              <h3 className="font-bold text-green-900 text-lg">Journée clôturée</h3>
-              <p className="text-sm text-green-700">
-                Cette journée a été clôturée le{' '}
-                {sheet?.closedAt &&
-                  new Date(sheet.closedAt).toLocaleString('fr-FR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-              </p>
+        <>
+          <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <Lock className="w-8 h-8 text-green-600" />
+              <div>
+                <h3 className="font-bold text-green-900 text-lg">Journée clôturée</h3>
+                <p className="text-sm text-green-700">
+                  Cette journée a été clôturée le{' '}
+                  {sheet?.closedAt &&
+                    new Date(sheet.closedAt).toLocaleString('fr-FR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+
+          {/* Display notes if they exist */}
+          {sheet?.notes && (
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <FileText className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-bold text-blue-900 text-base mb-2">Notes de clôture</h3>
+                  <p className="text-sm text-blue-800 whitespace-pre-wrap">{sheet.notes}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4">
           <div className="flex items-center gap-3">
@@ -128,7 +143,7 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
       )}
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className={`grid gap-4 ${isReadOnly && sheet?.closingCash !== null ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5' : 'grid-cols-1 sm:grid-cols-3'}`}>
         {/* Revenue card */}
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border-2 border-green-200">
           <div className="flex items-center gap-2 mb-2">
@@ -155,12 +170,63 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200">
           <div className="flex items-center gap-2 mb-2">
             <Wallet className="w-5 h-5 text-blue-600" />
-            <p className="text-sm font-medium text-blue-800">Caisse Attendue</p>
+            <p className="text-sm font-medium text-blue-800">{isReadOnly ? 'Caisse Finale Théorique' : 'Caisse Attendue'}</p>
           </div>
           <p className="text-2xl font-bold text-blue-900">
             {formatCurrency(calculations.expectedCash)} F
           </p>
         </div>
+
+        {/* Caisse finale réelle (only when closed) */}
+        {isReadOnly && sheet?.closingCash !== null && (
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border-2 border-green-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Wallet className="w-5 h-5 text-green-600" />
+              <p className="text-sm font-medium text-green-800">Caisse Finale Réelle</p>
+            </div>
+            <p className="text-2xl font-bold text-green-900">
+              {formatCurrency(sheet.closingCash)} F
+            </p>
+          </div>
+        )}
+
+        {/* Écart de caisse (only when closed) */}
+        {isReadOnly && sheet?.closingCash !== null && (
+          <div className={`bg-gradient-to-br rounded-xl p-4 border-2 ${
+            sheet.cashDifference && sheet.cashDifference < 0 
+              ? 'from-red-50 to-red-100 border-red-200' 
+              : sheet.cashDifference && sheet.cashDifference > 0
+              ? 'from-green-50 to-green-100 border-green-200'
+              : 'from-slate-50 to-slate-100 border-slate-200'
+          }`}>
+            <div className="flex items-center gap-2 mb-2">
+              {sheet.cashDifference && sheet.cashDifference < 0 ? (
+                <TrendingDown className="w-5 h-5 text-red-600" />
+              ) : sheet.cashDifference && sheet.cashDifference > 0 ? (
+                <TrendingUp className="w-5 h-5 text-green-600" />
+              ) : (
+                <Minus className="w-5 h-5 text-slate-600" />
+              )}
+              <p className={`text-sm font-medium ${
+                sheet.cashDifference && sheet.cashDifference < 0 
+                  ? 'text-red-800' 
+                  : sheet.cashDifference && sheet.cashDifference > 0
+                  ? 'text-green-800'
+                  : 'text-slate-800'
+              }`}>Écart de Caisse</p>
+            </div>
+            <p className={`text-2xl font-bold ${
+              sheet.cashDifference && sheet.cashDifference < 0 
+                ? 'text-red-900' 
+                : sheet.cashDifference && sheet.cashDifference > 0
+                ? 'text-green-900'
+                : 'text-slate-900'
+            }`}>
+              {sheet.cashDifference && sheet.cashDifference > 0 ? '+' : ''}
+              {formatCurrency(sheet.cashDifference || 0)} F
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Alerts section */}
@@ -334,48 +400,6 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
               {closing ? 'Clôture...' : '✓ Confirmer la Clôture'}
             </button>
           </div>
-        </div>
-      )}
-
-      {/* Cash difference (if closed) */}
-      {isReadOnly && sheet?.cashDifference !== null && sheet?.cashDifference !== undefined && (
-        <div
-          className={`rounded-xl p-6 border-2 ${
-            sheet.cashDifference < 0
-              ? 'bg-red-50 border-red-300'
-              : sheet.cashDifference > 0
-              ? 'bg-green-50 border-green-300'
-              : 'bg-slate-50 border-slate-300'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-700 mb-1">Écart de Caisse</p>
-              <p
-                className={`text-3xl font-bold ${
-                  sheet.cashDifference < 0
-                    ? 'text-red-700'
-                    : sheet.cashDifference > 0
-                    ? 'text-green-700'
-                    : 'text-slate-700'
-                }`}
-              >
-                {sheet.cashDifference > 0 ? '+' : ''}
-                {formatCurrency(sheet.cashDifference)} FCFA
-              </p>
-            </div>
-            {sheet.cashDifference < 0 ? (
-              <TrendingDown className="w-12 h-12 text-red-500" />
-            ) : (
-              <TrendingUp className="w-12 h-12 text-green-500" />
-            )}
-          </div>
-          {sheet.notes && (
-            <div className="mt-4 pt-4 border-t border-slate-300">
-              <p className="text-sm font-medium text-slate-700 mb-1">Notes:</p>
-              <p className="text-sm text-slate-600">{sheet.notes}</p>
-            </div>
-          )}
         </div>
       )}
     </div>
