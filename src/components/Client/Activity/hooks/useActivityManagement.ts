@@ -212,7 +212,17 @@ export function useActivityManagement({
   const handleCloseSheet = async (closeData: CloseSheetData): Promise<boolean> => {
     if (!sheet) return false;
 
-    const { success, error } = await closeDailySheet(sheet.id, closeData, userId);
+    const { success, error } = await closeDailySheet(
+      sheet.id, 
+      {
+        closingCash: closeData.closingCash,
+        theoreticalRevenue: calculations.totalRevenue,
+        expensesTotal: calculations.totalExpenses,
+        openingCash: sheet.openingCash,
+        notes: closeData.notes
+      },
+      userId
+    );
 
     if (success) {
       await loadDailyData();

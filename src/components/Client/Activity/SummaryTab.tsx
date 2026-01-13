@@ -37,6 +37,12 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
   const [closing, setClosing] = useState(false);
   const { consignableTypes } = useCrateTypes();
 
+  // Calculate displayed cash difference with fallback for old data
+  const displayedCashDifference = sheet?.cashDifference ?? 
+    (sheet?.closingCash !== null && sheet?.closingCash !== undefined 
+      ? sheet.closingCash - calculations.expectedCash 
+      : 0);
+
   // Filter packaging to only include consignable types
   const consignablePackaging = useMemo(() => {
     return packaging.filter(pkg => 
@@ -193,37 +199,37 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
         {/* Écart de caisse (only when closed) */}
         {isReadOnly && sheet?.closingCash !== null && (
           <div className={`bg-gradient-to-br rounded-xl p-4 border-2 ${
-            sheet.cashDifference && sheet.cashDifference < 0 
+            displayedCashDifference < 0 
               ? 'from-red-50 to-red-100 border-red-200' 
-              : sheet.cashDifference && sheet.cashDifference > 0
+              : displayedCashDifference > 0
               ? 'from-green-50 to-green-100 border-green-200'
               : 'from-slate-50 to-slate-100 border-slate-200'
           }`}>
             <div className="flex items-center gap-2 mb-2">
-              {sheet.cashDifference && sheet.cashDifference < 0 ? (
+              {displayedCashDifference < 0 ? (
                 <TrendingDown className="w-5 h-5 text-red-600" />
-              ) : sheet.cashDifference && sheet.cashDifference > 0 ? (
+              ) : displayedCashDifference > 0 ? (
                 <TrendingUp className="w-5 h-5 text-green-600" />
               ) : (
                 <Minus className="w-5 h-5 text-slate-600" />
               )}
               <p className={`text-sm font-medium ${
-                sheet.cashDifference && sheet.cashDifference < 0 
+                displayedCashDifference < 0 
                   ? 'text-red-800' 
-                  : sheet.cashDifference && sheet.cashDifference > 0
+                  : displayedCashDifference > 0
                   ? 'text-green-800'
                   : 'text-slate-800'
               }`}>Écart de Caisse</p>
             </div>
             <p className={`text-2xl font-bold ${
-              sheet.cashDifference && sheet.cashDifference < 0 
+              displayedCashDifference < 0 
                 ? 'text-red-900' 
-                : sheet.cashDifference && sheet.cashDifference > 0
+                : displayedCashDifference > 0
                 ? 'text-green-900'
                 : 'text-slate-900'
             }`}>
-              {sheet.cashDifference && sheet.cashDifference > 0 ? '+' : ''}
-              {formatCurrency(sheet.cashDifference || 0)} F
+              {displayedCashDifference > 0 ? '+' : ''}
+              {formatCurrency(displayedCashDifference)} F
             </p>
           </div>
         )}

@@ -488,11 +488,14 @@ export const updateDailySheet = async (
  */
 export const closeDailySheet = async (
   sheetId: string,
-  closeData: { closingCash: number; theoreticalRevenue: number; expensesTotal: number },
+  closeData: { closingCash: number; theoreticalRevenue: number; expensesTotal: number; openingCash: number; notes?: string },
   userId: string
 ): Promise<{ success: boolean; error: string | null }> => {
   try {
-    const cashDifference = closeData.closingCash - closeData.theoreticalRevenue + closeData.expensesTotal;
+    // Calculate cash difference: closing_cash - expected_cash
+    // expected_cash = opening_cash + theoretical_revenue - expenses_total
+    const expectedCash = closeData.openingCash + closeData.theoreticalRevenue - closeData.expensesTotal;
+    const cashDifference = closeData.closingCash - expectedCash;
 
     const { error } = await supabase
       .from('daily_sheets')
@@ -502,6 +505,7 @@ export const closeDailySheet = async (
         theoretical_revenue: closeData.theoreticalRevenue,
         expenses_total: closeData.expensesTotal,
         cash_difference: cashDifference,
+        notes: closeData.notes || null,
         closed_at: new Date().toISOString(),
         closed_by: userId
       })
