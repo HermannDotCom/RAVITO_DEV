@@ -31,6 +31,12 @@ export const CashTab: React.FC<CashTabProps> = ({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [openingCash, setOpeningCash] = useState<number>(sheet?.openingCash || 0);
 
+  // Calculate displayed cash difference with fallback for old data
+  const displayedCashDifference = sheet?.cashDifference ?? 
+    (sheet?.closingCash !== null && sheet?.closingCash !== undefined 
+      ? sheet.closingCash - calculations.expectedCash 
+      : 0);
+
   // Sync with sheet when it changes
   useEffect(() => {
     setOpeningCash(sheet?.openingCash || 0);
@@ -249,15 +255,15 @@ export const CashTab: React.FC<CashTabProps> = ({
               {/* Cash difference */}
               <div
                 className={`flex items-center justify-between py-3 rounded-lg px-3 border-2 ${
-                  sheet.cashDifference && sheet.cashDifference < 0
+                  displayedCashDifference < 0
                     ? 'bg-red-50 border-red-300'
-                    : sheet.cashDifference && sheet.cashDifference > 0
+                    : displayedCashDifference > 0
                     ? 'bg-green-50 border-green-300'
                     : 'bg-slate-50 border-slate-300'
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  {sheet.cashDifference && sheet.cashDifference < 0 ? (
+                  {displayedCashDifference < 0 ? (
                     <TrendingDown className="w-5 h-5 text-red-600" />
                   ) : (
                     <TrendingUp className="w-5 h-5 text-green-600" />
@@ -266,15 +272,15 @@ export const CashTab: React.FC<CashTabProps> = ({
                 </div>
                 <span
                   className={`font-bold text-lg ${
-                    sheet.cashDifference && sheet.cashDifference < 0
+                    displayedCashDifference < 0
                       ? 'text-red-700'
-                      : sheet.cashDifference && sheet.cashDifference > 0
+                      : displayedCashDifference > 0
                       ? 'text-green-700'
                       : 'text-slate-700'
                   }`}
                 >
-                  {sheet.cashDifference && sheet.cashDifference > 0 ? '+' : ''}
-                  {formatCurrency(sheet.cashDifference || 0)} FCFA
+                  {displayedCashDifference > 0 ? '+' : ''}
+                  {formatCurrency(displayedCashDifference)} FCFA
                 </span>
               </div>
             </>
