@@ -10,6 +10,7 @@ import {
   Target
 } from 'lucide-react';
 import { AnnualKPIs as AnnualKPIsType } from '../../../../types/activity';
+import { formatCurrency, calculateEvolution } from '../../../../utils/activityUtils';
 
 interface AnnualKPIsProps {
   kpis: AnnualKPIsType;
@@ -17,20 +18,6 @@ interface AnnualKPIsProps {
 }
 
 export const AnnualKPIs: React.FC<AnnualKPIsProps> = ({ kpis, previousYearKPIs }) => {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const calculateEvolution = (current: number, previous?: number): { value: number; isPositive: boolean } | null => {
-    if (!previous || previous === 0) return null;
-    const evolution = ((current - previous) / previous) * 100;
-    return { value: Math.abs(evolution), isPositive: evolution >= 0 };
-  };
-
   const revenueEvolution = previousYearKPIs ? calculateEvolution(kpis.totalRevenue, previousYearKPIs.totalRevenue) : null;
 
   return (

@@ -7,6 +7,7 @@ import { AnnualCharts } from './AnnualTab/AnnualCharts';
 import { AnnualTable } from './AnnualTab/AnnualTable';
 import { generateAnnualPDF } from './PDFExport/generateAnnualPDF';
 import { KenteLoader } from '../../ui/KenteLoader';
+import { formatCurrency } from '../../../utils/activityUtils';
 
 interface AnnualTabProps {
   organizationId: string;
@@ -23,14 +24,6 @@ export const AnnualTab: React.FC<AnnualTabProps> = ({ organizationId }) => {
     organizationId,
     year: selectedYear,
   });
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   // Generate year options (current year and 2 previous years)
   const years = Array.from({ length: 3 }, (_, i) => currentYear - i);

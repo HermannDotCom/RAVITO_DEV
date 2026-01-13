@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { AnnualData, MonthlyAnnualData, EXPENSE_CATEGORIES } from '../../../../types/activity';
 import { COLORS, FONTS, PAGE, SPACING } from './pdfStyles';
+import { formatCurrency as formatCurrencyUtil } from '../../../../utils/activityUtils';
 
 // Extend jsPDF type to include autoTable properties
 interface jsPDFWithAutoTable extends jsPDF {
@@ -28,11 +29,7 @@ export interface AnnualPDFData {
  * Format currency in FCFA
  */
 const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'decimal',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount) + ' F';
+  return formatCurrencyUtil(amount) + ' F';
 };
 
 /**

@@ -1,19 +1,13 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, Calendar } from 'lucide-react';
 import { MonthlyAnnualData } from '../../../../types/activity';
+import { formatCurrency } from '../../../../utils/activityUtils';
 
 interface AnnualTableProps {
   monthlyData: MonthlyAnnualData[];
 }
 
 export const AnnualTable: React.FC<AnnualTableProps> = ({ monthlyData }) => {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   // Calculate totals
   const totals = monthlyData.reduce(

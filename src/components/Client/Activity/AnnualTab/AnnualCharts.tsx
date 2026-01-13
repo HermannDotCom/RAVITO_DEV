@@ -16,35 +16,29 @@ import {
 } from 'recharts';
 import { MonthlyAnnualData, ExpenseByCategory } from '../../../../types/activity';
 import { EXPENSE_CATEGORIES } from '../../../../types/activity';
+import { formatCurrency, formatMonthShort } from '../../../../utils/activityUtils';
+import { COLORS } from '../PDFExport/pdfStyles';
 
 interface AnnualChartsProps {
   monthlyData: MonthlyAnnualData[];
   expensesByCategory: ExpenseByCategory[];
 }
 
-const COLORS = {
-  primary: '#F97316', // Orange
-  green: '#16A34A',
-  red: '#DC2626',
+const CHART_COLORS = {
+  primary: COLORS.primary,
+  green: COLORS.success,
+  red: COLORS.danger,
   blue: '#2563EB',
   purple: '#9333EA',
-  categories: ['#F97316', '#2563EB', '#16A34A', '#EAB308', '#9333EA', '#EC4899'],
+  categories: [COLORS.primary, '#2563EB', COLORS.success, '#EAB308', '#9333EA', '#EC4899'],
 };
 
 export const AnnualCharts: React.FC<AnnualChartsProps> = ({
   monthlyData,
   expensesByCategory,
 }) => {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const formatMonth = (monthName: string) => {
-    return monthName.substring(0, 3).charAt(0).toUpperCase() + monthName.substring(1, 3);
+  const formatCurrencyShort = (value: number) => {
+    return `${formatCurrency(value / 1000)}k`;
   };
 
   // Get category labels
@@ -60,19 +54,19 @@ export const AnnualCharts: React.FC<AnnualChartsProps> = ({
 
   // Prepare monthly revenue data
   const revenueChartData = monthlyData.map(m => ({
-    month: formatMonth(m.monthName),
+    month: formatMonthShort(m.monthName),
     revenue: m.revenue,
   }));
 
   // Prepare cash difference data
   const cashDifferenceData = monthlyData.map(m => ({
-    month: formatMonth(m.monthName),
+    month: formatMonthShort(m.monthName),
     difference: m.cashDifference,
   }));
 
   // Prepare margin data
   const marginData = monthlyData.map(m => ({
-    month: formatMonth(m.monthName),
+    month: formatMonthShort(m.monthName),
     revenue: m.revenue,
     expenses: m.expenses,
     margin: m.margin,
@@ -98,7 +92,7 @@ export const AnnualCharts: React.FC<AnnualChartsProps> = ({
                 <YAxis 
                   stroke="#64748b"
                   style={{ fontSize: '12px' }}
-                  tickFormatter={(value) => `${formatCurrency(value / 1000)}k`}
+                  tickFormatter={formatCurrencyShort}
                 />
                 <Tooltip 
                   formatter={(value: number) => [`${formatCurrency(value)} F`, 'CA']}
@@ -112,7 +106,7 @@ export const AnnualCharts: React.FC<AnnualChartsProps> = ({
                 <Bar 
                   dataKey="revenue" 
                   name="Chiffre d'affaires"
-                  fill={COLORS.green}
+                  fill={CHART_COLORS.green}
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
@@ -141,7 +135,7 @@ export const AnnualCharts: React.FC<AnnualChartsProps> = ({
                   dataKey="value"
                 >
                   {expensesChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS.categories[index % COLORS.categories.length]} />
+                    <Cell key={`cell-${index}`} fill={CHART_COLORS.categories[index % CHART_COLORS.categories.length]} />
                   ))}
                 </Pie>
                 <Tooltip 
@@ -176,7 +170,7 @@ export const AnnualCharts: React.FC<AnnualChartsProps> = ({
                 <YAxis 
                   stroke="#64748b"
                   style={{ fontSize: '12px' }}
-                  tickFormatter={(value) => `${formatCurrency(value / 1000)}k`}
+                  tickFormatter={formatCurrencyShort}
                 />
                 <Tooltip 
                   formatter={(value: number) => [`${formatCurrency(value)} F`, 'Écart']}
@@ -191,9 +185,9 @@ export const AnnualCharts: React.FC<AnnualChartsProps> = ({
                   type="monotone" 
                   dataKey="difference" 
                   name="Écart de caisse"
-                  stroke={COLORS.blue}
+                  stroke={CHART_COLORS.blue}
                   strokeWidth={2}
-                  dot={{ fill: COLORS.blue, r: 4 }}
+                  dot={{ fill: CHART_COLORS.blue, r: 4 }}
                   activeDot={{ r: 6 }}
                 />
               </LineChart>
@@ -220,7 +214,7 @@ export const AnnualCharts: React.FC<AnnualChartsProps> = ({
                 <YAxis 
                   stroke="#64748b"
                   style={{ fontSize: '12px' }}
-                  tickFormatter={(value) => `${formatCurrency(value / 1000)}k`}
+                  tickFormatter={formatCurrencyShort}
                 />
                 <Tooltip 
                   formatter={(value: number) => `${formatCurrency(value)} F`}
@@ -234,13 +228,13 @@ export const AnnualCharts: React.FC<AnnualChartsProps> = ({
                 <Bar 
                   dataKey="revenue" 
                   name="CA"
-                  fill={COLORS.green}
+                  fill={CHART_COLORS.green}
                   radius={[4, 4, 0, 0]}
                 />
                 <Bar 
                   dataKey="expenses" 
                   name="Dépenses"
-                  fill={COLORS.red}
+                  fill={CHART_COLORS.red}
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>

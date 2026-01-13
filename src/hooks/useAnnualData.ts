@@ -7,6 +7,7 @@ import {
   ExpenseByCategory, 
   TopProduct 
 } from '../types/activity';
+import { getDaysInYear, getMonthName } from '../utils/activityUtils';
 
 interface UseAnnualDataProps {
   organizationId: string;
@@ -95,7 +96,7 @@ async function fetchAnnualKPIs(
   if (error) throw error;
 
   const sheets = data || [];
-  const totalDaysInYear = isLeapYear(year) ? 366 : 365;
+  const totalDaysInYear = getDaysInYear(year);
   const totalDaysWorked = sheets.length;
 
   // Calculate monthly aggregates to find best/worst months
@@ -347,19 +348,4 @@ async function fetchTopProducts(
   return Array.from(productMap.values())
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 15);
-}
-
-/**
- * Get month name in French
- */
-function getMonthName(month: number): string {
-  const date = new Date(2000, month - 1, 1);
-  return date.toLocaleDateString('fr-FR', { month: 'long' });
-}
-
-/**
- * Check if year is leap year
- */
-function isLeapYear(year: number): boolean {
-  return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
 }
