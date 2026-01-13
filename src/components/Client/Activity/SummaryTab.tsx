@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { CheckCircle2, AlertTriangle, TrendingUp, TrendingDown, Package, Package2, Wallet, Lock } from 'lucide-react';
 import { DailySheet, DailyStockLine, DailyPackaging, DailyExpense, CloseSheetData } from '../../../types/activity';
+import { useCrateTypes } from '../../../hooks/useCrateTypes';
 
 interface SummaryTabProps {
   sheet: DailySheet | null;
@@ -34,6 +35,14 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
   const [notes, setNotes] = useState<string>('');
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [closing, setClosing] = useState(false);
+  const { consignableTypes } = useCrateTypes();
+
+  // Filter packaging to only include consignable types
+  const consignablePackaging = useMemo(() => {
+    return packaging.filter(pkg => 
+      consignableTypes.some(ct => ct.code === pkg.crateType)
+    );
+  }, [packaging, consignableTypes]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -68,12 +77,12 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
   const missingFinalStocks = stockLines.filter(
     (line) => line.finalStock === null || line.finalStock === undefined
   ).length;
-  const missingPackaging = packaging.filter(
+  const missingConsignablePackaging = consignablePackaging.filter(
     (pkg) => pkg.qtyFullEnd === null || pkg.qtyFullEnd === undefined ||
             pkg.qtyEmptyEnd === null || pkg.qtyEmptyEnd === undefined
   ).length;
 
-  const canClose = missingFinalStocks === 0 && missingPackaging === 0 && !isReadOnly;
+  const canClose = missingFinalStocks === 0 && missingConsignablePackaging === 0 && !isReadOnly;
 
   return (
     <div className="space-y-6">
@@ -216,10 +225,10 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
               <span className="text-sm text-slate-700">Casiers comptés</span>
               <span
                 className={`text-sm font-medium ${
-                  missingPackaging === 0 ? 'text-green-600' : 'text-red-600'
+                  missingConsignablePackaging === 0 ? 'text-green-600' : 'text-red-600'
                 }`}
               >
-                {packaging.length - missingPackaging} / {packaging.length}
+                {consignablePackaging.length - missingConsignablePackaging} / {consignablePackaging.length}
               </span>
             </div>
             <div className="flex items-center justify-between p-2 bg-slate-50 rounded">
@@ -245,7 +254,7 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
               </p>
               <ul className="text-xs text-red-700 mt-2 ml-4 list-disc">
                 {missingFinalStocks > 0 && <li>{missingFinalStocks} stock(s) final(finaux) manquant(s)</li>}
-                {missingPackaging > 0 && <li>{missingPackaging} comptage(s) de casiers manquant(s)</li>}
+                {missingConsignablePackaging > 0 && <li>{missingConsignablePackaging} comptage(s) de casiers manquant(s)</li>}
               </ul>
             </div>
           )}
