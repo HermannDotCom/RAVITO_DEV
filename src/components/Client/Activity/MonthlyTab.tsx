@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { FileDown, Calendar, AlertCircle, TrendingUp, Package } from 'lucide-react';
 import { useMonthlyData } from '../../../hooks/useMonthlyData';
+import { useOrganizationName } from '../../../hooks/useOrganizationName';
 import { MonthlyKPIs } from './MonthlyTab/MonthlyKPIs';
 import { MonthlyCharts } from './MonthlyTab/MonthlyCharts';
 import { MonthlyTable } from './MonthlyTab/MonthlyTable';
+import { generateMonthlyPDF } from './PDFExport/generateMonthlyPDF';
 import { TopProduct, ExpenseByCategory } from '../../../types/activity';
 import { KenteLoader } from '../../ui/KenteLoader';
 
@@ -15,6 +17,9 @@ export const MonthlyTab: React.FC<MonthlyTabProps> = ({ organizationId }) => {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [exportingPDF, setExportingPDF] = useState(false);
+  
+  const { organizationName } = useOrganizationName();
 
   const { data, loading, error } = useMonthlyData({
     organizationId,
@@ -47,8 +52,24 @@ export const MonthlyTab: React.FC<MonthlyTabProps> = ({ organizationId }) => {
 
   // Handle PDF export
   const handleExportPDF = () => {
-    // TODO: Implement PDF export
-    alert('Export PDF sera implémenté prochainement');
+    if (!data) return;
+    
+    setExportingPDF(true);
+    try {
+      generateMonthlyPDF({
+        establishment: {
+          name: organizationName || 'Mon Établissement',
+        },
+        month: selectedMonth,
+        year: selectedYear,
+        monthlyData: data,
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Erreur lors de la génération du PDF');
+    } finally {
+      setExportingPDF(false);
+    }
   };
 
   if (loading) {
@@ -113,11 +134,13 @@ export const MonthlyTab: React.FC<MonthlyTabProps> = ({ organizationId }) => {
           {/* Export PDF Button */}
           <button
             onClick={handleExportPDF}
-            disabled={!data || data.dailySheets.length === 0}
+            disabled={!data || data.dailySheets.length === 0 || exportingPDF}
             className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
           >
             <FileDown className="w-4 h-4" />
-            <span className="hidden sm:inline">Exporter PDF</span>
+            <span className="hidden sm:inline">
+              {exportingPDF ? 'Génération...' : 'Exporter PDF'}
+            </span>
           </button>
         </div>
       </div>
