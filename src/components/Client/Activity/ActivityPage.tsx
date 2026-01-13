@@ -8,6 +8,7 @@ import { PackagingTab } from './PackagingTab';
 import { CashTab } from './CashTab';
 import { SummaryTab } from './SummaryTab';
 import { MonthlyTab } from './MonthlyTab';
+import { AnnualTab } from './AnnualTab';
 import { ActivityTab } from '../../../types/activity';
 import { KenteLoader } from '../../ui/KenteLoader';
 import { supabase } from '../../../lib/supabase';
@@ -128,7 +129,17 @@ export const ActivityPage: React. FC = () => {
     { id: 'cash', label: 'Caisse' },
     { id: 'summary', label: 'Synthèse' },
     { id: 'monthly', label: 'Mensuel' },
+    { id: 'annual', label: 'Annuel' },
   ];
+
+  // Generate responsive grid classes based on number of tabs
+  const getGridCols = () => {
+    const count = tabs.length;
+    if (count <= 3) return 'grid-cols-3';
+    if (count <= 4) return 'grid-cols-2 sm:grid-cols-4';
+    if (count <= 5) return 'grid-cols-3 sm:grid-cols-5';
+    return 'grid-cols-3 sm:grid-cols-6';
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-20 lg:pb-6">
@@ -200,7 +211,7 @@ export const ActivityPage: React. FC = () => {
         {/* Tabs */}
         <div className="mb-6">
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2">
-            <div className="grid grid-cols-5 gap-2">
+            <div className={`grid ${getGridCols()} gap-2`}>
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -289,6 +300,10 @@ export const ActivityPage: React. FC = () => {
 
           {activeTab === 'monthly' && (
             <MonthlyTab organizationId={organizationId || ''} />
+          )}
+
+          {activeTab === 'annual' && (
+            <AnnualTab organizationId={organizationId || ''} />
           )}
         </div>
       </div>
