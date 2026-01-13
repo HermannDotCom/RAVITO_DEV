@@ -47,7 +47,7 @@ export const getMonthName = (month: number): string => {
  * Format month name to short version (first 3 letters, capitalized)
  */
 export const formatMonthShort = (monthName: string): string => {
-  return monthName.substring(0, 3).charAt(0).toUpperCase() + monthName.substring(1, 3);
+  return monthName.charAt(0).toUpperCase() + monthName.substring(1, 3).toLowerCase();
 };
 
 /**
@@ -60,4 +60,14 @@ export const calculateEvolution = (
   if (!previous || previous === 0) return null;
   const evolution = ((current - previous) / previous) * 100;
   return { value: Math.abs(evolution), isPositive: evolution >= 0 };
+};
+
+/**
+ * Get expense category label safely
+ */
+export const getCategoryLabel = (
+  category: string, 
+  categories: Record<string, string>
+): string => {
+  return categories[category] ?? category;
 };

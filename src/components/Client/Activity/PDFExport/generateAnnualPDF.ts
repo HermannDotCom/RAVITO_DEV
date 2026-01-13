@@ -7,7 +7,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { AnnualData, MonthlyAnnualData, EXPENSE_CATEGORIES } from '../../../../types/activity';
 import { COLORS, FONTS, PAGE, SPACING } from './pdfStyles';
-import { formatCurrency as formatCurrencyUtil } from '../../../../utils/activityUtils';
+import { formatCurrency as formatCurrencyUtil, getCategoryLabel } from '../../../../utils/activityUtils';
 
 // Extend jsPDF type to include autoTable properties
 interface jsPDFWithAutoTable extends jsPDF {
@@ -366,7 +366,7 @@ const addExpensesSection = (doc: jsPDF, data: AnnualPDFData, yPos: number): numb
   
   // Prepare expenses table data
   const expensesData = data.annualData.expensesByCategory.map(exp => {
-    const categoryLabel = EXPENSE_CATEGORIES[exp.category as keyof typeof EXPENSE_CATEGORIES] || exp.category;
+    const categoryLabel = getCategoryLabel(exp.category, EXPENSE_CATEGORIES);
     const percentage = data.annualData.kpis.totalExpenses > 0 
       ? ((exp.total / data.annualData.kpis.totalExpenses) * 100).toFixed(1)
       : '0.0';

@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 import { MonthlyAnnualData, ExpenseByCategory } from '../../../../types/activity';
 import { EXPENSE_CATEGORIES } from '../../../../types/activity';
-import { formatCurrency, formatMonthShort } from '../../../../utils/activityUtils';
+import { formatCurrency, formatMonthShort, getCategoryLabel } from '../../../../utils/activityUtils';
 import { COLORS } from '../PDFExport/pdfStyles';
 
 interface AnnualChartsProps {
@@ -41,14 +41,9 @@ export const AnnualCharts: React.FC<AnnualChartsProps> = ({
     return `${formatCurrency(value / 1000)}k`;
   };
 
-  // Get category labels
-  const getCategoryLabel = (category: string) => {
-    return EXPENSE_CATEGORIES[category as keyof typeof EXPENSE_CATEGORIES] || category;
-  };
-
   // Prepare expenses data with labels
   const expensesChartData = expensesByCategory.map(exp => ({
-    name: getCategoryLabel(exp.category),
+    name: getCategoryLabel(exp.category, EXPENSE_CATEGORIES),
     value: exp.total,
   }));
 
