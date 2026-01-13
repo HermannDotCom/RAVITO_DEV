@@ -15,6 +15,19 @@ interface jsPDFWithAutoTable extends jsPDF {
   };
 }
 
+/**
+ * Sanitize text to avoid UTF-8 issues in PDF
+ * Remplace les caractères problématiques
+ */
+const sanitizeText = (text: string): string => {
+  return text
+    .replace(/€/g, 'EUR')
+    .replace(/–/g, '-')
+    .replace(/'/g, "'")
+    .replace(/"/g, '"')
+    .replace(/"/g, '"');
+};
+
 export interface DailyPDFData {
   establishment: {
     name: string;
@@ -35,13 +48,14 @@ export interface DailyPDFData {
 
 /**
  * Format currency in FCFA
+ * Note: Utilise "F" ou "FCFA" au lieu du symbole € pour compatibilité UTF-8
  */
 const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('fr-FR', {
     style: 'decimal',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount) + ' F';
+  }).format(amount) + ' FCFA';
 };
 
 /**
@@ -74,11 +88,15 @@ const formatDateTime = (dateString: string): string => {
  * Generate the PDF header
  */
 const addHeader = (doc: jsPDF, data: DailyPDFData, yPos: number): number => {
-  // Logo/Title
+  // Titre (on remplace l'emoji par du texte simple pour compatibilité)
   doc.setFontSize(FONTS.title);
   doc.setTextColor(COLORS.primary);
   doc.setFont('helvetica', 'bold');
-  doc.text('🍹 RAVITO', PAGE.margin, yPos);
+  doc.text('RAVITO', PAGE.margin, yPos);
+  
+  // Note: Le logo devrait être chargé depuis /Logo_Ravito_avec_slogan.png
+  // et converti en base64 pour être inclus ici avec doc.addImage()
+  // Pour l'instant, on utilise le texte
   
   yPos += SPACING.medium;
   
@@ -93,7 +111,7 @@ const addHeader = (doc: jsPDF, data: DailyPDFData, yPos: number): number => {
   doc.setFontSize(FONTS.subtitle);
   doc.setTextColor(COLORS.darkGray);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Établissement : ${data.establishment.name}`, PAGE.margin, yPos);
+  doc.text(`Etablissement : ${sanitizeText(data.establishment.name)}`, PAGE.margin, yPos);
   
   yPos += SPACING.small + 2;
   
@@ -106,7 +124,7 @@ const addHeader = (doc: jsPDF, data: DailyPDFData, yPos: number): number => {
   if (data.sheet.closedAt) {
     doc.setFontSize(FONTS.small);
     doc.setTextColor(COLORS.success);
-    doc.text(`Clôturé le : ${formatDateTime(data.sheet.closedAt)}`, PAGE.margin, yPos);
+    doc.text(`Cloture le : ${formatDateTime(data.sheet.closedAt)}`, PAGE.margin, yPos);
     yPos += SPACING.small;
   }
   
@@ -123,7 +141,7 @@ const addSalesSection = (doc: jsPDF, data: DailyPDFData, yPos: number): number =
   doc.setFontSize(FONTS.sectionTitle);
   doc.setTextColor(COLORS.primary);
   doc.setFont('helvetica', 'bold');
-  doc.text('📊 VENTES DU JOUR', PAGE.margin, yPos);
+  doc.text('VENTES DU JOUR', PAGE.margin, yPos);
   
   yPos += SPACING.medium;
   
@@ -141,7 +159,7 @@ const addSalesSection = (doc: jsPDF, data: DailyPDFData, yPos: number): number =
       const revenue = line.revenue || 0;
       
       return [
-        line.product?.name || 'Produit inconnu',
+        sanitizeText(line.product?.name || 'Produit inconnu'),
         formatCurrency(sellingPrice),
         line.initialStock?.toString() || '0',
         (line.totalSupply || 0).toString(),
@@ -154,7 +172,7 @@ const addSalesSection = (doc: jsPDF, data: DailyPDFData, yPos: number): number =
   // Add table
   autoTable(doc, {
     startY: yPos,
-    head: [['Produit', 'P. Vente', 'Stock Init.', 'Entrées', 'Stock Final', 'Ventes', 'CA']],
+    head: [['Produit', 'P. Vente', 'Stock Init.', 'Entrees', 'Stock Final', 'Ventes', 'CA']],
     body: tableData,
     theme: 'striped',
     headStyles: {
@@ -188,7 +206,7 @@ const addSalesSection = (doc: jsPDF, data: DailyPDFData, yPos: number): number =
   doc.setFontSize(FONTS.normal);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(COLORS.success);
-  const totalText = `Total CA Théorique : ${formatCurrency(data.calculations.totalRevenue)}`;
+  const totalText = `Total CA Theorique : ${formatCurrency(data.calculations.totalRevenue)}`;
   const textWidth = doc.getTextWidth(totalText);
   doc.text(totalText, PAGE.width - PAGE.margin - textWidth, yPos);
   
@@ -210,7 +228,7 @@ const addExpensesSection = (doc: jsPDF, data: DailyPDFData, yPos: number): numbe
   doc.setFontSize(FONTS.sectionTitle);
   doc.setTextColor(COLORS.primary);
   doc.setFont('helvetica', 'bold');
-  doc.text('💰 DÉPENSES', PAGE.margin, yPos);
+  doc.text('DEPENSES', PAGE.margin, yPos);
   
   yPos += SPACING.medium;
   
@@ -224,7 +242,7 @@ const addExpensesSection = (doc: jsPDF, data: DailyPDFData, yPos: number): numbe
   
   // Prepare table data
   const tableData = data.expenses.map(expense => [
-    expense.label,
+    sanitizeText(expense.label),
     categoryLabels[expense.category] || expense.category,
     formatCurrency(expense.amount),
   ]);
@@ -232,7 +250,7 @@ const addExpensesSection = (doc: jsPDF, data: DailyPDFData, yPos: number): numbe
   // Add table
   autoTable(doc, {
     startY: yPos,
-    head: [['Description', 'Catégorie', 'Montant']],
+    head: [['Description', 'Categorie', 'Montant']],
     body: tableData,
     theme: 'striped',
     headStyles: {
@@ -262,7 +280,7 @@ const addExpensesSection = (doc: jsPDF, data: DailyPDFData, yPos: number): numbe
   doc.setFontSize(FONTS.normal);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(COLORS.danger);
-  const totalText = `Total Dépenses : ${formatCurrency(data.calculations.totalExpenses)}`;
+  const totalText = `Total Depenses : ${formatCurrency(data.calculations.totalExpenses)}`;
   const textWidth = doc.getTextWidth(totalText);
   doc.text(totalText, PAGE.width - PAGE.margin - textWidth, yPos);
   
@@ -279,7 +297,7 @@ const addCashSection = (doc: jsPDF, data: DailyPDFData, yPos: number): number =>
   doc.setFontSize(FONTS.sectionTitle);
   doc.setTextColor(COLORS.primary);
   doc.setFont('helvetica', 'bold');
-  doc.text('💵 CAISSE', PAGE.margin, yPos);
+  doc.text('CAISSE', PAGE.margin, yPos);
   
   yPos += SPACING.medium;
   
@@ -294,13 +312,13 @@ const addCashSection = (doc: jsPDF, data: DailyPDFData, yPos: number): number =>
   
   // Revenue
   doc.setTextColor(COLORS.success);
-  doc.text('+ CA Théorique :', PAGE.margin + 5, yPos);
+  doc.text('+ CA Theorique :', PAGE.margin + 5, yPos);
   doc.text(formatCurrency(data.calculations.totalRevenue), PAGE.margin + 80, yPos);
   yPos += SPACING.small + 2;
   
   // Expenses
   doc.setTextColor(COLORS.danger);
-  doc.text('- Dépenses :', PAGE.margin + 5, yPos);
+  doc.text('- Depenses :', PAGE.margin + 5, yPos);
   doc.text(formatCurrency(data.calculations.totalExpenses), PAGE.margin + 80, yPos);
   yPos += SPACING.small + 2;
   
@@ -358,8 +376,19 @@ const addCashSection = (doc: jsPDF, data: DailyPDFData, yPos: number): number =>
  * Add packaging section
  */
 const addPackagingSection = (doc: jsPDF, data: DailyPDFData, yPos: number): number => {
+  // Filtrer pour n'afficher que les emballages avec données
+  const filteredPackaging = data.packaging.filter(pkg => 
+    (pkg.qtyFullStart || 0) > 0 || 
+    (pkg.qtyEmptyStart || 0) > 0 || 
+    (pkg.qtyReceived || 0) > 0 || 
+    (pkg.qtyReturned || 0) > 0 ||
+    pkg.qtyFullEnd !== null ||
+    pkg.qtyEmptyEnd !== null ||
+    (pkg.notes && pkg.notes.trim() !== '')
+  );
+  
   // Only add if there's packaging data
-  if (data.packaging.length === 0) {
+  if (filteredPackaging.length === 0) {
     return yPos;
   }
   
@@ -373,30 +402,39 @@ const addPackagingSection = (doc: jsPDF, data: DailyPDFData, yPos: number): numb
   doc.setFontSize(FONTS.sectionTitle);
   doc.setTextColor(COLORS.primary);
   doc.setFont('helvetica', 'bold');
-  doc.text('📦 EMBALLAGES', PAGE.margin, yPos);
+  doc.text('EMBALLAGES', PAGE.margin, yPos);
   
   yPos += SPACING.medium;
   
-  // Prepare table data
-  const tableData = data.packaging.map(pkg => {
-    const totalStart = (pkg.qtyFullStart || 0) + (pkg.qtyEmptyStart || 0);
-    const totalEnd = (pkg.qtyFullEnd || 0) + (pkg.qtyEmptyEnd || 0);
-    const difference = totalEnd - totalStart;
+  // Prepare table data avec Observations
+  const tableData = filteredPackaging.map(pkg => {
+    const fullStart = pkg.qtyFullStart || 0;
+    const emptyStart = pkg.qtyEmptyStart || 0;
+    const fullEnd = pkg.qtyFullEnd !== null ? pkg.qtyFullEnd : null;
+    const emptyEnd = pkg.qtyEmptyEnd !== null ? pkg.qtyEmptyEnd : null;
+    
+    // Calcul de l'écart
+    const totalStart = fullStart + emptyStart;
+    const totalEnd = (fullEnd !== null && emptyEnd !== null) ? (fullEnd + emptyEnd) : null;
+    const difference = totalEnd !== null ? totalEnd - totalStart : null;
     
     return [
       pkg.crateType,
-      totalStart.toString(),
+      fullStart.toString(),
+      emptyStart.toString(),
       (pkg.qtyReceived || 0).toString(),
       (pkg.qtyReturned || 0).toString(),
-      totalEnd.toString(),
-      difference.toString(),
+      fullEnd !== null ? fullEnd.toString() : '-',
+      emptyEnd !== null ? emptyEnd.toString() : '-',
+      difference !== null ? difference.toString() : '-',
+      pkg.notes || '-',  // Colonne Observations
     ];
   });
   
-  // Add table
+  // Add table with Observations column
   autoTable(doc, {
     startY: yPos,
-    head: [['Type', 'Début', 'Reçus', 'Rendus', 'Fin', 'Écart']],
+    head: [['Type', 'Pleins Matin', 'Vides Matin', 'Reçus', 'Rendus', 'Pleins Soir', 'Vides Soir', 'Écart', 'Observations']],
     body: tableData,
     theme: 'striped',
     headStyles: {
@@ -414,12 +452,15 @@ const addPackagingSection = (doc: jsPDF, data: DailyPDFData, yPos: number): numb
     },
     margin: { left: PAGE.margin, right: PAGE.margin },
     columnStyles: {
-      0: { cellWidth: 'auto' },
-      1: { halign: 'center', cellWidth: 20 },
-      2: { halign: 'center', cellWidth: 20 },
-      3: { halign: 'center', cellWidth: 20 },
-      4: { halign: 'center', cellWidth: 20 },
-      5: { halign: 'center', cellWidth: 20 },
+      0: { cellWidth: 'auto' }, // Type
+      1: { halign: 'center', cellWidth: 18 },
+      2: { halign: 'center', cellWidth: 18 },
+      3: { halign: 'center', cellWidth: 15 },
+      4: { halign: 'center', cellWidth: 15 },
+      5: { halign: 'center', cellWidth: 18 },
+      6: { halign: 'center', cellWidth: 18 },
+      7: { halign: 'center', cellWidth: 15 },
+      8: { cellWidth: 'auto' }, // Observations
     },
   });
   
@@ -447,7 +488,7 @@ const addNotesSection = (doc: jsPDF, data: DailyPDFData, yPos: number): number =
   doc.setFontSize(FONTS.sectionTitle);
   doc.setTextColor(COLORS.primary);
   doc.setFont('helvetica', 'bold');
-  doc.text('📝 NOTES', PAGE.margin, yPos);
+  doc.text('NOTES', PAGE.margin, yPos);
   
   yPos += SPACING.medium;
   
@@ -486,7 +527,7 @@ const addFooter = (doc: jsPDF): void => {
     doc.setTextColor(COLORS.gray);
     doc.setFont('helvetica', 'normal');
     
-    const footerText = `Généré par RAVITO - ${generatedAt}`;
+    const footerText = `Genere par RAVITO - ${generatedAt}`;
     doc.text(footerText, PAGE.margin, PAGE.height - 10);
     
     // Page number
@@ -540,6 +581,6 @@ export const generateDailyPDF = async (data: DailyPDFData): Promise<void> => {
   } catch (error) {
     console.error('Error generating PDF:', error);
     const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-    throw new Error(`Erreur lors de la génération du PDF: ${errorMessage}`);
+    throw new Error(`Erreur lors de la generation du PDF: ${errorMessage}`);
   }
 };
