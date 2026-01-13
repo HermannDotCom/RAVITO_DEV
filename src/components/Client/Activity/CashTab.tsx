@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Wallet, Plus, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
 import { DailySheet, DailyExpense, AddExpenseData, EXPENSE_CATEGORIES } from '../../../types/activity';
 import { ExpenseModal } from './ExpenseModal';
@@ -15,6 +15,7 @@ interface CashTabProps {
   isReadOnly: boolean;
   onAddExpense: (data: AddExpenseData) => Promise<boolean>;
   onDeleteExpense: (expenseId: string) => Promise<boolean>;
+  onUpdateOpeningCash?: (amount: number) => Promise<boolean>;
 }
 
 export const CashTab: React.FC<CashTabProps> = ({
@@ -24,9 +25,23 @@ export const CashTab: React.FC<CashTabProps> = ({
   isReadOnly,
   onAddExpense,
   onDeleteExpense,
+  onUpdateOpeningCash,
 }) => {
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [openingCash, setOpeningCash] = useState<number>(sheet?.openingCash || 0);
+
+  // Sync with sheet when it changes
+  useEffect(() => {
+    setOpeningCash(sheet?.openingCash || 0);
+  }, [sheet?.openingCash]);
+
+  const handleOpeningCashChange = async (value: number) => {
+    setOpeningCash(value);
+    if (onUpdateOpeningCash) {
+      await onUpdateOpeningCash(value);
+    }
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -168,10 +183,22 @@ export const CashTab: React.FC<CashTabProps> = ({
         <div className="space-y-3">
           {/* Opening cash */}
           <div className="flex items-center justify-between py-2 border-b border-slate-200">
-            <span className="text-slate-700">Fond de caisse (matin)</span>
-            <span className="font-medium text-slate-900">
-              {formatCurrency(sheet?.openingCash || 0)} FCFA
-            </span>
+            <span className="text-slate-700">Caisse initiale</span>
+            {isReadOnly ? (
+              <span className="font-medium text-slate-900">
+                {formatCurrency(sheet?.openingCash || 0)} FCFA
+              </span>
+            ) : (
+              <input
+                type="number"
+                min="0"
+                step="100"
+                value={openingCash}
+                onChange={(e) => handleOpeningCashChange(parseInt(e.target.value) || 0)}
+                className="w-32 px-2 py-1 text-right border border-slate-300 rounded font-medium"
+                placeholder="0"
+              />
+            )}
           </div>
 
           {/* Revenue */}
@@ -192,7 +219,7 @@ export const CashTab: React.FC<CashTabProps> = ({
 
           {/* Expected cash */}
           <div className="flex items-center justify-between py-3 bg-blue-50 rounded-lg px-3 border border-blue-200">
-            <span className="font-bold text-blue-900">Caisse attendue (soir)</span>
+            <span className="font-bold text-blue-900">Caisse finale théorique</span>
             <span className="font-bold text-blue-900 text-lg">
               {formatCurrency(calculations.expectedCash)} FCFA
             </span>

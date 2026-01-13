@@ -9,6 +9,7 @@ import { CashTab } from './CashTab';
 import { SummaryTab } from './SummaryTab';
 import { ActivityTab } from '../../../types/activity';
 import { KenteLoader } from '../../ui/KenteLoader';
+import { supabase } from '../../../lib/supabase';
 
 export const ActivityPage: React. FC = () => {
   const { user } = useAuth();
@@ -48,6 +49,23 @@ export const ActivityPage: React. FC = () => {
     const newDate = e.target.value;
     setSelectedDate(newDate);
     handleChangeDate(newDate);
+  };
+
+  const handleUpdateOpeningCash = async (amount: number): Promise<boolean> => {
+    if (!sheet) return false;
+    
+    const { error } = await supabase
+      .from('daily_sheets')
+      .update({ opening_cash: amount })
+      .eq('id', sheet.id);
+      
+    if (error) {
+      console.error('Error updating opening cash:', error);
+      return false;
+    }
+    
+    await reload();
+    return true;
   };
 
   if (loading || orgLoading) {
@@ -222,6 +240,7 @@ export const ActivityPage: React. FC = () => {
               isReadOnly={sheet?.status === 'closed'}
               onAddExpense={handleAddExpense}
               onDeleteExpense={handleDeleteExpense}
+              onUpdateOpeningCash={handleUpdateOpeningCash}
             />
           )}
 
