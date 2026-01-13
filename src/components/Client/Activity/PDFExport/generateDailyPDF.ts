@@ -6,7 +6,14 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { DailySheet, DailyStockLine, DailyExpense, DailyPackaging } from '../../../../types/activity';
-import { COLORS, FONTS, PAGE, SPACING, TABLE_STYLES } from './pdfStyles';
+import { COLORS, FONTS, PAGE, SPACING } from './pdfStyles';
+
+// Extend jsPDF type to include autoTable properties
+interface jsPDFWithAutoTable extends jsPDF {
+  lastAutoTable: {
+    finalY: number;
+  };
+}
 
 export interface DailyPDFData {
   establishment: {
@@ -175,7 +182,7 @@ const addSalesSection = (doc: jsPDF, data: DailyPDFData, yPos: number): number =
     },
   });
   
-  yPos = (doc as any).lastAutoTable.finalY + SPACING.small;
+  yPos = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + SPACING.small;
   
   // Total revenue
   doc.setFontSize(FONTS.normal);
@@ -249,7 +256,7 @@ const addExpensesSection = (doc: jsPDF, data: DailyPDFData, yPos: number): numbe
     },
   });
   
-  yPos = (doc as any).lastAutoTable.finalY + SPACING.small;
+  yPos = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + SPACING.small;
   
   // Total expenses
   doc.setFontSize(FONTS.normal);
@@ -416,7 +423,7 @@ const addPackagingSection = (doc: jsPDF, data: DailyPDFData, yPos: number): numb
     },
   });
   
-  yPos = (doc as any).lastAutoTable.finalY + SPACING.large;
+  yPos = (doc as jsPDFWithAutoTable).lastAutoTable.finalY + SPACING.large;
   
   return yPos;
 };
@@ -462,7 +469,7 @@ const addNotesSection = (doc: jsPDF, data: DailyPDFData, yPos: number): number =
 /**
  * Add footer to all pages
  */
-const addFooter = (doc: jsPDF, data: DailyPDFData): void => {
+const addFooter = (doc: jsPDF): void => {
   const pageCount = doc.getNumberOfPages();
   const generatedAt = formatDateTime(new Date().toISOString());
   
@@ -519,10 +526,10 @@ export const generateDailyPDF = async (data: DailyPDFData): Promise<void> => {
     yPos = addNotesSection(doc, data, yPos);
     
     // Add footer to all pages
-    addFooter(doc, data);
+    addFooter(doc);
     
     // Generate filename: "RAVITO_[Etablissement]_[Date].pdf"
-    const dateStr = data.sheet.sheetDate.replace(/\-/g, '');
+    const dateStr = data.sheet.sheetDate.replace(/-/g, '');
     const establishmentName = data.establishment.name.replace(/[^a-zA-Z0-9]/g, '_');
     const filename = `RAVITO_${establishmentName}_${dateStr}.pdf`;
     
