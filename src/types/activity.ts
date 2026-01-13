@@ -105,7 +105,7 @@ export interface DailyExpense {
 // ============================================
 // ACTIVITY TAB TYPE
 // ============================================
-export type ActivityTab = 'stocks' | 'packaging' | 'cash' | 'summary';
+export type ActivityTab = 'stocks' | 'packaging' | 'cash' | 'summary' | 'monthly';
 
 // ============================================
 // HELPER TYPES FOR CALCULATIONS
@@ -212,3 +212,44 @@ export const CRATE_TYPE_LABELS = {
   B50V: 'Casier Vin 50cl',                // Valpière 50cl
   B100V: 'Casier Vin 100cl',              // Valpière 100cl
 } as const;
+
+// ============================================
+// MONTHLY CLOSURE TYPES
+// ============================================
+export interface MonthlyKPIs {
+  daysWorked: number;
+  totalRevenue: number;
+  avgDailyRevenue: number;
+  totalExpenses: number;
+  totalCashDifference: number;
+  avgCashDifference: number;
+  negativeDays: number;
+  positiveDays: number;
+  daysIncomplete: number;
+  completionRate: number;
+}
+
+export interface ExpenseByCategory {
+  category: string;
+  total: number;
+}
+
+export interface TopProduct {
+  name: string;
+  qtySold: number;
+  revenue: number;
+}
+
+export interface DailyRevenueData {
+  date: string;
+  revenue: number;
+}
+
+export interface MonthlyData {
+  kpis: MonthlyKPIs;
+  expensesByCategory: ExpenseByCategory[];
+  topProducts: TopProduct[];
+  dailyRevenue: DailyRevenueData[];
+  dailySheets: DailySheet[];
+  previousMonthKPIs?: MonthlyKPIs;
+}
