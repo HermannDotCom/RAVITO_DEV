@@ -57,7 +57,7 @@ export const ActivityPage: React. FC = () => {
     const newDate = current.toISOString().split('T')[0];
     const today = new Date().toISOString().split('T')[0];
     
-    // Ne pas dépasser aujourd'hui
+    // Don't navigate beyond today's date
     if (newDate <= today) {
       setSelectedDate(newDate);
       handleChangeDate(newDate);

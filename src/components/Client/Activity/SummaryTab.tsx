@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { CheckCircle2, AlertTriangle, TrendingUp, TrendingDown, Package, Package2, Wallet, Lock, FileText } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, TrendingUp, TrendingDown, Package, Package2, Wallet, Lock, FileText, Minus } from 'lucide-react';
 import { DailySheet, DailyStockLine, DailyPackaging, DailyExpense, CloseSheetData } from '../../../types/activity';
 import { useCrateTypes } from '../../../hooks/useCrateTypes';
 
@@ -202,11 +202,17 @@ export const SummaryTab: React.FC<SummaryTabProps> = ({
             <div className="flex items-center gap-2 mb-2">
               {sheet.cashDifference && sheet.cashDifference < 0 ? (
                 <TrendingDown className="w-5 h-5 text-red-600" />
-              ) : (
+              ) : sheet.cashDifference && sheet.cashDifference > 0 ? (
                 <TrendingUp className="w-5 h-5 text-green-600" />
+              ) : (
+                <Minus className="w-5 h-5 text-slate-600" />
               )}
               <p className={`text-sm font-medium ${
-                sheet.cashDifference && sheet.cashDifference < 0 ? 'text-red-800' : 'text-green-800'
+                sheet.cashDifference && sheet.cashDifference < 0 
+                  ? 'text-red-800' 
+                  : sheet.cashDifference && sheet.cashDifference > 0
+                  ? 'text-green-800'
+                  : 'text-slate-800'
               }`}>Écart de Caisse</p>
             </div>
             <p className={`text-2xl font-bold ${
