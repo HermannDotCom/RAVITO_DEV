@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { FileDown, Calendar, AlertCircle, TrendingUp, Package } from 'lucide-react';
+import { FileDown, Calendar, AlertCircle, Package } from 'lucide-react';
 import { useMonthlyData } from '../../../hooks/useMonthlyData';
 import { useOrganizationName } from '../../../hooks/useOrganizationName';
 import { MonthlyKPIs } from './MonthlyTab/MonthlyKPIs';
 import { MonthlyCharts } from './MonthlyTab/MonthlyCharts';
 import { MonthlyTable } from './MonthlyTab/MonthlyTable';
 import { generateMonthlyPDF } from './PDFExport/generateMonthlyPDF';
-import { TopProduct, ExpenseByCategory } from '../../../types/activity';
 import { KenteLoader } from '../../ui/KenteLoader';
 
 interface MonthlyTabProps {
@@ -185,7 +184,7 @@ export const MonthlyTab: React.FC<MonthlyTabProps> = ({ organizationId }) => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
-                      {data.topProducts.map((product: TopProduct, index: number) => (
+                      {data.topProducts.map((product, index) => (
                         <tr key={index} className="hover:bg-slate-50 transition-colors">
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center gap-2">
@@ -230,7 +229,7 @@ export const MonthlyTab: React.FC<MonthlyTabProps> = ({ organizationId }) => {
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-slate-900">Dépenses par Catégorie</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {data.expensesByCategory.map((expense: ExpenseByCategory, index: number) => (
+                {data.expensesByCategory.map((expense, index) => (
                   <div
                     key={index}
                     className="bg-white rounded-xl shadow-sm border border-slate-200 p-4"
