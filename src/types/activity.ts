@@ -105,7 +105,7 @@ export interface DailyExpense {
 // ============================================
 // ACTIVITY TAB TYPE
 // ============================================
-export type ActivityTab = 'stocks' | 'packaging' | 'cash' | 'summary' | 'monthly';
+export type ActivityTab = 'stocks' | 'packaging' | 'cash' | 'summary' | 'monthly' | 'annual';
 
 // ============================================
 // HELPER TYPES FOR CALCULATIONS
@@ -252,4 +252,44 @@ export interface MonthlyData {
   dailyRevenue: DailyRevenueData[];
   dailySheets: DailySheet[];
   previousMonthKPIs?: MonthlyKPIs;
+}
+
+// ============================================
+// ANNUAL CLOSURE TYPES
+// ============================================
+export interface AnnualKPIs {
+  totalRevenue: number;
+  avgMonthlyRevenue: number;
+  bestMonth: { month: number; monthName: string; revenue: number } | null;
+  worstMonth: { month: number; monthName: string; revenue: number } | null;
+  totalExpenses: number;
+  avgMonthlyExpenses: number;
+  expensesRatio: number; // (expenses / revenue) * 100
+  totalCashDifference: number;
+  avgMonthlyCashDifference: number;
+  negativeMonths: number;
+  positiveMonths: number;
+  grossMargin: number; // revenue - expenses
+  marginRate: number; // (margin / revenue) * 100
+  totalDaysWorked: number;
+  completionRate: number; // % of days closed vs total days in year
+  monthsWithData: number;
+}
+
+export interface MonthlyAnnualData {
+  month: number;
+  monthName: string;
+  revenue: number;
+  expenses: number;
+  margin: number;
+  cashDifference: number;
+  daysWorked: number;
+}
+
+export interface AnnualData {
+  kpis: AnnualKPIs;
+  monthlyData: MonthlyAnnualData[];
+  expensesByCategory: ExpenseByCategory[];
+  topProducts: TopProduct[];
+  previousYearKPIs?: AnnualKPIs;
 }

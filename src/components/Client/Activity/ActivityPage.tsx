@@ -8,6 +8,7 @@ import { PackagingTab } from './PackagingTab';
 import { CashTab } from './CashTab';
 import { SummaryTab } from './SummaryTab';
 import { MonthlyTab } from './MonthlyTab';
+import { AnnualTab } from './AnnualTab';
 import { ActivityTab } from '../../../types/activity';
 import { KenteLoader } from '../../ui/KenteLoader';
 import { supabase } from '../../../lib/supabase';
@@ -128,6 +129,7 @@ export const ActivityPage: React. FC = () => {
     { id: 'cash', label: 'Caisse' },
     { id: 'summary', label: 'Synthèse' },
     { id: 'monthly', label: 'Mensuel' },
+    { id: 'annual', label: 'Annuel' },
   ];
 
   return (
@@ -200,7 +202,7 @@ export const ActivityPage: React. FC = () => {
         {/* Tabs */}
         <div className="mb-6">
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2">
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -289,6 +291,10 @@ export const ActivityPage: React. FC = () => {
 
           {activeTab === 'monthly' && (
             <MonthlyTab organizationId={organizationId || ''} />
+          )}
+
+          {activeTab === 'annual' && (
+            <AnnualTab organizationId={organizationId || ''} />
           )}
         </div>
       </div>
