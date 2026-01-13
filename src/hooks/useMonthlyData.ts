@@ -88,13 +88,19 @@ async function fetchMonthlyKPIs(
   year: number,
   totalDaysInMonth: number
 ): Promise<MonthlyKPIs> {
+  // Calculate the start and end dates properly handling year boundaries
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+  
   const { data, error } = await supabase
     .from('daily_sheets')
     .select('*')
     .eq('organization_id', organizationId)
     .eq('status', 'closed')
-    .gte('sheet_date', `${year}-${String(month).padStart(2, '0')}-01`)
-    .lt('sheet_date', `${year}-${String(month + 1).padStart(2, '0')}-01`);
+    .gte('sheet_date', startDate)
+    .lt('sheet_date', endDate);
 
   if (error) throw error;
 
@@ -130,13 +136,18 @@ async function fetchExpensesByCategory(
   month: number,
   year: number
 ): Promise<ExpenseByCategory[]> {
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+  
   const { data: sheets, error: sheetError } = await supabase
     .from('daily_sheets')
     .select('id')
     .eq('organization_id', organizationId)
     .eq('status', 'closed')
-    .gte('sheet_date', `${year}-${String(month).padStart(2, '0')}-01`)
-    .lt('sheet_date', `${year}-${String(month + 1).padStart(2, '0')}-01`);
+    .gte('sheet_date', startDate)
+    .lt('sheet_date', endDate);
 
   if (sheetError) throw sheetError;
   if (!sheets || sheets.length === 0) return [];
@@ -170,13 +181,18 @@ async function fetchTopProducts(
   month: number,
   year: number
 ): Promise<TopProduct[]> {
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+  
   const { data: sheets, error: sheetError } = await supabase
     .from('daily_sheets')
     .select('id')
     .eq('organization_id', organizationId)
     .eq('status', 'closed')
-    .gte('sheet_date', `${year}-${String(month).padStart(2, '0')}-01`)
-    .lt('sheet_date', `${year}-${String(month + 1).padStart(2, '0')}-01`);
+    .gte('sheet_date', startDate)
+    .lt('sheet_date', endDate);
 
   if (sheetError) throw sheetError;
   if (!sheets || sheets.length === 0) return [];
@@ -241,13 +257,18 @@ async function fetchDailyRevenue(
   month: number,
   year: number
 ): Promise<DailyRevenueData[]> {
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+  
   const { data, error } = await supabase
     .from('daily_sheets')
     .select('sheet_date, theoretical_revenue')
     .eq('organization_id', organizationId)
     .eq('status', 'closed')
-    .gte('sheet_date', `${year}-${String(month).padStart(2, '0')}-01`)
-    .lt('sheet_date', `${year}-${String(month + 1).padStart(2, '0')}-01`)
+    .gte('sheet_date', startDate)
+    .lt('sheet_date', endDate)
     .order('sheet_date', { ascending: true });
 
   if (error) throw error;
@@ -266,13 +287,18 @@ async function fetchDailySheets(
   month: number,
   year: number
 ): Promise<DailySheet[]> {
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+  
   const { data, error } = await supabase
     .from('daily_sheets')
     .select('*')
     .eq('organization_id', organizationId)
     .eq('status', 'closed')
-    .gte('sheet_date', `${year}-${String(month).padStart(2, '0')}-01`)
-    .lt('sheet_date', `${year}-${String(month + 1).padStart(2, '0')}-01`)
+    .gte('sheet_date', startDate)
+    .lt('sheet_date', endDate)
     .order('sheet_date', { ascending: false });
 
   if (error) throw error;
