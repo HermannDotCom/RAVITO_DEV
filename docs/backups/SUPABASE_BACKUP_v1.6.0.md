@@ -477,5 +477,4 @@ git describe --tags
 ---
 
 **Généré le :** 13 janvier 2026  
-**Par :** GitHub Copilot  
-**Pour :** Hermann N'GUESSAN - RAVITO
+**Hermann N'GUESSAN - RAVITO**
