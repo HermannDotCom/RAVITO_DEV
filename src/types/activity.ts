@@ -33,6 +33,9 @@ export interface DailySheet {
   theoreticalRevenue: number; // CA théorique calculé
   cashDifference?: number; // Écart de caisse (closing - theoretical - expenses + opening)
   expensesTotal: number;
+  creditSales?: number; // Total des crédits accordés ce jour
+  creditPayments?: number; // Total des règlements crédits reçus ce jour
+  creditBalanceEod?: number; // Solde total crédit en fin de journée
   notes?: string;
   closedAt?: string;
   closedBy?: string;
@@ -105,7 +108,7 @@ export interface DailyExpense {
 // ============================================
 // ACTIVITY TAB TYPE
 // ============================================
-export type ActivityTab = 'stocks' | 'packaging' | 'cash' | 'summary' | 'monthly' | 'annual';
+export type ActivityTab = 'stocks' | 'credits' | 'packaging' | 'cash' | 'summary' | 'monthly' | 'annual';
 
 // ============================================
 // HELPER TYPES FOR CALCULATIONS
@@ -293,3 +296,85 @@ export interface AnnualData {
   topProducts: TopProduct[];
   previousYearKPIs?: AnnualKPIs;
 }
+
+// ============================================
+// CREDIT MANAGEMENT TYPES
+// ============================================
+
+export interface CreditCustomer {
+  id: string;
+  organizationId: string;
+  name: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  creditLimit: number; // 0 = illimité
+  currentBalance: number; // Solde actuel dû
+  totalCredited: number; // Total crédité historique
+  totalPaid: number; // Total réglé historique
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreditTransaction {
+  id: string;
+  organizationId: string;
+  customerId: string;
+  dailySheetId?: string;
+  transactionType: 'consumption' | 'payment';
+  amount: number; // Toujours positif
+  paymentMethod?: 'cash' | 'mobile_money' | 'transfer';
+  notes?: string;
+  transactionDate: string; // DATE format
+  createdAt: string;
+  createdBy?: string;
+  // Jointures optionnelles
+  customer?: CreditCustomer;
+  items?: CreditTransactionItem[];
+}
+
+export interface CreditTransactionItem {
+  id: string;
+  transactionId: string;
+  productId?: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+  createdAt: string;
+}
+
+export interface AddCreditCustomerData {
+  name: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  creditLimit?: number;
+}
+
+export interface AddConsumptionData {
+  customerId: string;
+  transactionDate: string;
+  items: {
+    productId: string;
+    productName: string;
+    quantity: number;
+    unitPrice: number;
+  }[];
+  notes?: string;
+}
+
+export interface AddPaymentData {
+  customerId: string;
+  amount: number;
+  paymentMethod: 'cash' | 'mobile_money' | 'transfer';
+  notes?: string;
+}
+
+export const PAYMENT_METHOD_LABELS = {
+  cash: 'Espèces',
+  mobile_money: 'Mobile Money',
+  transfer: 'Virement',
+} as const;
+

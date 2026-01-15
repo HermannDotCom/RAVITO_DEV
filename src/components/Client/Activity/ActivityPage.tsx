@@ -4,6 +4,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useOrganization } from '../../../hooks/useOrganization';
 import { useActivityManagement } from './hooks/useActivityManagement';
 import { StocksTab } from './StocksTab';
+import { CreditsTab } from './CreditsTab';
 import { PackagingTab } from './PackagingTab';
 import { CashTab } from './CashTab';
 import { SummaryTab } from './SummaryTab';
@@ -125,7 +126,8 @@ export const ActivityPage: React. FC = () => {
 
   const tabs: { id: ActivityTab; label: string; badge?: number }[] = [
     { id: 'stocks', label: 'Ventes' },
-    { id: 'packaging', label: 'Gestion Emballages', badge: calculations.packagingAlerts.length },
+    { id: 'credits', label: 'Crédits' },
+    { id: 'packaging', label: 'Emballages', badge: calculations.packagingAlerts.length },
     { id: 'cash', label: 'Caisse' },
     { id: 'summary', label: 'Synthèse' },
     { id: 'monthly', label: 'Mensuel' },
@@ -260,6 +262,15 @@ export const ActivityPage: React. FC = () => {
               onSyncDeliveries={handleSyncDeliveries}
               onProductAdded={reload}
               onProductRemoved={reload}
+            />
+          )}
+
+          {activeTab === 'credits' && (
+            <CreditsTab
+              organizationId={organizationId || ''}
+              dailySheetId={sheet?.id}
+              isReadOnly={sheet?.status === 'closed'}
+              onReload={reload}
             />
           )}
 

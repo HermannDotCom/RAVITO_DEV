@@ -103,10 +103,39 @@ export const CashTab: React.FC<CashTabProps> = ({
         <p className="text-3xl font-bold text-green-900">
           {formatCurrency(calculations.totalRevenue)} FCFA
         </p>
-        <p className="text-sm text-green-700 mt-1">
-          Calculé depuis les ventes de boissons
-        </p>
+        {sheet && (sheet.creditSales || 0) > 0 && (
+          <div className="mt-2 pt-2 border-t border-green-300 space-y-1 text-sm">
+            <div className="flex justify-between text-green-800">
+              <span>└─ Ventes cash:</span>
+              <span className="font-medium">
+                {formatCurrency(calculations.totalRevenue - (sheet.creditSales || 0))} FCFA
+              </span>
+            </div>
+            <div className="flex justify-between text-green-800">
+              <span>└─ Ventes à crédit: 💳</span>
+              <span className="font-medium">
+                {formatCurrency(sheet.creditSales || 0)} FCFA
+              </span>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Credit Payments Section (if any) */}
+      {sheet && (sheet.creditPayments || 0) > 0 && (
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200">
+          <div className="flex items-center gap-2 mb-2">
+            <Wallet className="w-5 h-5 text-blue-600" />
+            <h3 className="font-bold text-blue-900">Règlements Crédits Reçus</h3>
+          </div>
+          <p className="text-3xl font-bold text-blue-900">
+            {formatCurrency(sheet.creditPayments || 0)} FCFA 💰
+          </p>
+          <p className="text-sm text-blue-700 mt-1">
+            Encaissements des clients à crédit
+          </p>
+        </div>
+      )}
 
       {/* Expenses Section */}
       <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
@@ -220,11 +249,31 @@ export const CashTab: React.FC<CashTabProps> = ({
 
           {/* Revenue */}
           <div className="flex items-center justify-between py-2 border-b border-slate-200">
-            <span className="text-slate-700">+ Chiffre d'affaires</span>
+            <span className="text-slate-700">+ CA Théorique</span>
             <span className="font-medium text-green-600">
               + {formatCurrency(calculations.totalRevenue)} FCFA
             </span>
           </div>
+
+          {/* Credit Sales (if any) - deducted from cash */}
+          {sheet && (sheet.creditSales || 0) > 0 && (
+            <div className="flex items-center justify-between py-2 border-b border-slate-200">
+              <span className="text-slate-700 text-sm">  └─ Ventes à crédit (non encaissées)</span>
+              <span className="font-medium text-orange-600">
+                - {formatCurrency(sheet.creditSales || 0)} FCFA
+              </span>
+            </div>
+          )}
+
+          {/* Credit Payments (if any) - added to cash */}
+          {sheet && (sheet.creditPayments || 0) > 0 && (
+            <div className="flex items-center justify-between py-2 border-b border-slate-200">
+              <span className="text-slate-700">+ Règlements crédits reçus</span>
+              <span className="font-medium text-blue-600">
+                + {formatCurrency(sheet.creditPayments || 0)} FCFA
+              </span>
+            </div>
+          )}
 
           {/* Expenses */}
           <div className="flex items-center justify-between py-2 border-b border-slate-200">
