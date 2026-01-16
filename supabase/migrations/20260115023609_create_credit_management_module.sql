@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS credit_transactions (
   amount INTEGER NOT NULL CHECK (amount > 0), -- Toujours positif
   payment_method VARCHAR(20) CHECK (payment_method IN ('cash', 'mobile_money', 'transfer')),
   notes TEXT,
-  transaction_date DATE NOT NULL,
+  transaction_date DATE NOT NULL DEFAULT CURRENT_DATE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   created_by UUID REFERENCES auth.users(id)
 );
@@ -175,9 +175,35 @@ ALTER TABLE credit_transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE credit_transaction_items ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policy for credit_customers
-CREATE POLICY "Users can manage their organization credit customers"
-  ON credit_customers FOR ALL
-  USING (
+CREATE POLICY "credit_customers_select_policy" ON credit_customers
+  FOR SELECT USING (
+    organization_id IN (
+      SELECT id FROM organizations WHERE owner_id = auth.uid()
+      UNION
+      SELECT organization_id FROM organization_members WHERE user_id = auth.uid() AND status = 'active'
+    )
+  );
+
+CREATE POLICY "credit_customers_insert_policy" ON credit_customers
+  FOR INSERT WITH CHECK (
+    organization_id IN (
+      SELECT id FROM organizations WHERE owner_id = auth.uid()
+      UNION
+      SELECT organization_id FROM organization_members WHERE user_id = auth.uid() AND status = 'active'
+    )
+  );
+
+CREATE POLICY "credit_customers_update_policy" ON credit_customers
+  FOR UPDATE USING (
+    organization_id IN (
+      SELECT id FROM organizations WHERE owner_id = auth.uid()
+      UNION
+      SELECT organization_id FROM organization_members WHERE user_id = auth.uid() AND status = 'active'
+    )
+  );
+
+CREATE POLICY "credit_customers_delete_policy" ON credit_customers
+  FOR DELETE USING (
     organization_id IN (
       SELECT id FROM organizations WHERE owner_id = auth.uid()
       UNION
@@ -186,9 +212,35 @@ CREATE POLICY "Users can manage their organization credit customers"
   );
 
 -- RLS Policy for credit_transactions
-CREATE POLICY "Users can manage their organization credit transactions"
-  ON credit_transactions FOR ALL
-  USING (
+CREATE POLICY "credit_transactions_select_policy" ON credit_transactions
+  FOR SELECT USING (
+    organization_id IN (
+      SELECT id FROM organizations WHERE owner_id = auth.uid()
+      UNION
+      SELECT organization_id FROM organization_members WHERE user_id = auth.uid() AND status = 'active'
+    )
+  );
+
+CREATE POLICY "credit_transactions_insert_policy" ON credit_transactions
+  FOR INSERT WITH CHECK (
+    organization_id IN (
+      SELECT id FROM organizations WHERE owner_id = auth.uid()
+      UNION
+      SELECT organization_id FROM organization_members WHERE user_id = auth.uid() AND status = 'active'
+    )
+  );
+
+CREATE POLICY "credit_transactions_update_policy" ON credit_transactions
+  FOR UPDATE USING (
+    organization_id IN (
+      SELECT id FROM organizations WHERE owner_id = auth.uid()
+      UNION
+      SELECT organization_id FROM organization_members WHERE user_id = auth.uid() AND status = 'active'
+    )
+  );
+
+CREATE POLICY "credit_transactions_delete_policy" ON credit_transactions
+  FOR DELETE USING (
     organization_id IN (
       SELECT id FROM organizations WHERE owner_id = auth.uid()
       UNION
@@ -197,9 +249,41 @@ CREATE POLICY "Users can manage their organization credit transactions"
   );
 
 -- RLS Policy for credit_transaction_items
-CREATE POLICY "Users can manage credit transaction items"
-  ON credit_transaction_items FOR ALL
-  USING (
+CREATE POLICY "credit_transaction_items_select_policy" ON credit_transaction_items
+  FOR SELECT USING (
+    transaction_id IN (
+      SELECT id FROM credit_transactions WHERE organization_id IN (
+        SELECT id FROM organizations WHERE owner_id = auth.uid()
+        UNION
+        SELECT organization_id FROM organization_members WHERE user_id = auth.uid() AND status = 'active'
+      )
+    )
+  );
+
+CREATE POLICY "credit_transaction_items_insert_policy" ON credit_transaction_items
+  FOR INSERT WITH CHECK (
+    transaction_id IN (
+      SELECT id FROM credit_transactions WHERE organization_id IN (
+        SELECT id FROM organizations WHERE owner_id = auth.uid()
+        UNION
+        SELECT organization_id FROM organization_members WHERE user_id = auth.uid() AND status = 'active'
+      )
+    )
+  );
+
+CREATE POLICY "credit_transaction_items_update_policy" ON credit_transaction_items
+  FOR UPDATE USING (
+    transaction_id IN (
+      SELECT id FROM credit_transactions WHERE organization_id IN (
+        SELECT id FROM organizations WHERE owner_id = auth.uid()
+        UNION
+        SELECT organization_id FROM organization_members WHERE user_id = auth.uid() AND status = 'active'
+      )
+    )
+  );
+
+CREATE POLICY "credit_transaction_items_delete_policy" ON credit_transaction_items
+  FOR DELETE USING (
     transaction_id IN (
       SELECT id FROM credit_transactions WHERE organization_id IN (
         SELECT id FROM organizations WHERE owner_id = auth.uid()
@@ -219,3 +303,52 @@ COMMENT ON TABLE credit_transaction_items IS 'Détail des articles dans les cons
 COMMENT ON FUNCTION update_customer_balance() IS 'Met à jour le solde client après transaction';
 COMMENT ON FUNCTION update_credit_customers_updated_at() IS 'Met à jour updated_at automatiquement';
 COMMENT ON FUNCTION update_daily_sheet_credits() IS 'Met à jour les totaux crédits dans daily_sheets';
+
+-- ============================================
+-- 8. ADDITIONAL CONSTRAINTS AND VALIDATION
+-- ============================================
+
+-- Add check constraint for payment method only when transaction_type = 'payment'
+ALTER TABLE credit_transactions
+ADD CONSTRAINT check_payment_method_valid
+CHECK (
+  (transaction_type = 'payment' AND payment_method IN ('cash', 'mobile_money', 'transfer')) OR
+  (transaction_type = 'consumption' AND payment_method IS NULL)
+);
+
+-- Add default value for transaction_date
+ALTER TABLE credit_transactions
+ALTER COLUMN transaction_date SET DEFAULT CURRENT_DATE;
+
+-- Add check constraint for balance not exceeding limit (when limit > 0)
+CREATE OR REPLACE FUNCTION check_credit_limit()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_credit_limit INTEGER;
+  v_new_balance INTEGER;
+BEGIN
+  IF NEW.transaction_type = 'consumption' THEN
+    -- Get customer credit limit
+    SELECT credit_limit INTO v_credit_limit
+    FROM credit_customers
+    WHERE id = NEW.customer_id;
+    
+    -- Calculate what the new balance would be
+    SELECT current_balance + NEW.amount INTO v_new_balance
+    FROM credit_customers
+    WHERE id = NEW.customer_id;
+    
+    -- Check if limit is exceeded (if limit > 0)
+    IF v_credit_limit > 0 AND v_new_balance > v_credit_limit THEN
+      RAISE EXCEPTION 'Credit limit exceeded. Limit: %, New balance: %', v_credit_limit, v_new_balance;
+    END IF;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_check_credit_limit
+BEFORE INSERT ON credit_transactions
+FOR EACH ROW
+EXECUTE FUNCTION check_credit_limit();
