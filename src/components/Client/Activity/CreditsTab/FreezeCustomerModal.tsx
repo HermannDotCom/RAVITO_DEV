@@ -130,7 +130,7 @@ export const FreezeCustomerModal: React.FC<FreezeCustomerModalProps> = ({
                       name="freezeOption"
                       value="freeze_full"
                       checked={selectedOption === 'freeze_full'}
-                      onChange={(e) => setSelectedOption(e.target.value as any)}
+                      onChange={(e) => setSelectedOption(e.target.value as 'freeze_full' | 'reduce_limit' | 'disable')}
                       className="mt-1"
                     />
                     <div className="flex-1">
@@ -156,7 +156,7 @@ export const FreezeCustomerModal: React.FC<FreezeCustomerModalProps> = ({
                       name="freezeOption"
                       value="reduce_limit"
                       checked={selectedOption === 'reduce_limit'}
-                      onChange={(e) => setSelectedOption(e.target.value as any)}
+                      onChange={(e) => setSelectedOption(e.target.value as 'freeze_full' | 'reduce_limit' | 'disable')}
                       className="mt-1"
                     />
                     <div className="flex-1">
@@ -191,7 +191,7 @@ export const FreezeCustomerModal: React.FC<FreezeCustomerModalProps> = ({
                       name="freezeOption"
                       value="disable"
                       checked={selectedOption === 'disable'}
-                      onChange={(e) => setSelectedOption(e.target.value as any)}
+                      onChange={(e) => setSelectedOption(e.target.value as 'freeze_full' | 'reduce_limit' | 'disable')}
                       className="mt-1"
                     />
                     <div className="flex-1">

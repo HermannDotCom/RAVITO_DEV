@@ -244,7 +244,6 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
       {!alertsLoading && alerts.length > 0 && (
         <CreditAlerts
           alerts={alerts}
-          onCall={(alert) => {/* Phone call handled by phone link in component */}}
           onCollect={handleCollectFromAlert}
           onFreeze={handleFreezeFromAlert}
           isReadOnly={isReadOnly}

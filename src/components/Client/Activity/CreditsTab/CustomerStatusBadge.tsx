@@ -1,5 +1,5 @@
 import React from 'react';
-import { Snowflake, XCircle, CheckCircle } from 'lucide-react';
+import { Snowflake, XCircle } from 'lucide-react';
 import { CustomerStatus } from '../../../../types/activity';
 
 interface CustomerStatusBadgeProps {

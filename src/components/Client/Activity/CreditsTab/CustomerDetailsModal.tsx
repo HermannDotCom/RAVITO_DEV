@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, User, Phone, MapPin, Calendar, TrendingUp, TrendingDown, FileText, Eye, Edit } from 'lucide-react';
-import { CreditCustomer, CreditTransaction, CreditTransactionItem, PAYMENT_METHOD_LABELS } from '../../../../types/activity';
+import { CreditCustomer, CreditTransactionItem, PAYMENT_METHOD_LABELS } from '../../../../types/activity';
 import { useCustomerDetails } from '../hooks/useCustomerDetails';
 
 interface CustomerDetailsModalProps {

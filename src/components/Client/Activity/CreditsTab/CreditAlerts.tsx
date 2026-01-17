@@ -4,7 +4,6 @@ import { CreditAlert } from '../../../../types/activity';
 
 interface CreditAlertsProps {
   alerts: CreditAlert[];
-  onCall: (alert: CreditAlert) => void;
   onCollect: (alert: CreditAlert) => void;
   onFreeze: (alert: CreditAlert) => void;
   isReadOnly: boolean;
@@ -12,7 +11,6 @@ interface CreditAlertsProps {
 
 export const CreditAlerts: React.FC<CreditAlertsProps> = ({
   alerts,
-  onCall,
   onCollect,
   onFreeze,
   isReadOnly,

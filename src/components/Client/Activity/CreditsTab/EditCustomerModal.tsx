@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Edit, Trash2, Calendar, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { X, Edit, Trash2, AlertTriangle } from 'lucide-react';
 import { CreditCustomer, UpdateCustomerData, CUSTOMER_STATUS_LABELS } from '../../../../types/activity';
 
 interface EditCustomerModalProps {
@@ -262,7 +262,7 @@ export const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
                   </label>
                   <select
                     value={status}
-                    onChange={(e) => setStatus(e.target.value as any)}
+                    onChange={(e) => setStatus(e.target.value as 'active' | 'frozen' | 'disabled')}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   >
                     <option value="active">{CUSTOMER_STATUS_LABELS.active}</option>
