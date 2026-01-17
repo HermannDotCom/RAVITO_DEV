@@ -6,12 +6,27 @@
 -- ============================================
 -- 1. ADD NEW COLUMNS TO CREDIT_CUSTOMERS
 -- ============================================
+-- D'abord ajouter les colonnes
 ALTER TABLE credit_customers
-ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active' 
-  CHECK (status IN ('active', 'frozen', 'disabled')),
+ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active',
 ADD COLUMN IF NOT EXISTS last_payment_date DATE,
 ADD COLUMN IF NOT EXISTS freeze_reason TEXT,
 ADD COLUMN IF NOT EXISTS frozen_at TIMESTAMPTZ;
+
+-- Puis ajouter la contrainte CHECK (sans IF NOT EXISTS)
+-- On utilise une approche conditionnelle
+DO $$
+BEGIN
+  -- Vérifier si la contrainte n'existe pas déjà
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'credit_customers_status_check'
+  ) THEN
+    ALTER TABLE credit_customers 
+    ADD CONSTRAINT credit_customers_status_check 
+    CHECK (status IN ('active', 'frozen', 'disabled'));
+  END IF;
+END $$;
 
 COMMENT ON COLUMN credit_customers.status IS 'active = peut consommer, frozen = gelé, disabled = désactivé';
 COMMENT ON COLUMN credit_customers.last_payment_date IS 'Date du dernier règlement';
@@ -121,8 +136,4 @@ COMMENT ON VIEW credit_alerts IS 'Vue pour les alertes de crédit avec calcul de
 -- ============================================
 -- 5. GRANT PERMISSIONS ON VIEW
 -- ============================================
--- Users can read from the view if they have access to credit_customers
--- The view respects the same RLS policies as credit_customers
-
--- Note: Views in Supabase don't automatically inherit RLS
--- We need to ensure queries filter by organization_id in the application layer
+GRANT SELECT ON credit_alerts TO authenticated;
