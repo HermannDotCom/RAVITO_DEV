@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { FileDown, Calendar, AlertCircle, Package } from 'lucide-react';
 import { useMonthlyData } from '../../../hooks/useMonthlyData';
 import { useOrganizationName } from '../../../hooks/useOrganizationName';
+import { useMonthlyCreditStats } from './hooks/useMonthlyCreditStats';
 import { MonthlyKPIs } from './MonthlyTab/MonthlyKPIs';
 import { MonthlyCharts } from './MonthlyTab/MonthlyCharts';
 import { MonthlyTable } from './MonthlyTab/MonthlyTable';
+import { MonthlyCreditSummary } from './MonthlyTab/MonthlyCreditSummary';
 import { generateMonthlyPDF } from './PDFExport/generateMonthlyPDF';
 import { KenteLoader } from '../../ui/KenteLoader';
 
@@ -21,6 +23,12 @@ export const MonthlyTab: React.FC<MonthlyTabProps> = ({ organizationId }) => {
   const { organizationName } = useOrganizationName();
 
   const { data, loading, error } = useMonthlyData({
+    organizationId,
+    month: selectedMonth,
+    year: selectedYear,
+  });
+
+  const { stats: creditStats, loading: creditLoading } = useMonthlyCreditStats({
     organizationId,
     month: selectedMonth,
     year: selectedYear,
@@ -159,6 +167,11 @@ export const MonthlyTab: React.FC<MonthlyTabProps> = ({ organizationId }) => {
         <>
           {/* KPIs Section */}
           <MonthlyKPIs kpis={data.kpis} previousMonthKPIs={data.previousMonthKPIs} />
+
+          {/* Credit Summary Section */}
+          {creditStats && !creditLoading && (
+            <MonthlyCreditSummary stats={creditStats} />
+          )}
 
           {/* Top Products Section */}
           {data.topProducts.length > 0 && (
