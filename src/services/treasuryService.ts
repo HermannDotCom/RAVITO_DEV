@@ -347,7 +347,7 @@ export async function getSupplierFinancialSummary(
     }
 
     const orderCount = data?.length || 0;
-    const totalAmount = data?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
+    const totalAmount = data?.reduce((sum, order) => sum + (order.base_amount || order.total_amount || 0), 0) || 0;
     const totalCommissions = data?.reduce((sum, order) => sum + (order.supplier_commission || 0), 0) || 0;
     const totalNet = data?.reduce((sum, order) => sum + (order.net_supplier_amount || 0), 0) || 0;
     
@@ -474,7 +474,7 @@ export async function getSupplierTransactionHistory(
         date: new Date(order.delivered_at || order.created_at),
         orderNumber: order.id.substring(0, 8).toUpperCase(),
         counterpartyName: clientName,
-        amountHT: order.total_amount || 0,
+        amountHT: order.base_amount || order.total_amount || 0,
         commission: order.supplier_commission || 0,
         totalAmount: order.net_supplier_amount || 0,
         status: transferStatus,
@@ -536,10 +536,10 @@ export async function getSupplierMonthlyStats(
       }
 
       monthlyData[month].orderCount += 1;
-      monthlyData[month].totalHT += order.total_amount || 0;
+      monthlyData[month].totalHT += order.base_amount || order.total_amount || 0;
       monthlyData[month].commissions += order.supplier_commission || 0;
       monthlyData[month].netAmount = (monthlyData[month].netAmount || 0) + (order.net_supplier_amount || 0);
-      monthlyData[month].totalTTC += order.total_amount || 0;
+      monthlyData[month].totalTTC += order.base_amount || order.total_amount || 0;
     });
 
     // Return sorted by month

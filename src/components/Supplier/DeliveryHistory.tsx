@@ -154,7 +154,7 @@ export const DeliveryHistory: React.FC<DeliveryHistoryProps> = ({ onNavigate, on
     clientEmail: clientProfiles[order.clientId]?.email,
     address: order.deliveryAddress,
     items: order.items.length,
-    total: order.totalAmount,
+    total: order.baseAmount || order.totalAmount,
     deliveredAt: order.deliveredAt || new Date(),
     rating: orderRatings[order.id] ?? null, // Use order-specific rating or null if not rated
     distance: '2.3 km', // Mock distance
