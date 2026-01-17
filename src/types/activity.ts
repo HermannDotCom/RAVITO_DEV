@@ -301,6 +301,8 @@ export interface AnnualData {
 // CREDIT MANAGEMENT TYPES
 // ============================================
 
+export type CustomerStatus = 'active' | 'frozen' | 'disabled';
+
 export interface CreditCustomer {
   id: string;
   organizationId: string;
@@ -313,6 +315,10 @@ export interface CreditCustomer {
   totalCredited: number; // Total crédité historique
   totalPaid: number; // Total réglé historique
   isActive: boolean;
+  status: CustomerStatus; // Nouveau: active, frozen, disabled
+  lastPaymentDate?: string; // Nouveau: date du dernier règlement
+  freezeReason?: string; // Nouveau: motif du gel
+  frozenAt?: string; // Nouveau: date du gel
   createdAt: string;
   updatedAt: string;
 }
@@ -377,4 +383,95 @@ export const PAYMENT_METHOD_LABELS = {
   mobile_money: 'Mobile Money',
   transfer: 'Virement',
 } as const;
+
+export const CUSTOMER_STATUS_LABELS = {
+  active: 'Actif',
+  frozen: 'Gelé',
+  disabled: 'Désactivé',
+} as const;
+
+// ============================================
+// CREDIT ALERTS AND STATUS TYPES
+// ============================================
+
+export type AlertLevel = 'normal' | 'warning' | 'critical';
+
+export interface CreditAlert {
+  id: string;
+  organizationId: string;
+  name: string;
+  phone?: string;
+  currentBalance: number;
+  lastPaymentDate?: string;
+  status: CustomerStatus;
+  creditLimit: number;
+  createdAt: string;
+  daysSincePayment: number;
+  alertLevel: AlertLevel;
+}
+
+export interface FreezeCustomerData {
+  option: 'freeze_full' | 'reduce_limit' | 'disable';
+  newLimit?: number;
+  reason?: string;
+}
+
+export interface UpdateCustomerData {
+  name?: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  creditLimit?: number;
+  status?: CustomerStatus;
+}
+
+// ============================================
+// MONTHLY/ANNUAL CREDIT STATISTICS
+// ============================================
+
+export interface MonthlyCreditStats {
+  totalCredited: number; // Crédits accordés
+  totalPaid: number; // Crédits encaissés
+  endBalance: number; // Solde fin de mois
+  recoveryRate: number; // Taux de recouvrement %
+  alertsCount: number; // Nombre de clients en alerte
+  amountAtRisk: number; // Montant à risque
+  topDebtors: CustomerDebt[];
+}
+
+export interface CustomerDebt {
+  id: string;
+  name: string;
+  balance: number;
+  lastPaymentDate?: string;
+  daysSincePayment: number;
+  alertLevel: AlertLevel;
+}
+
+export interface AnnualCreditStats {
+  totalCredited: number;
+  totalPaid: number;
+  endBalance: number;
+  recoveryRate: number;
+  previousYearComparison?: number; // Evolution vs N-1 en %
+  monthlyData: MonthlyCreditData[];
+  topCustomers: CustomerStats[];
+  atRiskCustomers: CustomerStats[];
+}
+
+export interface MonthlyCreditData {
+  month: number;
+  monthName: string;
+  credited: number;
+  paid: number;
+}
+
+export interface CustomerStats {
+  id: string;
+  name: string;
+  totalCredited: number;
+  totalPaid: number;
+  recoveryRate: number;
+  currentBalance: number;
+}
 

@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { FileDown, Calendar, AlertCircle, Package } from 'lucide-react';
 import { useAnnualData } from '../../../hooks/useAnnualData';
 import { useOrganizationName } from '../../../hooks/useOrganizationName';
+import { useAnnualCreditStats } from './hooks/useAnnualCreditStats';
 import { AnnualKPIs } from './AnnualTab/AnnualKPIs';
 import { AnnualCharts } from './AnnualTab/AnnualCharts';
 import { AnnualTable } from './AnnualTab/AnnualTable';
+import { AnnualCreditSummary } from './AnnualTab/AnnualCreditSummary';
 import { generateAnnualPDF } from './PDFExport/generateAnnualPDF';
 import { KenteLoader } from '../../ui/KenteLoader';
 import { formatCurrency } from '../../../utils/activityUtils';
@@ -21,6 +23,11 @@ export const AnnualTab: React.FC<AnnualTabProps> = ({ organizationId }) => {
   const { organizationName } = useOrganizationName();
 
   const { data, loading, error } = useAnnualData({
+    organizationId,
+    year: selectedYear,
+  });
+
+  const { stats: creditStats, loading: creditLoading } = useAnnualCreditStats({
     organizationId,
     year: selectedYear,
   });
@@ -126,6 +133,11 @@ export const AnnualTab: React.FC<AnnualTabProps> = ({ organizationId }) => {
         <>
           {/* KPIs Section */}
           <AnnualKPIs kpis={data.kpis} previousYearKPIs={data.previousYearKPIs} />
+
+          {/* Credit Summary Section */}
+          {creditStats && !creditLoading && (
+            <AnnualCreditSummary stats={creditStats} />
+          )}
 
           {/* Top Products Section */}
           {data.topProducts.length > 0 && (

@@ -1,9 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CreditCard, Plus, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
-import { CreditCustomer } from '../../../types/activity';
+import { CreditCustomer, CreditAlert, FreezeCustomerData, UpdateCustomerData } from '../../../types/activity';
 import { useCreditCustomers } from './hooks/useCreditCustomers';
 import { useCreditTransactions } from './hooks/useCreditTransactions';
+import { useCreditAlerts } from './hooks/useCreditAlerts';
+import { freezeCustomer, unfreezeCustomer, updateCustomerInfo, deleteCustomer } from '../../../services/creditService';
 import { CreditKPIs } from './CreditsTab/CreditKPIs';
 import { CustomerSearch } from './CreditsTab/CustomerSearch';
 import { CustomerCard } from './CreditsTab/CustomerCard';
@@ -11,12 +13,17 @@ import { NewCustomerModal } from './CreditsTab/NewCustomerModal';
 import { AddConsumptionModal } from './CreditsTab/AddConsumptionModal';
 import { PaymentModal } from './CreditsTab/PaymentModal';
 import { CustomerDetailsModal } from './CreditsTab/CustomerDetailsModal';
+import { CreditAlerts } from './CreditsTab/CreditAlerts';
+import { FreezeCustomerModal } from './CreditsTab/FreezeCustomerModal';
+import { UnfreezeCustomerModal } from './CreditsTab/UnfreezeCustomerModal';
+import { EditCustomerModal } from './CreditsTab/EditCustomerModal';
 
 interface CreditsTabProps {
   organizationId: string;
   dailySheetId?: string;
   isReadOnly: boolean;
   onReload?: () => void;
+  onAlertCountChange?: (count: number) => void;
 }
 
 export const CreditsTab: React.FC<CreditsTabProps> = ({
@@ -24,6 +31,7 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
   dailySheetId,
   isReadOnly,
   onReload,
+  onAlertCountChange,
 }) => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,7 +39,11 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
   const [showConsumptionModal, setShowConsumptionModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showFreezeModal, setShowFreezeModal] = useState(false);
+  const [showUnfreezeModal, setShowUnfreezeModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CreditCustomer | null>(null);
+  const [selectedAlert, setSelectedAlert] = useState<CreditAlert | null>(null);
 
   const {
     customers,
@@ -41,6 +53,16 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
     reload,
     addCustomer,
   } = useCreditCustomers({ organizationId });
+
+  const {
+    alerts,
+    criticalCount,
+    warningCount,
+    totalAtRisk,
+    loading: alertsLoading,
+    error: alertsError,
+    reload: reloadAlerts,
+  } = useCreditAlerts({ organizationId });
 
   const {
     addConsumption,
@@ -64,6 +86,14 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
         customer.phone?.toLowerCase().includes(term)
     );
   }, [customers, searchTerm]);
+
+  // Notify parent of alert count changes
+  useEffect(() => {
+    if (onAlertCountChange) {
+      const totalAlerts = criticalCount + warningCount;
+      onAlertCountChange(totalAlerts);
+    }
+  }, [criticalCount, warningCount, onAlertCountChange]);
 
   const handleAddConsumption = (customer: CreditCustomer) => {
     setSelectedCustomer(customer);
@@ -113,6 +143,79 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
     return false;
   };
 
+  const handleFreezeFromAlert = (alert: CreditAlert) => {
+    // Find the full customer from customers list
+    const fullCustomer = customers.find(c => c.id === alert.id);
+    if (fullCustomer) {
+      setSelectedCustomer(fullCustomer);
+      setShowFreezeModal(true);
+    }
+  };
+
+  const handleCollectFromAlert = (alert: CreditAlert) => {
+    const fullCustomer = customers.find(c => c.id === alert.id);
+    if (fullCustomer) {
+      handleAddPayment(fullCustomer);
+    }
+  };
+
+  const handleFreezeCustomer = async (data: FreezeCustomerData) => {
+    if (!selectedCustomer) return false;
+    const result = await freezeCustomer(selectedCustomer.id, data);
+    if (result.success) {
+      await reload();
+      await reloadAlerts();
+      return true;
+    }
+    return false;
+  };
+
+  const handleUnfreezeCustomer = async (newLimit?: number) => {
+    if (!selectedCustomer) return false;
+    const result = await unfreezeCustomer(selectedCustomer.id, newLimit);
+    if (result.success) {
+      await reload();
+      await reloadAlerts();
+      setShowUnfreezeModal(false);
+      setSelectedCustomer(null);
+      return true;
+    }
+    return false;
+  };
+
+  const handleEditCustomer = async (data: UpdateCustomerData) => {
+    if (!selectedCustomer) return false;
+    const result = await updateCustomerInfo(selectedCustomer.id, data);
+    if (result.error) {
+      return false;
+    }
+    await reload();
+    await reloadAlerts();
+    return true;
+  };
+
+  const handleDeleteCustomer = async () => {
+    if (!selectedCustomer) return false;
+    const result = await deleteCustomer(selectedCustomer.id);
+    if (result.success) {
+      await reload();
+      await reloadAlerts();
+      return true;
+    }
+    return false;
+  };
+
+  const handleShowEdit = (customer: CreditCustomer) => {
+    setSelectedCustomer(customer);
+    setShowDetailsModal(false);
+    setShowEditModal(true);
+  };
+
+  const handleUnfreeze = (customer: CreditCustomer) => {
+    setSelectedCustomer(customer);
+    setShowUnfreezeModal(true);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -136,6 +239,16 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
         totalCredit={statistics.totalCredit}
         customersWithBalance={statistics.customersWithBalance}
       />
+
+      {/* Alerts Section */}
+      {!alertsLoading && alerts.length > 0 && (
+        <CreditAlerts
+          alerts={alerts}
+          onCollect={handleCollectFromAlert}
+          onFreeze={handleFreezeFromAlert}
+          isReadOnly={isReadOnly}
+        />
+      )}
 
       {/* Search */}
       <CustomerSearch searchTerm={searchTerm} onSearchChange={setSearchTerm} />
@@ -203,6 +316,7 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
               onAddConsumption={handleAddConsumption}
               onAddPayment={handleAddPayment}
               onViewDetails={handleViewDetails}
+              onUnfreeze={handleUnfreeze}
               isReadOnly={isReadOnly}
             />
           ))}
@@ -247,6 +361,41 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
             setShowDetailsModal(false);
             setSelectedCustomer(null);
           }}
+          onEdit={handleShowEdit}
+        />
+      )}
+
+      {showFreezeModal && selectedCustomer && (
+        <FreezeCustomerModal
+          customer={selectedCustomer}
+          onClose={() => {
+            setShowFreezeModal(false);
+            setSelectedCustomer(null);
+          }}
+          onSubmit={handleFreezeCustomer}
+        />
+      )}
+
+      {showUnfreezeModal && selectedCustomer && (
+        <UnfreezeCustomerModal
+          customer={selectedCustomer}
+          onClose={() => {
+            setShowUnfreezeModal(false);
+            setSelectedCustomer(null);
+          }}
+          onSubmit={handleUnfreezeCustomer}
+        />
+      )}
+
+      {showEditModal && selectedCustomer && (
+        <EditCustomerModal
+          customer={selectedCustomer}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedCustomer(null);
+          }}
+          onSubmit={handleEditCustomer}
+          onDelete={handleDeleteCustomer}
         />
       )}
     </div>

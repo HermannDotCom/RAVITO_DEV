@@ -22,6 +22,7 @@ export const ActivityPage: React. FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
+  const [creditAlertsCount, setCreditAlertsCount] = useState(0);
 
   // organizationId est déjà une string, pas besoin de organization?. id
   
@@ -126,7 +127,7 @@ export const ActivityPage: React. FC = () => {
 
   const tabs: { id: ActivityTab; label: string; badge?: number }[] = [
     { id: 'stocks', label: 'Ventes' },
-    { id: 'credits', label: 'Crédits' },
+    { id: 'credits', label: 'Crédits', badge: creditAlertsCount > 0 ? creditAlertsCount : undefined },
     { id: 'packaging', label: 'Emballages', badge: calculations.packagingAlerts.length },
     { id: 'cash', label: 'Caisse' },
     { id: 'summary', label: 'Synthèse' },
@@ -271,6 +272,7 @@ export const ActivityPage: React. FC = () => {
               dailySheetId={sheet?.id}
               isReadOnly={sheet?.status === 'closed'}
               onReload={reload}
+              onAlertCountChange={setCreditAlertsCount}
             />
           )}
 

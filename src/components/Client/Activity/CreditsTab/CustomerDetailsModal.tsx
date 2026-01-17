@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { X, User, Phone, MapPin, Calendar, TrendingUp, TrendingDown, FileText, Eye } from 'lucide-react';
-import { CreditCustomer, CreditTransaction, CreditTransactionItem, PAYMENT_METHOD_LABELS } from '../../../../types/activity';
+import { X, User, Phone, MapPin, Calendar, TrendingUp, TrendingDown, FileText, Eye, Edit } from 'lucide-react';
+import { CreditCustomer, CreditTransactionItem, PAYMENT_METHOD_LABELS } from '../../../../types/activity';
 import { useCustomerDetails } from '../hooks/useCustomerDetails';
 
 interface CustomerDetailsModalProps {
   customer: CreditCustomer;
   onClose: () => void;
+  onEdit?: (customer: CreditCustomer) => void;
 }
 
 type FilterType = 'all' | 'week' | 'month';
@@ -13,6 +14,7 @@ type FilterType = 'all' | 'week' | 'month';
 export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
   customer,
   onClose,
+  onEdit,
 }) => {
   const [filter, setFilter] = useState<FilterType>('all');
   const [expandedTransaction, setExpandedTransaction] = useState<string | null>(null);
@@ -46,6 +48,16 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
     });
   };
 
+  const calculateDaysSincePayment = () => {
+    if (!customer.lastPaymentDate) {
+      return null;
+    }
+    const lastPayment = new Date(customer.lastPaymentDate);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - lastPayment.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
   const filterTransactions = () => {
     if (filter === 'all') return transactions;
     
@@ -62,6 +74,7 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
   };
 
   const filteredTransactions = filterTransactions();
+  const daysSincePayment = calculateDaysSincePayment();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -77,12 +90,23 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
               <p className="text-sm text-slate-600">Détails du client</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-600"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onEdit && (
+              <button
+                onClick={() => onEdit(customer)}
+                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                title="Modifier"
+              >
+                <Edit className="w-5 h-5 text-slate-600" />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -106,6 +130,23 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
               <Calendar className="w-4 h-4 text-slate-500" />
               <span>Client depuis le {formatDate(customer.createdAt)}</span>
             </div>
+            {customer.lastPaymentDate && daysSincePayment !== null && (
+              <div className="text-sm text-slate-700">
+                <span className="text-slate-500">Dernier règlement:</span>{' '}
+                <span className={`font-medium ${
+                  daysSincePayment > 45 ? 'text-red-600' :
+                  daysSincePayment > 30 ? 'text-orange-600' :
+                  'text-green-600'
+                }`}>
+                  {formatDate(customer.lastPaymentDate)} ({daysSincePayment} jours)
+                </span>
+              </div>
+            )}
+            {!customer.lastPaymentDate && customer.currentBalance > 0 && (
+              <div className="text-sm text-orange-600 font-medium">
+                Aucun règlement depuis la création
+              </div>
+            )}
             {customer.notes && (
               <div className="mt-2 pt-2 border-t border-slate-200">
                 <p className="text-xs text-slate-500 mb-1">Notes:</p>
