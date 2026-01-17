@@ -161,7 +161,7 @@ export const Treasury: React.FC = () => {
       if (!order.supplierId) return acc;
 
       const existingSupplier = acc.find(s => s.supplierId === order.supplierId);
-      const netAmount = order.totalAmount * (1 - PLATFORM_COMMISSION);
+      const netAmount = (order.baseAmount || order.totalAmount) * (1 - PLATFORM_COMMISSION);
 
       if (existingSupplier) {
         existingSupplier.totalAmount += netAmount;
@@ -317,8 +317,8 @@ export const Treasury: React.FC = () => {
           id: order.id,
           clientName,
           articles: count || 0,
-          totalAmount: order.total_amount,
-          netAmount: order.total_amount * (1 - PLATFORM_COMMISSION),
+          totalAmount: order.base_amount || order.total_amount,
+          netAmount: (order.base_amount || order.total_amount) * (1 - PLATFORM_COMMISSION),
           deliveredAt: new Date(order.delivered_at)
         };
       }));
@@ -599,13 +599,13 @@ export const Treasury: React.FC = () => {
                             <span className="font-medium text-gray-900 ml-2">{order.items.length}</span>
                           </div>
                           <div>
-                            <span className="text-gray-600">Montant offre:</span>
-                            <span className="font-medium text-gray-900 ml-2">{formatPrice(order.totalAmount)}</span>
+                            <span className="text-gray-600">Montant commande:</span>
+                            <span className="font-medium text-gray-900 ml-2">{formatPrice(order.baseAmount || order.totalAmount)}</span>
                           </div>
                           <div>
                             <span className="text-gray-600">Net fournisseur:</span>
                             <span className="font-bold text-green-600 ml-2">
-                              {formatPrice(order.totalAmount * (1 - PLATFORM_COMMISSION))}
+                              {formatPrice((order.baseAmount || order.totalAmount) * (1 - PLATFORM_COMMISSION))}
                             </span>
                           </div>
                         </div>
@@ -717,7 +717,7 @@ export const Treasury: React.FC = () => {
                             <span className="font-medium text-gray-900 ml-1">{order.articles}</span>
                           </div>
                           <div>
-                            <span className="text-gray-600">Montant offre:</span>
+                            <span className="text-gray-600">Montant commande:</span>
                             <span className="font-medium text-gray-900 ml-1">{formatPrice(order.totalAmount)}</span>
                           </div>
                           <div>
