@@ -303,7 +303,7 @@ export const Treasury: React.FC = () => {
       const orderIds = transferOrders.map(to => to.orderId);
       const { data: ordersData } = await supabase
         .from('orders')
-        .select('id, client_id, total_amount, delivered_at')
+        .select('id, client_id, base_amount, total_amount, delivered_at')
         .in('id', orderIds);
 
       const orderDetails = await Promise.all((ordersData || []).map(async (order) => {
