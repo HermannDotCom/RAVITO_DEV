@@ -97,7 +97,7 @@ export const CashTab: React.FC<CashTabProps> = ({
       {/* Revenue Section */}
       <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 sm:p-4 border-2 border-green-200">
         <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-4 w-4 sm:w-5 sm:h-5 text-green-600" />
+          <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
           <h3 className="text-sm sm:text-base font-bold text-green-900">Chiffre d'Affaires Théorique</h3>
         </div>
         <p className="text-2xl sm:text-3xl font-bold text-green-900">
@@ -125,7 +125,7 @@ export const CashTab: React.FC<CashTabProps> = ({
       {sheet && (sheet.creditPayments || 0) > 0 && (
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4 border-2 border-blue-200">
           <div className="flex items-center gap-2 mb-2">
-            <Wallet className="w-4 w-4 sm:w-5 sm:h-5 text-blue-600" />
+            <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
             <h3 className="text-sm sm:text-base font-bold text-blue-900">Règlements Crédits Reçus</h3>
           </div>
           <p className="text-2xl sm:text-3xl font-bold text-blue-900">
