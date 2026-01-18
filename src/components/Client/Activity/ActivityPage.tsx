@@ -214,17 +214,43 @@ export const ActivityPage: React. FC = () => {
         {/* Tabs */}
         <div className="mb-6">
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2">
-            <div className={`grid ${getGridCols()} gap-2`}>
+            {/* Desktop: Grid layout */}
+            <div className="hidden sm:grid sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-2">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
-                    relative px-3 py-2 sm:px-4 sm:py-3 rounded-lg font-medium text-sm sm:text-base transition-colors
+                    relative px-4 py-3 rounded-lg font-medium text-sm transition-colors
                     ${
                       activeTab === tab.id
                         ? 'bg-orange-500 text-white shadow-md'
                         : 'text-slate-600 hover:bg-slate-100'
+                    }
+                  `}
+                >
+                  {tab.label}
+                  {tab.badge !== undefined && tab.badge > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {tab.badge}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+            
+            {/* Mobile: Horizontal scroll */}
+            <div className="sm:hidden flex overflow-x-auto gap-2 scrollbar-hide touch-action-pan-x pb-1">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    relative px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap flex-shrink-0 transition-colors
+                    ${
+                      activeTab === tab.id
+                        ? 'bg-orange-500 text-white shadow-md'
+                        : 'text-slate-600 hover:bg-slate-100 border border-slate-200'
                     }
                   `}
                 >

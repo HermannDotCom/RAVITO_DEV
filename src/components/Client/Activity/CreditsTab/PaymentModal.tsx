@@ -65,17 +65,17 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+      <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-2xl w-full h-[90vh] sm:h-auto sm:max-w-lg sm:max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 sticky top-0 bg-white">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 sticky top-0 bg-white">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <DollarSign className="w-4 h-4 text-green-600" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Encaisser un Règlement</h3>
-              <p className="text-sm text-slate-600">{customer.name}</p>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900">Encaisser un Règlement</h3>
+              <p className="text-xs sm:text-sm text-slate-600">{customer.name}</p>
             </div>
           </div>
           <button
@@ -83,17 +83,17 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             className="text-slate-400 hover:text-slate-600"
             disabled={submitting}
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3 sm:space-y-4">
           {/* Current Balance */}
-          <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+          <div className="bg-orange-50 rounded-lg p-3 sm:p-4 border border-orange-200">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-orange-900">Solde dû actuel:</span>
-              <span className="text-xl font-bold text-orange-600">
+              <span className="text-xs sm:text-sm font-medium text-orange-900">Solde dû actuel:</span>
+              <span className="text-lg sm:text-xl font-bold text-orange-600">
                 {formatCurrency(customer.currentBalance)} FCFA
               </span>
             </div>
@@ -101,7 +101,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
           {/* Amount */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
               Montant à encaisser (FCFA) *
             </label>
             <input
@@ -111,7 +111,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Entrez le montant"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm sm:text-base focus:ring-2 focus:ring-green-500 focus:border-green-500"
               autoFocus
               required
             />
@@ -135,7 +135,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
           {/* Payment Method */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
               Mode de paiement *
             </label>
             <div className="space-y-2">
@@ -143,7 +143,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 (method) => (
                   <label
                     key={method}
-                    className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-colors ${
+                    className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 border-2 rounded-lg cursor-pointer transition-colors ${
                       paymentMethod === method
                         ? 'border-green-500 bg-green-50'
                         : 'border-slate-200 hover:border-slate-300'
@@ -157,9 +157,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                       onChange={(e) =>
                         setPaymentMethod(e.target.value as 'cash' | 'mobile_money' | 'transfer')
                       }
-                      className="w-4 h-4 text-green-600"
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600"
                     />
-                    <span className="font-medium text-slate-900">
+                    <span className="text-sm sm:text-base font-medium text-slate-900">
                       {PAYMENT_METHOD_LABELS[method]}
                     </span>
                   </label>
@@ -170,7 +170,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
               Note (optionnel)
             </label>
             <textarea
@@ -178,27 +178,27 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Informations complémentaires..."
               rows={2}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm sm:text-base focus:ring-2 focus:ring-green-500 focus:border-green-500"
             />
           </div>
 
           {/* New Balance Preview */}
           {amountNum > 0 && !isOverpayment && (
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border-2 border-green-200">
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 sm:p-4 border-2 border-green-200">
               <div className="space-y-2">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs sm:text-sm">
                   <span className="text-slate-700">Montant à encaisser:</span>
                   <span className="font-bold text-slate-900">{formatCurrency(amountNum)} FCFA</span>
                 </div>
                 <div className="h-px bg-green-300"></div>
                 <div className="flex justify-between">
-                  <span className="font-medium text-slate-900">Nouveau solde:</span>
-                  <span className="font-bold text-lg text-green-600">
+                  <span className="text-sm sm:text-base font-medium text-slate-900">Nouveau solde:</span>
+                  <span className="font-bold text-base sm:text-lg text-green-600">
                     {formatCurrency(newBalance)} FCFA
                   </span>
                 </div>
                 {isFullPayment && (
-                  <div className="flex items-center gap-1 text-sm text-green-700 mt-1">
+                  <div className="flex items-center gap-1 text-xs sm:text-sm text-green-700 mt-1">
                     <span>✓ Solde entièrement réglé</span>
                   </div>
                 )}
@@ -207,34 +207,34 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           )}
 
           {/* Cash Info */}
-          <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-            <div className="flex items-center gap-2 text-sm text-blue-800">
-              <Wallet className="w-4 h-4 flex-shrink-0" />
+          <div className="bg-blue-50 rounded-lg p-2.5 sm:p-3 border border-blue-200">
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-blue-800">
+              <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
               <span>Ce montant sera ajouté à la caisse du jour</span>
             </div>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+            <div className="p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded-lg text-xs sm:text-sm text-red-800">
               {error}
             </div>
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 disabled:opacity-50"
+              className="flex-1 px-4 py-2 sm:py-2.5 border border-slate-300 text-slate-700 rounded-lg text-sm sm:text-base hover:bg-slate-50 disabled:opacity-50"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={submitting || amountNum <= 0 || isOverpayment}
-              className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 font-medium"
+              className="flex-1 px-4 py-2 sm:py-2.5 bg-green-500 text-white rounded-lg text-sm sm:text-base hover:bg-green-600 disabled:opacity-50 font-medium"
             >
               {submitting ? 'Encaissement...' : 'Encaisser'}
             </button>

@@ -135,17 +135,17 @@ export const AddConsumptionModal: React.FC<AddConsumptionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+      <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-2xl w-full h-[90vh] sm:h-auto sm:max-w-lg sm:max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 sticky top-0 bg-white z-10">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-              <ShoppingCart className="w-4 h-4 text-orange-600" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-orange-100 rounded-full flex items-center justify-center">
+              <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-600" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Ajouter une Consommation</h3>
-              <p className="text-sm text-slate-600">{customer.name}</p>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900">Ajouter une Consommation</h3>
+              <p className="text-xs sm:text-sm text-slate-600">{customer.name}</p>
             </div>
           </div>
           <button
@@ -153,15 +153,15 @@ export const AddConsumptionModal: React.FC<AddConsumptionModalProps> = ({
             className="text-slate-400 hover:text-slate-600"
             disabled={submitting}
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3 sm:space-y-4">
           {/* Date */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
               Date de la consommation
             </label>
             <input
@@ -169,7 +169,7 @@ export const AddConsumptionModal: React.FC<AddConsumptionModalProps> = ({
               value={transactionDate}
               onChange={(e) => setTransactionDate(e.target.value)}
               max={new Date().toISOString().split('T')[0]}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm sm:text-base focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               required
             />
           </div>
@@ -177,42 +177,42 @@ export const AddConsumptionModal: React.FC<AddConsumptionModalProps> = ({
           {/* Items List */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-xs sm:text-sm font-medium text-slate-700">
                 Articles
               </label>
               <button
                 type="button"
                 onClick={addItem}
                 disabled={loading}
-                className="flex items-center gap-1 px-3 py-1 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 disabled:opacity-50"
+                className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-orange-500 text-white text-xs sm:text-sm rounded-lg hover:bg-orange-600 disabled:opacity-50"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>Ajouter</span>
               </button>
             </div>
 
             {loading ? (
-              <div className="text-center py-4 text-slate-500">Chargement des produits...</div>
+              <div className="text-center py-4 text-slate-500 text-xs sm:text-sm">Chargement des produits...</div>
             ) : items.length === 0 ? (
               <div className="text-center py-8 bg-slate-50 rounded-lg border-2 border-dashed border-slate-300">
-                <p className="text-slate-500">Aucun article ajouté</p>
+                <p className="text-slate-500 text-xs sm:text-sm">Aucun article ajouté</p>
                 <button
                   type="button"
                   onClick={addItem}
-                  className="mt-2 text-orange-600 hover:text-orange-700 font-medium text-sm"
+                  className="mt-2 text-orange-600 hover:text-orange-700 font-medium text-xs sm:text-sm"
                 >
                   Cliquez sur "+ Ajouter" pour commencer
                 </button>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {items.map((item, index) => (
-                  <div key={index} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                  <div key={index} className="bg-slate-50 rounded-lg p-2.5 sm:p-3 border border-slate-200">
                     <div className="flex gap-2 mb-2">
                       <select
                         value={item.productId}
                         onChange={(e) => updateItem(index, { productId: e.target.value })}
-                        className="flex-1 px-2 py-1 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-orange-500"
+                        className="flex-1 px-2 py-1.5 border border-slate-300 rounded text-xs sm:text-sm focus:ring-2 focus:ring-orange-500"
                       >
                         {products.map((product) => (
                           <option key={product.productId} value={product.productId}>
@@ -223,25 +223,25 @@ export const AddConsumptionModal: React.FC<AddConsumptionModalProps> = ({
                       <button
                         type="button"
                         onClick={() => removeItem(index)}
-                        className="p-1 text-red-600 hover:bg-red-50 rounded"
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </button>
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
                         <button
                           type="button"
                           onClick={() => changeQuantity(index, -1)}
-                          className="w-7 h-7 flex items-center justify-center bg-white border border-slate-300 rounded hover:bg-slate-50"
+                          className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-white border border-slate-300 rounded hover:bg-slate-50"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="w-12 text-center font-medium">{item.quantity}</span>
+                        <span className="w-10 sm:w-12 text-center text-sm sm:text-base font-medium">{item.quantity}</span>
                         <button
                           type="button"
                           onClick={() => changeQuantity(index, 1)}
-                          className="w-7 h-7 flex items-center justify-center bg-white border border-slate-300 rounded hover:bg-slate-50"
+                          className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-white border border-slate-300 rounded hover:bg-slate-50"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
@@ -250,7 +250,7 @@ export const AddConsumptionModal: React.FC<AddConsumptionModalProps> = ({
                         <div className="text-xs text-slate-500">
                           {formatCurrency(item.unitPrice)} FCFA × {item.quantity}
                         </div>
-                        <div className="font-bold text-slate-900">
+                        <div className="text-sm sm:text-base font-bold text-slate-900">
                           {formatCurrency(item.quantity * item.unitPrice)} FCFA
                         </div>
                       </div>
@@ -263,7 +263,7 @@ export const AddConsumptionModal: React.FC<AddConsumptionModalProps> = ({
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">
               Note (optionnel)
             </label>
             <textarea
@@ -271,25 +271,25 @@ export const AddConsumptionModal: React.FC<AddConsumptionModalProps> = ({
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Ex: Table 5, terrasse..."
               rows={2}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm sm:text-base focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
           </div>
 
           {/* Summary */}
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border-2 border-orange-200">
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-3 sm:p-4 border-2 border-orange-200">
             <div className="space-y-2">
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs sm:text-sm">
                 <span className="text-slate-700">Total à créditer:</span>
                 <span className="font-bold text-slate-900">{formatCurrency(totalAmount)} FCFA</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs sm:text-sm">
                 <span className="text-slate-700">Solde actuel:</span>
                 <span className="font-medium text-slate-900">{formatCurrency(customer.currentBalance)} FCFA</span>
               </div>
               <div className="h-px bg-orange-300"></div>
               <div className="flex justify-between">
-                <span className="font-medium text-slate-900">Nouveau solde:</span>
-                <span className={`font-bold text-lg ${isOverLimit ? 'text-red-600' : 'text-orange-600'}`}>
+                <span className="text-sm sm:text-base font-medium text-slate-900">Nouveau solde:</span>
+                <span className={`font-bold text-base sm:text-lg ${isOverLimit ? 'text-red-600' : 'text-orange-600'}`}>
                   {formatCurrency(newBalance)} FCFA
                 </span>
               </div>
@@ -303,25 +303,25 @@ export const AddConsumptionModal: React.FC<AddConsumptionModalProps> = ({
 
           {/* Error Message */}
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+            <div className="p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded-lg text-xs sm:text-sm text-red-800">
               {error}
             </div>
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 disabled:opacity-50"
+              className="flex-1 px-4 py-2 sm:py-2.5 border border-slate-300 text-slate-700 rounded-lg text-sm sm:text-base hover:bg-slate-50 disabled:opacity-50"
             >
               Annuler
             </button>
             <button
               type="submit"
               disabled={submitting || items.length === 0}
-              className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-medium"
+              className="flex-1 px-4 py-2 sm:py-2.5 bg-orange-500 text-white rounded-lg text-sm sm:text-base hover:bg-orange-600 disabled:opacity-50 font-medium"
             >
               {submitting ? 'Enregistrement...' : 'Enregistrer le crédit'}
             </button>

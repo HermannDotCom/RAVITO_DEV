@@ -77,17 +77,17 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
   const daysSincePayment = calculateDaysSincePayment();
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+      <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-2xl w-full h-[90vh] sm:h-auto sm:max-w-3xl sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-orange-600" />
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 bg-white">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-orange-100 rounded-full flex items-center justify-center">
+              <User className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900">{customer.name}</h3>
-              <p className="text-sm text-slate-600">Détails du client</p>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900">{customer.name}</h3>
+              <p className="text-xs sm:text-sm text-slate-600">Détails du client</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -97,41 +97,41 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
                 className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                 title="Modifier"
               >
-                <Edit className="w-5 h-5 text-slate-600" />
+                <Edit className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
               </button>
             )}
             <button
               onClick={onClose}
               className="text-slate-400 hover:text-slate-600"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 sm:space-y-4">
           {/* Customer Info */}
-          <div className="bg-slate-50 rounded-lg p-4 space-y-2">
-            <h4 className="font-bold text-slate-900 mb-3">Informations</h4>
+          <div className="bg-slate-50 rounded-lg p-3 sm:p-4 space-y-2">
+            <h4 className="text-sm sm:text-base font-bold text-slate-900 mb-2 sm:mb-3">Informations</h4>
             {customer.phone && (
-              <div className="flex items-center gap-2 text-sm text-slate-700">
-                <Phone className="w-4 h-4 text-slate-500" />
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-700">
+                <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500" />
                 <span>{customer.phone}</span>
               </div>
             )}
             {customer.address && (
-              <div className="flex items-center gap-2 text-sm text-slate-700">
-                <MapPin className="w-4 h-4 text-slate-500" />
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-700">
+                <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500" />
                 <span>{customer.address}</span>
               </div>
             )}
-            <div className="flex items-center gap-2 text-sm text-slate-700">
-              <Calendar className="w-4 h-4 text-slate-500" />
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-700">
+              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500" />
               <span>Client depuis le {formatDate(customer.createdAt)}</span>
             </div>
             {customer.lastPaymentDate && daysSincePayment !== null && (
-              <div className="text-sm text-slate-700">
+              <div className="text-xs sm:text-sm text-slate-700">
                 <span className="text-slate-500">Dernier règlement:</span>{' '}
                 <span className={`font-medium ${
                   daysSincePayment > 45 ? 'text-red-600' :
@@ -143,44 +143,44 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
               </div>
             )}
             {!customer.lastPaymentDate && customer.currentBalance > 0 && (
-              <div className="text-sm text-orange-600 font-medium">
+              <div className="text-xs sm:text-sm text-orange-600 font-medium">
                 Aucun règlement depuis la création
               </div>
             )}
             {customer.notes && (
               <div className="mt-2 pt-2 border-t border-slate-200">
                 <p className="text-xs text-slate-500 mb-1">Notes:</p>
-                <p className="text-sm text-slate-700">{customer.notes}</p>
+                <p className="text-xs sm:text-sm text-slate-700">{customer.notes}</p>
               </div>
             )}
           </div>
 
           {/* Statistics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+            <div className="bg-orange-50 rounded-lg p-2.5 sm:p-3 border border-orange-200">
               <div className="text-xs text-orange-600 font-medium mb-1">Solde actuel</div>
-              <div className="text-lg font-bold text-orange-900">
+              <div className="text-base sm:text-lg font-bold text-orange-900">
                 {formatCurrency(customer.currentBalance)}
               </div>
               <div className="text-xs text-orange-600">FCFA</div>
             </div>
-            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+            <div className="bg-blue-50 rounded-lg p-2.5 sm:p-3 border border-blue-200">
               <div className="text-xs text-blue-600 font-medium mb-1">Total crédité</div>
-              <div className="text-lg font-bold text-blue-900">
+              <div className="text-base sm:text-lg font-bold text-blue-900">
                 {formatCurrency(customer.totalCredited)}
               </div>
               <div className="text-xs text-blue-600">FCFA</div>
             </div>
-            <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+            <div className="bg-green-50 rounded-lg p-2.5 sm:p-3 border border-green-200">
               <div className="text-xs text-green-600 font-medium mb-1">Total réglé</div>
-              <div className="text-lg font-bold text-green-900">
+              <div className="text-base sm:text-lg font-bold text-green-900">
                 {formatCurrency(customer.totalPaid)}
               </div>
               <div className="text-xs text-green-600">FCFA</div>
             </div>
-            <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+            <div className="bg-purple-50 rounded-lg p-2.5 sm:p-3 border border-purple-200">
               <div className="text-xs text-purple-600 font-medium mb-1">Plafond</div>
-              <div className="text-lg font-bold text-purple-900">
+              <div className="text-base sm:text-lg font-bold text-purple-900">
                 {customer.creditLimit > 0 ? formatCurrency(customer.creditLimit) : '∞'}
               </div>
               <div className="text-xs text-purple-600">FCFA</div>
@@ -189,15 +189,15 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
 
           {/* Transaction History */}
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-bold text-slate-900 flex items-center gap-2">
-                <FileText className="w-4 h-4" />
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <h4 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-1 sm:gap-2">
+                <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Historique des transactions
               </h4>
               <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
                 <button
                   onClick={() => setFilter('all')}
-                  className={`px-3 py-1 text-xs font-medium rounded ${
+                  className={`px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded ${
                     filter === 'all'
                       ? 'bg-white text-slate-900 shadow-sm'
                       : 'text-slate-600 hover:text-slate-900'
@@ -207,7 +207,7 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
                 </button>
                 <button
                   onClick={() => setFilter('month')}
-                  className={`px-3 py-1 text-xs font-medium rounded ${
+                  className={`px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded ${
                     filter === 'month'
                       ? 'bg-white text-slate-900 shadow-sm'
                       : 'text-slate-600 hover:text-slate-900'
@@ -217,7 +217,7 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
                 </button>
                 <button
                   onClick={() => setFilter('week')}
-                  className={`px-3 py-1 text-xs font-medium rounded ${
+                  className={`px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded ${
                     filter === 'week'
                       ? 'bg-white text-slate-900 shadow-sm'
                       : 'text-slate-600 hover:text-slate-900'
@@ -229,10 +229,10 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
             </div>
 
             {loading ? (
-              <div className="text-center py-8 text-slate-500">Chargement...</div>
+              <div className="text-center py-8 text-slate-500 text-xs sm:text-sm">Chargement...</div>
             ) : filteredTransactions.length === 0 ? (
               <div className="text-center py-8 bg-slate-50 rounded-lg border border-slate-200">
-                <p className="text-slate-500">Aucune transaction trouvée</p>
+                <p className="text-slate-500 text-xs sm:text-sm">Aucune transaction trouvée</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -241,22 +241,22 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
                     key={transaction.id}
                     className="bg-white rounded-lg border border-slate-200 overflow-hidden"
                   >
-                    <div className="p-3">
+                    <div className="p-2.5 sm:p-3">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-1.5 sm:gap-2 mb-1">
                             {transaction.transactionType === 'consumption' ? (
-                              <TrendingUp className="w-4 h-4 text-orange-600" />
+                              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-600" />
                             ) : (
-                              <TrendingDown className="w-4 h-4 text-green-600" />
+                              <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" />
                             )}
-                            <span className="font-medium text-slate-900">
+                            <span className="text-xs sm:text-sm font-medium text-slate-900">
                               {transaction.transactionType === 'consumption'
                                 ? 'Consommation'
                                 : 'Règlement'}
                             </span>
                             {transaction.transactionType === 'payment' && transaction.paymentMethod && (
-                              <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
+                              <span className="text-xs px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">
                                 {PAYMENT_METHOD_LABELS[transaction.paymentMethod]}
                               </span>
                             )}
@@ -270,7 +270,7 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
                         </div>
                         <div className="text-right">
                           <div
-                            className={`text-lg font-bold ${
+                            className={`text-base sm:text-lg font-bold ${
                               transaction.transactionType === 'consumption'
                                 ? 'text-orange-600'
                                 : 'text-green-600'
@@ -304,12 +304,12 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
                     
                     {/* Expanded items */}
                     {expandedTransaction === transaction.id && transaction.items && (
-                      <div className="bg-slate-50 border-t border-slate-200 p-3">
+                      <div className="bg-slate-50 border-t border-slate-200 p-2.5 sm:p-3">
                         <div className="space-y-1">
                           {transaction.items.map((item: CreditTransactionItem) => (
                             <div
                               key={item.id}
-                              className="flex justify-between text-sm text-slate-700"
+                              className="flex justify-between text-xs sm:text-sm text-slate-700"
                             >
                               <span>
                                 {item.productName} × {item.quantity}
@@ -330,10 +330,10 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-200 bg-white">
+        <div className="p-3 sm:p-4 border-t border-slate-200 bg-white">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 font-medium"
+            className="w-full px-4 py-2 sm:py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm sm:text-base font-medium"
           >
             Fermer
           </button>
