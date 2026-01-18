@@ -65,7 +65,7 @@ export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Commandez vos boissons, gérez votre activité et développez votre business. Simple, rapide et 100% ivoirien.
             </p>
-            <div className="flex flex-col sm: flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => onNavigate('/register')}
                 className="px-8 py-4 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-all font-semibold text-lg shadow-orange-lg hover:shadow-orange-md transform hover:scale-105"
@@ -254,7 +254,7 @@ export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
                 </li>
                 <li className="flex items-start">
                   <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
-                  <span className="text-gray-700">💳 Carnet de Crédit digital : alertes impayés &gt; 30 jours</span>
+                  <span className="text-gray-700">💳 Carnet de Crédit digital : alertes impayés {'>'} 30 jours</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
@@ -416,7 +416,7 @@ export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* ZONES COUVERTES */}
-      <section className="py-16 md: py-24 bg-gray-50">
+      <section className="py-16 md:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 font-display">
