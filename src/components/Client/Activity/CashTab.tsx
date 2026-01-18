@@ -87,20 +87,20 @@ export const CashTab: React.FC<CashTabProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center gap-2">
         <Wallet className="w-5 h-5 text-amber-600" />
-        <h2 className="text-lg font-bold text-slate-900">Gestion de Caisse</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-slate-900">Gestion de Caisse</h2>
       </div>
 
       {/* Revenue Section */}
-      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border-2 border-green-200">
+      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 sm:p-4 border-2 border-green-200">
         <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-5 h-5 text-green-600" />
-          <h3 className="font-bold text-green-900">Chiffre d'Affaires Théorique</h3>
+          <TrendingUp className="w-4 w-4 sm:w-5 sm:h-5 text-green-600" />
+          <h3 className="text-sm sm:text-base font-bold text-green-900">Chiffre d'Affaires Théorique</h3>
         </div>
-        <p className="text-3xl font-bold text-green-900">
+        <p className="text-2xl sm:text-3xl font-bold text-green-900">
           {formatCurrency(calculations.totalRevenue)} FCFA
         </p>
         {sheet && (sheet.creditSales || 0) > 0 && (
@@ -123,35 +123,36 @@ export const CashTab: React.FC<CashTabProps> = ({
 
       {/* Credit Payments Section (if any) */}
       {sheet && (sheet.creditPayments || 0) > 0 && (
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4 border-2 border-blue-200">
           <div className="flex items-center gap-2 mb-2">
-            <Wallet className="w-5 h-5 text-blue-600" />
-            <h3 className="font-bold text-blue-900">Règlements Crédits Reçus</h3>
+            <Wallet className="w-4 w-4 sm:w-5 sm:h-5 text-blue-600" />
+            <h3 className="text-sm sm:text-base font-bold text-blue-900">Règlements Crédits Reçus</h3>
           </div>
-          <p className="text-3xl font-bold text-blue-900">
+          <p className="text-2xl sm:text-3xl font-bold text-blue-900">
             {formatCurrency(sheet.creditPayments || 0)} FCFA 💰
           </p>
-          <p className="text-sm text-blue-700 mt-1">
+          <p className="text-xs sm:text-sm text-blue-700 mt-1">
             Encaissements des clients à crédit
           </p>
         </div>
       )}
 
       {/* Expenses Section */}
-      <div className="bg-white rounded-xl border-2 border-slate-200 p-4">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white rounded-xl border-2 border-slate-200 p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4">
           <div>
-            <h3 className="font-bold text-slate-900">Dépenses du Jour</h3>
-            <p className="text-sm text-slate-600">
+            <h3 className="text-sm sm:text-base font-bold text-slate-900">Dépenses du Jour</h3>
+            <p className="text-xs sm:text-sm text-slate-600">
               Total: <span className="font-medium text-red-600">{formatCurrency(calculations.totalExpenses)} FCFA</span>
             </p>
           </div>
           {!isReadOnly && (
             <button
               onClick={() => setShowExpenseModal(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm font-medium"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm font-medium"
             >
               <Plus className="w-4 h-4" />
+              <span className="sm:hidden">Ajouter une dépense</span>
               <span className="hidden sm:inline">Ajouter</span>
             </button>
           )}
@@ -160,18 +161,18 @@ export const CashTab: React.FC<CashTabProps> = ({
         {/* Expenses list */}
         <div className="space-y-2">
           {expenses.length === 0 ? (
-            <div className="text-center py-8 text-slate-500">
-              <p className="text-sm">Aucune dépense enregistrée</p>
+            <div className="text-center py-6 sm:py-8 text-slate-500">
+              <p className="text-xs sm:text-sm">Aucune dépense enregistrée</p>
             </div>
           ) : (
             expenses.map((expense) => (
               <div
                 key={expense.id}
-                className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300"
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 p-3 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300"
               >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-slate-900">{expense.label}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <span className="font-medium text-slate-900 text-sm sm:text-base">{expense.label}</span>
                     <span
                       className={`px-2 py-0.5 rounded text-xs font-medium ${getCategoryColor(
                         expense.category
@@ -190,8 +191,8 @@ export const CashTab: React.FC<CashTabProps> = ({
                     })}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-bold text-red-600">
+                <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3">
+                  <span className="font-bold text-red-600 text-sm sm:text-base">
                     {formatCurrency(expense.amount)} F
                   </span>
                   {!isReadOnly && (
@@ -211,29 +212,29 @@ export const CashTab: React.FC<CashTabProps> = ({
       </div>
 
       {/* Cash Summary */}
-      <div className="bg-slate-50 rounded-xl border-2 border-slate-200 p-4">
-        <h3 className="font-bold text-slate-900 mb-4">Résumé de Caisse</h3>
+      <div className="bg-slate-50 rounded-xl border-2 border-slate-200 p-3 sm:p-4">
+        <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-3 sm:mb-4">Résumé de Caisse</h3>
 
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {/* Opening cash */}
-          <div className="flex items-center justify-between py-2 border-b border-slate-200">
-            <span className="text-slate-700">Caisse initiale</span>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 py-2 border-b border-slate-200">
+            <span className="text-sm text-slate-700">Caisse initiale</span>
             {isReadOnly ? (
-              <span className="font-medium text-slate-900">
+              <span className="font-medium text-slate-900 text-sm sm:text-base">
                 {formatCurrency(sheet?.openingCash || 0)} FCFA
               </span>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <input
                   type="number"
                   min="0"
                   step="100"
                   value={openingCash}
                   onChange={(e) => setOpeningCash(parseInt(e.target.value) || 0)}
-                  className="w-32 px-2 py-1 text-right border border-slate-300 rounded font-medium"
+                  className="w-full sm:w-32 px-2 py-1 text-right border border-slate-300 rounded font-medium text-sm"
                   placeholder="0"
                 />
-                <span className="text-slate-500">FCFA</span>
+                <span className="text-slate-500 text-sm">FCFA</span>
                 {openingCash !== (sheet?.openingCash || 0) && (
                   <button
                     onClick={handleSaveOpeningCash}
@@ -248,7 +249,7 @@ export const CashTab: React.FC<CashTabProps> = ({
           </div>
 
           {/* Revenue */}
-          <div className="flex items-center justify-between py-2 border-b border-slate-200">
+          <div className="flex items-center justify-between py-2 border-b border-slate-200 text-sm">
             <span className="text-slate-700">+ CA Théorique</span>
             <span className="font-medium text-green-600">
               + {formatCurrency(calculations.totalRevenue)} FCFA
@@ -258,8 +259,8 @@ export const CashTab: React.FC<CashTabProps> = ({
           {/* Credit Sales (if any) - deducted from cash */}
           {sheet && (sheet.creditSales || 0) > 0 && (
             <div className="flex items-center justify-between py-2 border-b border-slate-200">
-              <span className="text-slate-700 text-sm">  └─ Ventes à crédit (non encaissées)</span>
-              <span className="font-medium text-orange-600">
+              <span className="text-slate-700 text-xs sm:text-sm">  └─ Ventes à crédit (non encaissées)</span>
+              <span className="font-medium text-orange-600 text-xs sm:text-sm">
                 - {formatCurrency(sheet.creditSales || 0)} FCFA
               </span>
             </div>
@@ -267,7 +268,7 @@ export const CashTab: React.FC<CashTabProps> = ({
 
           {/* Credit Payments (if any) - added to cash */}
           {sheet && (sheet.creditPayments || 0) > 0 && (
-            <div className="flex items-center justify-between py-2 border-b border-slate-200">
+            <div className="flex items-center justify-between py-2 border-b border-slate-200 text-sm">
               <span className="text-slate-700">+ Règlements crédits reçus</span>
               <span className="font-medium text-blue-600">
                 + {formatCurrency(sheet.creditPayments || 0)} FCFA
@@ -276,7 +277,7 @@ export const CashTab: React.FC<CashTabProps> = ({
           )}
 
           {/* Expenses */}
-          <div className="flex items-center justify-between py-2 border-b border-slate-200">
+          <div className="flex items-center justify-between py-2 border-b border-slate-200 text-sm">
             <span className="text-slate-700">- Dépenses</span>
             <span className="font-medium text-red-600">
               - {formatCurrency(calculations.totalExpenses)} FCFA
@@ -284,9 +285,9 @@ export const CashTab: React.FC<CashTabProps> = ({
           </div>
 
           {/* Expected cash */}
-          <div className="flex items-center justify-between py-3 bg-blue-50 rounded-lg px-3 border border-blue-200">
-            <span className="font-bold text-blue-900">Caisse finale théorique</span>
-            <span className="font-bold text-blue-900 text-lg">
+          <div className="flex items-center justify-between py-2 sm:py-3 bg-blue-50 rounded-lg px-2 sm:px-3 border border-blue-200">
+            <span className="font-bold text-blue-900 text-sm sm:text-base">Caisse finale théorique</span>
+            <span className="font-bold text-blue-900 text-base sm:text-lg">
               {formatCurrency(calculations.expectedCash)} FCFA
             </span>
           </div>
@@ -294,16 +295,16 @@ export const CashTab: React.FC<CashTabProps> = ({
           {/* Actual closing cash (if closed) */}
           {sheet?.status === 'closed' && sheet.closingCash !== null && (
             <>
-              <div className="flex items-center justify-between py-3 bg-green-50 rounded-lg px-3 border border-green-200">
-                <span className="font-bold text-green-900">Caisse finale réelle</span>
-                <span className="font-bold text-green-900 text-lg">
+              <div className="flex items-center justify-between py-2 sm:py-3 bg-green-50 rounded-lg px-2 sm:px-3 border border-green-200">
+                <span className="font-bold text-green-900 text-sm sm:text-base">Caisse finale réelle</span>
+                <span className="font-bold text-green-900 text-base sm:text-lg">
                   {formatCurrency(sheet.closingCash)} FCFA
                 </span>
               </div>
 
               {/* Cash difference */}
               <div
-                className={`flex items-center justify-between py-3 rounded-lg px-3 border-2 ${
+                className={`flex items-center justify-between py-2 sm:py-3 rounded-lg px-2 sm:px-3 border-2 ${
                   displayedCashDifference < 0
                     ? 'bg-red-50 border-red-300'
                     : displayedCashDifference > 0
@@ -313,14 +314,14 @@ export const CashTab: React.FC<CashTabProps> = ({
               >
                 <div className="flex items-center gap-2">
                   {displayedCashDifference < 0 ? (
-                    <TrendingDown className="w-5 h-5 text-red-600" />
+                    <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
                   ) : (
-                    <TrendingUp className="w-5 h-5 text-green-600" />
+                    <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   )}
-                  <span className="font-bold text-slate-900">Écart de caisse</span>
+                  <span className="font-bold text-slate-900 text-sm sm:text-base">Écart de caisse</span>
                 </div>
                 <span
-                  className={`font-bold text-lg ${
+                  className={`font-bold text-base sm:text-lg ${
                     displayedCashDifference < 0
                       ? 'text-red-700'
                       : displayedCashDifference > 0
@@ -339,9 +340,9 @@ export const CashTab: React.FC<CashTabProps> = ({
 
       {/* Instructions */}
       {sheet?.status === 'open' && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs sm:text-sm text-amber-800">
           <p className="font-medium mb-1">📝 Instructions</p>
-          <p className="text-xs">
+          <p>
             Enregistrez toutes vos dépenses au fur et à mesure. En fin de journée, rendez-vous dans l'onglet
             <strong> Synthèse</strong> pour compter votre caisse et clôturer la journée.
           </p>
