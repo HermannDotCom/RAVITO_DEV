@@ -65,12 +65,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                 Fonctionnalités
               </button>
               <button
-                onClick={() => scrollToSection('tarifs')}
-                className="text-gray-600 hover:text-orange-500 transition-colors font-medium"
-              >
-                Tarifs
-              </button>
-              <button
                 onClick={() => scrollToSection('contact')}
                 className="text-gray-600 hover:text-orange-500 transition-colors font-medium"
               >
@@ -124,12 +118,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               className="block w-full text-left px-4 py-2 text-gray-600 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors font-medium"
             >
               Fonctionnalités
-            </button>
-            <button
-              onClick={() => scrollToSection('tarifs')}
-              className="block w-full text-left px-4 py-2 text-gray-600 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors font-medium"
-            >
-              Tarifs
             </button>
             <button
               onClick={() => scrollToSection('contact')}

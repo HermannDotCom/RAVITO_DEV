@@ -18,6 +18,11 @@ test.describe('Landing Page', () => {
     await landing.verifyValuePropositions();
   });
 
+  test('devrait afficher la section Fonctionnalités Innovantes', async ({ page }) => {
+    await landing.goto();
+    await landing.verifyInnovativeFeaturesSection();
+  });
+
   test('devrait naviguer vers le formulaire de connexion', async ({ page }) => {
     await landing.goto();
     await landing.clickSeConnecter();
