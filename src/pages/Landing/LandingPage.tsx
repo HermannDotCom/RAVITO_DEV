@@ -12,10 +12,15 @@ import {
   MessageSquare,
   Check,
   ArrowRight,
+  BarChart3,
+  Users,
+  Bell,
+  ClipboardList,
+  Star,
+  TrendingUp,
 } from 'lucide-react';
 import { LandingHeader } from '../../components/Landing/LandingHeader';
 import { LandingFooter } from '../../components/Landing/LandingFooter';
-import { PricingSection } from '../../components/Landing/PricingSection';
 import { useCommission } from '../../context/CommissionContext';
 
 interface LandingPageProps {
@@ -54,8 +59,11 @@ export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
                 className="h-48 md:h-56 w-auto"
               />
             </div>
+            <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+              La plateforme tout-en-un pour les bars, maquis et restaurants en Côte d'Ivoire
+            </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Livraison de boissons 24h/24 pour bars, maquis et restaurants à Abidjan
+              Commandez vos boissons, gérez votre activité et développez votre business. Simple, rapide et 100% ivoirien.
             </p>
             <div className="flex flex-col sm: flex-row gap-4 justify-center">
               <button
@@ -115,6 +123,88 @@ export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
+      {/* FONCTIONNALITÉS INNOVANTES */}
+      <section className="py-16 md:py-24 bg-gradient-to-br from-orange-50 via-white to-orange-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 font-display">
+              Des outils puissants pour votre réussite
+            </h2>
+            <p className="text-xl text-gray-600">
+              Tout ce dont vous avez besoin pour gérer et développer votre établissement
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Gestion Activité */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
+                <Store className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Gestion Activité</h3>
+              <p className="text-gray-600 text-sm">
+                Suivez vos ventes, gérez votre caisse et clôturez vos journées en quelques clics. Accédez à vos synthèses mensuelles et annuelles.
+              </p>
+            </div>
+
+            {/* Carnet de Crédit */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
+                <CreditCard className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Carnet de Crédit</h3>
+              <p className="text-gray-600 text-sm">
+                Digitalisez votre carnet de crédit. Suivez vos clients fidèles, leurs consommations et recevez des alertes pour les impayés de plus de 30 jours.
+              </p>
+            </div>
+
+            {/* Tableaux de Bord */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
+                <BarChart3 className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Tableaux de Bord</h3>
+              <p className="text-gray-600 text-sm">
+                Visualisez vos performances en temps réel. KPIs, graphiques et analyses pour prendre les bonnes décisions.
+              </p>
+            </div>
+
+            {/* Gestion d'Équipe */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Gestion d'Équipe</h3>
+              <p className="text-gray-600 text-sm">
+                Ajoutez vos collaborateurs et définissez leurs permissions. Travaillez en équipe efficacement.
+              </p>
+            </div>
+
+            {/* Application PWA */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
+                <Smartphone className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Application PWA</h3>
+              <p className="text-gray-600 text-sm">
+                Installez RAVITO sur votre téléphone comme une vraie application. Fonctionne même avec une connexion limitée.
+              </p>
+            </div>
+
+            {/* Alertes Temps Réel */}
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
+                <Bell className="w-6 h-6 text-orange-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Alertes Temps Réel</h3>
+              <p className="text-gray-600 text-sm">
+                Ne ratez rien. Notifications push, emails automatiques pour les commandes, livraisons et paiements.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* POUR QUI ?  */}
       <section className="py-16 md:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -156,19 +246,27 @@ export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
               <ul className="space-y-3 mb-6">
                 <li className="flex items-start">
                   <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
-                  <span className="text-gray-700">Catalogue complet de boissons</span>
+                  <span className="text-gray-700">🛒 Commandes simplifiées auprès des dépôts</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
-                  <span className="text-gray-700">Commande en quelques clics</span>
+                  <span className="text-gray-700">🏪 Gestion Activité complète : ventes, caisse, clôtures</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
-                  <span className="text-gray-700">Suivi en temps réel</span>
+                  <span className="text-gray-700">💳 Carnet de Crédit digital : alertes impayés &gt; 30 jours</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
-                  <span className="text-gray-700">Gestion de trésorerie</span>
+                  <span className="text-gray-700">📊 Tableaux de bord : synthèses mensuelles et annuelles</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
+                  <span className="text-gray-700">👥 Gestion d'équipe : multi-utilisateurs avec permissions</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
+                  <span className="text-gray-700">📱 Application PWA : installable, fonctionne partout</span>
                 </li>
               </ul>
               <button
@@ -202,19 +300,27 @@ export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
               <ul className="space-y-3 mb-6">
                 <li className="flex items-start">
                   <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
-                  <span className="text-gray-700">Réception de commandes</span>
+                  <span className="text-gray-700">📦 Réception et gestion des commandes</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
-                  <span className="text-gray-700">Gestion des livraisons</span>
+                  <span className="text-gray-700">💰 Trésorerie : suivi des revenus et reversements</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
-                  <span className="text-gray-700">Suivi des revenus</span>
+                  <span className="text-gray-700">📊 Analytics : statistiques de performance détaillées</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
-                  <span className="text-gray-700">Zones personnalisées</span>
+                  <span className="text-gray-700">🗺️ Zones de livraison : gestion des zones de couverture</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
+                  <span className="text-gray-700">👥 Gestion d'équipe : livreurs et collaborateurs</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="text-green-500 mr-3 flex-shrink-0 mt-0.5" size={20} />
+                  <span className="text-gray-700">⭐ Réputation : système de notation et avis clients</span>
                 </li>
               </ul>
               <button
@@ -308,9 +414,6 @@ export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
         </div>
       </section>
-
-	      {/* SECTION TARIFICATION */}
-	      <PricingSection />
 
       {/* ZONES COUVERTES */}
       <section className="py-16 md: py-24 bg-gray-50">
