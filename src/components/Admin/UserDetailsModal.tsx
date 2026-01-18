@@ -221,8 +221,8 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
 
   if (loadingUser) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+        <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl p-6 sm:p-8">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
         </div>
       </div>
@@ -234,18 +234,18 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-8">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-4">
-              <div className="h-16 w-16 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xl">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full h-[90vh] sm:h-auto sm:max-w-4xl sm:max-h-[90vh] overflow-y-auto">
+        <div className="p-4 sm:p-6 md:p-8">
+          <div className="flex items-center justify-between mb-4 sm:mb-6 md:mb-8">
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <div className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-lg sm:text-xl">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
                   {user.business_name || user.name}
                 </h2>
                 <div className="flex items-center space-x-2 mt-1">
@@ -268,58 +268,58 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
               onClick={onClose}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-blue-50 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                <Phone className="h-5 w-5 mr-2 text-blue-600" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
+            <div className="bg-blue-50 rounded-xl p-4 sm:p-5 md:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
                 Informations personnelles
               </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="flex justify-between text-sm sm:text-base">
                   <span className="text-gray-600">Email:</span>
                   <span className="font-medium text-gray-900">{user.email || 'N/A'}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm sm:text-base">
                   <span className="text-gray-600">Téléphone:</span>
                   <span className="font-medium text-gray-900">{user.phone}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm sm:text-base">
                   <span className="text-gray-600">Adresse:</span>
                   <span className="font-medium text-gray-900 text-right max-w-[200px]">{user.address}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm sm:text-base">
                   <span className="text-gray-600">Membre depuis:</span>
                   <span className="font-medium text-gray-900">{formatDate(user.created_at)}</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-green-50 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                <Star className="h-5 w-5 mr-2 text-green-600" />
+            <div className="bg-green-50 rounded-xl p-4 sm:p-5 md:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-600" />
                 Performances
               </h3>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-green-600">{user.rating.toFixed(1)}</div>
-                  <div className="text-sm text-gray-600">Note moyenne</div>
+                  <div className="text-3xl sm:text-4xl font-bold text-green-600">{user.rating.toFixed(1)}</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Note moyenne</div>
                 </div>
-                <div className="text-center pt-4 border-t border-green-200">
-                  <div className="text-4xl font-bold text-gray-900">{user.total_orders}</div>
-                  <div className="text-sm text-gray-600">Livraisons</div>
+                <div className="text-center pt-3 sm:pt-4 border-t border-green-200">
+                  <div className="text-3xl sm:text-4xl font-bold text-gray-900">{user.total_orders}</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Livraisons</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-xl p-6 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                <Activity className="h-5 w-5 mr-2 text-gray-700" />
+          <div className="bg-gray-50 rounded-xl p-4 sm:p-5 md:p-6 mb-4 sm:mb-6 md:mb-8">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center">
+                <Activity className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-700" />
                 Activité récente
               </h3>
               {!showFullHistory && (
@@ -328,7 +328,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                     setShowFullHistory(true);
                     loadFullHistory();
                   }}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium"
                 >
                   Voir tout
                 </button>
@@ -339,24 +339,24 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
               </div>
             ) : (
-              <div className="space-y-3 max-h-64 overflow-y-auto">
+              <div className="space-y-2 sm:space-y-3 max-h-64 overflow-y-auto">
                 {(showFullHistory ? allActivities : recentActivities).map((activity) => (
                   <div
                     key={activity.id}
-                    className="bg-white rounded-lg p-4 border border-gray-200 hover:border-gray-300 transition-colors"
+                    className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200 hover:border-gray-300 transition-colors"
                   >
-                    <div className="flex items-start space-x-3">
+                    <div className="flex items-start space-x-2 sm:space-x-3">
                       <div className="flex-shrink-0 mt-1">
-                        <Clock className="h-4 w-4 text-gray-400" />
+                        <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-xs sm:text-sm font-medium text-gray-900">
                           {activityService.getActivityTypeLabel(activity.activity_type)}
                         </p>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1">
                           {activity.activity_description}
                         </p>
-                        <p className="text-xs text-gray-400 mt-2">
+                        <p className="text-xs text-gray-400 mt-1 sm:mt-2">
                           {formatDate(activity.created_at)}
                         </p>
                       </div>
@@ -365,8 +365,8 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                 ))}
                 {(showFullHistory ? allActivities : recentActivities).length === 0 && (
                   <div className="text-center py-8">
-                    <Activity className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">Aucune activité récente</p>
+                    <Activity className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 text-xs sm:text-sm">Aucune activité récente</p>
                   </div>
                 )}
               </div>
@@ -374,12 +374,12 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
           </div>
 
           {showDeactivateConfirm && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
-              <h4 className="text-lg font-bold text-red-900 mb-4 flex items-center">
-                <Shield className="h-5 w-5 mr-2" />
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 sm:p-5 md:p-6 mb-4 sm:mb-5 md:mb-6">
+              <h4 className="text-base sm:text-lg font-bold text-red-900 mb-3 sm:mb-4 flex items-center">
+                <Shield className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 Confirmer la désactivation du compte
               </h4>
-              <p className="text-sm text-red-700 mb-4">
+              <p className="text-xs sm:text-sm text-red-700 mb-3 sm:mb-4">
                 Cette action désactivera le compte de l'utilisateur. Il ne pourra plus se connecter ni utiliser l'application.
               </p>
               <div>
@@ -398,9 +398,9 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
           )}
 
           {showMessageForm && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
-              <h4 className="text-lg font-bold text-blue-900 mb-4 flex items-center">
-                <MessageSquare className="h-5 w-5 mr-2" />
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-5 md:p-6 mb-4 sm:mb-5 md:mb-6">
+              <h4 className="text-base sm:text-lg font-bold text-blue-900 mb-3 sm:mb-4 flex items-center">
+                <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 Envoyer un message
               </h4>
               <div className="space-y-4">
@@ -432,34 +432,34 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             </div>
           )}
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-6">
-            <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <Shield className="h-5 w-5 mr-2 text-yellow-600" />
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 sm:p-5 md:p-6 mb-4 sm:mb-5 md:mb-6">
+            <h4 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center">
+              <Shield className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-yellow-600" />
               Actions administratives
             </h4>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {user.is_active ? (
                 !showDeactivateConfirm ? (
                   <button
                     onClick={() => setShowDeactivateConfirm(true)}
-                    className="w-full px-4 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
+                    className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
                   >
-                    <Ban className="h-5 w-5" />
+                    <Ban className="h-4 w-4 sm:h-5 sm:w-5" />
                     <span>Désactiver le compte</span>
                   </button>
                 ) : (
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                   <button
                     onClick={() => setShowDeactivateConfirm(false)}
                     disabled={isProcessing}
-                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-300 text-gray-700 rounded-lg text-sm sm:text-base font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Annuler
                   </button>
                   <button
                     onClick={handleDeactivateAccount}
                     disabled={isProcessing || !deactivationReason.trim()}
-                    className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {isProcessing ? 'Désactivation...' : 'Confirmer'}
                   </button>
@@ -469,9 +469,9 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                 <button
                   onClick={handleReactivateAccount}
                   disabled={isProcessing}
-                  className="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+                  className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-green-600 text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
                 >
-                  <CheckCircle className="h-5 w-5" />
+                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>{isProcessing ? 'Réactivation...' : 'Réactiver le compte'}</span>
                 </button>
               )}
@@ -479,24 +479,24 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
               {!showMessageForm ? (
                 <button
                   onClick={() => setShowMessageForm(true)}
-                  className="w-full px-4 py-3 bg-white border-2 border-blue-600 text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center space-x-2"
+                  className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-blue-600 text-blue-600 rounded-lg text-sm sm:text-base font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center space-x-2"
                 >
-                  <Mail className="h-5 w-5" />
+                  <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>Envoyer un message</span>
                 </button>
               ) : (
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                   <button
                     onClick={() => setShowMessageForm(false)}
                     disabled={isProcessing}
-                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-300 text-gray-700 rounded-lg text-sm sm:text-base font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Annuler
                   </button>
                   <button
                     onClick={handleSendMessage}
                     disabled={isProcessing || !messageSubject.trim() || !messageContent.trim()}
-                    className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {isProcessing ? 'Envoi...' : 'Envoyer'}
                   </button>
@@ -510,9 +510,9 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                     loadFullHistory();
                   }
                 }}
-                className="w-full px-4 py-3 bg-white border-2 border-gray-600 text-gray-600 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
+                className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-white border-2 border-gray-600 text-gray-600 rounded-lg text-sm sm:text-base font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
               >
-                <History className="h-5 w-5" />
+                <History className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span>Voir l'historique complet</span>
               </button>
             </div>

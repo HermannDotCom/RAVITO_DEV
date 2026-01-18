@@ -25,17 +25,17 @@ export const MonthlyKPIs: React.FC<MonthlyKPIsProps> = ({ kpis, previousMonthKPI
   const revenueEvolution = previousMonthKPIs ? calculateEvolution(kpis.totalRevenue, previousMonthKPIs.totalRevenue) : null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Section Title */}
-      <h2 className="text-xl font-bold text-slate-900">Indicateurs Clés du Mois</h2>
+      <h2 className="text-lg sm:text-xl font-bold text-slate-900">Indicateurs Clés du Mois</h2>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Revenue Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-          <div className="flex items-center justify-between mb-2">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-green-600" />
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-3 sm:p-5">
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
             </div>
             {revenueEvolution && (
               <div className={`flex items-center gap-1 text-xs font-medium ${
@@ -50,42 +50,42 @@ export const MonthlyKPIs: React.FC<MonthlyKPIsProps> = ({ kpis, previousMonthKPI
               </div>
             )}
           </div>
-          <h3 className="text-sm font-medium text-slate-600 mb-1">CA Total</h3>
-          <p className="text-2xl font-bold text-slate-900">{formatCurrency(kpis.totalRevenue)} F</p>
+          <h3 className="text-xs sm:text-sm font-medium text-slate-600 mb-1">CA Total</h3>
+          <p className="text-lg sm:text-2xl font-bold text-slate-900">{formatCurrency(kpis.totalRevenue)} F</p>
           <p className="text-xs text-slate-500 mt-1">
-            Moy. {formatCurrency(kpis.avgDailyRevenue)} F/jour
+            Moy. {formatCurrency(kpis.avgDailyRevenue)} F/j
           </p>
         </div>
 
         {/* Expenses Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-          <div className="flex items-center justify-between mb-2">
-            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-orange-600" />
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-3 sm:p-5">
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
             </div>
           </div>
-          <h3 className="text-sm font-medium text-slate-600 mb-1">Dépenses Totales</h3>
-          <p className="text-2xl font-bold text-slate-900">{formatCurrency(kpis.totalExpenses)} F</p>
+          <h3 className="text-xs sm:text-sm font-medium text-slate-600 mb-1">Dépenses Totales</h3>
+          <p className="text-lg sm:text-2xl font-bold text-slate-900">{formatCurrency(kpis.totalExpenses)} F</p>
           <p className="text-xs text-slate-500 mt-1">
-            {kpis.daysWorked > 0 ? formatCurrency(kpis.totalExpenses / kpis.daysWorked) : '0'} F/jour
+            {kpis.daysWorked > 0 ? formatCurrency(kpis.totalExpenses / kpis.daysWorked) : '0'} F/j
           </p>
         </div>
 
         {/* Cash Difference Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-          <div className="flex items-center justify-between mb-2">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-3 sm:p-5">
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
+            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center ${
               kpis.totalCashDifference >= 0 ? 'bg-green-100' : 'bg-red-100'
             }`}>
               {kpis.totalCashDifference >= 0 ? (
-                <CheckCircle className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
               ) : (
-                <AlertTriangle className="w-5 h-5 text-red-600" />
+                <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
               )}
             </div>
           </div>
-          <h3 className="text-sm font-medium text-slate-600 mb-1">Écart de Caisse</h3>
-          <p className={`text-2xl font-bold ${
+          <h3 className="text-xs sm:text-sm font-medium text-slate-600 mb-1">Écart de Caisse</h3>
+          <p className={`text-lg sm:text-2xl font-bold ${
             kpis.totalCashDifference >= 0 ? 'text-green-600' : 'text-red-600'
           }`}>
             {kpis.totalCashDifference >= 0 ? '+' : ''}{formatCurrency(kpis.totalCashDifference)} F
@@ -103,14 +103,14 @@ export const MonthlyKPIs: React.FC<MonthlyKPIsProps> = ({ kpis, previousMonthKPI
         </div>
 
         {/* Activity Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-          <div className="flex items-center justify-between mb-2">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-blue-600" />
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-3 sm:p-5">
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
             </div>
           </div>
-          <h3 className="text-sm font-medium text-slate-600 mb-1">Jours Travaillés</h3>
-          <p className="text-2xl font-bold text-slate-900">{kpis.daysWorked}</p>
+          <h3 className="text-xs sm:text-sm font-medium text-slate-600 mb-1">Jours Travaillés</h3>
+          <p className="text-lg sm:text-2xl font-bold text-slate-900">{kpis.daysWorked}</p>
           <div className="flex items-center gap-2 mt-1">
             <div className="flex-1 bg-slate-200 rounded-full h-1.5">
               <div
@@ -131,24 +131,24 @@ export const MonthlyKPIs: React.FC<MonthlyKPIsProps> = ({ kpis, previousMonthKPI
       </div>
 
       {/* Additional Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
-          <p className="text-sm font-medium text-green-800 mb-1">CA Moyen Journalier</p>
-          <p className="text-xl font-bold text-green-900">{formatCurrency(kpis.avgDailyRevenue)} F</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 sm:p-4 border border-green-200">
+          <p className="text-xs sm:text-sm font-medium text-green-800 mb-1">CA Moyen Journalier</p>
+          <p className="text-base sm:text-xl font-bold text-green-900">{formatCurrency(kpis.avgDailyRevenue)} F</p>
         </div>
 
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4 border border-slate-200">
-          <p className="text-sm font-medium text-slate-800 mb-1">Écart Moyen/Jour</p>
-          <p className={`text-xl font-bold ${
+        <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-3 sm:p-4 border border-slate-200">
+          <p className="text-xs sm:text-sm font-medium text-slate-800 mb-1">Écart Moyen/Jour</p>
+          <p className={`text-base sm:text-xl font-bold ${
             kpis.avgCashDifference >= 0 ? 'text-green-900' : 'text-red-900'
           }`}>
             {kpis.avgCashDifference >= 0 ? '+' : ''}{formatCurrency(kpis.avgCashDifference)} F
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
-          <p className="text-sm font-medium text-blue-800 mb-1">Marge Brute</p>
-          <p className="text-xl font-bold text-blue-900">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4 border border-blue-200">
+          <p className="text-xs sm:text-sm font-medium text-blue-800 mb-1">Marge Brute</p>
+          <p className="text-base sm:text-xl font-bold text-blue-900">
             {formatCurrency(kpis.totalRevenue - kpis.totalExpenses)} F
           </p>
         </div>

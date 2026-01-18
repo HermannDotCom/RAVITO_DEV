@@ -38,3 +38,10 @@ export type { KenteDividerProps } from './KenteDivider';
 
 export { PriceTag } from './PriceTag';
 export type { PriceTagProps } from './PriceTag';
+
+// Responsive components
+export { MobileAccordion } from './MobileAccordion';
+export { ResponsiveKPIGrid } from './ResponsiveKPIGrid';
+export { ResponsiveTable } from './ResponsiveTable';
+export { FullScreenModal } from './FullScreenModal';
+

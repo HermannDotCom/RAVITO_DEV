@@ -30,10 +30,10 @@ export const MonthlyTable: React.FC<MonthlyTableProps> = ({ dailySheets }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-900">Récapitulatif des Journées</h2>
-        <span className="text-sm text-slate-600">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-900">Récapitulatif des Journées</h2>
+        <span className="text-xs sm:text-sm text-slate-600">
           {dailySheets.length} journée{dailySheets.length > 1 ? 's' : ''} clôturée{dailySheets.length > 1 ? 's' : ''}
         </span>
       </div>

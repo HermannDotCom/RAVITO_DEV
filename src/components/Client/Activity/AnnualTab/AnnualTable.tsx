@@ -22,10 +22,10 @@ export const AnnualTable: React.FC<AnnualTableProps> = ({ monthlyData }) => {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-900">Récapitulatif Mensuel</h2>
-        <span className="text-sm text-slate-600">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-900">Récapitulatif Mensuel</h2>
+        <span className="text-xs sm:text-sm text-slate-600">
           {monthlyData.filter(m => m.daysWorked > 0).length} mois avec activité
         </span>
       </div>

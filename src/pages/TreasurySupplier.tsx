@@ -232,10 +232,10 @@ export const TreasurySupplier: React.FC<TreasurySupplierProps> = ({ onBack }) =>
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-5 md:p-6">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Solde Disponible</p>
-              <p className="text-xl sm:text-2xl font-bold text-green-600 truncate">{formatPrice(stats.availableBalance)}</p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-green-600 break-words">{formatPrice(stats.availableBalance)}</p>
               <p className="text-xs sm:text-sm text-gray-500 mt-1">Retirable maintenant</p>
             </div>
             <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
@@ -252,10 +252,10 @@ export const TreasurySupplier: React.FC<TreasurySupplierProps> = ({ onBack }) =>
         </div>
         
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-5 md:p-6">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">En Attente</p>
-              <p className="text-xl sm:text-2xl font-bold text-yellow-600 truncate">{formatPrice(stats.pendingAmount)}</p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-600 break-words">{formatPrice(stats.pendingAmount)}</p>
               <p className="text-xs sm:text-sm text-gray-500 mt-1">Commandes en cours</p>
             </div>
             <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center flex-shrink-0">
@@ -265,10 +265,10 @@ export const TreasurySupplier: React.FC<TreasurySupplierProps> = ({ onBack }) =>
         </div>
         
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-5 md:p-6">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Total des Gains</p>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{formatPrice(stats.totalEarned)}</p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 break-words">{formatPrice(stats.totalEarned)}</p>
               <p className="text-xs sm:text-sm text-gray-500 mt-1">Depuis inscription</p>
             </div>
             <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
@@ -278,10 +278,10 @@ export const TreasurySupplier: React.FC<TreasurySupplierProps> = ({ onBack }) =>
         </div>
         
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-5 md:p-6">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Gains du Mois</p>
-              <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{formatPrice(stats.monthEarned)}</p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 break-words">{formatPrice(stats.monthEarned)}</p>
               <p className="text-xs sm:text-sm text-gray-500 mt-1">Ce mois-ci</p>
             </div>
             <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0">

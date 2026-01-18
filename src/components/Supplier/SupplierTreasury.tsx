@@ -338,7 +338,7 @@ export const SupplierTreasury: React.FC = () => {
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4">
               {/* Search */}
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
@@ -357,12 +357,12 @@ export const SupplierTreasury: React.FC = () => {
                 )}
               </div>
               {/* Transfer Status Filter */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
                 {transferFilters.map(filter => (
                   <button
                     key={filter.value}
                     onClick={() => setTransferFilter(filter.value as 'all' | 'pending' | 'transferred')}
-                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                    className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                       transferFilter === filter.value
                         ? 'bg-green-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -375,7 +375,7 @@ export const SupplierTreasury: React.FC = () => {
               {filteredTransactions.length > 0 && (
                 <button
                   onClick={handleExport}
-                  className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="w-full sm:w-auto flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
                 >
                   <Download className="h-4 w-4" />
                   <span>Exporter CSV</span>
@@ -401,12 +401,12 @@ export const SupplierTreasury: React.FC = () => {
       </div>
 
       {/* Information Box */}
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
-        <h3 className="text-lg font-bold text-blue-900 mb-3 flex items-center">
-          <CreditCard className="h-5 w-5 mr-2" />
+      <div className="mt-6 sm:mt-8 bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-bold text-blue-900 mb-3 flex items-center">
+          <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
           Informations sur les virements
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm text-blue-800">
           <div>
             <p className="font-medium mb-1">Délai de virement</p>
             <p>Les virements sont effectués sous 24 à 48 heures après la confirmation de livraison.</p>

@@ -98,7 +98,7 @@ export const MonthlyTab: React.FC<MonthlyTabProps> = ({ organizationId }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-0">
       {/* Header with Month/Year Selector and Export */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -106,8 +106,8 @@ export const MonthlyTab: React.FC<MonthlyTabProps> = ({ organizationId }) => {
             <Calendar className="w-5 h-5 text-orange-600" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Clôture Mensuelle</h2>
-            <p className="text-sm text-slate-600">Vue consolidée du mois</p>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900">Clôture Mensuelle</h2>
+            <p className="text-xs sm:text-sm text-slate-600">Vue consolidée du mois</p>
           </div>
         </div>
 
@@ -175,8 +175,8 @@ export const MonthlyTab: React.FC<MonthlyTabProps> = ({ organizationId }) => {
 
           {/* Top Products Section */}
           {data.topProducts.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold text-slate-900">Top 10 Produits Vendus</h2>
+            <div className="space-y-3 sm:space-y-4">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">Top 10 Produits Vendus</h2>
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -239,18 +239,18 @@ export const MonthlyTab: React.FC<MonthlyTabProps> = ({ organizationId }) => {
 
           {/* Expenses by Category Section */}
           {data.expensesByCategory.length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold text-slate-900">Dépenses par Catégorie</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-3 sm:space-y-4">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">Dépenses par Catégorie</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {data.expensesByCategory.map((expense, index) => (
                   <div
                     key={index}
-                    className="bg-white rounded-xl shadow-sm border border-slate-200 p-4"
+                    className="bg-white rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4"
                   >
-                    <p className="text-sm font-medium text-slate-600 mb-2 capitalize">
+                    <p className="text-xs sm:text-sm font-medium text-slate-600 mb-1 sm:mb-2 capitalize">
                       {expense.category}
                     </p>
-                    <p className="text-xl font-bold text-slate-900">
+                    <p className="text-base sm:text-xl font-bold text-slate-900">
                       {formatCurrency(expense.total)} F
                     </p>
                   </div>

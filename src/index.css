@@ -51,6 +51,11 @@
     padding-right: env(safe-area-inset-right);
   }
 
+  /* Combined safe area padding for bottom */
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
   /* Screen reader only */
   .sr-only {
     position: absolute;
@@ -203,5 +208,14 @@
   
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Touch-friendly scrolling */
+  .touch-action-pan-y {
+    touch-action: pan-y;
+  }
+
+  .touch-action-pan-x {
+    touch-action: pan-x;
   }
 }
