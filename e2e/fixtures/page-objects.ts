@@ -5,8 +5,9 @@ export class LandingPage {
 
   async goto() {
     await this.page.goto('/');
+    // Wait for the page to load by checking for the hero heading
     await expect(
-      this.page.getByRole('heading', { name: /Le ravitaillement qui ne dort jamais/i })
+      this.page.getByRole('heading', { name: /La plateforme tout-en-un/i })
     ).toBeVisible({ timeout: 15000 });
   }
 
@@ -19,7 +20,14 @@ export class LandingPage {
   }
 
   async verifyHeroSection() {
-    await expect(this.page.locator('h1')).toContainText(/ravitaillement/i);
+    await expect(this.page.locator('h1')).toContainText(/bars, maquis et restaurants/i);
+  }
+  
+  async verifyInnovativeFeaturesSection() {
+    await expect(this.page.getByRole('heading', { name: /Des outils puissants pour votre réussite/i })).toBeVisible();
+    await expect(this.page.locator('text=/Gestion Activité/i').first()).toBeVisible();
+    await expect(this.page.locator('text=/Carnet de Crédit/i').first()).toBeVisible();
+    await expect(this.page.locator('text=/Tableaux de Bord/i').first()).toBeVisible();
   }
 
   async verifyValuePropositions() {
