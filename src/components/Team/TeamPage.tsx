@@ -63,11 +63,11 @@ export const TeamPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Chargement de l'équipe...</p>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-sm sm:text-base text-gray-600">Chargement de l'équipe...</p>
           </div>
         </div>
       </div>
@@ -76,14 +76,14 @@ export const TeamPage: React.FC = () => {
 
   if (!organization) {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 flex items-start space-x-3">
-          <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0" />
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 sm:p-6 flex items-start space-x-3">
+          <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 flex-shrink-0" />
           <div>
-            <h3 className="text-lg font-semibold text-yellow-900 mb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-yellow-900 mb-2">
               Aucune organisation trouvée
             </h3>
-            <p className="text-yellow-800">
+            <p className="text-sm sm:text-base text-yellow-800">
               Vous n'êtes pas encore membre d'une équipe. Contactez votre administrateur pour obtenir une invitation.
             </p>
           </div>
@@ -93,37 +93,37 @@ export const TeamPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-4">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3 sm:gap-4">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Gestion des Membres</h1>
-              <p className="text-gray-600">{organization.name}</p>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">Gestion des Membres</h1>
+              <p className="text-sm sm:text-base text-gray-600 truncate">{organization.name}</p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <button
               onClick={refresh}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
+              className="w-full sm:w-auto px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Actualiser
+              <span className="text-sm sm:text-base">Actualiser</span>
             </button>
 
             {canInvite && (
               <button
                 onClick={() => setShowCreateModal(true)}
                 disabled={stats?.availableSlots === 0}
-                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                className="w-full sm:w-auto px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 <UserPlus className="w-4 h-4 mr-2" />
-                Créer un membre
+                <span className="text-sm sm:text-base">Créer un membre</span>
               </button>
             )}
           </div>

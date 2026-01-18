@@ -229,36 +229,36 @@ export const ZoneDetailsModal: React.FC<Props> = ({ zone, onClose, onUpdate }) =
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-          <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                <MapPin className="h-6 w-6 text-green-600 dark:text-green-400" />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4" onClick={onClose}>
+        <div className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full h-[90vh] sm:h-auto sm:max-w-5xl sm:max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between z-10">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 mr-2">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                <MapPin className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 dark:text-green-400" />
               </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Zone {zone.name}</h2>
-                <p className="text-sm text-green-600 dark:text-green-400">
+              <div className="min-w-0">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white truncate">Zone {zone.name}</h2>
+                <p className="text-xs sm:text-sm text-green-600 dark:text-green-400 truncate">
                   Zone {zone.is_active ? 'Active' : 'Inactive'} • {suppliers.filter(s => s.is_active).length}/{suppliers.length} fournisseurs actifs
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="h-10 w-10 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="h-10 w-10 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
             >
               <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
 
-          <div className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-5 border border-blue-200 dark:border-blue-800">
-                <div className="flex items-center gap-2 mb-4">
-                  <Settings className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Configuration de la zone</h3>
+          <div className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 sm:p-5 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                  <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Configuration de la zone</h3>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600 dark:text-gray-400">Fournisseurs max:</span>
                     <span className="text-lg font-bold text-gray-900 dark:text-white">{editForm.maxSuppliers}</span>
@@ -280,18 +280,18 @@ export const ZoneDetailsModal: React.FC<Props> = ({ zone, onClose, onUpdate }) =
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-900 rounded-lg p-5 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between mb-4">
+              <div className="bg-white dark:bg-gray-900 rounded-lg p-4 sm:p-5 border border-gray-200 dark:border-gray-700">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-3 sm:mb-4">
                   <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Fournisseurs inscrits</h3>
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 dark:text-gray-400" />
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Fournisseurs inscrits</h3>
                   </div>
                   <button
                     onClick={() => setShowAddSupplier(!showAddSupplier)}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-xs sm:text-sm"
                   >
                     <UserPlus className="h-4 w-4" />
-                    Ajouter
+                    <span>Ajouter</span>
                   </button>
                 </div>
 
@@ -343,53 +343,53 @@ export const ZoneDetailsModal: React.FC<Props> = ({ zone, onClose, onUpdate }) =
               </div>
             </div>
 
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-5 border border-green-200 dark:border-green-800 mt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Statistiques de la zone</h3>
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 sm:p-5 border border-green-200 dark:border-green-800 mt-4 sm:mt-6">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Statistiques de la zone</h3>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 text-center">
-                  <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">{stats.totalOrders}</p>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 text-center">
+                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400">{stats.totalOrders}</p>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Commandes totales</p>
                 </div>
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 text-center">
-                  <p className="text-4xl font-bold text-green-600 dark:text-green-400">{stats.successRate}%</p>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 text-center">
+                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-600 dark:text-green-400">{stats.successRate}%</p>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Taux de réussite</p>
                 </div>
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 text-center">
-                  <p className="text-4xl font-bold text-orange-600 dark:text-orange-400">{stats.avgDeliveryTime}</p>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 text-center">
+                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-orange-600 dark:text-orange-400">{stats.avgDeliveryTime}</p>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Temps moyen (min)</p>
                 </div>
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 text-center">
-                  <p className="text-4xl font-bold text-purple-600 dark:text-purple-400">{stats.activeSuppliers}</p>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 text-center">
+                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-purple-600 dark:text-purple-400">{stats.activeSuppliers}</p>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Fournisseurs actifs</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+          <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <button
               onClick={onClose}
-              className="px-6 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
+              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors text-sm sm:text-base"
             >
               Fermer
             </button>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <button
                 onClick={() => setShowEditModal(true)}
-                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto px-4 sm:px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
               >
                 <Edit2 className="h-4 w-4" />
-                Modifier la zone
+                <span>Modifier la zone</span>
               </button>
               <button
                 onClick={deleteZone}
-                className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto px-4 sm:px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
               >
                 <Trash2 className="h-4 w-4" />
-                Désactiver la zone
+                <span>Désactiver la zone</span>
               </button>
             </div>
           </div>

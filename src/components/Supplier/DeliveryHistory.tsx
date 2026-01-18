@@ -319,73 +319,73 @@ Décrivez votre problème en détail...`,
           </div>
 
           {/* Summary Stats - Modern Design */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-shadow">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-shadow">
               <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full -mr-12 -mt-12 opacity-30" />
               <div className="relative flex items-start justify-between">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-slate-600 mb-1">Livraisons totales</p>
-                  <p className="text-3xl font-bold text-slate-900">{filteredDeliveries.length}</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-slate-900">{filteredDeliveries.length}</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-                  <Package className="h-6 w-6 text-blue-600" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Package className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                 </div>
               </div>
             </div>
 
-            <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-shadow">
+            <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-shadow">
               <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-full -mr-12 -mt-12 opacity-30" />
               <div className="relative flex items-start justify-between">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-slate-600 mb-1">Revenus totaux</p>
-                  <p className="text-2xl font-bold text-slate-900 tabular-nums">{formatPrice(totalEarnings)}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-slate-900 tabular-nums truncate">{formatPrice(totalEarnings)}</p>
                 </div>
-                <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
-                  <Calendar className="h-6 w-6 text-emerald-600" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
                 </div>
               </div>
             </div>
 
-            <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-shadow">
+            <div className="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 hover:shadow-lg transition-shadow sm:col-span-2 lg:col-span-1">
               <div className="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-full -mr-12 -mt-12 opacity-30" />
               <div className="relative flex items-start justify-between">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-slate-600 mb-1">Note moyenne</p>
                   <div className="flex items-center gap-2">
-                    <p className="text-3xl font-bold text-slate-900">{averageRating.toFixed(1)}</p>
-                    <span className="text-sm text-slate-600">/5</span>
+                    <p className="text-2xl sm:text-3xl font-bold text-slate-900">{averageRating.toFixed(1)}</p>
+                    <span className="text-xs sm:text-sm text-slate-600">/5</span>
                   </div>
                 </div>
-                <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
-                  <Star className="h-6 w-6 text-amber-600 fill-current" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Star className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600 fill-current" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Filters - Modern Design */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
-            <div className="flex flex-col sm:flex-row gap-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Rechercher par client ou adresse..."
-                    className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm transition-all"
+                    className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm transition-all"
                   />
                 </div>
               </div>
 
-              <div className="sm:w-56">
+              <div className="w-full sm:w-56">
                 <div className="relative">
-                  <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Filter className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
                   <select
                     value={filterPeriod}
                     onChange={(e) => setFilterPeriod(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none text-sm transition-all bg-white"
+                    className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none text-sm transition-all bg-white"
                   >
                     <option value="all">Toutes les périodes</option>
                     <option value="today">Aujourd'hui</option>
@@ -399,21 +399,21 @@ Décrivez votre problème en détail...`,
         {/* Delivery List */}
         <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
         {filteredDeliveries.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Package className="h-10 w-10 text-slate-400" />
+          <div className="p-8 sm:p-12 text-center">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Package className="h-8 w-8 sm:h-10 sm:w-10 text-slate-400" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Aucune livraison trouvée</h3>
-            <p className="text-slate-600">Essayez de modifier vos critères de recherche</p>
+            <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">Aucune livraison trouvée</h3>
+            <p className="text-sm sm:text-base text-slate-600">Essayez de modifier vos critères de recherche</p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
             {filteredDeliveries.map((delivery) => (
-              <div key={delivery.id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+              <div key={delivery.id} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
+                <div className="flex flex-col space-y-3 sm:space-y-4">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-lg font-bold text-gray-900">{delivery.clientName}</h3>
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate mr-2">{delivery.clientName}</h3>
                       {delivery.rating !== null ? (
                         <div className="flex items-center space-x-1">
                           <Star className="h-4 w-4 text-yellow-400 fill-current" />
@@ -427,39 +427,39 @@ Décrivez votre problème en détail...`,
                       )}
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 mb-3">
                       <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-gray-400" />
-                        <span>{delivery.address}</span>
+                        <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                        <span className="truncate">{delivery.address}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Package className="h-4 w-4 text-gray-400" />
+                        <Package className="h-4 w-4 text-gray-400 flex-shrink-0" />
                         <span>{delivery.items} article(s)</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4 text-gray-400" />
+                        <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
                         <span>{delivery.distance} • {delivery.duration} min</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4 text-gray-400" />
-                        <span>{formatDate(delivery.deliveredAt)}</span>
+                        <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                        <span className="truncate">{formatDate(delivery.deliveredAt)}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-4">
-                      <span className="text-xl font-bold text-green-600">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <span className="text-lg sm:text-xl font-bold text-green-600">
                         {formatPrice(delivery.total)}
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-xs sm:text-sm text-gray-500">
                         via {delivery.paymentMethod}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex space-x-3">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <button 
                       onClick={() => handleShowDetails(delivery)}
-                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                      className="w-full sm:w-auto px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm sm:text-base font-medium hover:bg-gray-50 transition-colors"
                     >
                       Détails
                     </button>
@@ -473,7 +473,7 @@ Décrivez votre problème en détail...`,
                         return (
                           <button
                             onClick={() => handleRateClient(order)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                            className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg text-sm sm:text-base font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
                           >
                             <Star className="h-4 w-4" />
                             <span>Évaluer client</span>
@@ -482,7 +482,7 @@ Décrivez votre problème en détail...`,
                       }
 
                       return (
-                        <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center space-x-2">
+                        <button className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg text-sm sm:text-base font-medium flex items-center justify-center space-x-2">
                           <Star className="h-4 w-4" />
                           <span>Évalué</span>
                         </button>
@@ -500,22 +500,22 @@ Décrivez votre problème en détail...`,
 
       {/* Delivery Details Modal */}
       {showDetailsModal && selectedDelivery && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl h-[90vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
               {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-4">
-                  <div className="h-12 w-12 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
-                    <Package className="h-6 w-6 text-white" />
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1 mr-2">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Package className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">Commande #{selectedDelivery.id.substring(0, 8).toUpperCase()}</h3>
-                    <div className="flex items-center space-x-2">
-                      <span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700">
+                  <div className="min-w-0">
+                    <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">Commande #{selectedDelivery.id.substring(0, 8).toUpperCase()}</h3>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                      <span className="px-2 sm:px-3 py-1 text-xs font-semibold rounded-full bg-green-50 text-green-700 w-fit">
                         Livrée
                       </span>
-                      <span className="text-sm text-gray-600">
+                      <span className="text-xs sm:text-sm text-gray-600 truncate">
                         Total: {formatPrice(selectedDelivery.total)}
                       </span>
                     </div>
@@ -526,13 +526,13 @@ Décrivez votre problème en détail...`,
                     setShowDetailsModal(false);
                     setSelectedDelivery(null);
                   }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {/* Client Info */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
@@ -665,10 +665,10 @@ Décrivez votre problème en détail...`,
               </div>
 
               {/* Claim Button */}
-              <div className="mt-6 flex justify-center">
+              <div className="mt-4 sm:mt-6 flex justify-center">
                 <button
                   onClick={handleMakeClaim}
-                  className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all flex items-center space-x-2"
+                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg text-sm sm:text-base font-semibold hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center space-x-2"
                 >
                   <MessageSquare className="h-5 w-5" />
                   <span>Faire une réclamation</span>
@@ -681,15 +681,15 @@ Décrivez votre problème en détail...`,
 
       {/* Rating Modal */}
       {showRatingModal && selectedOrderForRating && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-8">
-              <div className="text-center mb-6">
-                <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Star className="h-8 w-8 text-white" />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl h-[90vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 md:p-8">
+              <div className="text-center mb-4 sm:mb-6">
+                <div className="h-12 w-12 sm:h-16 sm:w-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Star className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Évaluez votre client</h2>
-                <p className="text-gray-600">Comment s'est passée la livraison pour <strong>{getClientName(selectedOrderForRating.clientId)}</strong> ?</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Évaluez votre client</h2>
+                <p className="text-sm sm:text-base text-gray-600">Comment s'est passée la livraison pour <strong>{getClientName(selectedOrderForRating.clientId)}</strong> ?</p>
               </div>
 
               <UnifiedRatingForm

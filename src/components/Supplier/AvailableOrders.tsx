@@ -236,8 +236,8 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
               </div>
 
               <div className="bg-blue-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-                <h3 className="font-semibold text-gray-900 mb-3">Informations de livraison</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-3">Informations de livraison</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
                   <div>
                     <p className="text-gray-600">Zone de livraison</p>
                     <p className="font-semibold text-gray-900">{selectedOrder.deliveryZone || 'Non spécifiée'}</p>
@@ -273,11 +273,11 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
 
                 <div className="space-y-2 sm:space-y-3">
                   {offerItems.map((item) => (
-                    <div key={item.productId} className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex-1">
-                          <p className="font-semibold text-gray-900">{item.productName}</p>
-                          <p className="text-sm text-gray-600">
+                    <div key={item.productId} className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm sm:text-base font-semibold text-gray-900 truncate">{item.productName}</p>
+                          <p className="text-xs sm:text-sm text-gray-600">
                             Prix unitaire: {formatPrice(item.pricePerUnit)}
                             {item.withConsigne && ` (+ ${formatPrice(item.consigneAmount)} consigne)`}
                           </p>
@@ -293,8 +293,8 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                         )}
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="text-xs sm:text-sm">
                           <p className="text-gray-600">
                             {selectedOrderTab === 'available' ? 'Demandé' : 'Quantité'}: <span className="font-semibold">{item.requestedQuantity} caisses</span>
                           </p>
@@ -306,10 +306,10 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                         </div>
 
                         {selectedOrderTab === 'available' && (
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-2 sm:space-x-3">
                             <button
                               onClick={() => updateQuantity(item.productId, item.offeredQuantity - 1)}
-                              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+                              className="p-1.5 sm:p-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
                               disabled={item.offeredQuantity === 0}
                             >
                               <Minus className="h-4 w-4" />
@@ -318,14 +318,14 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                               type="number"
                               value={item.offeredQuantity}
                               onChange={(e) => updateQuantity(item.productId, Math.min(parseInt(e.target.value) || 0, item.requestedQuantity))}
-                              className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center font-semibold"
+                              className="w-16 sm:w-20 px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg text-center text-sm sm:text-base font-semibold"
                               min="0"
                               max={item.requestedQuantity}
                             />
                             <button
                               onClick={() => updateQuantity(item.productId, item.offeredQuantity + 1)}
                               disabled={item.offeredQuantity >= item.requestedQuantity}
-                              className={`p-2 border rounded-lg ${
+                              className={`p-1.5 sm:p-2 border rounded-lg ${
                                 item.offeredQuantity >= item.requestedQuantity
                                   ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
                                   : 'border-gray-300 hover:bg-gray-100'
@@ -362,9 +362,9 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
               )}
 
               {totals && (
-                <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-6 mb-6">
-                  <h3 className="font-semibold text-gray-900 mb-4">Récapitulatif financier</h3>
-                  <div className="space-y-2 text-sm">
+                <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
+                  <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-3 sm:mb-4">Récapitulatif financier</h3>
+                  <div className="space-y-2 text-xs sm:text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Sous-total</span>
                       <span className="font-semibold">{formatPrice(totals.subtotal)}</span>
@@ -393,13 +393,13 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                 </div>
               )}
 
-              <div className="flex space-x-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <button
                   onClick={() => {
                     setShowDetailsModal(false);
                     setSelectedOrder(null);
                   }}
-                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50"
+                  className="w-full sm:flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg text-sm sm:text-base font-semibold hover:bg-gray-50"
                   disabled={isSubmitting}
                 >
                   {selectedOrderTab === 'available' ? 'Annuler' : 'Fermer'}
@@ -408,7 +408,7 @@ export const AvailableOrders: React.FC<AvailableOrdersProps> = ({ onNavigate }) 
                   <button
                     onClick={handleSubmitOffer}
                     disabled={isSubmitting || offerItems.every(item => item.offeredQuantity === 0)}
-                    className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    className="w-full sm:flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg text-sm sm:text-base font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                   >
                     {isSubmitting ? (
                       <>
