@@ -463,102 +463,102 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
           </div>
 
           {/* Summary Stats - Modern Design */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                  <Package className="h-5 w-5 text-blue-600" />
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <div className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-50 rounded-lg sm:rounded-xl flex items-center justify-center">
+                  <Package className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                 </div>
               </div>
               <div>
                 <p className="text-xs font-medium text-slate-600 mb-1">Total commandes</p>
-                <p className="text-2xl font-bold text-slate-900">{totalOrders}</p>
+                <p className="text-xl sm:text-2xl font-bold text-slate-900">{totalOrders}</p>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
-                  <CheckCircle className="h-5 w-5 text-emerald-600" />
+            <div className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-50 rounded-lg sm:rounded-xl flex items-center justify-center">
+                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
                 </div>
               </div>
               <div>
                 <p className="text-xs font-medium text-slate-600 mb-1">Livrées</p>
-                <p className="text-2xl font-bold text-slate-900">{completedOrders}</p>
+                <p className="text-xl sm:text-2xl font-bold text-slate-900">{completedOrders}</p>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
-                  <XCircle className="h-5 w-5 text-red-600" />
+            <div className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-50 rounded-lg sm:rounded-xl flex items-center justify-center">
+                  <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
                 </div>
               </div>
               <div>
                 <p className="text-xs font-medium text-slate-600 mb-1">Annulées</p>
-                <p className="text-2xl font-bold text-slate-900">{cancelledOrders}</p>
+                <p className="text-xl sm:text-2xl font-bold text-slate-900">{cancelledOrders}</p>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 bg-violet-50 rounded-xl flex items-center justify-center">
-                  <Calendar className="h-5 w-5 text-violet-600" />
+            <div className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-violet-50 rounded-lg sm:rounded-xl flex items-center justify-center">
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-violet-600" />
                 </div>
               </div>
               <div>
                 <p className="text-xs font-medium text-slate-600 mb-1">Total dépensé</p>
-                <p className="text-lg font-bold text-slate-900 tabular-nums">{formatPrice(totalSpent)}</p>
+                <p className="text-base sm:text-lg font-bold text-slate-900 tabular-nums">{formatPrice(totalSpent)}</p>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
-                  <Star className="h-5 w-5 text-amber-600" />
+            <div className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:shadow-lg transition-shadow">
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-50 rounded-lg sm:rounded-xl flex items-center justify-center">
+                  <Star className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
                 </div>
               </div>
               <div>
                 <p className="text-xs font-medium text-slate-600 mb-1">Panier moyen</p>
-                <p className="text-lg font-bold text-slate-900 tabular-nums">{formatPrice(averageOrderValue)}</p>
+                <p className="text-base sm:text-lg font-bold text-slate-900 tabular-nums">{formatPrice(averageOrderValue)}</p>
               </div>
             </div>
           </div>
 
           {/* Analytics Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-white border border-slate-200 rounded-2xl p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">Statistiques</h3>
-              <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4">Statistiques</h3>
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm text-slate-600">Cette semaine</span>
-                  <span className="font-semibold text-slate-900">{ordersThisWeek} commandes</span>
+                  <span className="text-xs sm:text-sm text-slate-600">Cette semaine</span>
+                  <span className="text-sm sm:text-base font-semibold text-slate-900">{ordersThisWeek} commandes</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm text-slate-600">Fournisseur principal</span>
-                  <span className="font-semibold text-slate-900 truncate max-w-[200px]">{getFavoriteSupplier()}</span>
+                  <span className="text-xs sm:text-sm text-slate-600">Fournisseur principal</span>
+                  <span className="text-sm sm:text-base font-semibold text-slate-900 truncate max-w-[150px] sm:max-w-[200px]">{getFavoriteSupplier()}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm text-slate-600">Temps moyen livraison</span>
-                  <span className="font-semibold text-slate-900">{getAverageDeliveryTime()} min</span>
+                  <span className="text-xs sm:text-sm text-slate-600">Temps moyen livraison</span>
+                  <span className="text-sm sm:text-base font-semibold text-slate-900">{getAverageDeliveryTime()} min</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-slate-600">Votre note moyenne</span>
+                  <span className="text-xs sm:text-sm text-slate-600">Votre note moyenne</span>
                   <div className="flex items-center gap-1.5">
-                    <Star className="h-4 w-4 text-amber-400 fill-current" />
-                    <span className="font-semibold text-slate-900">{user?.rating || 4.5}</span>
+                    <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-400 fill-current" />
+                    <span className="text-sm sm:text-base font-semibold text-slate-900">{user?.rating || 4.5}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">Fournisseurs fréquents</h3>
-              <div className="space-y-3">
+            <div className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4">Fournisseurs fréquents</h3>
+              <div className="space-y-2 sm:space-y-3">
                 {topSuppliers.length > 0 ? topSuppliers.map((supplier, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                  <div key={index} className="flex items-center justify-between p-2.5 sm:p-3 bg-slate-50 rounded-lg sm:rounded-xl hover:bg-slate-100 transition-colors">
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-900 truncate">{supplier.name}</p>
+                      <p className="text-sm sm:text-base font-semibold text-slate-900 truncate">{supplier.name}</p>
                       <p className="text-xs text-slate-600">{supplier.orders} commande{supplier.orders > 1 ? 's' : ''}</p>
                     </div>
                     {supplier.rating !== null && supplier.rating > 0 && (
@@ -572,32 +572,32 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                     )}
                   </div>
                 )) : (
-                  <p className="text-sm text-slate-500 text-center py-4">Aucun fournisseur pour le moment</p>
+                  <p className="text-xs sm:text-sm text-slate-500 text-center py-4">Aucun fournisseur pour le moment</p>
                 )}
               </div>
             </div>
           </div>
 
         {/* Filters - Modern Design */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+              <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Rechercher par ID ou adresse..."
-                className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm transition-all"
+                className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 border border-slate-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-xs sm:text-sm transition-all"
               />
             </div>
 
             <div className="relative">
-              <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+              <Filter className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as OrderStatus | 'all')}
-                className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none text-sm transition-all bg-white"
+                className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 border border-slate-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none text-xs sm:text-sm transition-all bg-white"
               >
                 <option value="all">Tous les statuts</option>
                 <option value="pending">En attente</option>
@@ -614,11 +614,11 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
             </div>
 
             <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+              <Calendar className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
               <select
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value as 'all' | 'today' | 'week' | 'month')}
-                className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none text-sm transition-all bg-white"
+                className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-3 border border-slate-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none text-xs sm:text-sm transition-all bg-white"
               >
                 <option value="all">Toutes les dates</option>
                 <option value="today">Aujourd'hui</option>
@@ -630,14 +630,14 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
         </div>
 
         {/* Orders List - Modern Design */}
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-xl sm:rounded-2xl overflow-hidden">
           {filteredOrders.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Package className="h-10 w-10 text-slate-400" />
+            <div className="p-8 sm:p-12 text-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <Package className="h-8 w-8 sm:h-10 sm:w-10 text-slate-400" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Aucune commande trouvée</h3>
-              <p className="text-slate-600 mb-6">Essayez de modifier vos critères de recherche</p>
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">Aucune commande trouvée</h3>
+              <p className="text-sm sm:text-base text-slate-600 mb-4 sm:mb-6">Essayez de modifier vos critères de recherche</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -646,11 +646,11 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                 const StatusIcon = statusInfo.icon;
 
                 return (
-                  <div key={order.id} className="p-6 hover:bg-gray-50 transition-colors">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                  <div key={order.id} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
+                    <div className="flex flex-col space-y-4">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <h3 className="text-lg font-bold text-gray-900">#{order.id}</h3>
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                          <h3 className="text-base sm:text-lg font-bold text-gray-900">#{order.id}</h3>
                           <Badge variant={statusInfo.variant}>
                             {statusInfo.label}
                           </Badge>
@@ -663,40 +663,40 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                             const rating = orderRatings[order.id];
                             return rating !== null && rating !== undefined ? (
                               <div className="flex items-center space-x-1">
-                                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                                <span className="text-sm font-semibold">{rating.toFixed(1)}</span>
+                                <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-400 fill-current" />
+                                <span className="text-xs sm:text-sm font-semibold">{rating.toFixed(1)}</span>
                               </div>
                             ) : (
                               <div className="flex items-center space-x-1 text-gray-400">
-                                <Star className="h-4 w-4" />
-                                <span className="text-sm">—</span>
+                                <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                <span className="text-xs sm:text-sm">—</span>
                               </div>
                             );
                           })()}
                         </div>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-3">
                           <div className="flex items-center space-x-2">
-                            <MapPin className="h-4 w-4 text-gray-400" />
-                            <span>{order.deliveryAddress.split(',')[0]}</span>
+                            <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
+                            <span className="truncate">{order.deliveryAddress.split(',')[0]}</span>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <Package className="h-4 w-4 text-gray-400" />
+                            <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
                             <span>{order.items.length} article(s)</span>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <Clock className="h-4 w-4 text-gray-400" />
+                            <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
                             <span>{formatDateShort(order.createdAt)}</span>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <CreditCard className="h-4 w-4 text-gray-400" />
-                            <span>{getPaymentMethodLabel(order.paymentMethod)}</span>
+                            <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
+                            <span className="truncate">{getPaymentMethodLabel(order.paymentMethod)}</span>
                           </div>
                         </div>
 
                         {/* Order Items Summary */}
                         <div className="mb-3">
-                          <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-wrap gap-1.5 sm:gap-2">
                             {order.items.map((item, index) => (
                               <span key={index} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
                                 {item.quantity}x {item.product.name} ({item.product.crateType})
@@ -706,34 +706,34 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                           </div>
                         </div>
 
-                        <div className="flex items-center space-x-6">
-                          <span className="text-xl font-bold text-gray-900">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+                          <span className="text-lg sm:text-xl font-bold text-gray-900">
                             {formatPrice(order.totalAmount)}
                           </span>
                           {order.consigneTotal > 0 && (
-                            <span className="text-sm text-orange-600 font-medium">
+                            <span className="text-xs sm:text-sm text-orange-600 font-medium">
                               Consigne: {formatPrice(order.consigneTotal)}
                             </span>
                           )}
                           {order.supplierId && isSupplierRevealed(order.status) && (
-                            <span className="text-sm text-gray-500">
+                            <span className="text-xs sm:text-sm text-gray-500 truncate">
                               par {getSupplierName(order.supplierId)}
                             </span>
                           )}
                           {order.deliveredAt && (
-                            <span className="text-sm text-green-600 font-medium">
+                            <span className="text-xs sm:text-sm text-green-600 font-medium">
                               Livrée le {formatDate(order.deliveredAt)}
                             </span>
                           )}
                         </div>
                       </div>
 
-                      <div className="flex space-x-2">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
                         <button
                           onClick={() => handleViewDetails(order)}
-                          className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                          className="w-full sm:w-auto px-3 sm:px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           <span>Détails</span>
                         </button>
 
@@ -743,9 +743,9 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                               setOrderForPayment(order);
                               setShowPaymentModal(true);
                             }}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                            className="w-full sm:w-auto px-3 sm:px-4 py-2 text-sm bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
                           >
-                            <CreditCard className="h-4 w-4" />
+                            <CreditCard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             <span>Payer maintenant</span>
                           </button>
                         )}
@@ -753,15 +753,15 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                         {order === clientCurrentOrder && (
                           <button 
                             onClick={() => onNavigate('tracking')}
-                            className="px-4 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors"
+                            className="w-full sm:w-auto px-3 sm:px-4 py-2 text-sm bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors"
                           >
                             Suivre
                           </button>
                         )}
                         
                         {order.status === 'delivered' && (
-                          <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center space-x-2">
-                            <Download className="h-4 w-4" />
+                          <button className="w-full sm:w-auto px-3 sm:px-4 py-2 text-sm bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center space-x-2">
+                            <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             <span>Reçu</span>
                           </button>
                         )}
@@ -773,17 +773,17 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                             return (
                               <button
                                 onClick={() => handleRateSupplier(order)}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                                className="w-full sm:w-auto px-3 sm:px-4 py-2 text-sm bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
                               >
-                                <Star className="h-4 w-4" />
+                                <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                 <span>Évaluer</span>
                               </button>
                             );
                           }
 
                           return (
-                            <button className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center space-x-2">
-                              <CheckCircle className="h-4 w-4" />
+                            <button className="w-full sm:w-auto px-3 sm:px-4 py-2 text-sm bg-green-600 text-white rounded-lg font-medium flex items-center justify-center space-x-2">
+                              <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                               <span>Évalué</span>
                             </button>
                           );
@@ -792,7 +792,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                         {(order.status === 'pending' || order.status === 'accepted') && order !== clientCurrentOrder && (
                           <button 
                             onClick={() => handleCancelOrder(order.id)}
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                            className="w-full sm:w-auto px-3 sm:px-4 py-2 text-sm bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
                           >
                             Annuler
                           </button>
@@ -831,15 +831,15 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
 
       {/* Rating Modal */}
       {showRatingModal && selectedOrderForRating && selectedOrderForRating.supplierId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-8">
-              <div className="text-center mb-6">
-                <div className="h-16 w-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Star className="h-8 w-8 text-white" />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full h-[90vh] sm:h-auto sm:max-w-2xl sm:max-h-[90vh] overflow-y-auto">
+            <div className="p-6 sm:p-8">
+              <div className="text-center mb-4 sm:mb-6">
+                <div className="h-12 w-12 sm:h-16 sm:w-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <Star className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Évaluez votre fournisseur</h2>
-                <p className="text-gray-600">Comment s'est passée votre livraison avec <strong>{getSupplierName(selectedOrderForRating.supplierId)}</strong> ?</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Évaluez votre fournisseur</h2>
+                <p className="text-sm sm:text-base text-gray-600">Comment s'est passée votre livraison avec <strong>{getSupplierName(selectedOrderForRating.supplierId)}</strong> ?</p>
               </div>
 
               <UnifiedRatingForm
