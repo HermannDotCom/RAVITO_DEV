@@ -331,80 +331,80 @@ export const Treasury: React.FC = () => {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Tresorerie</h1>
-          <p className="text-gray-600">Gestion des reversements aux fournisseurs</p>
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Tresorerie</h1>
+          <p className="text-sm sm:text-base text-gray-600">Gestion des reversements aux fournisseurs</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Fournisseurs a regler</p>
-                <p className="text-2xl font-bold text-orange-600">{supplierPayments.length}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Fournisseurs a regler</p>
+                <p className="text-xl sm:text-2xl font-bold text-orange-600">{supplierPayments.length}</p>
               </div>
-              <Users className="h-8 w-8 text-orange-600" />
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600" />
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Commandes en attente</p>
-                <p className="text-2xl font-bold text-blue-600">{totalPendingOrders}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Commandes en attente</p>
+                <p className="text-xl sm:text-2xl font-bold text-blue-600">{totalPendingOrders}</p>
               </div>
-              <Package className="h-8 w-8 text-blue-600" />
+              <Package className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 p-3 sm:p-6 col-span-2 md:col-span-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">Montant a reverser</p>
-                <p className="text-xl font-bold text-red-600">{formatPrice(totalPendingAmount)}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">Montant a reverser</p>
+                <p className="text-lg sm:text-xl font-bold text-red-600">{formatPrice(totalPendingAmount)}</p>
               </div>
-              <CreditCard className="h-8 w-8 text-red-600" />
+              <CreditCard className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
             </div>
           </div>
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
-          <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center">
-            <DollarSign className="h-5 w-5 mr-2" />
+        <div className="bg-blue-50 border border-blue-200 rounded-lg sm:rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
+          <h3 className="text-base sm:text-lg font-bold text-blue-900 mb-3 sm:mb-4 flex items-center">
+            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             Structure des commissions
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div className="bg-white rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600 mb-1">{(PLATFORM_COMMISSION * 100).toFixed(0)}%</div>
-              <div className="text-blue-800">Commission plateforme</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
+            <div className="bg-white rounded-lg p-3 sm:p-4 text-center">
+              <div className="text-xl sm:text-2xl font-bold text-blue-600 mb-1">{(PLATFORM_COMMISSION * 100).toFixed(0)}%</div>
+              <div className="text-sm sm:text-base text-blue-800">Commission plateforme</div>
               <p className="text-xs text-gray-500 mt-1">Prelevee sur le montant de l'offre</p>
             </div>
-            <div className="bg-white rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-600 mb-1">{((1 - PLATFORM_COMMISSION) * 100).toFixed(0)}%</div>
-              <div className="text-green-800">Reverse au fournisseur</div>
+            <div className="bg-white rounded-lg p-3 sm:p-4 text-center">
+              <div className="text-xl sm:text-2xl font-bold text-green-600 mb-1">{((1 - PLATFORM_COMMISSION) * 100).toFixed(0)}%</div>
+              <div className="text-sm sm:text-base text-green-800">Reverse au fournisseur</div>
               <p className="text-xs text-gray-500 mt-1">Montant net apres commission</p>
             </div>
           </div>
-          <p className="text-xs text-blue-700 mt-4">
+          <p className="text-xs text-blue-700 mt-3 sm:mt-4">
             Note : Les frais de traitement ({commissionSettings.clientCommission}%) sont payes par le client et ne sont pas deduits du montant du fournisseur.
           </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-8">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 overflow-hidden mb-6 sm:mb-8">
+          <div className="p-4 sm:p-6 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Fournisseurs a regler</h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900">Fournisseurs a regler</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mt-1">
                   Cliquez sur un fournisseur pour voir le detail et effectuer le virement
                 </p>
               </div>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Rechercher un fournisseur..."
+                  placeholder="Rechercher..."
                   value={supplierSearchQuery}
                   onChange={(e) => setSupplierSearchQuery(e.target.value)}
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-full sm:w-64"
@@ -414,12 +414,12 @@ export const Treasury: React.FC = () => {
           </div>
 
           {filteredSupplierPayments.length === 0 ? (
-            <div className="p-12 text-center">
-              <CheckCircle className="h-16 w-16 text-green-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+            <div className="p-8 sm:p-12 text-center">
+              <CheckCircle className="h-12 w-12 sm:h-16 sm:w-16 text-green-300 mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-600 mb-2">
                 {supplierSearchQuery ? 'Aucun resultat' : 'Tous les paiements sont a jour'}
               </h3>
-              <p className="text-gray-500">
+              <p className="text-sm text-gray-500">
                 {supplierSearchQuery ? 'Aucun fournisseur ne correspond a votre recherche' : 'Aucun reversement en attente'}
               </p>
             </div>
@@ -428,24 +428,24 @@ export const Treasury: React.FC = () => {
               {filteredSupplierPayments.map((supplier) => (
                 <div 
                   key={supplier.supplierId} 
-                  className="p-6 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="p-4 sm:p-6 hover:bg-gray-50 transition-colors cursor-pointer"
                   onClick={() => handleShowDetails(supplier)}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="h-12 w-12 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-center space-x-3 sm:space-x-4">
+                      <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white font-bold text-sm sm:text-base">
                           {supplier.supplierName.charAt(0)}
                         </span>
                       </div>
-                      <div>
-                        <h4 className="text-lg font-bold text-gray-900">{supplier.supplierName}</h4>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-base sm:text-lg font-bold text-gray-900 truncate">{supplier.supplierName}</h4>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-gray-600">
                           <span className="flex items-center space-x-1">
-                            <Package className="h-4 w-4" />
+                            <Package className="h-3 w-3 sm:h-4 sm:w-4" />
                             <span>{supplier.orderCount} commande(s)</span>
                           </span>
-                          <span className="flex items-center space-x-1">
+                          <span className="hidden sm:flex items-center space-x-1">
                             <Calendar className="h-4 w-4" />
                             <span>Dernière: {formatDate(supplier.lastOrderDate)}</span>
                           </span>
@@ -453,14 +453,14 @@ export const Treasury: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-green-600">
+                    <div className="flex items-center justify-between sm:justify-end sm:space-x-4 pl-13 sm:pl-0">
+                      <div className="text-left sm:text-right">
+                        <p className="text-lg sm:text-2xl font-bold text-green-600">
                           {formatPrice(supplier.totalAmount)}
                         </p>
-                        <p className="text-sm text-gray-500">Montant net à reverser</p>
+                        <p className="text-xs sm:text-sm text-gray-500">Montant net à reverser</p>
                       </div>
-                      <ArrowRight className="h-5 w-5 text-gray-400" />
+                      <ArrowRight className="h-5 w-5 text-gray-400 hidden sm:block" />
                     </div>
                   </div>
                 </div>
@@ -469,21 +469,21 @@ export const Treasury: React.FC = () => {
           )}
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center space-x-3">
-                <History className="h-5 w-5 text-gray-600" />
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <History className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" />
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Historique des Virements</h3>
-                  <p className="text-sm text-gray-600">{filteredTransfers.length} virement(s)</p>
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900">Historique des Virements</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">{filteredTransfers.length} virement(s)</p>
                 </div>
               </div>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Rechercher un fournisseur..."
+                  placeholder="Rechercher..."
                   value={transferSearchQuery}
                   onChange={(e) => setTransferSearchQuery(e.target.value)}
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 w-full sm:w-64"
@@ -512,25 +512,25 @@ export const Treasury: React.FC = () => {
               {filteredTransfers.map((transfer) => (
                 <div
                   key={transfer.id}
-                  className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="p-3 sm:p-4 hover:bg-gray-50 transition-colors cursor-pointer"
                   onClick={() => handleViewTransferDetails(transfer)}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <div>
-                        <p className="font-medium text-gray-900">{transfer.supplierName}</p>
-                        <p className="text-sm text-gray-600">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{transfer.supplierName}</p>
+                        <p className="text-xs sm:text-sm text-gray-600">
                           {transfer.orderCount} commande(s) - {formatDate(transfer.createdAt)}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="text-right">
-                        <p className="font-bold text-green-600">{formatPrice(transfer.amount)}</p>
+                    <div className="flex items-center justify-between sm:justify-end sm:space-x-3 pl-6 sm:pl-0">
+                      <div className="text-left sm:text-right">
+                        <p className="text-sm sm:text-base font-bold text-green-600">{formatPrice(transfer.amount)}</p>
                         <p className="text-xs text-green-500 capitalize">{getTransferStatusLabel(transfer.status)}</p>
                       </div>
-                      <ArrowRight className="h-4 w-4 text-gray-400" />
+                      <ArrowRight className="h-4 w-4 text-gray-400 hidden sm:block" />
                     </div>
                   </div>
                 </div>
@@ -542,20 +542,20 @@ export const Treasury: React.FC = () => {
 
       {/* Supplier Details Modal */}
       {showDetailsModal && selectedSupplier && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-8">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full h-[95vh] sm:h-auto sm:max-w-6xl sm:max-h-[90vh] overflow-y-auto flex flex-col">
+            <div className="p-4 sm:p-8 flex-1 overflow-y-auto">
               {/* Header */}
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center space-x-3">
-                  <div className="h-16 w-16 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-xl">
+              <div className="flex items-start sm:items-center justify-between mb-6 sm:mb-8 gap-3">
+                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                  <div className="h-12 w-12 sm:h-16 sm:w-16 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-base sm:text-xl">
                       {selectedSupplier.supplierName.charAt(0)}
                     </span>
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{selectedSupplier.supplierName}</h2>
-                    <p className="text-gray-600">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">{selectedSupplier.supplierName}</h2>
+                    <p className="text-xs sm:text-base text-gray-600">
                       {selectedSupplier.orderCount} commande(s) à régler • 
                       Montant net: {formatPrice(selectedSupplier.totalAmount)}
                     </p>
@@ -563,48 +563,48 @@ export const Treasury: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setShowDetailsModal(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
 
 
               {/* Orders List */}
-              <div className="mb-8">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Détail des commandes</h3>
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <div className="space-y-4">
+              <div className="mb-6 sm:mb-8">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4">Détail des commandes</h3>
+                <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-6">
+                  <div className="space-y-3 sm:space-y-4">
                     {selectedSupplier.orders.map((order) => (
-                      <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center space-x-3">
-                            <span className="font-bold text-gray-900">#{order.id}</span>
-                            <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">
+                      <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3 gap-1 sm:gap-0">
+                          <div className="flex items-center space-x-2 sm:space-x-3">
+                            <span className="text-sm sm:text-base font-bold text-gray-900">#{order.id}</span>
+                            <span className="px-2 py-0.5 sm:py-1 text-xs bg-green-100 text-green-700 rounded-full">
                               Livrée
                             </span>
                           </div>
-                          <span className="text-sm text-gray-600">
+                          <span className="text-xs sm:text-sm text-gray-600">
                             {formatDate(order.deliveredAt || order.createdAt)}
                           </span>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-sm">
                           <div>
                             <span className="text-gray-600">Client:</span>
-                            <span className="font-medium text-gray-900 ml-2">{getClientName(order.clientId)}</span>
+                            <span className="font-medium text-gray-900 ml-1 sm:ml-2">{getClientName(order.clientId)}</span>
                           </div>
                           <div>
                             <span className="text-gray-600">Articles:</span>
-                            <span className="font-medium text-gray-900 ml-2">{order.items.length}</span>
+                            <span className="font-medium text-gray-900 ml-1 sm:ml-2">{order.items.length}</span>
                           </div>
                           <div>
                             <span className="text-gray-600">Montant commande:</span>
-                            <span className="font-medium text-gray-900 ml-2">{formatPrice(order.baseAmount || order.totalAmount)}</span>
+                            <span className="font-medium text-gray-900 ml-1 sm:ml-2">{formatPrice(order.baseAmount || order.totalAmount)}</span>
                           </div>
                           <div>
                             <span className="text-gray-600">Net fournisseur:</span>
-                            <span className="font-bold text-green-600 ml-2">
+                            <span className="font-bold text-green-600 ml-1 sm:ml-2">
                               {formatPrice((order.baseAmount || order.totalAmount) * (1 - PLATFORM_COMMISSION))}
                             </span>
                           </div>
@@ -616,16 +616,16 @@ export const Treasury: React.FC = () => {
               </div>
 
               {/* Payment Action */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-6">
-                <div className="flex items-start space-x-3">
-                  <AlertTriangle className="h-6 w-6 text-yellow-600 mt-0.5" />
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg sm:rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
+                <div className="flex items-start space-x-2 sm:space-x-3">
+                  <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <h4 className="font-bold text-yellow-900 mb-2">Confirmation de virement</h4>
-                    <p className="text-yellow-800 text-sm mb-4">
+                    <h4 className="text-sm sm:text-base font-bold text-yellow-900 mb-2">Confirmation de virement</h4>
+                    <p className="text-xs sm:text-sm text-yellow-800 mb-3 sm:mb-4">
                       Vous allez effectuer un virement de <strong>{formatPrice(selectedSupplier.totalAmount)}</strong> 
                       à <strong>{selectedSupplier.supplierName}</strong> pour {selectedSupplier.orderCount} commande(s).
                     </p>
-                    <ul className="text-yellow-700 text-sm space-y-1 list-disc list-inside">
+                    <ul className="text-xs sm:text-sm text-yellow-700 space-y-1 list-disc list-inside">
                       <li>Le statut de toutes les commandes passera à "Paiement reversé"</li>
                       <li>Le fournisseur recevra une notification de virement</li>
                       <li>Cette action est irréversible</li>
@@ -635,17 +635,17 @@ export const Treasury: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <button
                   onClick={() => setShowDetailsModal(false)}
-                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-300 text-gray-700 rounded-lg text-sm sm:text-base font-semibold hover:bg-gray-50 transition-colors"
                 >
                   Annuler
                 </button>
                 <button
                   onClick={() => handleProcessPayment(selectedSupplier)}
                   disabled={!!processingPayment}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
+                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
                 >
                   {processingPayment === selectedSupplier.supplierId ? (
                     <>
@@ -665,49 +665,49 @@ export const Treasury: React.FC = () => {
       )}
 
       {selectedTransferDetails && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="h-12 w-12 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full h-[90vh] sm:h-auto sm:max-w-4xl sm:max-h-[90vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-sm sm:text-base">
                       {selectedTransferDetails.transfer.supplierName.charAt(0)}
                     </span>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">{selectedTransferDetails.transfer.supplierName}</h2>
-                    <p className="text-gray-600">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-base sm:text-xl font-bold text-gray-900 truncate">{selectedTransferDetails.transfer.supplierName}</h2>
+                    <p className="text-xs sm:text-base text-gray-600">
                       Virement du {formatDate(selectedTransferDetails.transfer.createdAt)} - {formatPrice(selectedTransferDetails.transfer.amount)}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setSelectedTransferDetails(null)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </div>
 
               <div className="mb-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-3">Detail des commandes</h3>
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="space-y-3">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3">Detail des commandes</h3>
+                <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                  <div className="space-y-2 sm:space-y-3">
                     {selectedTransferDetails.orders.map((order) => (
-                      <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-3">
-                            <span className="font-bold text-gray-900">#{order.id.substring(0, 8).toUpperCase()}</span>
-                            <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full">
+                      <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
+                          <div className="flex items-center space-x-2 sm:space-x-3">
+                            <span className="text-sm sm:text-base font-bold text-gray-900">#{order.id.substring(0, 8).toUpperCase()}</span>
+                            <span className="px-2 py-0.5 sm:py-1 text-xs bg-green-100 text-green-700 rounded-full">
                               Livree
                             </span>
                           </div>
-                          <span className="text-sm text-gray-600">
+                          <span className="text-xs sm:text-sm text-gray-600">
                             {formatDate(order.deliveredAt)}
                           </span>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 text-xs sm:text-sm">
                           <div>
                             <span className="text-gray-600">Client:</span>
                             <span className="font-medium text-gray-900 ml-1">{order.clientName}</span>
@@ -734,7 +734,7 @@ export const Treasury: React.FC = () => {
               <div className="flex justify-end">
                 <button
                   onClick={() => setSelectedTransferDetails(null)}
-                  className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+                  className="px-4 sm:px-6 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm sm:text-base font-semibold hover:bg-gray-200 transition-colors"
                 >
                   Fermer
                 </button>
