@@ -3,6 +3,9 @@ import { User, Phone, MapPin, Clock, Package, Truck, CreditCard, Star, Edit3, Sa
 import { useAuth } from '../../context/AuthContext';
 import { PaymentMethod, DeliveryMethod } from '../../types';
 import { getSupplierStats, SupplierStats } from '../../services/ratingService';
+import { SupplierZoneSelector } from './SupplierZoneSelector';
+import { LocationPicker } from '../Shared/LocationPicker';
+import { supabase } from '../../lib/supabase';
 
 export const SupplierProfile: React.FC = () => {
   const { user } = useAuth();
@@ -18,21 +21,51 @@ export const SupplierProfile: React.FC = () => {
     coverageZone: 'Plateau, Marcory, Treichville',
     availableProducts: ['Solibra', 'Brassivoire'],
     deliveryCapacity: 'truck' as DeliveryMethod,
-    acceptedPayments: ['orange', 'mtn', 'moov', 'card'] as PaymentMethod[]
+    acceptedPayments: ['orange', 'mtn', 'moov', 'card'] as PaymentMethod[],
+    zoneId: user?.zoneId || '',
+    depotLatitude: null as number | null,
+    depotLongitude: null as number | null,
+    depotAddress: '',
+    accessInstructions: ''
   });
 
   // Mettre à jour formData quand user change
   useEffect(() => {
     if (user) {
+      loadUserProfile();
+    }
+  }, [user]);
+
+  const loadUserProfile = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('depot_latitude, depot_longitude, depot_address, access_instructions, zone_id')
+        .eq('id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading profile:', error);
+      }
+
       setFormData(prev => ({
         ...prev,
         name: user.name || '',
         phone: user.phone || '',
         address: user.address || '',
-        businessName: user.businessName || user.name || ''
+        businessName: user.businessName || user.name || '',
+        zoneId: data?.zone_id || user.zoneId || '',
+        depotLatitude: data?.depot_latitude || null,
+        depotLongitude: data?.depot_longitude || null,
+        depotAddress: data?.depot_address || '',
+        accessInstructions: data?.access_instructions || ''
       }));
+    } catch (error) {
+      console.error('Error in loadUserProfile:', error);
     }
-  }, [user]);
+  };
 
   const paymentMethods = [
     { value: 'orange' as PaymentMethod, label: 'Orange Money' },
@@ -68,8 +101,46 @@ export const SupplierProfile: React.FC = () => {
     }
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
+  const handleSave = async () => {
+    if (!user) return;
+
+    try {
+      // Build base update object
+      const updateData: Record<string, any> = {
+        name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+        business_name: formData.businessName,
+        zone_id: formData.zoneId || null
+      };
+
+      // Add depot geolocation fields
+      if (formData.depotLatitude != null) {
+        updateData.depot_latitude = formData.depotLatitude;
+      }
+      if (formData.depotLongitude != null) {
+        updateData.depot_longitude = formData.depotLongitude;
+      }
+      if (formData.depotAddress !== undefined) {
+        updateData.depot_address = formData.depotAddress;
+      }
+      if (formData.accessInstructions !== undefined) {
+        updateData.access_instructions = formData.accessInstructions;
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      alert('✅ Profil mis à jour avec succès!');
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('❌ Erreur lors de la mise à jour du profil');
+    }
   };
 
   const togglePaymentMethod = (method: PaymentMethod) => {
@@ -377,6 +448,64 @@ export const SupplierProfile: React.FC = () => {
                   );
                 })}
               </div>
+            )}
+          </div>
+
+          {/* Depot Geolocation Section */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+              <MapPin className="h-5 w-5 mr-2 text-orange-600" />
+              Adresse du dépôt
+            </h3>
+
+            {isEditing ? (
+              <>
+                <div className="mb-4">
+                  <SupplierZoneSelector
+                    value={formData.zoneId}
+                    onChange={(zoneId) => setFormData(prev => ({ ...prev, zoneId }))}
+                    required={false}
+                  />
+                </div>
+                <LocationPicker
+                  initialLatitude={formData.depotLatitude}
+                  initialLongitude={formData.depotLongitude}
+                  initialAddress={formData.depotAddress}
+                  initialInstructions={formData.accessInstructions || ''}
+                  onLocationChange={(location) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      depotAddress: location.address,
+                      depotLatitude: location.latitude,
+                      depotLongitude: location.longitude,
+                      accessInstructions: location.instructions
+                    }));
+                  }}
+                  showSearchBar={true}
+                  showGpsButton={true}
+                  showInstructions={true}
+                  instructionsLabel="Indications d'accès au dépôt"
+                  instructionsPlaceholder="Ex: Portail bleu, à côté de la station Total..."
+                />
+              </>
+            ) : (
+              <>
+                {formData.depotLatitude && formData.depotLongitude ? (
+                  <LocationPicker
+                    initialLatitude={formData.depotLatitude}
+                    initialLongitude={formData.depotLongitude}
+                    initialAddress={formData.depotAddress}
+                    readOnly={true}
+                    height="200px"
+                  />
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <MapPin className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                    <p className="text-sm">Aucune adresse de dépôt configurée</p>
+                    <p className="text-xs mt-1">Cliquez sur "Modifier" pour ajouter l'adresse de votre dépôt</p>
+                  </div>
+                )}
+              </>
             )}
           </div>
 

@@ -37,6 +37,8 @@ export interface LocationPickerProps {
   height?: string;
   defaultCenter?: [number, number];
   defaultZoom?: number;
+  instructionsLabel?: string;
+  instructionsPlaceholder?: string;
 }
 
 // Component to handle map events
@@ -81,6 +83,8 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   height = '400px',
   defaultCenter = DEFAULT_CENTER,
   defaultZoom = DEFAULT_ZOOM,
+  instructionsLabel = 'Indications pour le livreur',
+  instructionsPlaceholder = 'Ex: Porte jaune, derrière la boutique bleue...',
 }) => {
   // State
   const [position, setPosition] = useState<[number, number]>(
@@ -315,12 +319,12 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
       {showInstructions && (
         <div className="location-picker-instructions">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Indications pour le livreur
+            {instructionsLabel}
           </label>
           <textarea
             value={instructions}
             onChange={(e) => handleInstructionsChange(e.target.value)}
-            placeholder="Ex: Porte jaune, derrière la boutique bleue..."
+            placeholder={instructionsPlaceholder}
             disabled={readOnly}
             className="w-full"
           />
