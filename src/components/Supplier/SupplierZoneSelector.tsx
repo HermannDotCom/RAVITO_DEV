@@ -8,13 +8,17 @@ interface SupplierZoneSelectorProps {
   onChange: (zoneId: string) => void;
   required?: boolean;
   error?: string;
+  label?: string;
+  helpText?: string;
 }
 
 export const SupplierZoneSelector: React.FC<SupplierZoneSelectorProps> = ({
   value,
   onChange,
   required = false,
-  error
+  error,
+  label = 'Zone de couverture (Commune)',
+  helpText = 'Cette adresse sera utilisée pour estimer les temps de trajet vers vos clients.'
 }) => {
   const [zones, setZones] = useState<Zone[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +66,7 @@ export const SupplierZoneSelector: React.FC<SupplierZoneSelectorProps> = ({
     return (
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Zone de couverture (Commune) {required && <span className="text-red-500">*</span>}
+          {label} {required && <span className="text-red-500">*</span>}
         </label>
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
@@ -76,7 +80,7 @@ export const SupplierZoneSelector: React.FC<SupplierZoneSelectorProps> = ({
     return (
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Zone de couverture (Commune) {required && <span className="text-red-500">*</span>}
+          {label} {required && <span className="text-red-500">*</span>}
         </label>
         <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
           <AlertCircle className="h-4 w-4" />
@@ -90,7 +94,7 @@ export const SupplierZoneSelector: React.FC<SupplierZoneSelectorProps> = ({
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
         <MapPin className="inline-block h-4 w-4 mr-1" />
-        Zone de couverture (Commune) {required && <span className="text-red-500">*</span>}
+        {label} {required && <span className="text-red-500">*</span>}
       </label>
       <select
         value={value || ''}
@@ -111,7 +115,7 @@ export const SupplierZoneSelector: React.FC<SupplierZoneSelectorProps> = ({
         <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
       )}
       <p className="text-sm text-gray-500 dark:text-gray-400">
-        Cette adresse sera utilisée pour estimer les temps de trajet vers vos clients.
+        {helpText}
       </p>
     </div>
   );

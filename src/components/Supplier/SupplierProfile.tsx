@@ -115,18 +115,12 @@ export const SupplierProfile: React.FC = () => {
       };
 
       // Add depot geolocation fields
-      if (formData.depotLatitude != null) {
+      if (formData.depotLatitude !== null && formData.depotLongitude !== null) {
         updateData.depot_latitude = formData.depotLatitude;
-      }
-      if (formData.depotLongitude != null) {
         updateData.depot_longitude = formData.depotLongitude;
       }
-      if (formData.depotAddress !== undefined) {
-        updateData.depot_address = formData.depotAddress;
-      }
-      if (formData.accessInstructions !== undefined) {
-        updateData.access_instructions = formData.accessInstructions;
-      }
+      updateData.depot_address = formData.depotAddress;
+      updateData.access_instructions = formData.accessInstructions;
 
       const { error } = await supabase
         .from('profiles')
