@@ -34,7 +34,7 @@ export const SupplierProfile: React.FC = () => {
     if (user) {
       loadUserProfile();
     }
-  }, [user]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadUserProfile = async () => {
     if (!user?.id) return;
@@ -85,7 +85,7 @@ export const SupplierProfile: React.FC = () => {
     if (user?.id) {
       loadStats();
     }
-  }, [user?.id]);
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadStats = async () => {
     if (!user?.id) return;
@@ -106,7 +106,7 @@ export const SupplierProfile: React.FC = () => {
 
     try {
       // Build base update object
-      const updateData: Record<string, any> = {
+      const updateData: Record<string, string | number | boolean | null> = {
         name: formData.name,
         phone: formData.phone,
         address: formData.address,
