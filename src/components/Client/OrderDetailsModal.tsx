@@ -1,8 +1,10 @@
-import React, { memo } from 'react';
-import { XCircle, Download, Archive, CreditCard, Phone, Star } from 'lucide-react';
+import React, { memo, useState } from 'react';
+import { XCircle, Download, Archive, CreditCard, Phone, Star, MessageCircle } from 'lucide-react';
 import { Order, CrateType } from '../../types';
 import { MutualRatingsDisplay } from '../Shared/MutualRatingsDisplay';
 import { RatingBadge } from '../Shared/RatingBadge';
+import { ChatWindow } from '../Messaging';
+import { isMessagingEnabled } from '../../constants/messaging';
 
 interface SupplierProfile {
   id: string;
@@ -80,6 +82,7 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
   handleCancelOrder,
   getDeliveryConfirmationCode
 }) => {
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const statusInfo = getStatusInfo(order.status);
   const StatusIcon = statusInfo.icon;
   const crateSummary = getCrateSummary(order);
@@ -425,6 +428,17 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
 
               {/* Actions */}
               <div className="space-y-3">
+                {/* Messaging button - available when messaging is enabled */}
+                {isMessagingEnabled(order.status) && (
+                  <button 
+                    onClick={() => setIsChatOpen(true)}
+                    className="w-full flex items-center justify-center space-x-2 bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span>Messagerie</span>
+                  </button>
+                )}
+                
                 {order.status === 'delivered' && (
                   <button className="w-full flex items-center justify-center space-x-2 bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors">
                     <Download className="h-4 w-4" />
@@ -459,6 +473,16 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
           </div>
         </div>
       </div>
+
+      {/* Chat Window */}
+      <ChatWindow
+        orderId={order.id}
+        order={order}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        currentUserRole="client"
+        orderNumber={order.orderNumber || order.id.slice(0, 8)}
+      />
     </div>
   );
 });

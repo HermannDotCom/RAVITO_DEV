@@ -401,3 +401,16 @@ export type {
   PermissionAssignment,
   ModuleAccessState
 } from './permissions';
+
+// ============================================
+// MESSAGING TYPES - Re-export from messaging.ts
+// ============================================
+export type {
+  MessageSenderRole,
+  MessageType,
+  OrderConversation,
+  OrderMessage,
+  QuickMessage
+} from './messaging';
+
+export { QUICK_MESSAGES } from './messaging';

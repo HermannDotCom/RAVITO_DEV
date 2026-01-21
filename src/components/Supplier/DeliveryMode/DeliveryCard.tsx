@@ -1,6 +1,7 @@
-import React from 'react';
-import { MapPin, Phone, Navigation, Play, CheckCircle, Clock, DollarSign, Package } from 'lucide-react';
+import React, { useState } from 'react';
+import { MapPin, Phone, Navigation, Play, CheckCircle, Clock, DollarSign, Package, MessageCircle } from 'lucide-react';
 import { DeliveryOrder } from '../../../types/delivery';
+import { ChatWindow } from '../../Messaging';
 
 interface DeliveryCardProps {
   delivery: DeliveryOrder;
@@ -23,6 +24,7 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({
   onNavigate,
   onCall,
 }) => {
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const getStatusBadge = () => {
     switch (delivery.status) {
       case 'ready_for_delivery':
@@ -97,41 +99,61 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({
 
       case 'out_for_delivery':
         return (
-          <div className="flex gap-2">
+          <div className="space-y-2">
+            {/* Message button for driver to contact client */}
             <button
-              onClick={onNavigate}
-              className="flex-1 min-h-[48px] px-4 py-3 bg-blue-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors active:scale-95"
+              onClick={() => setIsChatOpen(true)}
+              className="w-full min-h-[48px] px-4 py-3 bg-orange-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-orange-600 transition-colors active:scale-95"
             >
-              <Navigation className="h-5 w-5" />
-              Naviguer
+              <MessageCircle className="h-5 w-5" />
+              Messagerie client
             </button>
-            <button
-              onClick={onMarkArrived}
-              className="flex-1 min-h-[48px] px-4 py-3 bg-purple-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-purple-600 transition-colors active:scale-95"
-            >
-              <MapPin className="h-5 w-5" />
-              Arrivé
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={onNavigate}
+                className="flex-1 min-h-[48px] px-4 py-3 bg-blue-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors active:scale-95"
+              >
+                <Navigation className="h-5 w-5" />
+                Naviguer
+              </button>
+              <button
+                onClick={onMarkArrived}
+                className="flex-1 min-h-[48px] px-4 py-3 bg-purple-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-purple-600 transition-colors active:scale-95"
+              >
+                <MapPin className="h-5 w-5" />
+                Arrivé
+              </button>
+            </div>
           </div>
         );
 
       case 'arrived':
         return (
-          <div className="flex gap-2">
+          <div className="space-y-2">
+            {/* Message button for driver to contact client */}
             <button
-              onClick={onCall}
-              className="flex-1 min-h-[48px] px-4 py-3 bg-blue-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors active:scale-95"
+              onClick={() => setIsChatOpen(true)}
+              className="w-full min-h-[48px] px-4 py-3 bg-orange-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-orange-600 transition-colors active:scale-95"
             >
-              <Phone className="h-5 w-5" />
-              Appeler
+              <MessageCircle className="h-5 w-5" />
+              Messagerie client
             </button>
-            <button
-              onClick={onConfirmDelivery}
-              className="flex-1 min-h-[48px] px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition-all active:scale-95"
-            >
-              <CheckCircle className="h-5 w-5" />
-              Confirmer
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={onCall}
+                className="flex-1 min-h-[48px] px-4 py-3 bg-blue-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors active:scale-95"
+              >
+                <Phone className="h-5 w-5" />
+                Appeler
+              </button>
+              <button
+                onClick={onConfirmDelivery}
+                className="flex-1 min-h-[48px] px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition-all active:scale-95"
+              >
+                <CheckCircle className="h-5 w-5" />
+                Confirmer
+              </button>
+            </div>
           </div>
         );
 
@@ -252,6 +274,15 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({
       <div className="p-4 bg-gray-50 border-t-2 border-gray-100">
         {renderActions()}
       </div>
+
+      {/* Chat Window */}
+      <ChatWindow
+        orderId={delivery.orderId}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        currentUserRole="driver"
+        orderNumber={delivery.orderNumber}
+      />
     </div>
   );
 };
