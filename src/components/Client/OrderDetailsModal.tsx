@@ -456,7 +456,7 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
                   </button>
                 )}
                 
-                {(order.status === 'pending' || order.status === 'accepted') && (
+                {order.status === 'pending' && (
                   <button 
                     onClick={() => {
                       handleCancelOrder(order.id);

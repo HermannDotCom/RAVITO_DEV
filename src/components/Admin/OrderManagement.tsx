@@ -139,8 +139,6 @@ export const OrderManagement: React.FC = () => {
         return { label: 'Payée', color: 'bg-green-100 text-green-700', icon: CheckCircle, textColor: 'text-green-600' };
       case 'awaiting-client-validation':
         return { label: 'Validation client', color: 'bg-orange-100 text-orange-700', icon: Clock, textColor: 'text-orange-600' };
-      case 'accepted':
-        return { label: 'Acceptée', color: 'bg-blue-100 text-blue-700', icon: Package, textColor: 'text-blue-600' };
       case 'preparing':
         return { label: 'En préparation', color: 'bg-purple-100 text-purple-700', icon: Package, textColor: 'text-purple-600' };
       case 'delivering':
@@ -533,7 +531,7 @@ export const OrderManagement: React.FC = () => {
                       </button>
                     )}
                     
-                    {(order.status === 'accepted' || order.status === 'preparing') && (
+                    {order.status === 'preparing' && (
                       <button
                         onClick={() => handleIntervention(order, 'reassign')}
                         className="px-4 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors flex items-center justify-center space-x-2"
@@ -1032,7 +1030,7 @@ export const OrderManagement: React.FC = () => {
                           <span>Détails</span>
                         </button>
                         
-                        {(order.status === 'pending' || order.status === 'accepted' || order.status === 'preparing') && (
+                        {(order.status === 'pending' || order.status === 'preparing') && (
                           <button 
                             onClick={() => handleIntervention(order, 'cancel')}
                             className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center space-x-2"

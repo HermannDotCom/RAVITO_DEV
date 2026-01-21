@@ -249,7 +249,6 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
       'awaiting-payment': { label: 'En attente de paiement', variant: 'warning' as const, icon: CreditCard, textColor: 'text-orange-600' },
       'paid': { label: 'Payée', variant: 'success' as const, icon: CheckCircle, textColor: 'text-green-600' },
       'awaiting-client-validation': { label: 'En attente de validation', variant: 'warning' as const, icon: Clock, textColor: 'text-orange-600' },
-      'accepted': { label: 'Acceptée', variant: 'info' as const, icon: CheckCircle, textColor: 'text-blue-600' },
       'preparing': { label: 'En préparation', variant: 'info' as const, icon: Package, textColor: 'text-purple-600' },
       'delivering': { label: 'En livraison', variant: 'warning' as const, icon: Truck, textColor: 'text-orange-600' },
       'delivered': { label: 'Livrée', variant: 'success' as const, icon: CheckCircle, textColor: 'text-green-600' },
@@ -789,7 +788,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({ onNavigate, initialO
                           );
                         })()}
                         
-                        {(order.status === 'pending' || order.status === 'accepted') && order !== clientCurrentOrder && (
+                        {order.status === 'pending' && order !== clientCurrentOrder && (
                           <button 
                             onClick={() => handleCancelOrder(order.id)}
                             className="w-full sm:w-auto px-3 sm:px-4 py-2 text-sm bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"

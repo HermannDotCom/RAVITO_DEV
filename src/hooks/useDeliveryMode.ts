@@ -85,7 +85,7 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
         deliveryStatus = 'delivered';
       } else if (order.status === 'delivering') {
         deliveryStatus = 'out_for_delivery';
-      } else if (order.status === 'preparing' || order.status === 'accepted' || order.status === 'paid') {
+      } else if (order.status === 'preparing' || order.status === 'paid') {
         deliveryStatus = 'ready_for_delivery';
       } else {
         return null; // Skip orders not in delivery phase
@@ -195,7 +195,7 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
           zone:zones (name)
         `)
         .eq('assigned_delivery_user_id', user.id)
-        .in('status', ['paid', 'accepted', 'preparing', 'delivering', 'delivered'])
+        .in('status', ['paid', 'preparing', 'delivering', 'delivered'])
         .order('created_at', { ascending: false });
       
       if (!driverError && driverOrdersData && driverOrdersData.length > 0) {
@@ -271,7 +271,7 @@ export function useDeliveryMode(): UseDeliveryModeReturn {
       
       // Filter to delivery-relevant orders only
       const deliveryOrders = orders.filter(o => 
-        ['paid', 'accepted', 'preparing', 'delivering', 'delivered'].includes(o.status)
+        ['paid', 'preparing', 'delivering', 'delivered'].includes(o.status)
       );
 
       // Map to delivery format
