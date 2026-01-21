@@ -33,7 +33,7 @@ export const RatingReminder: React.FC<RatingReminderProps> = ({
       {/* Floating Badge */}
       <button
         onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-3 rounded-full shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-105 animate-pulse-slow"
+        className="fixed bottom-24 lg:bottom-6 right-4 lg:right-6 z-40 flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-full shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-105 animate-pulse-slow text-sm sm:text-base"
         aria-label={`${pendingOrders.length} évaluation${pendingOrders.length > 1 ? 's' : ''} en attente`}
       >
         <Bell className="h-5 w-5" />

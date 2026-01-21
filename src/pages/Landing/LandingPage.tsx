@@ -86,7 +86,7 @@ export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
       {/* PROPOSITION DE VALEUR */}
       <section id="fonctionnalites" className="py-16 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md: grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Card 1 */}
             <div className="bg-white border border-gray-200 rounded-xl p-8 hover:shadow-lg transition-shadow">
               <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
@@ -347,7 +347,7 @@ export const LandingPage: React. FC<LandingPageProps> = ({ onNavigate }) => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md: grid-cols-2 lg:grid-cols-4 gap-8 relative">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 relative">
             {/* Step 1 */}
             <div className="text-center">
               <div className="relative inline-block mb-4">

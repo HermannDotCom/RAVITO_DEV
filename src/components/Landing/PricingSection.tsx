@@ -26,15 +26,15 @@ export const PricingSection: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* Carte Client */}
-            <div className="bg-orange-50 border-4 border-orange-500 rounded-2xl p-8 shadow-xl">
-              <h3 className="text-3xl font-bold text-orange-600 mb-4">Client (CHR)</h3>
-              <p className="text-gray-600 mb-6">
+            <div className="bg-orange-50 border-4 border-orange-500 rounded-2xl p-6 sm:p-8 shadow-xl">
+              <h3 className="text-2xl sm:text-3xl font-bold text-orange-600 mb-4">Client (CHR)</h3>
+              <p className="text-sm sm:text-base text-gray-600 mb-6">
                 Accédez à un service de ravitaillement 24h/24 avec des frais de traitement minimes.
               </p>
               
-              <div className="text-5xl font-extrabold text-gray-900 mb-6">
+              <div className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-6">
                 {clientCommission}%
-                <span className="text-xl font-medium text-gray-500 ml-2">de frais de service</span>
+                <span className="text-lg sm:text-xl font-medium text-gray-500 ml-2">de frais de service</span>
               </div>
 
               <ul className="space-y-3 mb-8">
@@ -65,15 +65,15 @@ export const PricingSection: React.FC = () => {
             </div>
 
             {/* Carte Fournisseur */}
-            <div className="bg-green-50 border-4 border-green-500 rounded-2xl p-8 shadow-xl">
-              <h3 className="text-3xl font-bold text-green-600 mb-4">Fournisseur (Dépôt)</h3>
-              <p className="text-gray-600 mb-6">
+            <div className="bg-green-50 border-4 border-green-500 rounded-2xl p-6 sm:p-8 shadow-xl">
+              <h3 className="text-2xl sm:text-3xl font-bold text-green-600 mb-4">Fournisseur (Dépôt)</h3>
+              <p className="text-sm sm:text-base text-gray-600 mb-6">
                 Augmentez vos ventes en accédant à une nouvelle clientèle sans effort marketing.
               </p>
               
-              <div className="text-5xl font-extrabold text-gray-900 mb-6">
+              <div className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-6">
                 {supplierCommission}%
-                <span className="text-xl font-medium text-gray-500 ml-2">de commission</span>
+                <span className="text-lg sm:text-xl font-medium text-gray-500 ml-2">de commission</span>
               </div>
 
               <ul className="space-y-3 mb-8">
