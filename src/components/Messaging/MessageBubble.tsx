@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import type { OrderMessage } from '../../types/messaging';
+import type { OrderMessage, MessageSenderRole } from '../../types/messaging';
 import { Check, CheckCheck } from 'lucide-react';
 
 interface MessageBubbleProps {
@@ -12,13 +12,15 @@ interface MessageBubbleProps {
   isOwnMessage: boolean;
   showAvatar?: boolean;
   senderName?: string;
+  senderRole?: MessageSenderRole;
 }
 
 export function MessageBubble({ 
   message, 
   isOwnMessage, 
   showAvatar = false,
-  senderName 
+  senderName,
+  senderRole
 }: MessageBubbleProps) {
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -26,6 +28,20 @@ export function MessageBubble({
       hour: '2-digit', 
       minute: '2-digit' 
     });
+  };
+
+  // Get role color
+  const getRoleColor = (role?: MessageSenderRole) => {
+    switch (role) {
+      case 'client':
+        return 'text-blue-600';
+      case 'supplier':
+        return 'text-orange-600';
+      case 'driver':
+        return 'text-green-600';
+      default:
+        return 'text-gray-500';
+    }
   };
 
   const bubbleClass = isOwnMessage
@@ -37,9 +53,9 @@ export function MessageBubble({
   return (
     <div className={`flex ${alignClass} mb-3 px-4`}>
       <div className={`max-w-[75%] ${isOwnMessage ? 'order-2' : 'order-1'}`}>
-        {/* Sender name (for group conversations or when needed) */}
-        {!isOwnMessage && senderName && (
-          <div className="text-xs text-gray-500 mb-1 px-2">
+        {/* Sender name with role color - displayed when available */}
+        {senderName && (
+          <div className={`text-xs font-medium mb-1 px-2 ${getRoleColor(senderRole)} ${isOwnMessage ? 'text-right' : 'text-left'}`}>
             {senderName}
           </div>
         )}
