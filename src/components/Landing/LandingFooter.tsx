@@ -15,9 +15,9 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onNavigate }) => {
 
   return (
     <footer id="contact" className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-20 sm:pb-12">
         {/* Top Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-8">
           {/* Column 1: Brand */}
           <div>
             <div className="mb-4">
@@ -162,11 +162,11 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onNavigate }) => {
         <div className="border-t border-gray-700 my-8"></div>
 
         {/* Bottom Section */}
-        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <p className="text-gray-400 text-sm text-center md:text-left">
+        <div className="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0 text-center sm:text-left">
+          <p className="text-gray-400 text-xs sm:text-sm">
             © 2025 RAVITO - Tous droits réservés
           </p>
-          <p className="text-gray-400 text-sm text-center md:text-right">
+          <p className="text-gray-400 text-xs sm:text-sm">
             Fait avec ❤️ en Côte d'Ivoire 🇨🇮
           </p>
         </div>
