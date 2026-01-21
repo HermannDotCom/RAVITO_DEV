@@ -88,8 +88,8 @@ CREATE POLICY "Participants can update messages" ON order_messages
 CREATE OR REPLACE FUNCTION create_order_conversation()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Create conversation when status = paid
-  IF NEW.status = 'paid' AND (OLD.status IS NULL OR OLD.status != 'paid') THEN
+  -- Create conversation when status = paid (and wasn't paid before)
+  IF NEW.status = 'paid' AND OLD.status != 'paid' THEN
     INSERT INTO order_conversations (order_id, client_id, supplier_id)
     VALUES (NEW.id, NEW.client_id, NEW.supplier_id)
     ON CONFLICT (order_id) DO NOTHING;

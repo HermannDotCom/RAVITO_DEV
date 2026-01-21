@@ -99,10 +99,10 @@ export function useOrderMessages(orderId: string, senderRole: MessageSenderRole)
         (payload) => {
           const newMessage = payload.new as OrderMessage;
           
-          // Add message to list
+          // Add message to list (avoid duplicates using Set for efficient lookup)
           setMessages(prev => {
-            // Avoid duplicates
-            if (prev.some(m => m.id === newMessage.id)) {
+            const messageIds = new Set(prev.map(m => m.id));
+            if (messageIds.has(newMessage.id)) {
               return prev;
             }
             return [...prev, newMessage];
@@ -210,8 +210,13 @@ export function useOrderMessages(orderId: string, senderRole: MessageSenderRole)
  */
 function playNotificationSound() {
   try {
-    // Use a simple beep sound
-    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTcIGWi77eeeTRAMUKfj8LZjHAY4kdfyzHksBSR3x/DdkEAKFF606+uoVRQKRp/g8r5sIQUrgc7y2Yk3CBlou+3nnk0QDFC');
+    // Use a simple beep sound (very short to keep file size small)
+    const audio = new Audio(
+      'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhY' +
+      'qFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N' +
+      '2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTcIGWi77eeeTRAMUKfj8LZjHAY4kdfyzHksBSR3x/DdkEAKFF60' +
+      '6+uoVRQKRp/g8r5sIQUrgc7y2Yk3CBlou+3nnk0QDFC'
+    );
     audio.volume = 0.3;
     audio.play().catch(() => {
       // Ignore errors (browser may block autoplay)

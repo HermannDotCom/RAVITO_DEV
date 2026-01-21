@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Truck, Package, Clock, CheckCircle, MapPin, Eye, MessageCircle } from 'lucide-react';
 import { Order } from '../../../types';
 import { ChatWindow } from '../../Messaging';
+import { isMessagingEnabled } from '../../../constants/messaging';
 
 interface ActiveOrderCardProps {
   order: Order;
@@ -45,8 +46,8 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order, onViewD
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold text-slate-900">Commande en cours</h2>
           <div className="flex items-center gap-2">
-            {/* Messaging button - visible from paid onwards */}
-            {['paid', 'awaiting-client-validation', 'accepted', 'preparing', 'delivering'].includes(order.status) && (
+            {/* Messaging button - visible when messaging is enabled */}
+            {isMessagingEnabled(order.status) && (
               <button
                 onClick={() => setIsChatOpen(true)}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-orange-600 text-white rounded-full hover:bg-orange-700 font-semibold transition-colors"

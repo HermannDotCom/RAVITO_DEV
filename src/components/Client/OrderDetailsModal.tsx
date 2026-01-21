@@ -4,6 +4,7 @@ import { Order, CrateType } from '../../types';
 import { MutualRatingsDisplay } from '../Shared/MutualRatingsDisplay';
 import { RatingBadge } from '../Shared/RatingBadge';
 import { ChatWindow } from '../Messaging';
+import { isMessagingEnabled } from '../../constants/messaging';
 
 interface SupplierProfile {
   id: string;
@@ -427,8 +428,8 @@ export const OrderDetailsModal = memo<OrderDetailsModalProps>(({
 
               {/* Actions */}
               <div className="space-y-3">
-                {/* Messaging button - available from paid status onwards */}
-                {['paid', 'awaiting-client-validation', 'accepted', 'preparing', 'delivering', 'delivered', 'awaiting-rating'].includes(order.status) && (
+                {/* Messaging button - available when messaging is enabled */}
+                {isMessagingEnabled(order.status) && (
                   <button 
                     onClick={() => setIsChatOpen(true)}
                     className="w-full flex items-center justify-center space-x-2 bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
