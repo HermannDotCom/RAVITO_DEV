@@ -277,7 +277,7 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({
 
       {/* Chat Window */}
       <ChatWindow
-        orderId={delivery.orderId}
+        orderId={delivery.id}  // ✅ L'ID de la commande
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
         currentUserRole="driver"
