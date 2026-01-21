@@ -521,6 +521,7 @@ export type Database = {
       approval_status: 'pending' | 'approved' | 'rejected'
       crate_type: 'C24' | 'C12' | 'C12V' | 'C6'
       delivery_capacity: 'truck' | 'tricycle' | 'motorcycle'
+      // Note: 'accepted' status is deprecated and should not be used in new code
       order_status: 'pending' | 'awaiting-client-validation' | 'accepted' | 'preparing' | 'delivering' | 'delivered' | 'cancelled'
       payment_method: 'orange' | 'mtn' | 'moov' | 'wave' | 'card'
       payment_status: 'pending' | 'paid' | 'transferred' | 'completed'
