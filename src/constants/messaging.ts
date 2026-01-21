@@ -7,16 +7,12 @@ import type { OrderStatus } from '../types';
 
 /**
  * Order statuses that enable messaging for clients and suppliers
- * From 'paid' status onwards
+ * Active from 'paid' until 'delivering' (before 'delivered')
  */
 export const MESSAGING_ENABLED_STATUSES: OrderStatus[] = [
   'paid',
-  'awaiting-client-validation',
-  'accepted',
   'preparing',
-  'delivering',
-  'delivered',
-  'awaiting-rating'
+  'delivering'
 ];
 
 /**

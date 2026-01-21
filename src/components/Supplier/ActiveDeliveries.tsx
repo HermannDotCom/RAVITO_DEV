@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Navigation, Archive, AlertCircle, X, Key, Users } from 'lucide-react';
+import { Truck, MapPin, Phone, Clock, CheckCircle, Package, Navigation, Archive, AlertCircle, X, Key, Users, MessageCircle } from 'lucide-react';
 import { Order, OrderStatus, CrateType } from '../../types';
 import { useOrder } from '../../context/OrderContext';
 import { useProfileSecurity } from '../../hooks/useProfileSecurity';
 import { useToast } from '../../context/ToastContext';
 import { supabase } from '../../lib/supabase';
 import { RatingBadge } from '../Shared/RatingBadge';
+import { ChatWindow } from '../Messaging';
+import { isMessagingEnabled } from '../../constants/messaging';
 
 interface ActiveDeliveriesProps {
   onNavigate: (section: string) => void;
@@ -39,6 +41,7 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedOrderForAssignment, setSelectedOrderForAssignment] = useState<Order | null>(null);
   const [selectedDriver, setSelectedDriver] = useState('');
+  const [selectedOrderForChat, setSelectedOrderForChat] = useState<Order | null>(null);
 
   const accessRestrictions = getAccessRestrictions();
 
@@ -176,8 +179,6 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
     switch (status) {
       case 'paid':
         return { label: 'Payée', color: 'emerald', bgColor: 'bg-emerald-50', textColor: 'text-emerald-700' };
-      case 'accepted':
-        return { label: 'Acceptée', color: 'green', bgColor: 'bg-green-50', textColor: 'text-green-700' };
       case 'preparing':
         return { label: 'En préparation', color: 'blue', bgColor: 'bg-blue-50', textColor: 'text-blue-700' };
       case 'delivering':
@@ -192,8 +193,6 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
   const getNextAction = (status: OrderStatus) => {
     switch (status) {
       case 'paid':
-        return { label: 'Commencer préparation', nextStatus: 'preparing' as OrderStatus };
-      case 'accepted':
         return { label: 'Commencer préparation', nextStatus: 'preparing' as OrderStatus };
       case 'preparing':
         return { label: 'Partir en livraison', nextStatus: 'delivering' as OrderStatus };
@@ -369,7 +368,7 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
   };
 
   const ordersAwaitingAssignment = supplierActiveDeliveries.filter(order =>
-    ['paid', 'accepted', 'preparing'].includes(order.status)
+    ['paid', 'preparing'].includes(order.status)
   );
 
   if (!accessRestrictions.canAcceptOrders) {
@@ -618,6 +617,15 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
                         <Phone className="h-4 w-4" />
                         <span>Contacter le client</span>
                       </button>
+                      {isMessagingEnabled(order.status) && (
+                        <button
+                          onClick={() => setSelectedOrderForChat(order)}
+                          className="flex-1 px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors flex items-center justify-center space-x-2"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          <span>Message client</span>
+                        </button>
+                      )}
                       <button
                         onClick={() => handleStatusUpdate(order.id, nextAction.nextStatus)}
                         className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all flex items-center justify-center space-x-2"
@@ -846,6 +854,17 @@ export const ActiveDeliveries: React.FC<ActiveDeliveriesProps> = ({ onNavigate }
             </div>
           </div>
         </div>
+      )}
+
+      {/* Chat Window */}
+      {selectedOrderForChat && (
+        <ChatWindow
+          orderId={selectedOrderForChat.id}
+          isOpen={!!selectedOrderForChat}
+          onClose={() => setSelectedOrderForChat(null)}
+          currentUserRole="supplier"
+          orderNumber={selectedOrderForChat.orderNumber || selectedOrderForChat.id.slice(0, 8)}
+        />
       )}
     </div>
   );

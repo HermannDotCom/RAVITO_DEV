@@ -123,7 +123,7 @@ const AppContent: React.FC = () => {
 
   // Calculate badge counts
   const pendingClientOrders = clientOrders.filter(o => 
-    ['pending', 'paid', 'accepted', 'preparing', 'delivering'].includes(o.status)
+    ['pending', 'paid', 'preparing', 'delivering'].includes(o.status)
   ).length;
   const availableOrdersCount = availableOrders.length;
   const activeDeliveriesCount = supplierActiveDeliveries.length;

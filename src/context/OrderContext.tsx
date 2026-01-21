@@ -76,7 +76,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
         setAvailableOrders(pending);
         setSupplierActiveDeliveries(active.filter(o =>
-          ['paid', 'accepted', 'preparing', 'delivering'].includes(o.status)
+          ['paid', 'preparing', 'delivering'].includes(o.status)
         ));
         setSupplierCompletedDeliveries(completed.filter(o => o.status === 'delivered'));
       } else if (user.role === 'admin') {
@@ -192,9 +192,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // 'trigger_set_delivery_confirmation_code' when the status changes to 'delivering'.
     // DO NOT generate code on the frontend to avoid overwriting the trigger.
 
-    if (status === 'accepted') {
-      updates.acceptedAt = new Date();
-    } else if (status === 'delivered') {
+    if (status === 'delivered') {
       updates.deliveredAt = new Date();
       // Note: The confirmation code remains in the database for history/audit purposes
     }
@@ -243,7 +241,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const acceptSupplierOffer = async (orderId: string): Promise<boolean> => {
     try {
-      const success = await updateOrderStatusService(orderId, 'accepted', { acceptedAt: new Date() });
+      const success = await updateOrderStatusService(orderId, 'paid', { paidAt: new Date() });
       if (success) {
         await loadOrders();
       }
@@ -367,7 +365,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const allOrders = [...clientOrders, ...availableOrders, ...supplierActiveDeliveries, ...supplierCompletedDeliveries, ...adminAllOrders];
   
   const clientCurrentOrder = clientOrders.find(order => 
-    ['pending', 'awaiting-client-validation', 'accepted', 'preparing', 'delivering'].includes(order.status)
+    ['pending', 'awaiting-client-validation', 'preparing', 'delivering'].includes(order.status)
   ) || null;
 
   return (

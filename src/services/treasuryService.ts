@@ -598,7 +598,6 @@ function getStatusLabel(status: string): string {
     'awaiting-payment': 'En attente de paiement',
     'paid': 'Payée',
     'awaiting-client-validation': 'En attente de validation',
-    'accepted': 'Acceptée',
     'preparing': 'En préparation',
     'delivering': 'En livraison',
     'delivered': 'Livrée',
