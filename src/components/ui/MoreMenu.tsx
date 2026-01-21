@@ -38,7 +38,7 @@ export const MoreMenu: React.FC<MoreMenuProps> = ({ isOpen, onClose, items }) =>
 
       {/* Bottom Sheet */}
       <div 
-        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 animate-slide-up max-h-[85vh] flex flex-col"
+        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 animate-slide-up max-h-[75vh] flex flex-col"
         role="dialog"
         aria-modal="true"
         aria-label="Menu supplémentaire"
@@ -49,7 +49,7 @@ export const MoreMenu: React.FC<MoreMenuProps> = ({ isOpen, onClose, items }) =>
         </div>
         
         {/* Items - Scrollable */}
-        <div className="px-4 pb-8 space-y-1 overflow-y-auto flex-1 min-h-0">
+        <div className="px-4 pb-24 space-y-1 overflow-y-auto flex-1 min-h-0">
           {items.map(item => {
             const Icon = item.icon;
             return (
