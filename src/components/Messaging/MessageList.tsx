@@ -74,7 +74,7 @@ export function MessageList({ messages, currentUserId, participants, isLoading =
             message={message}
             isOwnMessage={isOwnMessage}
             senderName={participant?.name}
-            senderRole={participant?.role || message.sender_role}
+            senderRole={participant?.role || message.sender_role} // Fallback to message.sender_role from database
           />
         );
       })}

@@ -53,7 +53,7 @@ export function MessageBubble({
   return (
     <div className={`flex ${alignClass} mb-3 px-4`}>
       <div className={`max-w-[75%] ${isOwnMessage ? 'order-2' : 'order-1'}`}>
-        {/* Sender name with role color - ALWAYS displayed */}
+        {/* Sender name with role color - displayed when available */}
         {senderName && (
           <div className={`text-xs font-medium mb-1 px-2 ${getRoleColor(senderRole)} ${isOwnMessage ? 'text-right' : 'text-left'}`}>
             {senderName}
