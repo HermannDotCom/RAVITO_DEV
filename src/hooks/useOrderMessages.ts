@@ -12,6 +12,7 @@ import * as messagingService from '../services/messagingService';
 interface UseOrderMessagesReturn {
   conversation: OrderConversation | null;
   messages: OrderMessage[];
+  participants: Record<string, { name: string; role: MessageSenderRole }>;
   isLoading: boolean;
   error: string | null;
   unreadCount: number;
@@ -27,6 +28,7 @@ export function useOrderMessages(orderId: string, senderRole: MessageSenderRole)
   const { user } = useAuth();
   const [conversation, setConversation] = useState<OrderConversation | null>(null);
   const [messages, setMessages] = useState<OrderMessage[]>([]);
+  const [participants, setParticipants] = useState<Record<string, { name: string; role: MessageSenderRole }>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -50,12 +52,16 @@ export function useOrderMessages(orderId: string, senderRole: MessageSenderRole)
       if (!conv) {
         setConversation(null);
         setMessages([]);
+        setParticipants({});
         setUnreadCount(0);
         setIsLoading(false);
         return;
       }
 
       setConversation(conv);
+
+      // Load participants
+      await loadParticipants(conv);
 
       // Get messages
       const msgs = await messagingService.getConversationMessages(conv.id);
@@ -72,6 +78,52 @@ export function useOrderMessages(orderId: string, senderRole: MessageSenderRole)
       setIsLoading(false);
     }
   }, [orderId, user]);
+
+  /**
+   * Load participant profiles
+   */
+  const loadParticipants = async (conv: OrderConversation) => {
+    const participantIds = [conv.client_id, conv.supplier_id, conv.driver_id].filter(Boolean);
+    
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, name, business_name')
+      .in('id', participantIds);
+    
+    // For the driver, fetch organization name
+    let orgName = '';
+    if (conv.driver_id) {
+      const { data: orgData } = await supabase
+        .from('organization_members')
+        .select('organization:organizations(name)')
+        .eq('user_id', conv.driver_id)
+        .eq('status', 'active')
+        .maybeSingle();
+      
+      if (orgData?.organization?.name) {
+        orgName = orgData.organization.name;
+      }
+    }
+    
+    const participantsMap: Record<string, { name: string; role: MessageSenderRole }> = {};
+    
+    profiles?.forEach(profile => {
+      const displayName = profile.business_name || profile.name || 'Utilisateur';
+      
+      if (profile.id === conv.client_id) {
+        participantsMap[profile.id] = { name: displayName, role: 'client' };
+      } else if (profile.id === conv.supplier_id) {
+        participantsMap[profile.id] = { name: displayName, role: 'supplier' };
+      } else if (profile.id === conv.driver_id) {
+        participantsMap[profile.id] = { 
+          name: orgName ? `Livreur (${orgName})` : `Livreur (${displayName})`, 
+          role: 'driver' 
+        };
+      }
+    });
+    
+    setParticipants(participantsMap);
+  };
 
   /**
    * Initial load
@@ -196,6 +248,7 @@ export function useOrderMessages(orderId: string, senderRole: MessageSenderRole)
   return {
     conversation,
     messages,
+    participants,
     isLoading,
     error,
     unreadCount,

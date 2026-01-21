@@ -4,17 +4,18 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import type { OrderMessage } from '../../types/messaging';
+import type { OrderMessage, MessageSenderRole } from '../../types/messaging';
 import { MessageBubble } from './MessageBubble';
 import { SystemMessage } from './SystemMessage';
 
 interface MessageListProps {
   messages: OrderMessage[];
   currentUserId: string;
+  participants: Record<string, { name: string; role: MessageSenderRole }>;
   isLoading?: boolean;
 }
 
-export function MessageList({ messages, currentUserId, isLoading = false }: MessageListProps) {
+export function MessageList({ messages, currentUserId, participants, isLoading = false }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +57,7 @@ export function MessageList({ messages, currentUserId, isLoading = false }: Mess
     >
       {messages.map((message) => {
         const isOwnMessage = message.sender_id === currentUserId;
+        const participant = participants[message.sender_id];
 
         if (message.message_type === 'system') {
           return (
@@ -71,6 +73,8 @@ export function MessageList({ messages, currentUserId, isLoading = false }: Mess
             key={message.id}
             message={message}
             isOwnMessage={isOwnMessage}
+            senderName={participant?.name}
+            senderRole={participant?.role || message.sender_role}
           />
         );
       })}

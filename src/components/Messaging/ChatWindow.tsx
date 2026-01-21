@@ -34,6 +34,7 @@ export function ChatWindow({
   const {
     conversation,
     messages,
+    participants,
     isLoading,
     error,
     unreadCount,
@@ -161,6 +162,7 @@ export function ChatWindow({
               <MessageList 
                 messages={messages}
                 currentUserId={user?.id || ''}
+                participants={participants}
                 isLoading={isLoading}
               />
 
