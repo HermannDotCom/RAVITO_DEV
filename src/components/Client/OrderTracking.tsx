@@ -130,8 +130,8 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
         return { label: 'Recherche de fournisseur', icon: Clock, color: 'yellow' };
       case 'awaiting-client-validation':
         return { label: 'Offre reçue - En attente de validation', icon: Clock, color: 'orange' };
-      case 'accepted':
-        return { label: 'Commande acceptée', icon: CheckCircle, color: 'green' };
+      case 'paid':
+        return { label: 'Commande payée', icon: CheckCircle, color: 'green' };
       case 'preparing':
         return { label: 'Préparation en cours', icon: Package, color: 'blue' };
       case 'delivering':
@@ -147,7 +147,7 @@ export const OrderTracking: React.FC<OrderTrackingProps> = ({ onComplete }) => {
   const StatusIcon = statusInfo.icon;
 
   const steps = [
-    { id: 'accepted', label: 'Acceptée', icon: CheckCircle },
+    { id: 'paid', label: 'Payée', icon: CheckCircle },
     { id: 'preparing', label: 'Préparation', icon: Package },
     { id: 'delivering', label: 'En route', icon: Truck },
     { id: 'delivered', label: 'Livrée', icon: CheckCircle }

@@ -93,7 +93,7 @@ export class SupplierAnalyticsService {
       // Calculate metrics
       const totalOrders = orders?.length || 0;
       const acceptedOrders = orders?.filter(o => 
-        ['accepted', 'preparing', 'delivering', 'delivered'].includes(o.status)
+        ['paid', 'preparing', 'delivering', 'delivered'].includes(o.status)
       ).length || 0;
       const completedOrders = orders?.filter(o => o.status === 'delivered').length || 0;
       const cancelledOrders = orders?.filter(o => o.status === 'cancelled').length || 0;

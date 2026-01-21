@@ -199,7 +199,7 @@ class BrowserNotificationService {
   private getStatusEmoji(status: string): string {
     const emojiMap: Record<string, string> = {
       'pending': '⏳',
-      'accepted': '✅',
+      'paid': '💳',
       'preparing': '👨‍🍳',
       'delivering': '🚚',
       'delivered': '✅',

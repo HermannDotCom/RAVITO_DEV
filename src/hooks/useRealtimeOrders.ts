@@ -36,7 +36,7 @@ export const useRealtimeOrders = () => {
           
           // Show toast for status changes
           const statusLabels: Record<string, string> = {
-            'accepted': 'Acceptée',
+            'paid': 'Payée',
             'preparing': 'En préparation',
             'delivering': 'En livraison',
             'delivered': 'Livrée',
@@ -124,7 +124,7 @@ export const useRealtimeDeliveryStatus = (orderId: string | null) => {
         console.log('Delivery status updated:', order);
         
         const statusLabels: Record<string, string> = {
-          'accepted': 'Commande acceptée',
+          'paid': 'Commande payée',
           'preparing': 'Préparation en cours',
           'delivering': 'En cours de livraison',
           'delivered': 'Livraison terminée',
