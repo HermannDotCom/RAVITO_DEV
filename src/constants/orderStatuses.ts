@@ -15,7 +15,7 @@ export const PENDING_ORDER_STATUSES: OrderStatus[] = [
   'awaiting-payment',
   'paid',
   'awaiting-client-validation',
-  'accepted',
+  // 'accepted',  // REMOVED - No longer exists in the flow
   'preparing',
   'delivering',
   'awaiting-rating'
@@ -26,7 +26,7 @@ export const CANCELLED_ORDER_STATUSES: OrderStatus[] = ['cancelled'];
 
 /** Order statuses where supplier is actively working on the order */
 export const ACTIVE_DELIVERY_STATUSES: OrderStatus[] = [
-  'accepted',
+  // 'accepted',  // REMOVED - No longer exists in the flow
   'preparing',
   'delivering'
 ];

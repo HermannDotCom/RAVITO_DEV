@@ -189,8 +189,8 @@ export type OrderStatus =
   | 'offers-received'
   | 'awaiting-payment'
   | 'paid'
-  | 'awaiting-client-validation'
-  | 'accepted'
+  | 'awaiting-client-validation'  // Keep for backwards compatibility but unused
+  // | 'accepted'  // REMOVED - No longer exists in the flow
   | 'preparing'
   | 'delivering'
   | 'delivered'
