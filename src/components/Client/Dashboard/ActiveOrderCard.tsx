@@ -1,6 +1,7 @@
-import React from 'react';
-import { Truck, Package, Clock, CheckCircle, MapPin, Eye } from 'lucide-react';
+import React, { useState } from 'react';
+import { Truck, Package, Clock, CheckCircle, MapPin, Eye, MessageCircle } from 'lucide-react';
 import { Order } from '../../../types';
+import { ChatWindow } from '../../Messaging';
 
 interface ActiveOrderCardProps {
   order: Order;
@@ -23,6 +24,7 @@ const statusConfig = {
 };
 
 export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order, onViewDetails }) => {
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const config = statusConfig[order.status] || statusConfig.pending;
   const StatusIcon = config.icon;
 
@@ -38,17 +40,30 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order, onViewD
     : 'Articles';
 
   return (
-    <div className="relative">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-bold text-slate-900">Commande en cours</h2>
-        <button
-          onClick={onViewDetails}
-          className="inline-flex items-center gap-1.5 text-sm text-orange-600 hover:text-orange-700 font-semibold transition-colors group"
-        >
-          <Eye className="h-4 w-4 group-hover:scale-110 transition-transform" />
-          <span>Suivre</span>
-        </button>
-      </div>
+    <>
+      <div className="relative">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-bold text-slate-900">Commande en cours</h2>
+          <div className="flex items-center gap-2">
+            {/* Messaging button - visible from paid onwards */}
+            {['paid', 'awaiting-client-validation', 'accepted', 'preparing', 'delivering'].includes(order.status) && (
+              <button
+                onClick={() => setIsChatOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-orange-600 text-white rounded-full hover:bg-orange-700 font-semibold transition-colors"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span>Chat</span>
+              </button>
+            )}
+            <button
+              onClick={onViewDetails}
+              className="inline-flex items-center gap-1.5 text-sm text-orange-600 hover:text-orange-700 font-semibold transition-colors group"
+            >
+              <Eye className="h-4 w-4 group-hover:scale-110 transition-transform" />
+              <span>Suivre</span>
+            </button>
+          </div>
+        </div>
 
       <div className={`relative overflow-hidden bg-white border-2 ${config.borderColor} rounded-2xl p-5`}>
         <div className={`absolute top-0 right-0 w-32 h-32 ${config.bgColor} rounded-full -mr-16 -mt-16 opacity-30`} />
@@ -102,6 +117,16 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({ order, onViewD
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Chat Window */}
+      <ChatWindow
+        orderId={order.id}
+        order={order}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        currentUserRole="client"
+        orderNumber={order.orderNumber || order.id.slice(0, 8)}
+      />
+    </>
   );
 };
