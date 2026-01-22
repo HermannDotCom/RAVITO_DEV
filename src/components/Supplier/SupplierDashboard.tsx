@@ -135,14 +135,8 @@ export const SupplierDashboard:  React.FC<SupplierDashboardProps> = ({ onNavigat
     loadDashboardData();
   }, [user]);
 
-  const handleMarkDelivered = async () => {
-    if (!activeDelivery) return;
-    try {
-      await updateOrderStatus(activeDelivery.id, 'delivered');
-      setActiveDelivery(null);
-    } catch (error) {
-      console.error('Error marking delivered:', error);
-    }
+ const handleMarkDelivered = () => {
+  onNavigate('deliveries');
   };
 
   const supplierName = user?.name || (user as any)?.businessName || 'Partenaire';
