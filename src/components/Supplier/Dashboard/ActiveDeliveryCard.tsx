@@ -74,13 +74,13 @@ export const ActiveDeliveryCard: React.FC<ActiveDeliveryCardProps> = ({
                 <span>Appeler</span>
               </button>
             )}
-            <button
-              onClick={onMarkDelivered}
-              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl text-sm font-semibold hover:from-emerald-600 hover:to-emerald-700 transition-all hover:shadow-lg flex items-center justify-center gap-2"
-            >
-              <CheckCircle className="h-4 w-4" />
-              <span>Marquer livrée</span>
-            </button>
+           <button
+            onClick={onMarkDelivered}
+            className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl text-sm font-semibold hover:from-blue-600 hover:to-blue-700 transition-all hover:shadow-lg flex items-center justify-center gap-2"
+          >
+            <Truck className="h-4 w-4" />
+            <span>Gérer la livraison</span>
+          </button>
           </div>
         </div>
       </div>
