@@ -48,8 +48,8 @@ export interface UpdateReferencePriceInput {
  */
 export async function getReferencePrices(filters?: {
   productId?: string;
-  zoneId?: string;
-  categoryId?: string;
+  zoneId?: string;  // Gardé pour compatibilité, mais ignoré car products n'a pas de zone
+  categoryId?: string;  // Gardé pour compatibilité, mais ignoré car products n'a pas de categoryId
   isActive?: boolean;
 }): Promise<ReferencePrice[]> {
   try {
@@ -65,6 +65,7 @@ export async function getReferencePrices(filters?: {
     if (filters?.productId) {
       query = query.eq('id', filters.productId);
     }
+    // Note: zoneId et categoryId sont ignorés car la table products ne les contient pas
 
     const { data, error } = await query;
 
@@ -87,8 +88,8 @@ export async function getReferencePrices(filters?: {
       isActive: product.is_active,
       createdBy: undefined,
       updatedBy: undefined,
-      createdAt: new Date(product.created_at),
-      updatedAt: new Date(product.updated_at),
+      createdAt: product.created_at ? new Date(product.created_at) : new Date(),
+      updatedAt: product.updated_at ? new Date(product.updated_at) : new Date(),
     }));
   } catch (error) {
     console.error('Exception in getReferencePrices:', error);
