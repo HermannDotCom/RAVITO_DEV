@@ -466,7 +466,8 @@ export async function searchProductsForSupplier(
       const validIds = excludeProductIds.filter(id => uuidRegex.test(id));
       
       if (validIds.length > 0) {
-        queryBuilder = queryBuilder.filter('id', 'not.in', `(${validIds.join(',')})`);
+        // Use Supabase's native 'not' operator with 'in' for safe filtering
+        queryBuilder = queryBuilder.not('id', 'in', `(${validIds.join(',')})`);
       }
     }
 

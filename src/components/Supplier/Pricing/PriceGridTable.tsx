@@ -4,7 +4,7 @@
  * Allows adding products one by one with search functionality
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Edit, Save, X, Search, RefreshCw, CheckCircle, Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import { usePricing } from '../../../context/PricingContext';
@@ -15,6 +15,7 @@ import { Product } from '../../../types';
 import { useAuth } from '../../../context/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import { ResetQuantitiesModal } from './ResetQuantitiesModal';
+import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 
 interface ProductWithPricing extends Product {
   supplierPrice?: number;
@@ -81,6 +82,10 @@ export const PriceGridTable: React.FC = () => {
   const [showResetModal, setShowResetModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ productId: string; gridId: string; productName: string } | null>(null);
+
+  // Memoize excludeIds to prevent unnecessary recalculations
+  const excludeIds = useMemo(() => configuredProducts.map(p => p.id), [configuredProducts]);
 
   // Load configured products on mount and when grids change
   useEffect(() => {
@@ -92,7 +97,6 @@ export const PriceGridTable: React.FC = () => {
     const timer = setTimeout(async () => {
       if (searchQuery.length >= 3) {
         setSearching(true);
-        const excludeIds = configuredProducts.map(p => p.id);
         const { data, error } = await searchProductsForSupplier(
           searchQuery,
           selectedCategory === 'all' ? undefined : selectedCategory,
@@ -109,7 +113,7 @@ export const PriceGridTable: React.FC = () => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedCategory, configuredProducts]);
+  }, [searchQuery, selectedCategory, excludeIds]);
 
   const loadConfiguredProducts = async () => {
     try {
@@ -201,6 +205,11 @@ export const PriceGridTable: React.FC = () => {
     }
 
     const initialStock = form.initialStock ? parseInt(form.initialStock) : 0;
+    if (isNaN(initialStock) || initialStock < 0) {
+      setErrorMessage('Le stock initial doit être un nombre valide supérieur ou égal à 0');
+      setTimeout(() => setErrorMessage(null), 3000);
+      return;
+    }
 
     try {
       setAddingProductId(product.id);
@@ -262,15 +271,18 @@ export const PriceGridTable: React.FC = () => {
   };
 
   const handleDelete = async (productId: string, gridId: string, productName: string) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer "${productName}" de votre liste ?`)) {
-      return;
-    }
+    // Set modal state to show confirmation dialog
+    setDeleteModal({ productId, gridId, productName });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteModal) return;
 
     try {
       const { error } = await supabase
         .from('supplier_price_grids')
         .delete()
-        .eq('id', gridId);
+        .eq('id', deleteModal.gridId);
 
       if (error) throw error;
 
@@ -658,8 +670,12 @@ export const PriceGridTable: React.FC = () => {
                           {isEditing ? (
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => handleUpdate(product.id, product.gridId!)}
-                                disabled={isSaving}
+                                onClick={() => {
+                                  if (product.gridId) {
+                                    handleUpdate(product.id, product.gridId);
+                                  }
+                                }}
+                                disabled={isSaving || !product.gridId}
                                 className="text-green-600 hover:text-green-800 disabled:opacity-50"
                                 title="Enregistrer"
                               >
@@ -684,8 +700,13 @@ export const PriceGridTable: React.FC = () => {
                                 <Edit className="h-4 w-4" />
                               </button>
                               <button
-                                onClick={() => handleDelete(product.id, product.gridId!, product.name)}
-                                className="text-red-600 hover:text-red-800 dark:text-red-400"
+                                onClick={() => {
+                                  if (product.gridId) {
+                                    handleDelete(product.id, product.gridId, product.name);
+                                  }
+                                }}
+                                disabled={!product.gridId}
+                                className="text-red-600 hover:text-red-800 dark:text-red-400 disabled:opacity-50"
                                 title="Supprimer"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -720,6 +741,14 @@ export const PriceGridTable: React.FC = () => {
         <ResetQuantitiesModal
           onClose={() => setShowResetModal(false)}
           onConfirm={handleResetQuantities}
+        />
+      )}
+
+      {deleteModal && (
+        <DeleteConfirmationModal
+          productName={deleteModal.productName}
+          onConfirm={confirmDelete}
+          onClose={() => setDeleteModal(null)}
         />
       )}
     </>
