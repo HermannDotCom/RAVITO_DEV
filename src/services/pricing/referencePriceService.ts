@@ -5,6 +5,21 @@
 
 import { supabase } from '../../lib/supabase';
 
+/**
+ * Interface ReferencePrice - Mappage de la table products
+ * Cette interface maintient la compatibilité avec l'ancien code tout en lisant
+ * directement depuis la table products.
+ * 
+ * @property id - ID du produit (utilisé aussi comme productId)
+ * @property productId - ID du produit (même valeur que id)
+ * @property zoneId - Paramètre optionnel maintenu pour compatibilité API (non utilisé en base)
+ * @property referenceUnitPrice - Prix unitaire depuis products.unit_price
+ * @property referenceCratePrice - Prix casier depuis products.crate_price
+ * @property referenceConsignPrice - Prix consigne depuis products.consign_price
+ * @property isActive - État actif depuis products.is_active
+ * @property createdAt - Date de création depuis products.created_at
+ * @property updatedAt - Date de mise à jour depuis products.updated_at
+ */
 export interface ReferencePrice {
   id: string;
   productId: string;
@@ -19,6 +34,10 @@ export interface ReferencePrice {
 
 /**
  * Récupère le prix de référence pour un produit depuis la table products
+ * 
+ * @param productId - ID du produit
+ * @param zoneId - Paramètre optionnel maintenu pour compatibilité API (non utilisé)
+ * @returns ReferencePrice ou null si non trouvé
  */
 export async function getActiveReferencePrice(
   productId: string,
@@ -55,6 +74,10 @@ export async function getActiveReferencePrice(
 
 /**
  * Récupère tous les prix de référence (tous les produits actifs)
+ * Note: Retourne un tableau vide en cas d'erreur au lieu de lever une exception.
+ * 
+ * @param filters - Filtres optionnels (isActive, productId)
+ * @returns Tableau de ReferencePrice (vide en cas d'erreur)
  */
 export async function getReferencePrices(filters?: {
   isActive?: boolean;
@@ -98,6 +121,10 @@ export async function getReferencePrices(filters?: {
 
 /**
  * Récupère le prix de référence simplifié (nouvelle méthode recommandée)
+ * Note: Retourne null en cas d'erreur au lieu de lever une exception.
+ * 
+ * @param productId - ID du produit
+ * @returns Objet avec les prix ou null si non trouvé/erreur
  */
 export async function getReferencePriceFromProduct(
   productId: string

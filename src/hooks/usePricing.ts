@@ -4,7 +4,6 @@
  */
 
 import { useState, useCallback } from 'react';
-import { ReferencePrice } from '../services/pricing/referencePriceService';
 import {
   SupplierPriceGrid,
   CreateSupplierPriceGridInput,
