@@ -129,6 +129,7 @@ export interface Product {
   volume: string;
   isActive: boolean;
   imageUrl: string;
+  imagePath?: string;
   createdAt: Date;
   updatedAt: Date;
 }

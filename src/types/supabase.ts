@@ -233,6 +233,7 @@ export type Database = {
           volume: string
           is_active: boolean
           image_url: string | null
+          image_path: string | null
           created_at: string
           updated_at: string
         }
@@ -251,6 +252,7 @@ export type Database = {
           volume: string
           is_active?: boolean
           image_url?: string | null
+          image_path?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -269,6 +271,7 @@ export type Database = {
           volume?: string
           is_active?: boolean
           image_url?: string | null
+          image_path?: string | null
           created_at?: string
           updated_at?: string
         }
