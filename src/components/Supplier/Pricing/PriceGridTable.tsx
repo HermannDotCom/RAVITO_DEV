@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Edit, Save, X, Search, RefreshCw, CheckCircle, Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Edit, Save, X, Search, RefreshCw, CheckCircle, Plus, ChevronDown, ChevronUp, Trash2, FileSpreadsheet } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import { usePricing } from '../../../context/PricingContext';
 import { useSupplierPriceGridManagement, usePriceFormatter, usePriceComparison } from '../../../hooks/usePricing';
@@ -16,6 +16,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import { ResetQuantitiesModal } from './ResetQuantitiesModal';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
+import { BulkImportExport } from './BulkImportExport';
 
 interface ProductWithPricing extends Product {
   supplierPrice?: number;
@@ -83,6 +84,7 @@ export const PriceGridTable: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<{ productId: string; gridId: string; productName: string } | null>(null);
+  const [showImportExport, setShowImportExport] = useState(false);
 
   // Memoize excludeIds to prevent unnecessary recalculations
   const excludeIds = useMemo(() => configuredProducts.map(p => p.id), [configuredProducts]);
@@ -375,13 +377,23 @@ export const PriceGridTable: React.FC = () => {
             </p>
           </div>
 
-          <button
-            onClick={() => setShowResetModal(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-orange-300 dark:border-orange-600 text-orange-700 dark:text-orange-300 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Réinitialiser quantités
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setShowImportExport(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              Import/Export
+            </button>
+
+            <button
+              onClick={() => setShowResetModal(true)}
+              className="flex items-center gap-2 px-4 py-2 border border-orange-300 dark:border-orange-600 text-orange-700 dark:text-orange-300 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Réinitialiser quantités
+            </button>
+          </div>
         </div>
 
         {/* Error Display */}
@@ -749,6 +761,16 @@ export const PriceGridTable: React.FC = () => {
           productName={deleteModal.productName}
           onConfirm={confirmDelete}
           onClose={() => setDeleteModal(null)}
+        />
+      )}
+
+      {showImportExport && (
+        <BulkImportExport
+          onClose={() => setShowImportExport(false)}
+          onImportComplete={() => {
+            refreshSupplierGrids();
+            setShowImportExport(false);
+          }}
         />
       )}
     </>
