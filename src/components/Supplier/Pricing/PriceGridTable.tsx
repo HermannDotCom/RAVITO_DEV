@@ -1,19 +1,21 @@
 /**
- * PriceGridTable - Tableau de gestion des produits vendus
- * Affiche TOUS les produits avec la possibilité de saisir les prix et stocks
+ * PriceGridTable - Refactored: Progressive product addition
+ * Only displays products that have been added to supplier_price_grids
+ * Allows adding products one by one with search functionality
  */
 
-import React, { useState, useEffect } from 'react';
-import { Edit, Save, X, Search, Download, Upload, RefreshCw, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Edit, Save, X, Search, RefreshCw, CheckCircle, Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import { usePricing } from '../../../context/PricingContext';
 import { useSupplierPriceGridManagement, usePriceFormatter, usePriceComparison } from '../../../hooks/usePricing';
 import { getProducts } from '../../../services/productService';
+import { searchProductsForSupplier } from '../../../services/pricing/supplierPriceService';
 import { Product } from '../../../types';
 import { useAuth } from '../../../context/AuthContext';
 import { supabase } from '../../../lib/supabase';
-import { BulkImportExport } from './BulkImportExport';
 import { ResetQuantitiesModal } from './ResetQuantitiesModal';
+import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 
 interface ProductWithPricing extends Product {
   supplierPrice?: number;
@@ -23,6 +25,26 @@ interface ProductWithPricing extends Product {
   gridId?: string;
 }
 
+interface CatalogProduct {
+  id: string;
+  name: string;
+  reference: string;
+  brand: string;
+  category: string;
+  crate_type: string;
+  crate_price: number;
+  image_url: string;
+}
+
+const PRODUCT_CATEGORIES = [
+  { value: 'all', label: 'Toutes les catégories' },
+  { value: 'biere', label: '🍺 Bières' },
+  { value: 'soda', label: '🥤 Sodas' },
+  { value: 'vin', label: '🍷 Vins' },
+  { value: 'eau', label: '💧 Eaux' },
+  { value: 'spiritueux', label: '🥃 Spiritueux' },
+];
+
 export const PriceGridTable: React.FC = () => {
   const { user } = useAuth();
   const { supplierPriceGrids, refreshSupplierGrids, getReferencePrice } = usePricing();
@@ -30,16 +52,24 @@ export const PriceGridTable: React.FC = () => {
   const { formatPrice } = usePriceFormatter();
   const { compareToReference, getPriceStatus, getPriceStatusColor } = usePriceComparison();
 
-  const [rawProducts, setRawProducts] = useState<Product[]>([]);
-  const [products, setProducts] = useState<ProductWithPricing[]>([]);
+  // Products already configured (from supplier_price_grids)
+  const [configuredProducts, setConfiguredProducts] = useState<ProductWithPricing[]>([]);
   const [referencePrices, setReferencePrices] = useState<Map<string, number>>(new Map());
-  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoadingConfigured, setIsLoadingConfigured] = useState(false);
+  
+  // Search state for adding new products
+  const [showAddSection, setShowAddSection] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchResults, setSearchResults] = useState<CatalogProduct[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [addingProductId, setAddingProductId] = useState<string | null>(null);
+  
+  // Form state for adding products
+  const [productForms, setProductForms] = useState<Record<string, { supplierPrice: string; initialStock: string }>>({});
+  
+  // Editing state
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [showImportExport, setShowImportExport] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
   const [formData, setFormData] = useState<{
     supplierPrice: number;
     initialStock: number;
@@ -48,119 +78,224 @@ export const PriceGridTable: React.FC = () => {
     initialStock: 0,
   });
 
-  useEffect(() => {
-    loadProducts();
-  }, []);
+  // UI state
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ productId: string; gridId: string; productName: string } | null>(null);
 
-  useEffect(() => {
-    if (rawProducts.length > 0) {
-      mergeProductsWithGrids();
-    }
-  }, [rawProducts, supplierPriceGrids]);
+  // Memoize excludeIds to prevent unnecessary recalculations
+  const excludeIds = useMemo(() => configuredProducts.map(p => p.id), [configuredProducts]);
 
-  const loadProducts = async () => {
+  // Load configured products on mount and when grids change
+  useEffect(() => {
+    loadConfiguredProducts();
+  }, [supplierPriceGrids]);
+
+  // Search products with debounce
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchQuery.length >= 3) {
+        setSearching(true);
+        const { data, error } = await searchProductsForSupplier(
+          searchQuery,
+          selectedCategory === 'all' ? undefined : selectedCategory,
+          excludeIds
+        );
+        
+        if (!error && data) {
+          setSearchResults(data);
+        }
+        setSearching(false);
+      } else {
+        setSearchResults([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, selectedCategory, excludeIds]);
+
+  const loadConfiguredProducts = async () => {
     try {
-      setIsLoadingProducts(true);
-      const fetchedProducts = await getProducts({ isActive: true });
+      setIsLoadingConfigured(true);
       
-      // Charger les prix de référence
+      // Get only products that are in supplier_price_grids
+      const activeGrids = supplierPriceGrids.filter(g => g.isActive);
+      const productIds = activeGrids.map(g => g.productId);
+      
+      if (productIds.length === 0) {
+        setConfiguredProducts([]);
+        setIsLoadingConfigured(false);
+        return;
+      }
+
+      // Fetch product details for these IDs
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('*')
+        .in('id', productIds)
+        .eq('is_active', true);
+
+      if (productsError) throw productsError;
+
+      // Merge with grid data and load reference prices
       const priceMap = new Map<string, number>();
-      for (const product of fetchedProducts) {
-        const refPrice = await getReferencePrice(product.id);
-        if (refPrice) {
-          priceMap.set(product.id, refPrice.referenceCratePrice);
+      const mergedProducts: ProductWithPricing[] = [];
+
+      for (const product of productsData || []) {
+        const grid = activeGrids.find(g => g.productId === product.id);
+        
+        if (grid) {
+          const initialStock = grid.initialStock || 0;
+          const soldQuantity = grid.soldQuantity || 0;
+          const stockFinal = initialStock - soldQuantity;
+
+          // Load reference price
+          const refPrice = await getReferencePrice(product.id);
+          if (refPrice) {
+            priceMap.set(product.id, refPrice.referenceCratePrice);
+          }
+
+          mergedProducts.push({
+            id: product.id,
+            name: product.name,
+            reference: product.reference,
+            brand: product.brand,
+            category: product.category,
+            crateType: product.crate_type,
+            cratePrice: product.crate_price,
+            unitPrice: product.unit_price,
+            consignPrice: product.consign_price,
+            imageUrl: product.image_url,
+            isActive: product.is_active,
+            createdAt: new Date(product.created_at),
+            updatedAt: new Date(product.updated_at),
+            supplierPrice: grid.cratePrice,
+            initialStock,
+            soldQuantity,
+            stockFinal,
+            gridId: grid.id,
+          });
         }
       }
+
       setReferencePrices(priceMap);
-      setRawProducts(fetchedProducts);
+      setConfiguredProducts(mergedProducts);
     } catch (error) {
-      console.error('Error loading products:', error);
+      console.error('Error loading configured products:', error);
+      setErrorMessage('Erreur lors du chargement des produits');
     } finally {
-      setIsLoadingProducts(false);
+      setIsLoadingConfigured(false);
     }
   };
 
-  const mergeProductsWithGrids = () => {
-    const mergedProducts: ProductWithPricing[] = rawProducts.map(product => {
-      const grid = supplierPriceGrids.find(g => g.productId === product.id && g.isActive);
-      
-      if (grid) {
-        const initialStock = grid.initialStock || 0;
-        const soldQuantity = grid.soldQuantity || 0;
-        const stockFinal = initialStock - soldQuantity;
+  const handleAddProduct = async (product: CatalogProduct) => {
+    const form = productForms[product.id];
+    if (!form || !form.supplierPrice) {
+      setErrorMessage('Veuillez saisir le prix fournisseur');
+      setTimeout(() => setErrorMessage(null), 3000);
+      return;
+    }
 
-        return {
-          ...product,
-          supplierPrice: grid.cratePrice,
-          initialStock,
-          soldQuantity,
-          stockFinal,
-          gridId: grid.id,
-        };
-      }
+    const supplierPrice = parseFloat(form.supplierPrice);
+    if (isNaN(supplierPrice) || supplierPrice <= 0) {
+      setErrorMessage('Le prix fournisseur doit être un nombre valide supérieur à 0');
+      setTimeout(() => setErrorMessage(null), 3000);
+      return;
+    }
 
-      return {
-        ...product,
-        supplierPrice: undefined,
-        initialStock: 0,
-        soldQuantity: 0,
-        stockFinal: 0,
-        gridId: undefined,
-      };
-    });
+    const initialStock = form.initialStock ? parseInt(form.initialStock) : 0;
+    if (isNaN(initialStock) || initialStock < 0) {
+      setErrorMessage('Le stock initial doit être un nombre valide supérieur ou égal à 0');
+      setTimeout(() => setErrorMessage(null), 3000);
+      return;
+    }
 
-    setProducts(mergedProducts);
-  };
-
-  const filteredProducts = products.filter((product) => {
-    if (!searchTerm) return true;
-    return product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           product.brand.toLowerCase().includes(searchTerm.toLowerCase());
-  });
-
-  const handleUpdate = async (productId: string, gridId?: string) => {
     try {
-      if (!gridId) {
-        // Créer une nouvelle grille si elle n'existe pas
-        const { data: newGrid, error: createError } = await supabase
-          .from('supplier_price_grids')
-          .insert({
-            supplier_id: user?.id,
-            product_id: productId,
-            unit_price: 0,
-            crate_price: formData.supplierPrice,
-            consign_price: 0,
-            initial_stock: formData.initialStock,
-            sold_quantity: 0,
-            is_active: true,
-          })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-      } else {
-        // Mettre à jour la grille existante
-        const updateResult = await update(gridId, {
-          cratePrice: formData.supplierPrice,
-          // Note: On ne met à jour que le prix et le stock initial via cette interface
-          // Le sold_quantity est géré automatiquement par le trigger
+      setAddingProductId(product.id);
+      
+      const { error } = await supabase
+        .from('supplier_price_grids')
+        .insert({
+          supplier_id: user?.id,
+          product_id: product.id,
+          unit_price: 0,
+          crate_price: supplierPrice,
+          consign_price: 0,
+          initial_stock: initialStock,
+          sold_quantity: 0,
+          is_active: true,
         });
 
-        // Mettre à jour le stock initial séparément
-        await supabase
-          .from('supplier_price_grids')
-          .update({ initial_stock: formData.initialStock })
-          .eq('id', gridId);
-      }
+      if (error) throw error;
+
+      setSuccessMessage('Produit ajouté avec succès');
+      setSearchQuery('');
+      setSearchResults([]);
+      setProductForms({});
+      await refreshSupplierGrids();
+    } catch (error) {
+      console.error('Error adding product:', error);
+      setErrorMessage('Erreur lors de l\'ajout du produit');
+    } finally {
+      setAddingProductId(null);
+      setTimeout(() => {
+        setSuccessMessage(null);
+        setErrorMessage(null);
+      }, 3000);
+    }
+  };
+
+  const handleUpdate = async (productId: string, gridId: string) => {
+    try {
+      // Update the grid
+      await update(gridId, {
+        cratePrice: formData.supplierPrice,
+      });
+
+      // Update initial stock separately
+      await supabase
+        .from('supplier_price_grids')
+        .update({ initial_stock: formData.initialStock })
+        .eq('id', gridId);
 
       setEditingId(null);
       await refreshSupplierGrids();
-      // Recharger les produits bruts
-      const fetchedProducts = await getProducts({ isActive: true });
-      setRawProducts(fetchedProducts);
+      setSuccessMessage('Produit mis à jour avec succès');
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
       console.error('Error updating grid:', error);
-      alert('Erreur lors de la mise à jour');
+      setErrorMessage('Erreur lors de la mise à jour');
+      setTimeout(() => setErrorMessage(null), 3000);
+    }
+  };
+
+  const handleDelete = async (productId: string, gridId: string, productName: string) => {
+    // Set modal state to show confirmation dialog
+    setDeleteModal({ productId, gridId, productName });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteModal) return;
+
+    try {
+      const { error } = await supabase
+        .from('supplier_price_grids')
+        .delete()
+        .eq('id', deleteModal.gridId);
+
+      if (error) throw error;
+
+      setSuccessMessage('Produit supprimé avec succès');
+      await refreshSupplierGrids();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      setErrorMessage('Erreur lors de la suppression');
+    } finally {
+      setTimeout(() => {
+        setSuccessMessage(null);
+        setErrorMessage(null);
+      }, 3000);
     }
   };
 
@@ -203,19 +338,13 @@ export const PriceGridTable: React.FC = () => {
     try {
       if (!user) return;
 
-      // Appeler la fonction de base de données pour réinitialiser
       const { error } = await supabase.rpc('reset_supplier_sold_quantities', {
         p_supplier_id: user.id,
       });
 
       if (error) throw error;
 
-      // Rafraîchir les données
       await refreshSupplierGrids();
-      // Recharger les produits bruts
-      const fetchedProducts = await getProducts({ isActive: true });
-      setRawProducts(fetchedProducts);
-      
       setSuccessMessage('Les quantités vendues ont été réinitialisées avec succès');
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (error) {
@@ -224,47 +353,41 @@ export const PriceGridTable: React.FC = () => {
     }
   };
 
-  // Obtenir le nom du fournisseur pour l'affichage dynamique
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   const supplierName = user?.businessName || user?.name || 'Fournisseur';
 
   return (
     <>
       <div className="space-y-6">
-        {/* Actions Bar */}
+        {/* Header with refresh button */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Rechercher un produit..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Produits vendus</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Gestion quotidienne de vos stocks et de vos prix
+            </p>
           </div>
 
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => setShowResetModal(true)}
-              className="flex items-center gap-2 px-4 py-2 border border-orange-300 dark:border-orange-600 text-orange-700 dark:text-orange-300 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Réinitialiser les quantités vendues
-            </button>
-            <button
-              onClick={() => setShowImportExport(true)}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-            >
-              <Upload className="h-4 w-4" />
-              Import/Export
-            </button>
-          </div>
+          <button
+            onClick={() => setShowResetModal(true)}
+            className="flex items-center gap-2 px-4 py-2 border border-orange-300 dark:border-orange-600 text-orange-700 dark:text-orange-300 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Réinitialiser quantités
+          </button>
         </div>
 
         {/* Error Display */}
-        {error && (
+        {(error || errorMessage) && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <p className="text-red-800 dark:text-red-300">{error}</p>
+            <p className="text-red-800 dark:text-red-300">{error || errorMessage}</p>
           </div>
         )}
 
@@ -276,8 +399,148 @@ export const PriceGridTable: React.FC = () => {
           </div>
         )}
 
-        {/* Products Table */}
+        {/* Add Product Section */}
+        <div className="bg-white dark:bg-gray-900 border border-orange-200 dark:border-orange-800 rounded-xl overflow-hidden">
+          <button
+            onClick={() => setShowAddSection(!showAddSection)}
+            className="w-full flex items-center justify-between p-4 bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              <span className="font-semibold">Ajouter un produit</span>
+            </div>
+            {showAddSection ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </button>
+
+          {showAddSection && (
+            <div className="p-4 space-y-4">
+              {/* Search bar */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="🔍 Rechercher un produit (min. 3 car.)..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
+                </div>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                >
+                  {PRODUCT_CATEGORIES.map(cat => (
+                    <option key={cat.value} value={cat.value}>{cat.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Search results */}
+              {searching && (
+                <div className="text-center text-gray-500 dark:text-gray-400 text-sm py-4">
+                  Recherche en cours...
+                </div>
+              )}
+              
+              {searchResults.length > 0 && (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Résultats de recherche :
+                  </p>
+                  {searchResults.map(product => {
+                    const form = productForms[product.id] || { supplierPrice: '', initialStock: '0' };
+
+                    return (
+                      <div key={product.id} className="flex flex-col sm:flex-row items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <img 
+                          src={product.image_url} 
+                          alt={product.name}
+                          className="w-12 h-12 object-cover rounded flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 dark:text-white text-sm">{product.name}</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {product.brand} • {product.crate_type}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            Réf: {formatCurrency(product.crate_price)} F/casier
+                          </p>
+                          
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            <div className="flex items-center gap-1">
+                              <label className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                                Prix fournisseur<span className="text-red-500">*</span>:
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={form.supplierPrice}
+                                onChange={(e) => setProductForms({
+                                  ...productForms,
+                                  [product.id]: { ...form, supplierPrice: e.target.value }
+                                })}
+                                placeholder="0"
+                                className="w-24 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                              />
+                              <span className="text-xs text-gray-600 dark:text-gray-400">F</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <label className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                                Stock initial:
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={form.initialStock}
+                                onChange={(e) => setProductForms({
+                                  ...productForms,
+                                  [product.id]: { ...form, initialStock: e.target.value }
+                                })}
+                                placeholder="0"
+                                className="w-20 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleAddProduct(product)}
+                          disabled={addingProductId === product.id}
+                          className="flex items-center gap-1 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium whitespace-nowrap"
+                        >
+                          <Plus className="w-4 h-4" />
+                          {addingProductId === product.id ? 'Ajout...' : 'Ajouter'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {searchQuery.length >= 3 && !searching && searchResults.length === 0 && (
+                <div className="text-center text-gray-500 dark:text-gray-400 text-sm py-4">
+                  Aucun produit trouvé
+                </div>
+              )}
+
+              {searchQuery.length < 3 && (
+                <div className="text-center text-gray-400 dark:text-gray-500 text-sm py-4">
+                  Saisissez au moins 3 caractères pour rechercher
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Configured Products Table */}
         <Card className="overflow-hidden">
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              📦 Mes produits ({configuredProducts.length})
+            </h2>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-800">
@@ -309,28 +572,29 @@ export const PriceGridTable: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                {isLoadingProducts ? (
+                {isLoadingConfigured ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                       Chargement des produits...
                     </td>
                   </tr>
-                ) : filteredProducts.length === 0 ? (
+                ) : configuredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                      {searchTerm
-                        ? 'Aucun produit trouvé pour cette recherche'
-                        : 'Aucun produit disponible'}
+                    <td colSpan={8} className="px-6 py-12 text-center">
+                      <div className="text-gray-400 dark:text-gray-500">
+                        <p className="font-medium text-lg mb-2">Aucun produit configuré</p>
+                        <p className="text-sm">Utilisez la recherche ci-dessus pour ajouter des produits</p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
-                  filteredProducts.map((product) => {
+                  configuredProducts.map((product) => {
                     const varianceInfo = getVarianceInfo(product.supplierPrice, product.id);
                     const isEditing = editingId === product.id;
                     const refPrice = referencePrices.get(product.id);
 
                     return (
-                      <tr key={product.id}>
+                      <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                         <td className="px-6 py-4">
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {product.name}
@@ -406,8 +670,12 @@ export const PriceGridTable: React.FC = () => {
                           {isEditing ? (
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => handleUpdate(product.id, product.gridId)}
-                                disabled={isSaving}
+                                onClick={() => {
+                                  if (product.gridId) {
+                                    handleUpdate(product.id, product.gridId);
+                                  }
+                                }}
+                                disabled={isSaving || !product.gridId}
                                 className="text-green-600 hover:text-green-800 disabled:opacity-50"
                                 title="Enregistrer"
                               >
@@ -423,13 +691,27 @@ export const PriceGridTable: React.FC = () => {
                               </button>
                             </div>
                           ) : (
-                            <button
-                              onClick={() => startEdit(product)}
-                              className="text-blue-600 hover:text-blue-800 dark:text-blue-400"
-                              title="Modifier"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => startEdit(product)}
+                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                                title="Modifier"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (product.gridId) {
+                                    handleDelete(product.id, product.gridId, product.name);
+                                  }
+                                }}
+                                disabled={!product.gridId}
+                                className="text-red-600 hover:text-red-800 dark:text-red-400 disabled:opacity-50"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>
@@ -455,20 +737,18 @@ export const PriceGridTable: React.FC = () => {
       </div>
 
       {/* Modals */}
-      {showImportExport && (
-        <BulkImportExport
-          onClose={() => setShowImportExport(false)}
-          onImportComplete={() => {
-            refreshSupplierGrids();
-            loadProducts();
-          }}
-        />
-      )}
-
       {showResetModal && (
         <ResetQuantitiesModal
           onClose={() => setShowResetModal(false)}
           onConfirm={handleResetQuantities}
+        />
+      )}
+
+      {deleteModal && (
+        <DeleteConfirmationModal
+          productName={deleteModal.productName}
+          onConfirm={confirmDelete}
+          onClose={() => setDeleteModal(null)}
         />
       )}
     </>
