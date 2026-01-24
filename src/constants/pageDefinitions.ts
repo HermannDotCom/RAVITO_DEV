@@ -60,7 +60,6 @@ export const ADMIN_PAGES: PageDefinition[] = [
   { id: 'users', label: 'Utilisateurs', icon: Users, exclusiveSuperAdmin: false },
   { id: 'orders', label: 'Commandes', icon: Package, exclusiveSuperAdmin: false },
   { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag, exclusiveSuperAdmin: false },
-  { id: 'pricing', label: 'Prix de Référence', icon: DollarSign, exclusiveSuperAdmin: false },
   { id: 'treasury', label: 'Trésorerie', icon: CreditCard, exclusiveSuperAdmin: false },
   { id: 'commissions', label: 'Mes Commissions', icon: Wallet, exclusiveSuperAdmin: true },
   { id: 'zones', label: 'Zones de Livraison', icon: MapPin, exclusiveSuperAdmin: false },
