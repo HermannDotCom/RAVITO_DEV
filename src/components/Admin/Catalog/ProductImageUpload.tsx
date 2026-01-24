@@ -42,15 +42,19 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
     setIsUploading(false);
 
     if (result.success && result.path && result.url) {
+      // Upload succeeded - cleanup local preview and use remote URL
+      URL.revokeObjectURL(localPreview);
       setPreviewUrl(result.url);
       onImageUploaded(result.path, result.url);
     } else {
+      // Upload failed - keep local preview temporarily, show error
       setError(result.error || 'Erreur lors de l\'upload');
-      setPreviewUrl(currentImageUrl || null);
+      // Revert to current image if available, otherwise keep showing the failed upload preview briefly
+      setTimeout(() => {
+        URL.revokeObjectURL(localPreview);
+        setPreviewUrl(currentImageUrl || null);
+      }, 2000);
     }
-
-    // Cleanup
-    URL.revokeObjectURL(localPreview);
   };
 
   const handleRemove = async () => {

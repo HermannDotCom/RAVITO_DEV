@@ -94,17 +94,22 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     { value: 'PACK12', label: 'PACK12', description: 'Pack 12 (jetable)' },
   ];
 
+  // Default consign prices by crate type
+  const DEFAULT_CONSIGN_PRICES: Record<CrateType, number> = {
+    B33: 3000,
+    B65: 3000,
+    B100: 3000,
+    B50V: 3000,
+    B100V: 3000,
+    C6: 2000,
+    C20: 3000,
+    CARTON24: 0, // Disposable, no consigne
+    PACK6: 0,    // Disposable, no consigne
+    PACK12: 0,   // Disposable, no consigne
+  };
+
   const getDefaultConsignPrice = (crateType: CrateType): number => {
-    switch (crateType) {
-      case 'C6':
-        return 2000;
-      case 'CARTON24':
-      case 'PACK6':
-      case 'PACK12':
-        return 0; // Disposable, no consigne
-      default:
-        return 3000;
-    }
+    return DEFAULT_CONSIGN_PRICES[crateType] || 3000;
   };
 
   const handleCrateTypeChange = (newCrateType: CrateType) => {

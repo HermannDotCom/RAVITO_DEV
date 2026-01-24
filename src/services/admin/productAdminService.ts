@@ -148,7 +148,8 @@ function mapProductFromDb(data: any): Product {
     description: data.description,
     alcoholContent: data.alcohol_content,
     imagePath: data.image_path,
-    imageUrl: data.image_url || data.image_path,
+    // Use image_url if available, otherwise fall back to image_path for backward compatibility
+    imageUrl: data.image_url || data.image_path || '',
     isActive: data.is_active,
     createdAt: new Date(data.created_at),
     updatedAt: new Date(data.updated_at),
