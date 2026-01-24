@@ -10,7 +10,6 @@ import {
   Navigation,
   Truck,
   MapPin,
-  DollarSign,
   Clock,
   BarChart3,
   CreditCard,
