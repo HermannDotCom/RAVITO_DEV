@@ -336,7 +336,7 @@ export async function getTopClients(limit: number = 5, year?: number): Promise<T
         profiles?: { id: string; name: string; business_name?: string };
       };
       const clientProfile = orderWithProfile.profiles;
-      const clientName = clientProfile?.name || 'Client inconnu';
+      const clientName = clientProfile?.business_name || clientProfile?.name || 'Client inconnu';
       const businessName = clientProfile?.business_name || '';
       
       if (!clientMap.has(clientId)) {
