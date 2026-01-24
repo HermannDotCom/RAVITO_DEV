@@ -85,6 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         break;
       case 'admin':
         allMenuItems = [
+          { id: 'super-dashboard', label: 'Tableau de Bord', icon: BarChart3, moduleKey: 'super-dashboard' },
           { id: 'analytics', label: 'Analyses', icon: BarChart3, moduleKey: 'analytics' },
           { id: 'users', label: 'Utilisateurs', icon: Users, moduleKey: 'users' },
           { id: 'orders', label: 'Commandes', icon: Package, moduleKey: 'orders' },

@@ -66,6 +66,7 @@ import { SystemSettings } from './components/Admin/SystemSettings';
 import { AdminCatalogDashboard } from './components/Admin/Catalog/AdminCatalogDashboard';
 import { Treasury } from './components/Admin/Treasury';
 import { CommissionsDashboard } from './components/Admin/CommissionsDashboard';
+import { SuperAdminDashboard } from './components/Admin/SuperAdminDashboard';
 import { DataManagement } from './components/Admin/DataManagement';
 import { RoleManagement } from './components/Admin/RoleManagement';
 // MVP: Premium tier management disabled - Uncomment to reactivate post-MVP
@@ -301,6 +302,8 @@ const AppContent: React.FC = () => {
       
       case 'admin':
         switch (activeSection) {
+          case 'super-dashboard':
+            return <SuperAdminDashboard />;
           case 'analytics':
             return <Analytics />;
           case 'users':
@@ -329,7 +332,7 @@ const AppContent: React.FC = () => {
           case 'tickets':
             return <TicketManagement />;
           default:
-            return <Analytics />;
+            return <SuperAdminDashboard />;
         }
       
       default:
