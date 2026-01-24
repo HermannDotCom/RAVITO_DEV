@@ -11,7 +11,6 @@ import {
   ArrowDownRight,
   ShoppingCart,
   Target,
-  AlertCircle,
   CheckCircle,
   Award,
   Star,
