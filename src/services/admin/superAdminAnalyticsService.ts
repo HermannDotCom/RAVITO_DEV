@@ -43,6 +43,12 @@ export interface TopClient {
   lastOrderDate: Date;
 }
 
+export interface OrderStats {
+  delivered: number;
+  inProgress: number;
+  cancelled: number;
+}
+
 export interface Alert {
   type: 'warning' | 'danger' | 'info';
   title: string;
@@ -174,22 +180,36 @@ export async function getSuperAdminMetrics(startDate: Date, endDate: Date): Prom
 /**
  * Get top suppliers by revenue
  */
-export async function getTopSuppliers(limit: number = 5): Promise<TopSupplier[]> {
+export async function getTopSuppliers(limit: number = 5, year?: number): Promise<TopSupplier[]> {
   try {
-    // Get all paid orders with supplier info
-    const { data: orders, error: ordersError } = await supabase
+    // Build date filters if year is provided
+    let query = supabase
       .from('orders')
       .select(`
         id,
         total_amount,
         supplier_commission,
         supplier_id,
-        profiles!orders_supplier_id_fkey(id, name)
+        created_at,
+        profiles!orders_supplier_id_fkey(id, name, business_name)
       `)
       .eq('payment_status', 'paid')
       .not('supplier_id', 'is', null);
 
+    // Apply year filter if provided
+    if (year) {
+      const startDate = new Date(year, 0, 1).toISOString();
+      const endDate = new Date(year, 11, 31, 23, 59, 59).toISOString();
+      query = query.gte('created_at', startDate).lte('created_at', endDate);
+    }
+
+    const { data: orders, error: ordersError } = await query;
+
     if (ordersError) throw ordersError;
+
+    if (!orders || orders.length === 0) {
+      return [];
+    }
 
     // Get supplier ratings
     const { data: ratings, error: ratingsError } = await supabase
@@ -215,9 +235,10 @@ export async function getTopSuppliers(limit: number = 5): Promise<TopSupplier[]>
 
       // Type assertion for Supabase join result
       const orderWithProfile = order as typeof order & {
-        profiles?: { id: string; name: string };
+        profiles?: { id: string; name: string; business_name?: string };
       };
-      const supplierName = orderWithProfile.profiles?.name || 'Fournisseur inconnu';
+      const profile = orderWithProfile.profiles;
+      const supplierName = profile?.business_name || profile?.name || 'Fournisseur inconnu';
       
       if (!supplierMap.has(supplierId)) {
         supplierMap.set(supplierId, {
@@ -266,10 +287,10 @@ export async function getTopSuppliers(limit: number = 5): Promise<TopSupplier[]>
 /**
  * Get top clients by spending
  */
-export async function getTopClients(limit: number = 5): Promise<TopClient[]> {
+export async function getTopClients(limit: number = 5, year?: number): Promise<TopClient[]> {
   try {
-    // Get all paid orders with client info
-    const { data: orders, error: ordersError } = await supabase
+    // Build date filters if year is provided
+    let query = supabase
       .from('orders')
       .select(`
         id,
@@ -281,7 +302,20 @@ export async function getTopClients(limit: number = 5): Promise<TopClient[]> {
       .eq('payment_status', 'paid')
       .not('client_id', 'is', null);
 
+    // Apply year filter if provided
+    if (year) {
+      const startDate = new Date(year, 0, 1).toISOString();
+      const endDate = new Date(year, 11, 31, 23, 59, 59).toISOString();
+      query = query.gte('created_at', startDate).lte('created_at', endDate);
+    }
+
+    const { data: orders, error: ordersError } = await query;
+
     if (ordersError) throw ordersError;
+
+    if (!orders || orders.length === 0) {
+      return [];
+    }
 
     // Aggregate by client
     const clientMap = new Map<string, {
@@ -302,7 +336,7 @@ export async function getTopClients(limit: number = 5): Promise<TopClient[]> {
         profiles?: { id: string; name: string; business_name?: string };
       };
       const clientProfile = orderWithProfile.profiles;
-      const clientName = clientProfile?.name || 'Client inconnu';
+      const clientName = clientProfile?.business_name || clientProfile?.name || 'Client inconnu';
       const businessName = clientProfile?.business_name || '';
       
       if (!clientMap.has(clientId)) {
@@ -561,5 +595,36 @@ export async function getGrowthMetrics(): Promise<GrowthMetrics> {
   } catch (error) {
     console.error('Error calculating growth metrics:', error);
     throw error;
+  }
+}
+
+/**
+ * Get order statistics by status
+ */
+export async function getOrderStats(year: number): Promise<OrderStats> {
+  try {
+    const startDate = new Date(year, 0, 1).toISOString();
+    const endDate = new Date(year, 11, 31, 23, 59, 59).toISOString();
+
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('status')
+      .gte('created_at', startDate)
+      .lte('created_at', endDate);
+
+    if (error || !orders) {
+      return { delivered: 0, inProgress: 0, cancelled: 0 };
+    }
+
+    const delivered = orders.filter(o => o.status === 'delivered').length;
+    const inProgress = orders.filter(o => 
+      ['pending', 'awaiting-payment', 'paid', 'preparing', 'delivering'].includes(o.status)
+    ).length;
+    const cancelled = orders.filter(o => o.status === 'cancelled').length;
+
+    return { delivered, inProgress, cancelled };
+  } catch (error) {
+    console.error('Error getting order stats:', error);
+    return { delivered: 0, inProgress: 0, cancelled: 0 };
   }
 }

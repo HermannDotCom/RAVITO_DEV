@@ -60,12 +60,10 @@ import { ZoneRegistration } from './components/Supplier/ZoneRegistration';
 import { SupplierTreasury } from './components/Supplier/SupplierTreasury';
 import { UserManagement } from './components/Admin/UserManagement';
 import { OrderManagement } from './components/Admin/OrderManagement';
-import { Analytics } from './components/Admin/Analytics';
 import { ZoneManagement } from './components/Admin/ZoneManagement';
 import { SystemSettings } from './components/Admin/SystemSettings';
 import { AdminCatalogDashboard } from './components/Admin/Catalog/AdminCatalogDashboard';
 import { Treasury } from './components/Admin/Treasury';
-import { CommissionsDashboard } from './components/Admin/CommissionsDashboard';
 import { SuperAdminDashboard } from './components/Admin/SuperAdminDashboard';
 import { DataManagement } from './components/Admin/DataManagement';
 import { RoleManagement } from './components/Admin/RoleManagement';
@@ -304,8 +302,6 @@ const AppContent: React.FC = () => {
         switch (activeSection) {
           case 'super-dashboard':
             return <SuperAdminDashboard />;
-          case 'analytics':
-            return <Analytics />;
           case 'users':
             return <UserManagement />;
           case 'orders':
@@ -315,8 +311,6 @@ const AppContent: React.FC = () => {
             return <AdminCatalogDashboard />;
           case 'treasury':
             return <Treasury />;
-          case 'commissions':
-            return <CommissionsDashboard />;
           case 'zones':
             return <ZoneManagement />;
           case 'team':

@@ -11,11 +11,13 @@ import {
   ArrowDownRight,
   ShoppingCart,
   Target,
-  AlertCircle,
   CheckCircle,
   Award,
   Star,
-  Clock
+  Clock,
+  Bell,
+  AlertTriangle,
+  XCircle
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useCommission } from '../../context/CommissionContext';
@@ -24,10 +26,12 @@ import {
   getTopSuppliers,
   getTopClients,
   getAlerts,
+  getOrderStats,
   type SuperAdminMetrics,
   type TopSupplier,
   type TopClient,
-  type Alert
+  type Alert,
+  type OrderStats
 } from '../../services/admin/superAdminAnalyticsService';
 
 interface CommissionStats {
@@ -64,6 +68,7 @@ export const SuperAdminDashboard: React.FC = () => {
   const [topSuppliers, setTopSuppliers] = useState<TopSupplier[]>([]);
   const [topClients, setTopClients] = useState<TopClient[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [orderStats, setOrderStats] = useState<OrderStats>({ delivered: 0, inProgress: 0, cancelled: 0 });
   const [chartView, setChartView] = useState<'commissions' | 'revenue' | 'orders'>('commissions');
 
   useEffect(() => {
@@ -165,16 +170,20 @@ export const SuperAdminDashboard: React.FC = () => {
       const metricsData = await getSuperAdminMetrics(startDate, endDate);
       setMetrics(metricsData);
 
-      // Load top performers
-      const suppliers = await getTopSuppliers(5);
+      // Load top performers with year filter
+      const suppliers = await getTopSuppliers(5, selectedYear);
       setTopSuppliers(suppliers);
 
-      const clients = await getTopClients(5);
+      const clients = await getTopClients(5, selectedYear);
       setTopClients(clients);
 
       // Load alerts
       const alertsData = await getAlerts();
       setAlerts(alertsData);
+
+      // Load order statistics
+      const orderStatsData = await getOrderStats(selectedYear);
+      setOrderStats(orderStatsData);
 
     } catch (error) {
       console.error('Exception loading dashboard data:', error);
@@ -496,55 +505,106 @@ export const SuperAdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Section 5: Alerts and Points of Attention */}
-      {alerts.length > 0 && (
-        <div className="mb-6 sm:mb-8">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <AlertCircle className="h-5 w-5 mr-2 text-orange-600" />
-              Alertes et Points d'Attention
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Section: État des Commandes et Alertes */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        {/* État des Commandes */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="h-5 w-5 text-gray-600" />
+            <h3 className="text-base sm:text-lg font-bold text-gray-900">État des Commandes</h3>
+          </div>
+          
+          <div className="space-y-3">
+            {/* Livrées */}
+            <div className="flex items-center justify-between p-3 sm:p-4 bg-green-50 rounded-lg">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm sm:text-base text-gray-900">Livrées</p>
+                  <p className="text-xs sm:text-sm text-gray-500">Commandes complétées</p>
+                </div>
+              </div>
+              <span className="text-xl sm:text-2xl font-bold text-green-600">{orderStats.delivered}</span>
+            </div>
+            
+            {/* En cours */}
+            <div className="flex items-center justify-between p-3 sm:p-4 bg-yellow-50 rounded-lg">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm sm:text-base text-gray-900">En cours</p>
+                  <p className="text-xs sm:text-sm text-gray-500">En attente de livraison</p>
+                </div>
+              </div>
+              <span className="text-xl sm:text-2xl font-bold text-yellow-600">{orderStats.inProgress}</span>
+            </div>
+            
+            {/* Annulées */}
+            <div className="flex items-center justify-between p-3 sm:p-4 bg-red-50 rounded-lg">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm sm:text-base text-gray-900">Annulées</p>
+                  <p className="text-xs sm:text-sm text-gray-500">Commandes annulées</p>
+                </div>
+              </div>
+              <span className="text-xl sm:text-2xl font-bold text-red-600">{orderStats.cancelled}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Alertes */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Bell className="h-5 w-5 text-orange-600" />
+            <h3 className="text-base sm:text-lg font-bold text-gray-900">Alertes</h3>
+            {alerts.length > 0 && (
+              <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full">
+                {alerts.length}
+              </span>
+            )}
+          </div>
+          
+          {alerts.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 text-green-500" />
+              <p className="text-sm sm:text-base">Aucune alerte - Tout va bien ! 🎉</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
               {alerts.map((alert, index) => (
-                <div
+                <div 
                   key={index}
-                  className={`p-4 rounded-lg border-l-4 ${
-                    alert.type === 'danger' ? 'bg-red-50 border-red-500' :
-                    alert.type === 'warning' ? 'bg-yellow-50 border-yellow-500' :
-                    'bg-blue-50 border-blue-500'
+                  className={`p-3 sm:p-4 rounded-lg border-l-4 ${
+                    alert.type === 'danger' 
+                      ? 'bg-red-50 border-red-500' 
+                      : alert.type === 'warning'
+                      ? 'bg-yellow-50 border-yellow-500'
+                      : 'bg-blue-50 border-blue-500'
                   }`}
                 >
-                  <div className="flex items-start">
-                    {alert.type === 'danger' ? (
-                      <AlertCircle className="h-5 w-5 text-red-600 mr-2 flex-shrink-0 mt-0.5" />
-                    ) : alert.type === 'warning' ? (
-                      <AlertCircle className="h-5 w-5 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <CheckCircle className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
-                    )}
-                    <div className="flex-1">
-                      <h4 className={`font-bold text-sm ${
-                        alert.type === 'danger' ? 'text-red-900' :
-                        alert.type === 'warning' ? 'text-yellow-900' :
-                        'text-blue-900'
-                      }`}>
-                        {alert.title}
-                      </h4>
-                      <p className={`text-xs mt-1 ${
-                        alert.type === 'danger' ? 'text-red-700' :
-                        alert.type === 'warning' ? 'text-yellow-700' :
-                        'text-blue-700'
-                      }`}>
-                        {alert.message}
-                      </p>
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <AlertTriangle className={`h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 ${
+                      alert.type === 'danger' ? 'text-red-600' :
+                      alert.type === 'warning' ? 'text-yellow-600' : 'text-blue-600'
+                    }`} />
+                    <div>
+                      <p className="font-medium text-sm text-gray-900">{alert.title}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 mt-0.5">{alert.message}</p>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Section 4: Top Performers */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
