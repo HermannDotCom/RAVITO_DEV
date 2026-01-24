@@ -5,7 +5,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
-import { FEATURE_FLAGS } from '../config/featureFlags';
 import {
   ReferencePrice,
   getReferencePrices,
@@ -130,8 +129,6 @@ export const PricingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Setup realtime subscriptions pour les prix de référence
   useEffect(() => {
-    const tableName = FEATURE_FLAGS.USE_PRODUCTS_REALTIME ? 'products' : 'reference_prices';
-    
     const channel = supabase
       .channel('pricing_changes')
       .on(
@@ -139,7 +136,7 @@ export const PricingProvider: React.FC<{ children: ReactNode }> = ({ children })
         {
           event: '*',
           schema: 'public',
-          table: tableName,
+          table: 'products',
         },
         () => {
           loadReferencePrices();
