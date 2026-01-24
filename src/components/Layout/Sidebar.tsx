@@ -89,7 +89,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'users', label: 'Utilisateurs', icon: Users, moduleKey: 'users' },
           { id: 'orders', label: 'Commandes', icon: Package, moduleKey: 'orders' },
           { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag, moduleKey: 'products' },
-          { id: 'pricing', label: 'Prix de Reference', icon: DollarSign, moduleKey: 'pricing' },
           { id: 'treasury', label: 'Tresorerie', icon: CreditCard, moduleKey: 'treasury' },
           { id: 'commissions', label: 'Mes Commissions', icon: Wallet, moduleKey: 'commissions' },
           { id: 'zones', label: 'Zones de Livraison', icon: MapPin, moduleKey: 'zones' },
