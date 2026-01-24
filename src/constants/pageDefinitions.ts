@@ -13,6 +13,7 @@ import {
   Clock,
   BarChart3,
   CreditCard,
+  DollarSign,
   Database,
   Settings,
   HelpCircle,
