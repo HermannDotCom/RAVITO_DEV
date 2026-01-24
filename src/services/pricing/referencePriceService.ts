@@ -44,6 +44,7 @@ export interface UpdateReferencePriceInput {
 
 /**
  * Récupère tous les prix de référence avec filtres optionnels
+ * Lit maintenant depuis la table 'products' au lieu de 'reference_prices'
  */
 export async function getReferencePrices(filters?: {
   productId?: string;
@@ -52,22 +53,17 @@ export async function getReferencePrices(filters?: {
   isActive?: boolean;
 }): Promise<ReferencePrice[]> {
   try {
+    // Lire depuis products au lieu de reference_prices
     let query = supabase
-      .from('reference_prices')
+      .from('products')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('name');
 
-    if (filters?.productId) {
-      query = query.eq('product_id', filters.productId);
-    }
-    if (filters?.zoneId) {
-      query = query.eq('zone_id', filters.zoneId);
-    }
-    if (filters?.categoryId) {
-      query = query.eq('category_id', filters.categoryId);
-    }
     if (filters?.isActive !== undefined) {
       query = query.eq('is_active', filters.isActive);
+    }
+    if (filters?.productId) {
+      query = query.eq('id', filters.productId);
     }
 
     const { data, error } = await query;
@@ -77,7 +73,23 @@ export async function getReferencePrices(filters?: {
       throw error;
     }
 
-    return (data || []).map(mapReferencePriceFromDb);
+    // Mapper vers le format ReferencePrice pour compatibilité
+    return (data || []).map(product => ({
+      id: product.id,
+      productId: product.id,
+      zoneId: undefined,
+      categoryId: undefined,
+      referenceUnitPrice: product.unit_price,
+      referenceCratePrice: product.crate_price,
+      referenceConsignPrice: product.consign_price,
+      effectiveFrom: product.created_at ? new Date(product.created_at) : new Date(),
+      effectiveTo: undefined,
+      isActive: product.is_active,
+      createdBy: undefined,
+      updatedBy: undefined,
+      createdAt: new Date(product.created_at),
+      updatedAt: new Date(product.updated_at),
+    }));
   } catch (error) {
     console.error('Exception in getReferencePrices:', error);
     throw error;
@@ -108,31 +120,58 @@ export async function getReferencePrice(id: string): Promise<ReferencePrice | nu
 }
 
 /**
- * Récupère le prix de référence actif pour un produit/zone
+ * @deprecated Utiliser getReferencePriceFromProduct() à la place.
+ * Cette fonction est maintenue pour compatibilité mais sera supprimée en Phase 4.
+ * 
+ * Récupère le prix de référence actif pour un produit.
+ * Lit maintenant depuis la table 'products' au lieu de 'reference_prices'.
  */
 export async function getActiveReferencePrice(
   productId: string,
-  zoneId?: string
+  zoneId?: string  // Gardé pour compatibilité, mais ignoré
 ): Promise<ReferencePrice | null> {
   try {
+    // D'abord essayer de lire depuis products (nouvelle source)
+    const { data: productData, error: productError } = await supabase
+      .from('products')
+      .select('id, unit_price, crate_price, consign_price, is_active, created_at, updated_at')
+      .eq('id', productId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (!productError && productData) {
+      // Retourner au format ReferencePrice pour compatibilité
+      return {
+        id: productData.id,
+        productId: productData.id,
+        zoneId: zoneId,
+        referenceUnitPrice: productData.unit_price,
+        referenceCratePrice: productData.crate_price,
+        referenceConsignPrice: productData.consign_price,
+        isActive: productData.is_active,
+        createdAt: new Date(productData.created_at),
+        updatedAt: new Date(productData.updated_at),
+      } as ReferencePrice;
+    }
+
+    // Fallback : essayer l'ancienne méthode (reference_prices) pour transition
     const { data, error } = await supabase.rpc('get_reference_price', {
       p_product_id: productId,
       p_zone_id: zoneId || null
     });
 
     if (error) {
-      console.error('Error fetching active reference price:', error);
-      throw error;
-    }
-
-    if (!data || data.length === 0) {
+      console.error('Error fetching reference price:', error);
       return null;
     }
 
-    // Retourner le premier résultat avec les données structurées
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+      return null;
+    }
+
     const priceData = Array.isArray(data) ? data[0] : data;
     return {
-      id: '', // Non retourné par la fonction RPC
+      id: '',
       productId,
       zoneId,
       referenceUnitPrice: priceData.unit_price,
@@ -144,11 +183,44 @@ export async function getActiveReferencePrice(
     } as ReferencePrice;
   } catch (error) {
     console.error('Exception in getActiveReferencePrice:', error);
-    throw error;
+    return null;
   }
 }
 
 /**
+ * Récupère le prix de référence directement depuis la table products
+ * C'est la nouvelle méthode recommandée (plus simple, une seule source)
+ */
+export async function getReferencePriceFromProduct(
+  productId: string
+): Promise<{ unitPrice: number; cratePrice: number; consignPrice: number } | null> {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('unit_price, crate_price, consign_price')
+      .eq('id', productId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (error || !data) {
+      return null;
+    }
+
+    return {
+      unitPrice: data.unit_price,
+      cratePrice: data.crate_price,
+      consignPrice: data.consign_price,
+    };
+  } catch (error) {
+    console.error('Error fetching price from product:', error);
+    return null;
+  }
+}
+
+/**
+ * @deprecated Les fonctions CRUD sur reference_prices seront supprimées en Phase 4.
+ * Utiliser les services de productAdminService.ts pour gérer les produits et leurs prix.
+ * 
  * Crée un nouveau prix de référence
  */
 export async function createReferencePrice(
@@ -187,6 +259,9 @@ export async function createReferencePrice(
 }
 
 /**
+ * @deprecated Les fonctions CRUD sur reference_prices seront supprimées en Phase 4.
+ * Utiliser les services de productAdminService.ts pour gérer les produits et leurs prix.
+ * 
  * Met à jour un prix de référence existant
  */
 export async function updateReferencePrice(
@@ -239,6 +314,9 @@ export async function updateReferencePrice(
 }
 
 /**
+ * @deprecated Les fonctions CRUD sur reference_prices seront supprimées en Phase 4.
+ * Utiliser les services de productAdminService.ts pour gérer les produits et leurs prix.
+ * 
  * Désactive un prix de référence
  */
 export async function deactivateReferencePrice(id: string): Promise<void> {
@@ -259,6 +337,9 @@ export async function deactivateReferencePrice(id: string): Promise<void> {
 }
 
 /**
+ * @deprecated Les fonctions CRUD sur reference_prices seront supprimées en Phase 4.
+ * Utiliser les services de productAdminService.ts pour gérer les produits et leurs prix.
+ * 
  * Supprime un prix de référence
  */
 export async function deleteReferencePrice(id: string): Promise<void> {
@@ -279,6 +360,9 @@ export async function deleteReferencePrice(id: string): Promise<void> {
 }
 
 /**
+ * @deprecated Les fonctions CRUD sur reference_prices seront supprimées en Phase 4.
+ * Utiliser les services de productAdminService.ts pour gérer les produits et leurs prix.
+ * 
  * Import en masse de prix de référence (pour Excel import)
  */
 export async function bulkCreateReferencePrices(
