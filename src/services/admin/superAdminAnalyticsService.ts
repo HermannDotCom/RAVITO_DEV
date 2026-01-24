@@ -212,7 +212,11 @@ export async function getTopSuppliers(limit: number = 5): Promise<TopSupplier[]>
       const supplierId = order.supplier_id;
       if (!supplierId) return;
 
-      const supplierName = (order as any).profiles?.name || 'Fournisseur inconnu';
+      // Type assertion for Supabase join result
+      const orderWithProfile = order as typeof order & {
+        profiles?: { id: string; name: string };
+      };
+      const supplierName = orderWithProfile.profiles?.name || 'Fournisseur inconnu';
       
       if (!supplierMap.has(supplierId)) {
         supplierMap.set(supplierId, {
@@ -292,7 +296,11 @@ export async function getTopClients(limit: number = 5): Promise<TopClient[]> {
       const clientId = order.client_id;
       if (!clientId) return;
 
-      const clientProfile = (order as any).profiles;
+      // Type assertion for Supabase join result
+      const orderWithProfile = order as typeof order & {
+        profiles?: { id: string; name: string; business_name?: string };
+      };
+      const clientProfile = orderWithProfile.profiles;
       const clientName = clientProfile?.name || 'Client inconnu';
       const businessName = clientProfile?.business_name || '';
       

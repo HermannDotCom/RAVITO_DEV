@@ -13,7 +13,6 @@ import {
   Target,
   AlertCircle,
   CheckCircle,
-  TrendingDown,
   Award,
   Star,
   Clock
@@ -69,6 +68,7 @@ export const SuperAdminDashboard: React.FC = () => {
 
   useEffect(() => {
     loadDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear]);
 
   const loadDashboardData = async () => {
