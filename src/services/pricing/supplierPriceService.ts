@@ -434,6 +434,69 @@ function mapSupplierPriceGridFromDb(data: any): SupplierPriceGrid {
 }
 
 /**
+ * Search products from catalog for supplier to add to their price grid
+ */
+export async function searchProductsForSupplier(
+  searchQuery: string,
+  category?: string,
+  excludeProductIds?: string[]
+): Promise<{ data: any[] | null; error: string | null }> {
+  try {
+    let queryBuilder = supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true);
+
+    // Apply category filter
+    if (category && category !== 'all') {
+      queryBuilder = queryBuilder.eq('category', category);
+    }
+
+    // Apply search filter (name, reference, or brand)
+    if (searchQuery && searchQuery.length >= 3) {
+      queryBuilder = queryBuilder.or(
+        `name.ilike.%${searchQuery}%,reference.ilike.%${searchQuery}%,brand.ilike.%${searchQuery}%`
+      );
+    }
+
+    // Exclude already configured products
+    if (excludeProductIds && excludeProductIds.length > 0) {
+      // Validate all IDs are valid UUIDs to prevent injection
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const validIds = excludeProductIds.filter(id => uuidRegex.test(id));
+      
+      if (validIds.length > 0) {
+        queryBuilder = queryBuilder.filter('id', 'not.in', `(${validIds.join(',')})`);
+      }
+    }
+
+    // Limit results
+    queryBuilder = queryBuilder.limit(20);
+
+    const { data, error } = await queryBuilder;
+
+    if (error) {
+      console.error('Error searching products for supplier:', error);
+      return {
+        data: null,
+        error: error.message || 'Failed to search products'
+      };
+    }
+
+    return {
+      data: data || [],
+      error: null
+    };
+  } catch (err: any) {
+    console.error('Error in searchProductsForSupplier:', err);
+    return {
+      data: null,
+      error: err.message || 'An unexpected error occurred'
+    };
+  }
+}
+
+/**
  * Map database row to SupplierPriceGridHistory
  */
 function mapSupplierPriceGridHistoryFromDb(data: any): SupplierPriceGridHistory {
