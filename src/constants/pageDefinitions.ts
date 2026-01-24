@@ -54,8 +54,9 @@ export const SUPPLIER_PAGES: PageDefinition[] = [
   { id: 'profile', label: 'Mon Profil', icon: User },
 ];
 
-// Pour ADMIN (13 pages, dont 5 exclusives Super Admin)
+// Pour ADMIN (14 pages, dont 6 exclusives Super Admin)
 export const ADMIN_PAGES: PageDefinition[] = [
+  { id: 'super-dashboard', label: 'Tableau de Bord', icon: BarChart3, exclusiveSuperAdmin: true },
   { id: 'analytics', label: 'Analyses', icon: BarChart3, exclusiveSuperAdmin: false },
   { id: 'users', label: 'Utilisateurs', icon: Users, exclusiveSuperAdmin: false },
   { id: 'orders', label: 'Commandes', icon: Package, exclusiveSuperAdmin: false },
@@ -71,7 +72,7 @@ export const ADMIN_PAGES: PageDefinition[] = [
 ];
 
 // Pages exclusives Super Admin (ne peuvent jamais être assignées à d'autres rôles)
-export const SUPER_ADMIN_EXCLUSIVE_PAGES = ['team', 'settings', 'commissions', 'data', 'roles'];
+export const SUPER_ADMIN_EXCLUSIVE_PAGES = ['super-dashboard', 'team', 'settings', 'commissions', 'data', 'roles'];
 
 // Fonction pour obtenir les pages selon le type d'organisation
 export function getPagesByOrganizationType(orgType: 'client' | 'supplier' | 'admin'): PageDefinition[] {
