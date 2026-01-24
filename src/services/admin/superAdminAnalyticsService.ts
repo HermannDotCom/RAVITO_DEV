@@ -122,8 +122,9 @@ export async function getSuperAdminMetrics(startDate: Date, endDate: Date): Prom
     const totalActiveUsers = activeClientsLast30Days + activeSuppliersLast30Days;
     const revenuePerUser = totalActiveUsers > 0 ? netRevenue / totalActiveUsers : 0;
 
-    // User retention rate (simplified: users who made orders this month vs last month)
-    const userRetentionRate = 0; // TODO: Implement proper retention calculation
+    // User retention rate - Requires historical data analysis
+    // TODO: Implement proper retention calculation comparing returning vs new users
+    const userRetentionRate = 0;
 
     // Order fulfillment rate
     const orderFulfillmentRate = totalOrders > 0 ? (completedOrders.length / totalOrders) * 100 : 0;

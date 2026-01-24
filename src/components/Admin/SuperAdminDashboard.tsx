@@ -103,8 +103,8 @@ export const SuperAdminDashboard: React.FC = () => {
         .gte('created_at', startDate.toISOString())
         .lte('created_at', endDate.toISOString());
 
-      const totalCreatedOrders = allOrders?.length || 1;
-      const conversionRate = (orderCount / totalCreatedOrders) * 100;
+      const totalCreatedOrders = allOrders?.length || 0;
+      const conversionRate = totalCreatedOrders > 0 ? (orderCount / totalCreatedOrders) * 100 : 0;
 
       setStats({
         totalClientCommissions,
@@ -119,8 +119,8 @@ export const SuperAdminDashboard: React.FC = () => {
 
       // Calculate monthly data
       const monthNames = [
-        'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
-        'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'
+        'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
       ];
 
       const monthlyMap: Record<number, MonthlyCommission> = {};
