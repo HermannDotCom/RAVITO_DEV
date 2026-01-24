@@ -63,7 +63,6 @@ import { OrderManagement } from './components/Admin/OrderManagement';
 import { Analytics } from './components/Admin/Analytics';
 import { ZoneManagement } from './components/Admin/ZoneManagement';
 import { SystemSettings } from './components/Admin/SystemSettings';
-import { ProductManagement } from './components/Admin/ProductManagement';
 import { AdminCatalogDashboard } from './components/Admin/Catalog/AdminCatalogDashboard';
 import { Treasury } from './components/Admin/Treasury';
 import { CommissionsDashboard } from './components/Admin/CommissionsDashboard';
@@ -71,9 +70,7 @@ import { DataManagement } from './components/Admin/DataManagement';
 import { RoleManagement } from './components/Admin/RoleManagement';
 // MVP: Premium tier management disabled - Uncomment to reactivate post-MVP
 // import { PremiumTierManagement } from './components/Admin/PremiumTierManagement';
-import { AdminReferencePricingDashboard } from './components/Admin/Pricing/AdminReferencePricingDashboard';
 import { SupplierPricingDashboard } from './components/Supplier/Pricing/SupplierPricingDashboard';
-import { FEATURE_FLAGS } from './config/featureFlags';
 import { ClientProfile } from './components/Client/ClientProfile';
 import { ClientDashboard } from './components/Client/ClientDashboard';
 import { OrderHistory } from './components/Client/OrderHistory';
@@ -312,9 +309,7 @@ const AppContent: React.FC = () => {
             return <OrderManagement />;
           case 'products':
           case 'catalog':
-            return FEATURE_FLAGS.USE_NEW_CATALOG_DASHBOARD 
-              ? <AdminCatalogDashboard /> 
-              : <ProductManagement />;
+            return <AdminCatalogDashboard />;
           case 'treasury':
             return <Treasury />;
           case 'commissions':
@@ -331,8 +326,6 @@ const AppContent: React.FC = () => {
             return <NotificationsPage />;
           case 'settings':
             return <SystemSettings />;
-          case 'pricing':
-            return <AdminReferencePricingDashboard />;
           case 'tickets':
             return <TicketManagement />;
           default:

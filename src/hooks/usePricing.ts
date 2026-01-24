@@ -4,15 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import {
-  ReferencePrice,
-  CreateReferencePriceInput,
-  UpdateReferencePriceInput,
-  createReferencePrice,
-  updateReferencePrice,
-  deleteReferencePrice,
-  bulkCreateReferencePrices,
-} from '../services/pricing/referencePriceService';
+import { ReferencePrice } from '../services/pricing/referencePriceService';
 import {
   SupplierPriceGrid,
   CreateSupplierPriceGridInput,
@@ -23,86 +15,6 @@ import {
   bulkCreateSupplierPriceGrids,
   getSupplierPriceGridHistory,
 } from '../services/pricing/supplierPriceService';
-
-/**
- * Hook pour la gestion des prix de référence (Admin)
- */
-export function useReferencePriceManagement() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const create = useCallback(async (input: CreateReferencePriceInput): Promise<ReferencePrice | null> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const result = await createReferencePrice(input);
-      return result;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error creating reference price';
-      setError(message);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const update = useCallback(async (
-    id: string,
-    input: UpdateReferencePriceInput
-  ): Promise<ReferencePrice | null> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const result = await updateReferencePrice(id, input);
-      return result;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error updating reference price';
-      setError(message);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const remove = useCallback(async (id: string): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      await deleteReferencePrice(id);
-      return true;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error deleting reference price';
-      setError(message);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const bulkCreate = useCallback(async (prices: CreateReferencePriceInput[]) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const result = await bulkCreateReferencePrices(prices);
-      return result;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error bulk creating reference prices';
-      setError(message);
-      return { success: 0, errors: prices.length, errorDetails: [] };
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  return {
-    create,
-    update,
-    remove,
-    bulkCreate,
-    isLoading,
-    error,
-  };
-}
 
 /**
  * Hook pour la gestion des grilles tarifaires fournisseur
