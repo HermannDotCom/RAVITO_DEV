@@ -14,6 +14,7 @@ import {
   Wallet,
   MoreHorizontal,
   BarChart3,
+  DollarSign,
   Navigation,
   Shield,
   ClipboardList
