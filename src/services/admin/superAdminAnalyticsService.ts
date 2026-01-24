@@ -261,7 +261,7 @@ export async function getTopSuppliers(limit: number = 5, year?: number): Promise
     ratings?.forEach(r => {
       const existing = ratingMap.get(r.to_user_id) || { sum: 0, count: 0 };
       ratingMap.set(r.to_user_id, {
-        sum: existing.sum + parseFloat(r.overall.toString()),
+        sum: existing.sum + Number(r.overall),
         count: existing.count + 1
       });
     });
