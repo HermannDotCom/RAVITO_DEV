@@ -64,6 +64,7 @@ import { Analytics } from './components/Admin/Analytics';
 import { ZoneManagement } from './components/Admin/ZoneManagement';
 import { SystemSettings } from './components/Admin/SystemSettings';
 import { ProductManagement } from './components/Admin/ProductManagement';
+import { AdminCatalogDashboard } from './components/Admin/Catalog/AdminCatalogDashboard';
 import { Treasury } from './components/Admin/Treasury';
 import { CommissionsDashboard } from './components/Admin/CommissionsDashboard';
 import { DataManagement } from './components/Admin/DataManagement';
@@ -72,6 +73,7 @@ import { RoleManagement } from './components/Admin/RoleManagement';
 // import { PremiumTierManagement } from './components/Admin/PremiumTierManagement';
 import { AdminReferencePricingDashboard } from './components/Admin/Pricing/AdminReferencePricingDashboard';
 import { SupplierPricingDashboard } from './components/Supplier/Pricing/SupplierPricingDashboard';
+import { FEATURE_FLAGS } from './config/featureFlags';
 import { ClientProfile } from './components/Client/ClientProfile';
 import { ClientDashboard } from './components/Client/ClientDashboard';
 import { OrderHistory } from './components/Client/OrderHistory';
@@ -309,7 +311,10 @@ const AppContent: React.FC = () => {
           case 'orders':
             return <OrderManagement />;
           case 'products':
-            return <ProductManagement />;
+          case 'catalog':
+            return FEATURE_FLAGS.USE_NEW_CATALOG_DASHBOARD 
+              ? <AdminCatalogDashboard /> 
+              : <ProductManagement />;
           case 'treasury':
             return <Treasury />;
           case 'commissions':

@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '../../lib/supabase';
+import { FEATURE_FLAGS } from '../../config/featureFlags';
 
 export interface ReferencePrice {
   id: string;
@@ -132,30 +133,33 @@ export async function getActiveReferencePrice(
   zoneId?: string  // Gardé pour compatibilité, mais ignoré
 ): Promise<ReferencePrice | null> {
   try {
-    // D'abord essayer de lire depuis products (nouvelle source)
-    const { data: productData, error: productError } = await supabase
-      .from('products')
-      .select('id, unit_price, crate_price, consign_price, is_active, created_at, updated_at')
-      .eq('id', productId)
-      .eq('is_active', true)
-      .maybeSingle();
+    // Utiliser le feature flag pour déterminer la source
+    if (FEATURE_FLAGS.USE_PRODUCTS_AS_REFERENCE_SOURCE) {
+      // Nouvelle logique : lire depuis products
+      const { data: productData, error: productError } = await supabase
+        .from('products')
+        .select('id, unit_price, crate_price, consign_price, is_active, created_at, updated_at')
+        .eq('id', productId)
+        .eq('is_active', true)
+        .maybeSingle();
 
-    if (!productError && productData) {
-      // Retourner au format ReferencePrice pour compatibilité
-      return {
-        id: productData.id,
-        productId: productData.id,
-        zoneId: zoneId,
-        referenceUnitPrice: productData.unit_price,
-        referenceCratePrice: productData.crate_price,
-        referenceConsignPrice: productData.consign_price,
-        isActive: productData.is_active,
-        createdAt: new Date(productData.created_at),
-        updatedAt: new Date(productData.updated_at),
-      } as ReferencePrice;
+      if (!productError && productData) {
+        // Retourner au format ReferencePrice pour compatibilité
+        return {
+          id: productData.id,
+          productId: productData.id,
+          zoneId: zoneId,
+          referenceUnitPrice: productData.unit_price,
+          referenceCratePrice: productData.crate_price,
+          referenceConsignPrice: productData.consign_price,
+          isActive: productData.is_active,
+          createdAt: new Date(productData.created_at),
+          updatedAt: new Date(productData.updated_at),
+        } as ReferencePrice;
+      }
     }
 
-    // Fallback : essayer l'ancienne méthode (reference_prices) pour transition
+    // Ancien comportement ou fallback
     const { data, error } = await supabase.rpc('get_reference_price', {
       p_product_id: productId,
       p_zone_id: zoneId || null
