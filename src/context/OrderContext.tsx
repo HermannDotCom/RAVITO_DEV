@@ -70,7 +70,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       } else if (user.role === 'supplier') {
         const [pending, supplierOrders] = await Promise.all([
           getPendingOrders(user.id),
-          getOrdersBySupplier(user.id)  // Un seul appel au lieu de 2
+          getOrdersBySupplier(user.id)  // Single call instead of 2
         ]);
 
         setAvailableOrders(pending);
@@ -361,7 +361,7 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
-  // Combine toutes les sources de commandes avec déduplication garantie par ID
+  // Combine all order sources with guaranteed deduplication by ID
   const allOrders = useMemo(() => {
     const combined = [
       ...clientOrders,
@@ -371,10 +371,10 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       ...adminAllOrders
     ];
 
-    // Dédupliquer par ID - Map garantit l'unicité
+    // Deduplicate by ID - Map guarantees uniqueness
     const uniqueMap = new Map<string, Order>();
     combined.forEach(order => {
-      // On garde la dernière version rencontrée (la plus à jour)
+      // Keep the last version encountered (most up-to-date)
       uniqueMap.set(order.id, order);
     });
 
