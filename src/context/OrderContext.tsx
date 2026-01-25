@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { Order, OrderStatus, CartItem, PaymentMethod } from '../types';
 import { useAuth } from './AuthContext';
@@ -68,17 +68,16 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         const orders = await getOrdersByClient(user.id);
         setClientOrders(orders);
       } else if (user.role === 'supplier') {
-        const [pending, active, completed] = await Promise.all([
+        const [pending, supplierOrders] = await Promise.all([
           getPendingOrders(user.id),
-          getOrdersBySupplier(user.id),
-          getOrdersBySupplier(user.id)
+          getOrdersBySupplier(user.id)  // Single call instead of 2
         ]);
 
         setAvailableOrders(pending);
-        setSupplierActiveDeliveries(active.filter(o =>
+        setSupplierActiveDeliveries(supplierOrders.filter(o =>
           ['paid', 'preparing', 'delivering'].includes(o.status)
         ));
-        setSupplierCompletedDeliveries(completed.filter(o => o.status === 'delivered'));
+        setSupplierCompletedDeliveries(supplierOrders.filter(o => o.status === 'delivered'));
       } else if (user.role === 'admin') {
         const [pending, all] = await Promise.all([
           getPendingOrders(),
@@ -362,7 +361,25 @@ export const OrderProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
-  const allOrders = [...clientOrders, ...availableOrders, ...supplierActiveDeliveries, ...supplierCompletedDeliveries, ...adminAllOrders];
+  // Combine all order sources with guaranteed deduplication by ID
+  const allOrders = useMemo(() => {
+    const combined = [
+      ...clientOrders,
+      ...availableOrders,
+      ...supplierActiveDeliveries,
+      ...supplierCompletedDeliveries,
+      ...adminAllOrders
+    ];
+
+    // Deduplicate by ID - Map guarantees uniqueness
+    const uniqueMap = new Map<string, Order>();
+    combined.forEach(order => {
+      // Keep the last version encountered (most up-to-date)
+      uniqueMap.set(order.id, order);
+    });
+
+    return Array.from(uniqueMap.values());
+  }, [clientOrders, availableOrders, supplierActiveDeliveries, supplierCompletedDeliveries, adminAllOrders]);
   
   const clientCurrentOrder = clientOrders.find(order => 
     ['pending', 'awaiting-client-validation', 'preparing', 'delivering'].includes(order.status)
