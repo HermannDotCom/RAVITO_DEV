@@ -182,105 +182,114 @@ export async function getSuperAdminMetrics(startDate: Date, endDate: Date): Prom
  */
 export async function getTopSuppliers(limit: number = 5, year?: number): Promise<TopSupplier[]> {
   try {
-    // Build date filters if year is provided
-    let query = supabase
+    const startDate = year ? new Date(year, 0, 1).toISOString() : undefined;
+    const endDate = year ? new Date(year, 11, 31, 23, 59, 59).toISOString() : undefined;
+
+    // 1. Récupérer les commandes payées avec supplier_id
+    let ordersQuery = supabase
       .from('orders')
-      .select(`
-        id,
-        total_amount,
-        supplier_commission,
-        supplier_id,
-        created_at,
-        profiles!orders_supplier_id_fkey(id, name, business_name)
-      `)
+      .select('supplier_id, total_amount, supplier_commission')
       .eq('payment_status', 'paid')
       .not('supplier_id', 'is', null);
 
-    // Apply year filter if provided
-    if (year) {
-      const startDate = new Date(year, 0, 1).toISOString();
-      const endDate = new Date(year, 11, 31, 23, 59, 59).toISOString();
-      query = query.gte('created_at', startDate).lte('created_at', endDate);
+    if (startDate && endDate) {
+      ordersQuery = ordersQuery.gte('created_at', startDate).lte('created_at', endDate);
     }
 
-    const { data: orders, error: ordersError } = await query;
+    const { data: orders, error: ordersError } = await ordersQuery;
 
-    if (ordersError) throw ordersError;
+    if (ordersError) {
+      console.error('Error fetching orders for top suppliers:', ordersError);
+      return [];
+    }
 
     if (!orders || orders.length === 0) {
       return [];
     }
 
-    // Get supplier ratings
-    const { data: ratings, error: ratingsError } = await supabase
-      .from('ratings')
-      .select('supplier_id, rating')
-      .not('supplier_id', 'is', null);
-
-    if (ratingsError) throw ratingsError;
-
-    // Aggregate by supplier
-    const supplierMap = new Map<string, {
-      id: string;
-      name: string;
-      totalRevenue: number;
-      orderCount: number;
-      commissionGenerated: number;
-      ratings: number[];
+    // 2. Agréger par fournisseur
+    const supplierMap = new Map<string, { 
+      totalRevenue: number; 
+      orderCount: number; 
+      commissionGenerated: number 
     }>();
 
-    orders?.forEach(order => {
-      const supplierId = order.supplier_id;
-      if (!supplierId) return;
-
-      // Type assertion for Supabase join result
-      const orderWithProfile = order as typeof order & {
-        profiles?: { id: string; name: string; business_name?: string };
-      };
-      const profile = orderWithProfile.profiles;
-      const supplierName = profile?.business_name || profile?.name || 'Fournisseur inconnu';
-      
-      if (!supplierMap.has(supplierId)) {
-        supplierMap.set(supplierId, {
-          id: supplierId,
-          name: supplierName,
-          totalRevenue: 0,
-          orderCount: 0,
-          commissionGenerated: 0,
-          ratings: []
+    orders.forEach(order => {
+      if (order.supplier_id) {
+        const existing = supplierMap.get(order.supplier_id) || { 
+          totalRevenue: 0, 
+          orderCount: 0, 
+          commissionGenerated: 0 
+        };
+        supplierMap.set(order.supplier_id, {
+          totalRevenue: existing.totalRevenue + (order.total_amount || 0),
+          orderCount: existing.orderCount + 1,
+          commissionGenerated: existing.commissionGenerated + (order.supplier_commission || 0),
         });
       }
-
-      const supplier = supplierMap.get(supplierId)!;
-      supplier.totalRevenue += order.total_amount || 0;
-      supplier.orderCount += 1;
-      supplier.commissionGenerated += order.supplier_commission || 0;
     });
 
-    // Add ratings
-    ratings?.forEach(rating => {
-      if (rating.supplier_id && supplierMap.has(rating.supplier_id)) {
-        supplierMap.get(rating.supplier_id)!.ratings.push(rating.rating);
-      }
+    if (supplierMap.size === 0) {
+      return [];
+    }
+
+    // 3. Récupérer les profils des fournisseurs
+    const supplierIds = Array.from(supplierMap.keys());
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, name, business_name')
+      .in('id', supplierIds);
+
+    if (profilesError) {
+      console.error('Error fetching supplier profiles:', profilesError);
+    }
+
+    // 4. Récupérer les notes moyennes (REQUÊTE CORRIGÉE)
+    const { data: ratings, error: ratingsError } = await supabase
+      .from('ratings')
+      .select('to_user_id, overall')
+      .eq('to_user_role', 'supplier')
+      .in('to_user_id', supplierIds);
+
+    if (ratingsError) {
+      console.error('Error fetching supplier ratings:', ratingsError);
+      // Continue sans les notes
+    }
+
+    // Calculer les notes moyennes par fournisseur
+    const ratingMap = new Map<string, { sum: number; count: number }>();
+    ratings?.forEach(r => {
+      const existing = ratingMap.get(r.to_user_id) || { sum: 0, count: 0 };
+      ratingMap.set(r.to_user_id, {
+        sum: existing.sum + Number(r.overall),
+        count: existing.count + 1
+      });
     });
 
-    // Convert to array and calculate average ratings
-    const suppliers: TopSupplier[] = Array.from(supplierMap.values()).map(s => ({
-      id: s.id,
-      name: s.name,
-      totalRevenue: s.totalRevenue,
-      orderCount: s.orderCount,
-      averageRating: s.ratings.length > 0 ? s.ratings.reduce((sum, r) => sum + r, 0) / s.ratings.length : 0,
-      commissionGenerated: s.commissionGenerated
-    }));
+    // 5. Construire le résultat
+    const result: TopSupplier[] = [];
 
-    // Sort by total revenue descending
-    suppliers.sort((a, b) => b.totalRevenue - a.totalRevenue);
+    supplierMap.forEach((stats, supplierId) => {
+      const profile = profiles?.find(p => p.id === supplierId);
+      const ratingData = ratingMap.get(supplierId);
+      const averageRating = ratingData ? ratingData.sum / ratingData.count : 0;
 
-    return suppliers.slice(0, limit);
+      result.push({
+        id: supplierId,
+        name: profile?.business_name || profile?.name || 'Fournisseur',
+        totalRevenue: stats.totalRevenue,
+        orderCount: stats.orderCount,
+        averageRating: Math.round(averageRating * 10) / 10,
+        commissionGenerated: stats.commissionGenerated,
+      });
+    });
+
+    // 6. Trier par CA décroissant et prendre les 5 premiers
+    return result.sort((a, b) => b.totalRevenue - a.totalRevenue).slice(0, limit);
+
   } catch (error) {
     console.error('Error getting top suppliers:', error);
-    throw error;
+    return [];
   }
 }
 
@@ -289,87 +298,90 @@ export async function getTopSuppliers(limit: number = 5, year?: number): Promise
  */
 export async function getTopClients(limit: number = 5, year?: number): Promise<TopClient[]> {
   try {
-    // Build date filters if year is provided
-    let query = supabase
+    const startDate = year ? new Date(year, 0, 1).toISOString() : undefined;
+    const endDate = year ? new Date(year, 11, 31, 23, 59, 59).toISOString() : undefined;
+
+    // 1. Récupérer les commandes payées avec client_id
+    let ordersQuery = supabase
       .from('orders')
-      .select(`
-        id,
-        total_amount,
-        created_at,
-        client_id,
-        profiles!orders_client_id_fkey(id, name, business_name)
-      `)
+      .select('client_id, total_amount, created_at')
       .eq('payment_status', 'paid')
       .not('client_id', 'is', null);
 
-    // Apply year filter if provided
-    if (year) {
-      const startDate = new Date(year, 0, 1).toISOString();
-      const endDate = new Date(year, 11, 31, 23, 59, 59).toISOString();
-      query = query.gte('created_at', startDate).lte('created_at', endDate);
+    if (startDate && endDate) {
+      ordersQuery = ordersQuery.gte('created_at', startDate).lte('created_at', endDate);
     }
 
-    const { data: orders, error: ordersError } = await query;
+    const { data: orders, error: ordersError } = await ordersQuery;
 
-    if (ordersError) throw ordersError;
+    if (ordersError) {
+      console.error('Error fetching orders for top clients:', ordersError);
+      return [];
+    }
 
     if (!orders || orders.length === 0) {
       return [];
     }
 
-    // Aggregate by client
-    const clientMap = new Map<string, {
-      id: string;
-      name: string;
-      businessName: string;
-      totalSpent: number;
-      orderCount: number;
-      lastOrderDate: Date;
+    // 2. Agréger par client
+    const clientMap = new Map<string, { 
+      totalSpent: number; 
+      orderCount: number; 
+      lastOrderDate: string 
     }>();
 
-    orders?.forEach(order => {
-      const clientId = order.client_id;
-      if (!clientId) return;
-
-      // Type assertion for Supabase join result
-      const orderWithProfile = order as typeof order & {
-        profiles?: { id: string; name: string; business_name?: string };
-      };
-      const clientProfile = orderWithProfile.profiles;
-      const clientName = clientProfile?.business_name || clientProfile?.name || 'Client inconnu';
-      const businessName = clientProfile?.business_name || '';
-      
-      if (!clientMap.has(clientId)) {
-        clientMap.set(clientId, {
-          id: clientId,
-          name: clientName,
-          businessName: businessName,
-          totalSpent: 0,
-          orderCount: 0,
-          lastOrderDate: new Date(order.created_at)
+    orders.forEach(order => {
+      if (order.client_id) {
+        const existing = clientMap.get(order.client_id) || { 
+          totalSpent: 0, 
+          orderCount: 0, 
+          lastOrderDate: '' 
+        };
+        clientMap.set(order.client_id, {
+          totalSpent: existing.totalSpent + (order.total_amount || 0),
+          orderCount: existing.orderCount + 1,
+          lastOrderDate: order.created_at > existing.lastOrderDate ? order.created_at : existing.lastOrderDate,
         });
-      }
-
-      const client = clientMap.get(clientId)!;
-      client.totalSpent += order.total_amount || 0;
-      client.orderCount += 1;
-      
-      const orderDate = new Date(order.created_at);
-      if (orderDate > client.lastOrderDate) {
-        client.lastOrderDate = orderDate;
       }
     });
 
-    // Convert to array
-    const clients: TopClient[] = Array.from(clientMap.values());
+    if (clientMap.size === 0) {
+      return [];
+    }
 
-    // Sort by total spent descending
-    clients.sort((a, b) => b.totalSpent - a.totalSpent);
+    // 3. Récupérer les profils des clients
+    const clientIds = Array.from(clientMap.keys());
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, name, business_name')
+      .in('id', clientIds);
 
-    return clients.slice(0, limit);
+    if (profilesError) {
+      console.error('Error fetching client profiles:', profilesError);
+    }
+
+    // 4. Construire le résultat
+    const result: TopClient[] = [];
+
+    clientMap.forEach((stats, clientId) => {
+      const profile = profiles?.find(p => p.id === clientId);
+
+      result.push({
+        id: clientId,
+        name: profile?.name || 'Client',
+        businessName: profile?.business_name || '',
+        totalSpent: stats.totalSpent,
+        orderCount: stats.orderCount,
+        lastOrderDate: new Date(stats.lastOrderDate),
+      });
+    });
+
+    // 5. Trier par dépenses décroissantes et prendre les 5 premiers
+    return result.sort((a, b) => b.totalSpent - a.totalSpent).slice(0, limit);
+
   } catch (error) {
     console.error('Error getting top clients:', error);
-    throw error;
+    return [];
   }
 }
 
@@ -618,13 +630,13 @@ export async function getOrderStats(year: number): Promise<OrderStats> {
 
     const delivered = orders.filter(o => o.status === 'delivered').length;
     const inProgress = orders.filter(o => 
-      ['pending', 'awaiting-payment', 'paid', 'preparing', 'delivering'].includes(o.status)
+      ['pending', 'pending-offers', 'offers-received', 'awaiting-payment', 'paid', 'preparing', 'delivering'].includes(o.status)
     ).length;
     const cancelled = orders.filter(o => o.status === 'cancelled').length;
 
     return { delivered, inProgress, cancelled };
   } catch (error) {
-    console.error('Error getting order stats:', error);
+    console.error('Error in getOrderStats:', error);
     return { delivered: 0, inProgress: 0, cancelled: 0 };
   }
 }

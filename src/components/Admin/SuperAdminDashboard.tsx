@@ -166,24 +166,50 @@ export const SuperAdminDashboard: React.FC = () => {
 
       setMonthlyData(Object.values(monthlyMap).sort((a, b) => a.month - b.month));
 
-      // Load super admin metrics
-      const metricsData = await getSuperAdminMetrics(startDate, endDate);
-      setMetrics(metricsData);
+      // Load super admin metrics - ISOLÉ
+      try {
+        const metricsData = await getSuperAdminMetrics(startDate, endDate);
+        setMetrics(metricsData);
+      } catch (error) {
+        console.error('Error loading metrics:', error);
+        setMetrics(null);
+      }
 
-      // Load top performers with year filter
-      const suppliers = await getTopSuppliers(5, selectedYear);
-      setTopSuppliers(suppliers);
+      // Load Top 5 Fournisseurs - ISOLÉ
+      try {
+        const suppliers = await getTopSuppliers(5, selectedYear);
+        setTopSuppliers(suppliers);
+      } catch (error) {
+        console.error('Error loading top suppliers:', error);
+        setTopSuppliers([]);
+      }
 
-      const clients = await getTopClients(5, selectedYear);
-      setTopClients(clients);
+      // Load Top 5 Clients - ISOLÉ
+      try {
+        const clients = await getTopClients(5, selectedYear);
+        setTopClients(clients);
+      } catch (error) {
+        console.error('Error loading top clients:', error);
+        setTopClients([]);
+      }
 
-      // Load alerts
-      const alertsData = await getAlerts();
-      setAlerts(alertsData);
+      // Load Alertes - ISOLÉ
+      try {
+        const alertsData = await getAlerts();
+        setAlerts(alertsData);
+      } catch (error) {
+        console.error('Error loading alerts:', error);
+        setAlerts([]);
+      }
 
-      // Load order statistics
-      const orderStatsData = await getOrderStats(selectedYear);
-      setOrderStats(orderStatsData);
+      // Load order statistics - ISOLÉ
+      try {
+        const orderStatsData = await getOrderStats(selectedYear);
+        setOrderStats(orderStatsData);
+      } catch (error) {
+        console.error('Error loading order stats:', error);
+        setOrderStats({ delivered: 0, inProgress: 0, cancelled: 0 });
+      }
 
     } catch (error) {
       console.error('Exception loading dashboard data:', error);
