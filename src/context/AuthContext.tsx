@@ -32,6 +32,7 @@ export interface RegisterData {
   businessHours?: string;
   coverageZone?: string;
   deliveryCapacity?: 'truck' | 'tricycle' | 'motorcycle';
+  registeredBySalesRepId?: string; // Commercial qui inscrit (optionnel)
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -128,7 +129,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         deliveryCapacity: profile.delivery_capacity as any || undefined,
         deliveryLatitude: profile.delivery_latitude || null,
         deliveryLongitude: profile.delivery_longitude || null,
-        deliveryInstructions: profile.delivery_instructions || null
+        deliveryInstructions: profile.delivery_instructions || null,
+        storefrontImageUrl: profile.storefront_image_url || null,
+        registeredBySalesRepId: profile.registered_by_sales_rep_id || null
       };
 
       setUser(mappedUser);
@@ -346,6 +349,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             phone: userData.phone,
             address: userData.address,
           };
+
+          // Add sales rep ID if provided
+          if (userData.registeredBySalesRepId) {
+            updateData.registered_by_sales_rep_id = userData.registeredBySalesRepId;
+          }
 
           if (userData.role === 'client' && userData.zoneId) {
             updateData.zone_id = userData.zoneId;

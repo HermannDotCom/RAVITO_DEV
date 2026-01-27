@@ -6,6 +6,7 @@ import { PaymentMethod } from '../../types';
 import { ZoneSelector } from './ZoneSelector';
 import { LocationPicker } from '../Shared/LocationPicker';
 import { RatingBadge } from '../Shared/RatingBadge';
+import { StorefrontImageUpload } from '../Shared/StorefrontImageUpload';
 
 export const ClientProfile: React.FC = () => {
   const { user } = useAuth();
@@ -421,6 +422,18 @@ export const ClientProfile: React.FC = () => {
               />
             )}
           </div>
+
+          {/* Storefront Image Upload Section */}
+          <StorefrontImageUpload
+            userId={user?.id || ''}
+            currentImageUrl={user?.storefrontImageUrl}
+            onUploadSuccess={(url) => {
+              console.log('Storefront image uploaded:', url);
+            }}
+            onUploadError={(error) => {
+              console.error('Storefront upload error:', error);
+            }}
+          />
 
           {stats.totalOrders === 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 text-center">

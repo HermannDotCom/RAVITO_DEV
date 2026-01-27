@@ -9,6 +9,7 @@ export interface RegistrationData {
   email: string;
   password: string;
   confirmPassword: string;
+  registeredBySalesRepId?: string; // Commercial qui inscrit (optionnel)
   
   // Étape 2 - Établissement
   businessName: string;
@@ -36,6 +37,7 @@ export const useRegistrationForm = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    registeredBySalesRepId: undefined,
     businessName: '',
     establishmentType: '',
     zoneId: '',
