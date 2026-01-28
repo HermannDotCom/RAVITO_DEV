@@ -47,13 +47,30 @@ export async function uploadStorefrontImage(
 ): Promise<StorefrontUploadResult> {
   try {
     // Validation du type de fichier
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type.toLowerCase())) {
       return {
         success: false,
         error: 'Format non supporté. Utilisez JPG, PNG ou WebP.'
       };
     }
+
+    // Validate userId
+    if (!userId || userId.trim() === '') {
+      return {
+        success: false,
+        error: 'ID utilisateur invalide'
+      };
+    }
+
+    // Get existing storefront image URL to delete it later
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('storefront_image_url')
+      .eq('id', userId)
+      .single();
+
+    const oldImageUrl = profile?.storefront_image_url;
 
     // Compression de l'image
     let compressedFile: File;
@@ -76,7 +93,7 @@ export async function uploadStorefrontImage(
       .from(BUCKET_NAME)
       .upload(filePath, compressedFile, {
         cacheControl: '3600',
-        upsert: true,
+        upsert: false, // Don't overwrite - each upload creates a new file
         contentType: 'image/webp'
       });
 
@@ -104,6 +121,16 @@ export async function uploadStorefrontImage(
       // Ne pas échouer complètement, l'image est uploadée
     }
 
+    // Delete old image if it exists
+    if (oldImageUrl && oldImageUrl !== urlData.publicUrl) {
+      try {
+        await deleteOldStorefrontImage(oldImageUrl);
+      } catch (error) {
+        console.error('Error deleting old image:', error);
+        // Don't fail the upload if old image deletion fails
+      }
+    }
+
     return {
       success: true,
       url: urlData.publicUrl
@@ -114,6 +141,34 @@ export async function uploadStorefrontImage(
       success: false,
       error: 'Erreur inattendue lors de l\'upload'
     };
+  }
+}
+
+/**
+ * Helper function to delete an old storefront image
+ */
+async function deleteOldStorefrontImage(imageUrl: string): Promise<void> {
+  try {
+    // Extraire le chemin du fichier depuis l'URL
+    const urlParts = imageUrl.split(`${BUCKET_NAME}/`);
+    if (urlParts.length < 2) {
+      console.error('Invalid image URL format for deletion');
+      return;
+    }
+    const filePath = urlParts[1];
+
+    // Supprimer du storage
+    const { error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .remove([filePath]);
+
+    if (error) {
+      console.error('Error deleting old image:', error);
+    } else {
+      console.log('Old storefront image deleted successfully');
+    }
+  } catch (error) {
+    console.error('Exception deleting old image:', error);
   }
 }
 

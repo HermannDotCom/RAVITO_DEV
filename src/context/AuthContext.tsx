@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   register: (userData: RegisterData) => Promise<boolean>;
+  refreshUserProfile: () => Promise<boolean>;
   isLoading: boolean;
   isInitializing: boolean;
   sessionError: string | null;
@@ -473,13 +474,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     refreshAttemptsRef.current = 0;
   }, []);
 
+  /**
+   * Refresh the current user's profile from database
+   */
+  const refreshUserProfile = useCallback(async (): Promise<boolean> => {
+    if (!user?.id) return false;
+    return await fetchUserProfile(user.id);
+  }, [user?.id, fetchUserProfile]);
+
   return (
     <AuthContext.Provider value={{ 
       user, 
       session, 
       login, 
       logout, 
-      register, 
+      register,
+      refreshUserProfile,
       isLoading, 
       isInitializing,
       sessionError,

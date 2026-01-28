@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Upload, X, Loader, ImageIcon } from 'lucide-react';
 import { uploadStorefrontImage, deleteStorefrontImage } from '../../services/storefrontImageService';
 
@@ -22,6 +22,11 @@ export const StorefrontImageUpload: React.FC<StorefrontImageUploadProps> = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync imageUrl state with prop changes
+  useEffect(() => {
+    setImageUrl(currentImageUrl || null);
+  }, [currentImageUrl]);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

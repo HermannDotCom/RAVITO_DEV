@@ -5,6 +5,9 @@
   Table pour gérer les commerciaux qui inscrivent les CHR et dépôts.
   Permet de tracker qui inscrit qui lors de la phase de pré-lancement terrain.
   
+  ## Prerequisites
+  - Requires the function `update_updated_at_column` to exist (created in earlier migrations)
+  
   ## Structure
   - `id` - UUID primary key
   - `user_id` - Référence optionnelle vers auth.users (si le commercial a un compte)

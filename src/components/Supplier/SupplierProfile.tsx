@@ -9,7 +9,7 @@ import { supabase } from '../../lib/supabase';
 import { StorefrontImageUpload } from '../Shared/StorefrontImageUpload';
 
 export const SupplierProfile: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUserProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [stats, setStats] = useState<SupplierStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -510,6 +510,8 @@ export const SupplierProfile: React.FC = () => {
             currentImageUrl={user?.storefrontImageUrl}
             onUploadSuccess={(url) => {
               console.log('Storefront image uploaded:', url);
+              // Refresh user profile to update the image in the UI
+              refreshUserProfile();
             }}
             onUploadError={(error) => {
               console.error('Storefront upload error:', error);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getActiveSalesRepresentatives, SalesRepresentative } from '../services/salesRepresentativeService';
 
 /**
@@ -10,11 +10,7 @@ export function useSalesRepresentatives() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadSalesReps();
-  }, []);
-
-  const loadSalesReps = async () => {
+  const loadSalesReps = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     
@@ -27,11 +23,15 @@ export function useSalesRepresentatives() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const refresh = () => {
+  useEffect(() => {
     loadSalesReps();
-  };
+  }, [loadSalesReps]);
+
+  const refresh = useCallback(() => {
+    loadSalesReps();
+  }, [loadSalesReps]);
 
   return {
     salesReps,
