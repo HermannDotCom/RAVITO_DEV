@@ -42,10 +42,8 @@ export const TeamPage: React.FC = () => {
   const canInvite = can('team', 'invite');
   const isOwner = organization ? organization.ownerId === user?.id : false;
   
-  // Check if user is Super Admin
-  const isSuperAdmin = members.some(
-    m => m.userId === user?.id && m.role === 'super_admin' && m.isActive
-  );
+  // Check if user is Super Admin from profiles.is_super_admin
+  const isSuperAdmin = user?.isSuperAdmin === true;
   
   // Filter tabs based on role
   const availableTabs = TABS.filter(tab => !tab.superAdminOnly || isSuperAdmin);

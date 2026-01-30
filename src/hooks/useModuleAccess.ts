@@ -98,41 +98,18 @@ export function useModuleAccess(interfaceType?: InterfaceType): UseModuleAccessR
     if (!userId) return false;
 
     try {
-      // First check if user has admin role
+      // Check if user has is_super_admin flag in profiles
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('role')
+        .select('is_super_admin')
         .eq('id', userId)
         .single();
 
       if (profileError) throw profileError;
 
-      // User must have admin role
-      if (profileData?.role !== 'admin') return false;
-
-      // Check if they have super_admin member role in an organization
-      const { data: memberData, error: memberError } = await supabase
-        .from('organization_members')
-        .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'super_admin')
-        .eq('status', 'active')
-        .maybeSingle();
-
-      if (memberError && memberError.code !== 'PGRST116') {
-        // PGRST116 is "no rows returned" which is fine
-        if (memberError.code === '42P01' || memberError.message.includes('does not exist')) {
-          console.warn('organization_members table not found - using fallback mode');
-          // In fallback mode, any admin is treated as super admin
-          return true;
-        }
-        throw memberError;
-      }
-
-      return !!memberData;
+      return profileData?.is_super_admin === true;
     } catch (err) {
       console.error('Error checking super admin status:', err);
-      // In fallback mode, any admin is treated as super admin
       return false;
     }
   }, []);
