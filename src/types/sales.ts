@@ -220,3 +220,137 @@ export const formatCurrency = (amount: number): string => {
     maximumFractionDigits: 0
   }).format(amount) + ' F';
 };
+
+/**
+ * Helper to get days left in current month
+ */
+export const getDaysLeftInMonth = (): number => {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const daysLeft = lastDay.getDate() - now.getDate();
+  return Math.max(0, daysLeft);
+};
+
+// ============================================
+// COMMERCIAL ACTIVITY TYPES
+// ============================================
+
+/**
+ * Registered client with activation status
+ */
+export interface RegisteredClient {
+  id: string;
+  name: string;
+  role: 'client' | 'supplier';
+  address: string;
+  registeredAt: Date;
+  totalCa: number;
+  totalDeliveries: number;
+  isActivated: boolean;
+  activationProgress: number; // 0-100%
+}
+
+/**
+ * Weekly statistics for evolution chart
+ */
+export interface WeeklyStats {
+  weekNumber: number;
+  weekLabel: string;
+  registrations: number;
+}
+
+/**
+ * Ranking information
+ */
+export interface SalesRepRanking {
+  salesRepId: string;
+  salesRepName: string;
+  totalRegistered: number;
+  rank: number;
+}
+
+/**
+ * Commercial activity statistics
+ */
+export interface CommercialActivityStats {
+  // Basic counts
+  totalRegistered: number;
+  chrRegistered: number;
+  depotRegistered: number;
+  chrActivated: number;
+  depotActivated: number;
+  
+  // Financial
+  totalCa: number;
+  
+  // Objectives
+  objectiveChr: number;
+  objectiveDepots: number;
+  percentObjectiveChr: number;
+  percentObjectiveDepots: number;
+  
+  // Progress
+  daysLeftInMonth: number;
+  chrRemaining: number;
+  depotRemaining: number;
+  
+  // Rate
+  activationRate: number; // Percentage of registered clients that are activated
+  
+  // Weekly evolution
+  weeklyStats: WeeklyStats[];
+  
+  // Ranking
+  ranking: SalesRepRanking[];
+  currentRank: number;
+}
+
+/**
+ * Commission estimation for current period
+ */
+export interface CommissionEstimation {
+  // Primes inscription
+  chrActivated: number;
+  primePerChr: number;
+  primeChrTotal: number;
+  
+  depotActivated: number;
+  primePerDepot: number;
+  primeDepotTotal: number;
+  
+  primeInscriptionsTotal: number;
+  
+  // Bonus objectifs
+  bonusChrObjective: number;
+  bonusDepotObjective: number;
+  bonusCombined: number;
+  bonusObjectivesTotal: number;
+  
+  // Bonus dépassement
+  bonusOvershoot: number;
+  
+  // Commission CA
+  commissionCa: number;
+  
+  // Total
+  totalEstimated: number;
+  
+  // Payment date
+  estimatedPaymentDate: Date;
+}
+
+/**
+ * Recommendation types
+ */
+export type RecommendationType = 'objective' | 'zone' | 'bonus' | 'ranking' | 'success';
+
+/**
+ * Personalized recommendation
+ */
+export interface Recommendation {
+  type: RecommendationType;
+  icon: string;
+  title: string;
+  message: string;
+  tip: string;
+}
