@@ -212,7 +212,7 @@ export const CommissionsTab: React.FC<CommissionsTabProps> = ({
         <ul className="text-sm text-blue-800 space-y-1">
           <li>• Prime par CHR/Dépôt activé selon critères</li>
           <li>• Bonus si objectifs atteints (bonus combiné si les 2)</li>
-          <li>• Bonus dépassement si > 110% des objectifs</li>
+          <li>• Bonus dépassement si &gt; 110% des objectifs</li>
           <li>• Bonus spécial pour le meilleur commercial du mois</li>
         </ul>
       </div>
