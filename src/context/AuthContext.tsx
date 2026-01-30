@@ -132,7 +132,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         deliveryLongitude: profile.delivery_longitude || null,
         deliveryInstructions: profile.delivery_instructions || null,
         storefrontImageUrl: profile.storefront_image_url || null,
-        registeredBySalesRepId: profile.registered_by_sales_rep_id || null
+        registeredBySalesRepId: profile.registered_by_sales_rep_id || null,
+        isSuperAdmin: profile.is_super_admin || false
       };
 
       setUser(mappedUser);

@@ -36,6 +36,7 @@ export interface User {
   deliveryInstructions?: string | null;
   storefrontImageUrl?: string | null; // Photo de la devanture
   registeredBySalesRepId?: string | null; // Commercial qui a inscrit
+  isSuperAdmin?: boolean; // Super Admin flag from profiles.is_super_admin
 }
 
 export interface Client extends User {
