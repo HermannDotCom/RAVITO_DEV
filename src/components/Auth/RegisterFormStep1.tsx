@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { User, Mail, Lock, Phone, Store, Truck, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { User, Mail, Lock, Phone, Store, Truck, Eye, EyeOff, CheckCircle2, Users } from 'lucide-react';
 import { RegistrationData } from '../../hooks/useRegistrationForm';
 import { validateFullName, validateEmail, validatePhoneCI, validatePassword, formatPhoneCI } from '../../utils/validations';
+import { useSalesRepresentatives } from '../../hooks/useSalesRepresentatives';
 
 interface RegisterFormStep1Props {
   data: RegistrationData;
@@ -21,6 +22,7 @@ export const RegisterFormStep1: React.FC<RegisterFormStep1Props> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const { salesReps, isLoading: isLoadingSalesReps } = useSalesRepresentatives();
 
   const handleBlur = (field: keyof RegistrationData) => {
     setTouched(prev => ({ ...prev, [field]: true }));
@@ -172,6 +174,38 @@ export const RegisterFormStep1: React.FC<RegisterFormStep1Props> = ({
           </button>
         </div>
       </div>
+
+      {/* Sales Representative Selector - Only show if there are active sales reps */}
+      {!isLoadingSalesReps && salesReps.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Commercial qui vous inscrit <span className="text-gray-400">(optionnel)</span>
+          </label>
+          <div className="relative">
+            <Users className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <select
+              value={data.registeredBySalesRepId || ''}
+              onChange={(e) => updateField('registeredBySalesRepId', e.target.value || undefined)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white appearance-none cursor-pointer"
+            >
+              <option value="">Inscription directe (sans commercial)</option>
+              {salesReps.map((rep) => (
+                <option key={rep.id} value={rep.id}>
+                  {rep.name}{rep.zone?.name ? ` - ${rep.zone.name}` : ''}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-3 pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Sélectionnez le commercial qui vous aide à vous inscrire, si applicable
+          </p>
+        </div>
+      )}
 
       {/* Full Name */}
       <div>

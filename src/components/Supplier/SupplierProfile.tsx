@@ -6,9 +6,10 @@ import { getSupplierStats, SupplierStats } from '../../services/ratingService';
 import { SupplierZoneSelector } from './SupplierZoneSelector';
 import { LocationPicker } from '../Shared/LocationPicker';
 import { supabase } from '../../lib/supabase';
+import { StorefrontImageUpload } from '../Shared/StorefrontImageUpload';
 
 export const SupplierProfile: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUserProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [stats, setStats] = useState<SupplierStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -503,88 +504,19 @@ export const SupplierProfile: React.FC = () => {
             )}
           </div>
 
-          {/* Performance Stats */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <Star className="h-5 w-5 mr-2 text-orange-600" />
-              Performances
-            </h3>
-            
-            {isLoadingStats ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
-                <p className="text-sm text-gray-500 mt-2">Chargement des statistiques...</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600 mb-1">{stats?.totalDeliveries || 0}</div>
-                  <div className="text-xs text-gray-600">Livraisons</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600 mb-1">{stats?.averageRating || 0}</div>
-                  <div className="text-xs text-gray-600">Note moyenne</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600 mb-1">{stats?.averageDeliveryTime || 0}</div>
-                  <div className="text-xs text-gray-600">Temps moyen (min)</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600 mb-1">{stats?.successRate || 0}%</div>
-                  <div className="text-xs text-gray-600">Taux de réussite</div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Recent Ratings */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Évaluations récentes</h3>
-
-            {isLoadingStats ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
-              </div>
-            ) : stats?.recentRatings && stats.recentRatings.length > 0 ? (
-              <div className="space-y-3">
-                {stats.recentRatings.map((rating) => (
-                  <div key={rating.id} className="border border-gray-200 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-gray-900">
-                        {rating.from_user?.business_name || rating.from_user?.name || 'Client'}
-                      </span>
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-sm font-semibold">{rating.overall.toFixed(1)}</span>
-                      </div>
-                    </div>
-                    {rating.comment && (
-                      <p className="text-sm text-gray-600 mb-1">{rating.comment}</p>
-                    )}
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>
-                        {new Date(rating.created_at).toLocaleDateString('fr-FR', {
-                          day: 'numeric',
-                          month: 'short'
-                        })}
-                      </span>
-                      <div className="flex space-x-3 text-xs">
-                        <span>Ponctualité: {rating.punctuality}/5</span>
-                        <span>Qualité: {rating.quality}/5</span>
-                        <span>Communication: {rating.communication}/5</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Star className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">Aucune évaluation pour le moment</p>
-                <p className="text-xs mt-1">Les évaluations apparaîtront après vos premières livraisons</p>
-              </div>
-            )}
-          </div>
+          {/* Storefront Image Upload Section */}
+          <StorefrontImageUpload
+            userId={user?.id || ''}
+            currentImageUrl={user?.storefrontImageUrl}
+            onUploadSuccess={(url) => {
+              console.log('Storefront image uploaded:', url);
+              // Refresh user profile to update the image in the UI
+              refreshUserProfile();
+            }}
+            onUploadError={(error) => {
+              console.error('Storefront upload error:', error);
+            }}
+          />
         </div>
       </div>
     </div>

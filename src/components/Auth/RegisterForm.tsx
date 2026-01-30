@@ -39,6 +39,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onBackToLogin }) => 
       address: data.address,
       businessName: data.businessName,
       zoneId: data.role === 'client' ? data.zoneId : undefined,
+      registeredBySalesRepId: data.registeredBySalesRepId,
     };
 
     const success = await register(registrationPayload);

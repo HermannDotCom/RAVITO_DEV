@@ -34,6 +34,8 @@ export interface User {
   deliveryLatitude?: number | null;
   deliveryLongitude?: number | null;
   deliveryInstructions?: string | null;
+  storefrontImageUrl?: string | null; // Photo de la devanture
+  registeredBySalesRepId?: string | null; // Commercial qui a inscrit
 }
 
 export interface Client extends User {

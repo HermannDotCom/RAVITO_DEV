@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   register: (userData: RegisterData) => Promise<boolean>;
+  refreshUserProfile: () => Promise<boolean>;
   isLoading: boolean;
   isInitializing: boolean;
   sessionError: string | null;
@@ -32,6 +33,7 @@ export interface RegisterData {
   businessHours?: string;
   coverageZone?: string;
   deliveryCapacity?: 'truck' | 'tricycle' | 'motorcycle';
+  registeredBySalesRepId?: string; // Commercial qui inscrit (optionnel)
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -128,7 +130,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         deliveryCapacity: profile.delivery_capacity as any || undefined,
         deliveryLatitude: profile.delivery_latitude || null,
         deliveryLongitude: profile.delivery_longitude || null,
-        deliveryInstructions: profile.delivery_instructions || null
+        deliveryInstructions: profile.delivery_instructions || null,
+        storefrontImageUrl: profile.storefront_image_url || null,
+        registeredBySalesRepId: profile.registered_by_sales_rep_id || null
       };
 
       setUser(mappedUser);
@@ -347,6 +351,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             address: userData.address,
           };
 
+          // Add sales rep ID if provided
+          if (userData.registeredBySalesRepId) {
+            updateData.registered_by_sales_rep_id = userData.registeredBySalesRepId;
+          }
+
           if (userData.role === 'client' && userData.zoneId) {
             updateData.zone_id = userData.zoneId;
           }
@@ -465,13 +474,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     refreshAttemptsRef.current = 0;
   }, []);
 
+  /**
+   * Refresh the current user's profile from database
+   */
+  const refreshUserProfile = useCallback(async (): Promise<boolean> => {
+    if (!user?.id) return false;
+    return await fetchUserProfile(user.id);
+  }, [user?.id, fetchUserProfile]);
+
   return (
     <AuthContext.Provider value={{ 
       user, 
       session, 
       login, 
       logout, 
-      register, 
+      register,
+      refreshUserProfile,
       isLoading, 
       isInitializing,
       sessionError,
