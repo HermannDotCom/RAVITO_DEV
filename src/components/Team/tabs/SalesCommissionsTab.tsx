@@ -8,6 +8,7 @@ type TabView = 'configuration' | 'calculation' | 'history';
 
 export const SalesCommissionsTab: React.FC = () => {
   const {
+    salesReps,
     settings,
     payments,
     commissionCalculation,
@@ -485,29 +486,31 @@ export const SalesCommissionsTab: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {payments.map(payment => (
-                        <tr key={payment.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {/* We'd need to join with sales_reps to get name */}
-                            Rep #{payment.salesRepId.slice(0, 8)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                            {payment.chrActivated}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
-                            {payment.depotActivated}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                            {formatCurrency(payment.primeInscriptions)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                            {formatCurrency(payment.bonusObjectives)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900">
-                            {formatCurrency(payment.totalAmount)}
-                          </td>
-                        </tr>
-                      ))}
+                      {payments.map(payment => {
+                        const salesRep = salesReps.find(r => r.id === payment.salesRepId);
+                        return (
+                          <tr key={payment.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {salesRep?.name || 'Commercial inconnu'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                              {payment.chrActivated}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                              {payment.depotActivated}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                              {formatCurrency(payment.primeInscriptions)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                              {formatCurrency(payment.bonusObjectives)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900">
+                              {formatCurrency(payment.totalAmount)}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

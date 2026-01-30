@@ -376,7 +376,12 @@ export const markPaymentsAsPaid = async (
 
 /**
  * Get dashboard KPIs for a specific period
- * Note: Period parameter is reserved for future filtering by date ranges
+ * 
+ * NOTE: Period parameter is reserved for future filtering by date ranges.
+ * Currently returns global statistics regardless of period.
+ * 
+ * TODO: Implement period-based filtering when date tracking is added to profiles
+ * TODO: Optimize using SQL aggregations instead of fetching all data into memory
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const getDashboardKPIs = async (_period: Period): Promise<DashboardKPIs> => {
@@ -439,6 +444,12 @@ export const getDashboardKPIs = async (_period: Period): Promise<DashboardKPIs> 
 
 /**
  * Get sales rep performance metrics for a period
+ * 
+ * NOTE: This function has N+1 query performance issues. Each sales rep triggers multiple
+ * database queries for profiles, orders, and zones. This should be optimized using SQL JOINs
+ * and aggregations when dealing with many sales reps or large datasets.
+ * 
+ * TODO: Refactor to use a single query with JOINs and GROUP BY for better performance
  */
 export const getSalesRepsWithMetrics = async (period: Period): Promise<SalesRepWithMetrics[]> => {
   try {
@@ -574,12 +585,16 @@ export const calculateCommissions = async (period: Period): Promise<PeriodCommis
       if (rep.objectiveChr && rep.objectiveDepots) {
         const totalObjective = rep.objectiveChr + rep.objectiveDepots;
         const totalRealized = rep.chrActivated + rep.depotActivated;
-        const percent = (totalRealized / totalObjective) * 100;
+        
+        // Only calculate if totalObjective is greater than 0
+        if (totalObjective > 0) {
+          const percent = (totalRealized / totalObjective) * 100;
 
-        if (percent >= settings.overshootTier2Threshold) {
-          bonusOvershoot = settings.overshootTier2Bonus;
-        } else if (percent >= settings.overshootTier1Threshold) {
-          bonusOvershoot = settings.overshootTier1Bonus;
+          if (percent >= settings.overshootTier2Threshold) {
+            bonusOvershoot = settings.overshootTier2Bonus;
+          } else if (percent >= settings.overshootTier1Threshold) {
+            bonusOvershoot = settings.overshootTier1Bonus;
+          }
         }
       }
 
