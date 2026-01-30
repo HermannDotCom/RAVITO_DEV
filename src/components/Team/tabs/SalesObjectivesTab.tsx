@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, Pencil, Plus, Check, X } from 'lucide-react';
+import { Pencil, Plus, Check } from 'lucide-react';
 import { useSalesCommissions } from '../../../hooks/useSalesCommissions';
 import { MONTH_NAMES } from '../../../types/sales';
 import type { SalesObjective } from '../../../types/sales';
@@ -13,7 +13,6 @@ export const SalesObjectivesTab: React.FC = () => {
     setSelectedPeriod,
     currentPeriod,
     createOrUpdateObjective,
-    deleteObjective,
     isLoading,
     error
   } = useSalesCommissions();

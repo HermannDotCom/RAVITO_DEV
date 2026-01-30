@@ -15,76 +15,76 @@ import type {
 // TRANSFORMATION HELPERS
 // ============================================
 
-const transformSalesRep = (data: any): SalesRepresentative => ({
-  id: data.id,
-  userId: data.user_id,
-  name: data.name,
-  phone: data.phone,
-  email: data.email,
-  zoneId: data.zone_id,
-  isActive: data.is_active,
-  createdAt: new Date(data.created_at),
-  updatedAt: new Date(data.updated_at)
+const transformSalesRep = (data: Record<string, unknown>): SalesRepresentative => ({
+  id: data.id as string,
+  userId: data.user_id as string | null,
+  name: data.name as string,
+  phone: data.phone as string | null,
+  email: data.email as string | null,
+  zoneId: data.zone_id as string | null,
+  isActive: data.is_active as boolean,
+  createdAt: new Date(data.created_at as string),
+  updatedAt: new Date(data.updated_at as string)
 });
 
-const transformObjective = (data: any): SalesObjective => ({
-  id: data.id,
-  salesRepId: data.sales_rep_id,
-  periodYear: data.period_year,
-  periodMonth: data.period_month,
-  objectiveChr: data.objective_chr,
-  objectiveDepots: data.objective_depots,
-  createdAt: new Date(data.created_at),
-  updatedAt: new Date(data.updated_at),
-  createdBy: data.created_by
+const transformObjective = (data: Record<string, unknown>): SalesObjective => ({
+  id: data.id as string,
+  salesRepId: data.sales_rep_id as string,
+  periodYear: data.period_year as number,
+  periodMonth: data.period_month as number,
+  objectiveChr: data.objective_chr as number,
+  objectiveDepots: data.objective_depots as number,
+  createdAt: new Date(data.created_at as string),
+  updatedAt: new Date(data.updated_at as string),
+  createdBy: data.created_by as string | null
 });
 
-const transformSettings = (data: any): SalesCommissionSettings => ({
-  id: data.id,
-  primePerChrActivated: data.prime_per_chr_activated,
-  chrActivationThreshold: data.chr_activation_threshold,
-  primePerDepotActivated: data.prime_per_depot_activated,
-  depotActivationDeliveries: data.depot_activation_deliveries,
-  caCommissionEnabled: data.ca_commission_enabled,
-  caTier1Max: data.ca_tier1_max,
-  caTier1Rate: data.ca_tier1_rate,
-  caTier2Max: data.ca_tier2_max,
-  caTier2Rate: data.ca_tier2_rate,
-  caTier3Max: data.ca_tier3_max,
-  caTier3Rate: data.ca_tier3_rate,
-  caTier4Rate: data.ca_tier4_rate,
-  bonusChrObjective: data.bonus_chr_objective,
-  bonusDepotObjective: data.bonus_depot_objective,
-  bonusCombined: data.bonus_combined,
-  overshootTier1Threshold: data.overshoot_tier1_threshold,
-  overshootTier1Bonus: data.overshoot_tier1_bonus,
-  overshootTier2Threshold: data.overshoot_tier2_threshold,
-  overshootTier2Bonus: data.overshoot_tier2_bonus,
-  bonusBestOfMonth: data.bonus_best_of_month,
-  updatedAt: new Date(data.updated_at),
-  updatedBy: data.updated_by
+const transformSettings = (data: Record<string, unknown>): SalesCommissionSettings => ({
+  id: data.id as string,
+  primePerChrActivated: data.prime_per_chr_activated as number,
+  chrActivationThreshold: data.chr_activation_threshold as number,
+  primePerDepotActivated: data.prime_per_depot_activated as number,
+  depotActivationDeliveries: data.depot_activation_deliveries as number,
+  caCommissionEnabled: data.ca_commission_enabled as boolean,
+  caTier1Max: data.ca_tier1_max as number,
+  caTier1Rate: data.ca_tier1_rate as number,
+  caTier2Max: data.ca_tier2_max as number,
+  caTier2Rate: data.ca_tier2_rate as number,
+  caTier3Max: data.ca_tier3_max as number,
+  caTier3Rate: data.ca_tier3_rate as number,
+  caTier4Rate: data.ca_tier4_rate as number,
+  bonusChrObjective: data.bonus_chr_objective as number,
+  bonusDepotObjective: data.bonus_depot_objective as number,
+  bonusCombined: data.bonus_combined as number,
+  overshootTier1Threshold: data.overshoot_tier1_threshold as number,
+  overshootTier1Bonus: data.overshoot_tier1_bonus as number,
+  overshootTier2Threshold: data.overshoot_tier2_threshold as number,
+  overshootTier2Bonus: data.overshoot_tier2_bonus as number,
+  bonusBestOfMonth: data.bonus_best_of_month as number,
+  updatedAt: new Date(data.updated_at as string),
+  updatedBy: data.updated_by as string | null
 });
 
-const transformPayment = (data: any): SalesCommissionPayment => ({
-  id: data.id,
-  periodYear: data.period_year,
-  periodMonth: data.period_month,
-  salesRepId: data.sales_rep_id,
-  chrActivated: data.chr_activated,
-  depotActivated: data.depot_activated,
-  primeInscriptions: data.prime_inscriptions,
-  bonusObjectives: data.bonus_objectives,
-  bonusOvershoot: data.bonus_overshoot,
-  bonusSpecial: data.bonus_special,
-  commissionCa: data.commission_ca,
-  totalAmount: data.total_amount,
-  status: data.status,
-  validatedAt: data.validated_at ? new Date(data.validated_at) : null,
-  validatedBy: data.validated_by,
-  paidAt: data.paid_at ? new Date(data.paid_at) : null,
-  paidBy: data.paid_by,
-  createdAt: new Date(data.created_at),
-  updatedAt: new Date(data.updated_at)
+const transformPayment = (data: Record<string, unknown>): SalesCommissionPayment => ({
+  id: data.id as string,
+  periodYear: data.period_year as number,
+  periodMonth: data.period_month as number,
+  salesRepId: data.sales_rep_id as string,
+  chrActivated: data.chr_activated as number,
+  depotActivated: data.depot_activated as number,
+  primeInscriptions: data.prime_inscriptions as number,
+  bonusObjectives: data.bonus_objectives as number,
+  bonusOvershoot: data.bonus_overshoot as number,
+  bonusSpecial: data.bonus_special as number,
+  commissionCa: data.commission_ca as number,
+  totalAmount: data.total_amount as number,
+  status: data.status as 'pending' | 'validated' | 'paid',
+  validatedAt: data.validated_at ? new Date(data.validated_at as string) : null,
+  validatedBy: data.validated_by as string | null,
+  paidAt: data.paid_at ? new Date(data.paid_at as string) : null,
+  paidBy: data.paid_by as string | null,
+  createdAt: new Date(data.created_at as string),
+  updatedAt: new Date(data.updated_at as string)
 });
 
 // ============================================
@@ -376,8 +376,10 @@ export const markPaymentsAsPaid = async (
 
 /**
  * Get dashboard KPIs for a specific period
+ * Note: Period parameter is reserved for future filtering by date ranges
  */
-export const getDashboardKPIs = async (period: Period): Promise<DashboardKPIs> => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const getDashboardKPIs = async (_period: Period): Promise<DashboardKPIs> => {
   try {
     // Total registered by sales reps
     const { count: totalRegistered } = await supabase

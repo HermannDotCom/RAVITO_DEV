@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { TrendingUp, Users, Building2, DollarSign, Activity } from 'lucide-react';
+import { Users, Building2, DollarSign, Activity } from 'lucide-react';
 import { useSalesCommissions } from '../../../hooks/useSalesCommissions';
 import { formatCurrency, MONTH_NAMES } from '../../../types/sales';
 

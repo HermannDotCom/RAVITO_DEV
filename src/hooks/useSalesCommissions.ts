@@ -12,7 +12,7 @@ import type {
 } from '../types/sales';
 import * as salesService from '../services/salesCommissionService';
 import { useAuth } from '../context/AuthContext';
-import { getCurrentPeriod, formatPeriod } from '../types/sales';
+import { getCurrentPeriod } from '../types/sales';
 
 interface UseSalesCommissionsReturn {
   // Data

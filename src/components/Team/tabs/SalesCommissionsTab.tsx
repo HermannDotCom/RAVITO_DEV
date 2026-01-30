@@ -31,7 +31,7 @@ export const SalesCommissionsTab: React.FC = () => {
     }
   }, [settings]);
 
-  const handleSettingsChange = (field: keyof SalesCommissionSettings, value: any) => {
+  const handleSettingsChange = (field: keyof SalesCommissionSettings, value: string | number | boolean) => {
     setEditedSettings(prev => ({ ...prev, [field]: value }));
   };
 
