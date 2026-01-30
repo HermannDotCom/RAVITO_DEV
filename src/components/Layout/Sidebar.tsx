@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Home,
   ShoppingCart,
@@ -17,12 +17,14 @@ import {
   DollarSign,
   Navigation,
   Shield,
-  ClipboardList
+  ClipboardList,
+  Briefcase
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useModuleAccess } from '../../hooks/useModuleAccess';
 import { useAllowedPages } from '../../hooks/useAllowedPages';
 import { MoreMenu } from '../ui/MoreMenu';
+import { getSalesRepByUserId } from '../../services/commercialActivityService';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -36,6 +38,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
   const { hasAccess } = useModuleAccess(user?.role === 'admin' ? 'admin' : user?.role === 'supplier' ? 'supplier' : 'client');
   const { allowedPages, isOwner, isSuperAdmin } = useAllowedPages();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [isSalesRep, setIsSalesRep] = useState(false);
+
+  // Check if user is a sales rep
+  useEffect(() => {
+    const checkSalesRep = async () => {
+      if (user) {
+        const salesRep = await getSalesRepByUserId(user.id);
+        setIsSalesRep(!!salesRep);
+      }
+    };
+    checkSalesRep();
+  }, [user]);
 
   /**
    * Helper function to filter menu items based on allowed pages
@@ -119,6 +133,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
           { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
         ];
+        // Add commercial activity for sales reps
+        if (isSalesRep) {
+          allSecondaryItems.splice(3, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
+        }
         break;
       case 'supplier':
         allSecondaryItems = [
@@ -129,6 +147,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
           { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
         ];
+        // Add commercial activity for sales reps
+        if (isSalesRep) {
+          allSecondaryItems.splice(3, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
+        }
         break;
       default:
         return [];

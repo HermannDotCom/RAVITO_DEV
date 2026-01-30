@@ -80,6 +80,7 @@ import { SupplierContactSupport } from './components/Supplier/ContactSupport';
 import { KenteLoader } from './components/ui/KenteLoader';
 import { TicketManagement } from './components/Admin/TicketManagement';
 import { TeamPage } from './components/Team';
+import { CommercialActivityPage } from './components/Commercial';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusIndicator';
 import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
@@ -238,6 +239,8 @@ const AppContent: React.FC = () => {
             return <ActivityPage />;
           case 'team':
             return <TeamPage />;
+          case 'commercial-activity':
+            return <CommercialActivityPage />;
           case 'notifications':
             return <NotificationsPage />;
           // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
@@ -269,6 +272,8 @@ const AppContent: React.FC = () => {
             return <SupplierTreasury />;
           case 'team':
             return <TeamPage />;
+          case 'commercial-activity':
+            return <CommercialActivityPage />;
           case 'notifications':
             return <NotificationsPage />;
           // MVP: Subscription page disabled - Uncomment to reactivate post-MVP
@@ -317,6 +322,8 @@ const AppContent: React.FC = () => {
             return <TeamPage />;
           case 'roles':
             return <RoleManagement />;
+          case 'commercial-activity':
+            return <CommercialActivityPage />;
           case 'data':
             return <DataManagement />;
           case 'notifications':
