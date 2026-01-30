@@ -1,64 +1,71 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, Crown, AlertCircle, RefreshCw } from 'lucide-react';
+import { Users, UserPlus, Crown, AlertCircle, RefreshCw, Mail, BarChart3, Target, DollarSign } from 'lucide-react';
 import { useTeam } from '../../hooks/useTeam';
 import { usePermissions } from '../../hooks/usePermissions';
 import { CreateMemberModal } from './CreateMemberModal';
 import { QuotaBar } from './QuotaBar';
-import { MemberListView } from './MemberListView';
-import { MemberDetailsModal } from './MemberDetailsModal';
-import { MemberPermissionsModal } from './MemberPermissionsModal';
-import type { OrganizationMember } from '../../types/team';
+import { MembersTab } from './tabs/MembersTab';
+import { InvitationsTab } from './tabs/InvitationsTab';
+import { SalesDashboardTab } from './tabs/SalesDashboardTab';
+import { SalesObjectivesTab } from './tabs/SalesObjectivesTab';
+import { SalesCommissionsTab } from './tabs/SalesCommissionsTab';
 import { useAuth } from '../../context/AuthContext';
 
+type TabId = 'members' | 'invitations' | 'dashboard' | 'objectives' | 'commissions';
+
+interface Tab {
+  id: TabId;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  superAdminOnly?: boolean;
+}
+
+const TABS: Tab[] = [
+  { id: 'members', label: 'Membres', icon: Users },
+  { id: 'invitations', label: 'Invitations', icon: Mail },
+  { id: 'dashboard', label: 'Tableau de bord', icon: BarChart3, superAdminOnly: true },
+  { id: 'objectives', label: 'Objectifs', icon: Target, superAdminOnly: true },
+  { id: 'commissions', label: 'Primes', icon: DollarSign, superAdminOnly: true },
+];
+
 /**
- * Main Team Management Page - Refactored UI
+ * Main Team Management Page - Refactored with Tabs
  */
 export const TeamPage: React.FC = () => {
   const { user } = useAuth();
-  const { organization, members, stats, isLoading, error, createMember, removeMember, toggleMemberStatus, updateMemberPermissions, refresh } = useTeam();
+  const { organization, members, stats, isLoading, error, createMember, refresh } = useTeam();
   const { can } = usePermissions(organization?.id || null);
   
+  const [activeTab, setActiveTab] = useState<TabId>('members');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<OrganizationMember | null>(null);
 
   const canInvite = can('team', 'invite');
-  const canEdit = can('team', 'edit');
-  const canRemove = can('team', 'remove');
   const isOwner = organization ? organization.ownerId === user?.id : false;
+  
+  // Check if user is Super Admin
+  const isSuperAdmin = members.some(
+    m => m.userId === user?.id && m.role === 'super_admin' && m.isActive
+  );
+  
+  // Filter tabs based on role
+  const availableTabs = TABS.filter(tab => !tab.superAdminOnly || isSuperAdmin);
 
-  const handleViewDetails = (member: OrganizationMember) => {
-    setSelectedMember(member);
-    setShowDetailsModal(true);
-  };
-
-  const handleEditPermissions = (member: OrganizationMember) => {
-    setSelectedMember(member);
-    setShowPermissionsModal(true);
-  };
-
-  const handleToggleStatus = async (member: OrganizationMember) => {
-    const newStatus = !member.isActive;
-    const action = newStatus ? 'activer' : 'désactiver';
-    
-    if (!confirm(`Êtes-vous sûr de vouloir ${action} ${member.email} ?`)) {
-      return;
+  // Render tab content
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'members':
+        return <MembersTab />;
+      case 'invitations':
+        return <InvitationsTab />;
+      case 'dashboard':
+        return <SalesDashboardTab />;
+      case 'objectives':
+        return <SalesObjectivesTab />;
+      case 'commissions':
+        return <SalesCommissionsTab />;
+      default:
+        return <MembersTab />;
     }
-
-    await toggleMemberStatus(member.id, newStatus);
-  };
-
-  const handleRemove = async (member: OrganizationMember) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${member.email} de l'équipe ? Cette action est irréversible.`)) {
-      return;
-    }
-
-    await removeMember(member.id);
-  };
-
-  const handleSavePermissions = async (memberId: string, allowedPages: string[]): Promise<boolean> => {
-    return await updateMemberPermissions(memberId, { allowedPages });
   };
 
   if (isLoading) {
@@ -102,7 +109,7 @@ export const TeamPage: React.FC = () => {
               <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">Gestion des Membres</h1>
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">Mon Équipe</h1>
               <p className="text-sm sm:text-base text-gray-600 truncate">{organization.name}</p>
             </div>
           </div>
@@ -116,7 +123,7 @@ export const TeamPage: React.FC = () => {
               <span className="text-sm sm:text-base">Actualiser</span>
             </button>
 
-            {canInvite && (
+            {canInvite && activeTab === 'members' && (
               <button
                 onClick={() => setShowCreateModal(true)}
                 disabled={stats?.availableSlots === 0}
@@ -136,11 +143,13 @@ export const TeamPage: React.FC = () => {
           </div>
         )}
 
-        {/* Quota Bar */}
-        {stats && <QuotaBar stats={stats} />}
+        {/* Quota Bar - only show on members/invitations tabs */}
+        {stats && (activeTab === 'members' || activeTab === 'invitations') && (
+          <QuotaBar stats={stats} />
+        )}
 
         {/* Upsell message if quota reached */}
-        {stats && stats.availableSlots === 0 && (
+        {stats && stats.availableSlots === 0 && activeTab === 'members' && (
           <div className="mt-4 bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start space-x-3">
             <Crown className="w-6 h-6 text-orange-600 flex-shrink-0" />
             <div>
@@ -156,18 +165,38 @@ export const TeamPage: React.FC = () => {
         )}
       </div>
 
-      {/* Main Content - Member List View */}
-      <MemberListView
-        members={members}
-        organizationType={organization.type}
-        currentUserId={user?.id}
-        canEdit={canEdit || isOwner}
-        canRemove={canRemove || isOwner}
-        onViewDetails={handleViewDetails}
-        onEditPermissions={handleEditPermissions}
-        onToggleStatus={handleToggleStatus}
-        onRemove={handleRemove}
-      />
+      {/* Tab Navigation */}
+      <div className="mb-6 border-b border-gray-200">
+        <nav className="-mb-px flex space-x-4 overflow-x-auto">
+          {availableTabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`
+                  flex items-center space-x-2 px-4 py-3 border-b-2 font-medium text-sm whitespace-nowrap
+                  transition-colors
+                  ${isActive
+                    ? 'border-orange-600 text-orange-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                `}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      <div>
+        {renderTabContent()}
+      </div>
 
       {/* Create Member Modal */}
       <CreateMemberModal
@@ -177,34 +206,6 @@ export const TeamPage: React.FC = () => {
         organizationType={organization.type}
         availableSlots={stats?.availableSlots || 0}
       />
-
-      {/* Member Details Modal */}
-      {selectedMember && (
-        <MemberDetailsModal
-          isOpen={showDetailsModal}
-          onClose={() => {
-            setShowDetailsModal(false);
-            setSelectedMember(null);
-          }}
-          member={selectedMember}
-          organizationType={organization.type}
-          onEditPermissions={handleEditPermissions}
-        />
-      )}
-
-      {/* Member Permissions Modal */}
-      {selectedMember && (
-        <MemberPermissionsModal
-          isOpen={showPermissionsModal}
-          onClose={() => {
-            setShowPermissionsModal(false);
-            setSelectedMember(null);
-          }}
-          member={selectedMember}
-          organizationType={organization.type}
-          onSave={handleSavePermissions}
-        />
-      )}
     </div>
   );
 };
