@@ -59,32 +59,58 @@ export const getCommercialActivityStats = async (
     // Calculate activated CHR (CA >= threshold)
     let chrActivated = 0;
     let totalCa = 0;
-    for (const chr of chrProfiles) {
-      const { data: orders } = await supabase
+    
+    // Fetch all orders for all CHR profiles in one query
+    const chrIds = chrProfiles.map(p => p.id);
+    if (chrIds.length > 0) {
+      const { data: allOrders } = await supabase
         .from('orders')
-        .select('total_amount')
-        .eq('client_id', chr.id)
+        .select('client_id, total_amount')
+        .in('client_id', chrIds)
         .eq('status', 'delivered');
 
-      const ca = orders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
-      totalCa += ca;
-      if (ca >= settings.chrActivationThreshold) {
-        chrActivated++;
-      }
+      // Group orders by client and calculate CA
+      const caByClient = new Map<string, number>();
+      allOrders?.forEach(order => {
+        const current = caByClient.get(order.client_id) || 0;
+        caByClient.set(order.client_id, current + (order.total_amount || 0));
+      });
+
+      // Count activated CHR
+      chrProfiles.forEach(chr => {
+        const ca = caByClient.get(chr.id) || 0;
+        totalCa += ca;
+        if (ca >= settings.chrActivationThreshold) {
+          chrActivated++;
+        }
+      });
     }
 
     // Calculate activated Depots (>= N deliveries)
     let depotActivated = 0;
-    for (const depot of depotProfiles) {
-      const { count } = await supabase
+    const depotIds = depotProfiles.map(p => p.id);
+    if (depotIds.length > 0) {
+      // Fetch delivery counts for all depots in one query
+      const { data: deliveryCounts } = await supabase
         .from('orders')
-        .select('id', { count: 'exact', head: true })
-        .eq('supplier_id', depot.id)
+        .select('supplier_id')
+        .in('supplier_id', depotIds)
         .eq('status', 'delivered');
 
-      if ((count || 0) >= settings.depotActivationDeliveries) {
-        depotActivated++;
-      }
+      // Count deliveries per depot
+      const countByDepot = new Map<string, number>();
+      deliveryCounts?.forEach(order => {
+        const current = countByDepot.get(order.supplier_id) || 0;
+        countByDepot.set(order.supplier_id, current + 1);
+      });
+
+      // Count activated depots
+      depotProfiles.forEach(depot => {
+        const count = countByDepot.get(depot.id) || 0;
+        if (count >= settings.depotActivationDeliveries) {
+          depotActivated++;
+        }
+      });
     }
 
     // Get objectives for this period
@@ -199,28 +225,36 @@ const getSalesRepRanking = async (period: Period): Promise<SalesRepRanking[]> =>
       .select('id, name')
       .eq('is_active', true);
 
-    if (!reps) return [];
+    if (!reps || reps.length === 0) return [];
 
-    // Count registrations for each rep in this period
+    // Date range for the period
     const startDate = new Date(period.year, period.month - 1, 1);
     const endDate = new Date(period.year, period.month, 0, 23, 59, 59);
 
-    const ranking: SalesRepRanking[] = [];
-    for (const rep of reps) {
-      const { count } = await supabase
-        .from('profiles')
-        .select('id', { count: 'exact', head: true })
-        .eq('registered_by_sales_rep_id', rep.id)
-        .gte('created_at', startDate.toISOString())
-        .lte('created_at', endDate.toISOString());
+    // Fetch all registrations for all sales reps in one query
+    const { data: registrations } = await supabase
+      .from('profiles')
+      .select('registered_by_sales_rep_id')
+      .not('registered_by_sales_rep_id', 'is', null)
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString());
 
-      ranking.push({
-        salesRepId: rep.id,
-        salesRepName: rep.name,
-        totalRegistered: count || 0,
-        rank: 0 // Will be set after sorting
-      });
-    }
+    // Count registrations per sales rep
+    const countsByRep = new Map<string, number>();
+    registrations?.forEach(reg => {
+      const repId = reg.registered_by_sales_rep_id;
+      if (repId) {
+        countsByRep.set(repId, (countsByRep.get(repId) || 0) + 1);
+      }
+    });
+
+    // Build ranking
+    const ranking: SalesRepRanking[] = reps.map(rep => ({
+      salesRepId: rep.id,
+      salesRepName: rep.name,
+      totalRegistered: countsByRep.get(rep.id) || 0,
+      rank: 0 // Will be set after sorting
+    }));
 
     // Sort by total registered (descending)
     ranking.sort((a, b) => b.totalRegistered - a.totalRegistered);
@@ -255,7 +289,44 @@ export const getRegisteredClients = async (salesRepId: string): Promise<Register
     if (!profiles) return [];
 
     const clients: RegisteredClient[] = [];
+    
+    // Separate CHR and depots
+    const chrProfiles = profiles.filter(p => p.role === 'client');
+    const depotProfiles = profiles.filter(p => p.role === 'supplier');
 
+    // Fetch all orders for CHR profiles in one query
+    const caByClient = new Map<string, number>();
+    const chrIds = chrProfiles.map(p => p.id);
+    if (chrIds.length > 0) {
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('client_id, total_amount')
+        .in('client_id', chrIds)
+        .eq('status', 'delivered');
+
+      orders?.forEach(order => {
+        const current = caByClient.get(order.client_id) || 0;
+        caByClient.set(order.client_id, current + (order.total_amount || 0));
+      });
+    }
+
+    // Fetch all deliveries for depot profiles in one query
+    const deliveriesByDepot = new Map<string, number>();
+    const depotIds = depotProfiles.map(p => p.id);
+    if (depotIds.length > 0) {
+      const { data: deliveries } = await supabase
+        .from('orders')
+        .select('supplier_id')
+        .in('supplier_id', depotIds)
+        .eq('status', 'delivered');
+
+      deliveries?.forEach(order => {
+        const current = deliveriesByDepot.get(order.supplier_id) || 0;
+        deliveriesByDepot.set(order.supplier_id, current + 1);
+      });
+    }
+
+    // Build client list with calculated stats
     for (const profile of profiles) {
       let totalCa = 0;
       let totalDeliveries = 0;
@@ -264,24 +335,12 @@ export const getRegisteredClients = async (salesRepId: string): Promise<Register
 
       if (profile.role === 'client') {
         // CHR: Check CA
-        const { data: orders } = await supabase
-          .from('orders')
-          .select('total_amount')
-          .eq('client_id', profile.id)
-          .eq('status', 'delivered');
-
-        totalCa = orders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
+        totalCa = caByClient.get(profile.id) || 0;
         isActivated = totalCa >= settings.chrActivationThreshold;
         activationProgress = Math.min(100, Math.round((totalCa / settings.chrActivationThreshold) * 100));
       } else if (profile.role === 'supplier') {
         // Depot: Check deliveries
-        const { count } = await supabase
-          .from('orders')
-          .select('id', { count: 'exact', head: true })
-          .eq('supplier_id', profile.id)
-          .eq('status', 'delivered');
-
-        totalDeliveries = count || 0;
+        totalDeliveries = deliveriesByDepot.get(profile.id) || 0;
         isActivated = totalDeliveries >= settings.depotActivationDeliveries;
         activationProgress = Math.min(100, Math.round((totalDeliveries / settings.depotActivationDeliveries) * 100));
       }

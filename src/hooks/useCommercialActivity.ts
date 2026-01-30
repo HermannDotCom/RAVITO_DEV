@@ -138,7 +138,10 @@ export const useCommercialActivity = (): UseCommercialActivityReturn => {
     if (salesRep && isAuthorized) {
       refreshActivity();
     }
-  }, [salesRep, isAuthorized, selectedPeriod, refreshActivity]);
+    // refreshActivity is intentionally not in the dependency array to avoid infinite loops
+    // It's explicitly called when the conditions are met
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [salesRep, isAuthorized, selectedPeriod]);
 
   return {
     salesRep,

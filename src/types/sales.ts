@@ -222,12 +222,12 @@ export const formatCurrency = (amount: number): string => {
 };
 
 /**
- * Helper to get days left in current month
+ * Helper to get days left in current month (including today)
  */
 export const getDaysLeftInMonth = (): number => {
   const now = new Date();
   const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  const daysLeft = lastDay.getDate() - now.getDate();
+  const daysLeft = lastDay.getDate() - now.getDate() + 1; // +1 to include today
   return Math.max(0, daysLeft);
 };
 

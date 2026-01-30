@@ -125,7 +125,11 @@ export const generateRecommendations = (
   }
 
   // Rule 9: Low activity warning (< 30% of objective with > 50% of month passed)
-  const monthProgress = stats.daysLeftInMonth > 0 ? ((30 - stats.daysLeftInMonth) / 30) * 100 : 100;
+  const now = new Date();
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const daysPassed = now.getDate();
+  const monthProgress = (daysPassed / lastDayOfMonth) * 100;
+  
   if (stats.objectiveChr > 0 && chrPercentage < 30 && monthProgress > 50) {
     recommendations.push({
       type: 'objective',

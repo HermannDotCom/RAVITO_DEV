@@ -116,26 +116,28 @@ export const StatisticsTab: React.FC<StatisticsTabProps> = ({
           <div className="space-y-4">
             {/* Bar chart */}
             <div className="flex items-end justify-around h-40 border-b border-gray-200 pb-2">
-              {stats.weeklyStats.map((week) => {
+              {(() => {
                 const maxRegistrations = Math.max(...stats.weeklyStats.map(w => w.registrations), 1);
-                const heightPercentage = (week.registrations / maxRegistrations) * 100;
-                
-                return (
-                  <div key={week.weekNumber} className="flex flex-col items-center">
-                    <div className="flex-1 flex items-end w-12 md:w-16">
-                      <div
-                        className="w-full bg-orange-600 rounded-t transition-all"
-                        style={{ height: `${heightPercentage}%` }}
-                        title={`${week.registrations} inscriptions`}
-                      />
+                return stats.weeklyStats.map((week) => {
+                  const heightPercentage = (week.registrations / maxRegistrations) * 100;
+                  
+                  return (
+                    <div key={week.weekNumber} className="flex flex-col items-center">
+                      <div className="flex-1 flex items-end w-12 md:w-16">
+                        <div
+                          className="w-full bg-orange-600 rounded-t transition-all"
+                          style={{ height: `${heightPercentage}%` }}
+                          title={`${week.registrations} inscriptions`}
+                        />
+                      </div>
+                      <div className="mt-2 text-center">
+                        <div className="text-lg font-bold text-gray-900">{week.registrations}</div>
+                        <div className="text-xs text-gray-600">{week.weekLabel}</div>
+                      </div>
                     </div>
-                    <div className="mt-2 text-center">
-                      <div className="text-lg font-bold text-gray-900">{week.registrations}</div>
-                      <div className="text-xs text-gray-600">{week.weekLabel}</div>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                });
+              })()}
             </div>
 
             {/* Total */}
