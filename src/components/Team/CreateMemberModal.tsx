@@ -3,7 +3,7 @@ import { X, UserPlus, AlertCircle, Eye, EyeOff, RefreshCw, CheckCircle, Copy, In
 import type { MemberRole, OrganizationType } from '../../types/team';
 import { RoleSelector } from './RoleSelector';
 import { isValidEmail } from '../../utils/validation';
-import { PAGES_BY_ORG_TYPE, SUPER_ADMIN_EXCLUSIVE_PAGES } from '../../types/team';
+import { SUPER_ADMIN_EXCLUSIVE_PAGES } from '../../constants/pageDefinitions';
 
 interface CreateMemberModalProps {
   isOpen: boolean;

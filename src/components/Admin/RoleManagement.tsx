@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Plus, Edit2, Trash2, Eye, AlertCircle, RefreshCw, Lock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import type { CustomRole, OrganizationType, PageDefinition } from '../../types/team';
-import { PAGES_BY_ORG_TYPE, ROLE_LABELS, ROLE_DESCRIPTIONS } from '../../types/team';
+import type { CustomRole, OrganizationType } from '../../types/team';
+import { ROLE_LABELS, ROLE_DESCRIPTIONS } from '../../types/team';
+import { getPagesByOrganizationType, type PageDefinition } from '../../constants/pageDefinitions';
 import { useAuth } from '../../context/AuthContext';
 
 interface RoleFormData {
@@ -398,7 +399,7 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({ isOpen, onClose, onSubmit
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const availablePages = PAGES_BY_ORG_TYPE[formData.organizationType];
+  const availablePages = getPagesByOrganizationType(formData.organizationType);
   
   // Filter out exclusive Super Admin pages for role assignment
   const assignablePages = availablePages.filter(page => !page.exclusiveSuperAdmin);

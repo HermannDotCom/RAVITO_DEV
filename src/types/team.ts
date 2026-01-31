@@ -48,19 +48,18 @@ export type SupplierPageId =
   | 'profile';
 
 export type AdminPageId =
-  | 'analytics'
+  | 'super-dashboard'
   | 'users'
   | 'orders'
   | 'products'
-  | 'pricing'
   | 'treasury'
-  | 'commissions'
   | 'zones'
   | 'team'
   | 'roles'
   | 'tickets'
   | 'data'
-  | 'settings';
+  | 'settings'
+  | 'commercial-activity';
 
 // Interfaces
 export interface Organization {
@@ -267,60 +266,3 @@ export const STATUS_LABELS: Record<MemberStatus, string> = {
   inactive: 'Inactif'
 };
 
-// Page definitions
-export interface PageDefinition {
-  id: string;
-  label: string;
-  moduleKey: string;
-  exclusiveSuperAdmin?: boolean;
-}
-
-export const CLIENT_PAGES: PageDefinition[] = [
-  { id: 'dashboard', label: 'Accueil', moduleKey: 'dashboard' },
-  { id: 'catalog', label: 'Catalogue', moduleKey: 'catalog' },
-  { id: 'cart', label: 'Panier', moduleKey: 'cart' },
-  { id: 'orders', label: 'Mes Commandes', moduleKey: 'orders' },
-  { id: 'profile', label: 'Mon Profil', moduleKey: 'profile' },
-  { id: 'treasury', label: 'Trésorerie', moduleKey: 'treasury' },
-  { id: 'team', label: 'Mon Équipe', moduleKey: 'team' },
-  { id: 'support', label: 'Support', moduleKey: 'support' }
-];
-
-export const SUPPLIER_PAGES: PageDefinition[] = [
-  { id: 'dashboard', label: 'Accueil', moduleKey: 'dashboard' },
-  { id: 'delivery-mode', label: 'Mode Livreur', moduleKey: 'deliveries' },
-  { id: 'orders', label: 'Commandes', moduleKey: 'orders' },
-  { id: 'deliveries', label: 'Livraisons', moduleKey: 'deliveries' },
-  { id: 'treasury', label: 'Revenus', moduleKey: 'treasury' },
-  { id: 'zones', label: 'Mes Zones', moduleKey: 'zones' },
-  { id: 'pricing', label: 'Produits vendus', moduleKey: 'pricing' },
-  { id: 'team', label: 'Mon Équipe', moduleKey: 'team' },
-  { id: 'history', label: 'Historique', moduleKey: 'history' },
-  { id: 'support', label: 'Support', moduleKey: 'support' },
-  { id: 'profile', label: 'Mon Profil', moduleKey: 'profile' }
-];
-
-export const ADMIN_PAGES: PageDefinition[] = [
-  { id: 'analytics', label: 'Analyses', moduleKey: 'analytics', exclusiveSuperAdmin: false },
-  { id: 'users', label: 'Utilisateurs', moduleKey: 'users', exclusiveSuperAdmin: false },
-  { id: 'orders', label: 'Commandes', moduleKey: 'orders', exclusiveSuperAdmin: false },
-  { id: 'products', label: 'Catalogue Produits', moduleKey: 'products', exclusiveSuperAdmin: false },
-  { id: 'pricing', label: 'Prix de Référence', moduleKey: 'pricing', exclusiveSuperAdmin: false },
-  { id: 'treasury', label: 'Trésorerie', moduleKey: 'treasury', exclusiveSuperAdmin: false },
-  { id: 'commissions', label: 'Mes Commissions', moduleKey: 'commissions', exclusiveSuperAdmin: true },
-  { id: 'zones', label: 'Zones de Livraison', moduleKey: 'zones', exclusiveSuperAdmin: false },
-  { id: 'team', label: 'Mon Équipe', moduleKey: 'team', exclusiveSuperAdmin: true },
-  { id: 'roles', label: 'Gestion des Rôles', moduleKey: 'roles', exclusiveSuperAdmin: true },
-  { id: 'tickets', label: 'Support & Tickets', moduleKey: 'tickets', exclusiveSuperAdmin: false },
-  { id: 'data', label: 'Gestion des Données', moduleKey: 'data', exclusiveSuperAdmin: true },
-  { id: 'settings', label: 'Paramètres', moduleKey: 'settings', exclusiveSuperAdmin: true }
-];
-
-export const PAGES_BY_ORG_TYPE: Record<OrganizationType, PageDefinition[]> = {
-  client: CLIENT_PAGES,
-  supplier: SUPPLIER_PAGES,
-  admin: ADMIN_PAGES
-};
-
-// Super Admin exclusive pages (cannot be assigned to other roles)
-export const SUPER_ADMIN_EXCLUSIVE_PAGES = ['team', 'roles', 'settings', 'commissions', 'data'];

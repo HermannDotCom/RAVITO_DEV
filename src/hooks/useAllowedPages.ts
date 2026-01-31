@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { SUPPLIER_PAGES, CLIENT_PAGES, ADMIN_PAGES, SUPER_ADMIN_EXCLUSIVE_PAGES } from '../types/team';
+import { CLIENT_PAGES, SUPPLIER_PAGES, ADMIN_PAGES, SUPER_ADMIN_EXCLUSIVE_PAGES } from '../constants/pageDefinitions';
 import type { UserRole } from '../types';
 
 interface UseAllowedPagesReturn {
