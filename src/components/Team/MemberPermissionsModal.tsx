@@ -103,8 +103,8 @@ export const MemberPermissionsModal: React.FC<MemberPermissionsModalProps> = ({
       // Find selected role to get its role_key
       const selectedRole = selectedRoleId ? availableRoles.find(r => r.id === selectedRoleId) : null;
       
-      const roleUpdates = selectedRoleId ? {
-        role: selectedRole?.roleKey || 'member',
+      const roleUpdates = selectedRoleId && selectedRole ? {
+        role: selectedRole.roleKey,
         customRoleId: selectedRoleId
       } : undefined;
 
@@ -180,12 +180,13 @@ export const MemberPermissionsModal: React.FC<MemberPermissionsModalProps> = ({
             {/* Role Selection */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Rôle <span className="text-red-500">*</span>
+                Rôle <span className="text-red-500" aria-label="requis">*</span>
               </label>
               <select
                 value={selectedRoleId || ''}
                 onChange={(e) => handleRoleChange(e.target.value)}
                 disabled={isSaving || isLoadingRoles}
+                aria-required="true"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="">Sélectionner un rôle...</option>

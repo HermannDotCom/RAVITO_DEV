@@ -50,7 +50,11 @@ export const MembersTab: React.FC = () => {
   };
 
   const handleSavePermissions = async (memberId: string, allowedPages: string[], roleUpdates?: { role?: string; customRoleId?: string | null }): Promise<boolean> => {
-    const updates: any = { allowedPages };
+    const updates: {
+      allowedPages: string[];
+      role?: string;
+      customRoleId?: string | null;
+    } = { allowedPages };
     
     if (roleUpdates) {
       if (roleUpdates.role !== undefined) {
