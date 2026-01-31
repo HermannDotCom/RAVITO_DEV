@@ -18,7 +18,8 @@ export type MemberRole =
   | 'support'
   | 'analyst'
   | 'catalog_manager'
-  | 'zone_manager';
+  | 'zone_manager'
+  | 'commercial';  // ✅ AJOUTÉ
 
 // Page IDs
 export type PageId = string;
@@ -205,7 +206,8 @@ export const ROLE_LABELS: Record<MemberRole, string> = {
   support: 'Support',
   analyst: 'Analyste',
   catalog_manager: 'Gestionnaire Catalogue',
-  zone_manager: 'Gestionnaire Zones'
+  zone_manager: 'Gestionnaire Zones',
+  commercial: 'Commercial'  // ✅ AJOUTÉ
 };
 
 export const ROLE_DESCRIPTIONS: Record<MemberRole, string> = {
@@ -221,19 +223,20 @@ export const ROLE_DESCRIPTIONS: Record<MemberRole, string> = {
   support: 'Assistance utilisateur et tickets',
   analyst: 'Rapports et statistiques',
   catalog_manager: 'Produits et prix de référence',
-  zone_manager: 'Zones de livraison'
+  zone_manager: 'Zones de livraison',
+  commercial: 'Commercial terrain - Inscription clients et suivi activité'  // ✅ AJOUTÉ
 };
 
 export const ROLES_BY_ORG_TYPE: Record<OrganizationType, MemberRole[]> = {
   client: ['owner', 'manager', 'employee'],
   supplier: ['owner', 'manager', 'driver'],
-  admin: ['super_admin', 'administrator', 'support', 'analyst', 'catalog_manager', 'zone_manager']
+  admin: ['super_admin', 'administrator', 'support', 'analyst', 'catalog_manager', 'zone_manager', 'commercial']  // ✅ AJOUTÉ
 };
 
 export const MAX_MEMBERS_BY_TYPE: Record<OrganizationType, number> = {
   client: 2,
   supplier: 2,
-  admin: 40  // Updated from 5 to 40
+  admin: 40
 };
 
 // Role colors for badges
@@ -250,7 +253,8 @@ export const ROLE_COLORS: Record<MemberRole, string> = {
   support: 'bg-teal-100 text-teal-800',
   analyst: 'bg-indigo-100 text-indigo-800',
   catalog_manager: 'bg-pink-100 text-pink-800',
-  zone_manager: 'bg-cyan-100 text-cyan-800'
+  zone_manager: 'bg-cyan-100 text-cyan-800',
+  commercial: 'bg-amber-100 text-amber-800'  // ✅ AJOUTÉ
 };
 
 // Status colors for badges
@@ -259,10 +263,3 @@ export const STATUS_COLORS: Record<MemberStatus, string> = {
   active: 'bg-green-100 text-green-800',
   inactive: 'bg-gray-100 text-gray-800'
 };
-
-export const STATUS_LABELS: Record<MemberStatus, string> = {
-  pending: 'En attente',
-  active: 'Actif',
-  inactive: 'Inactif'
-};
-
