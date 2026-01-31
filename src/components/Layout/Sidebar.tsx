@@ -100,6 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
       case 'admin':
         allMenuItems = [
           { id: 'super-dashboard', label: 'Tableau de Bord', icon: BarChart3, moduleKey: 'super-dashboard' },
+          { id: 'commercial-activity', label: 'Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' },  // ✅ AJOUTÉ
           { id: 'users', label: 'Utilisateurs', icon: Users, moduleKey: 'users' },
           { id: 'orders', label: 'Commandes', icon: Package, moduleKey: 'orders' },
           { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag, moduleKey: 'products' },
