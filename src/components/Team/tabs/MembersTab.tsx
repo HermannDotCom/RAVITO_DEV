@@ -49,8 +49,19 @@ export const MembersTab: React.FC = () => {
     await removeMember(member.id);
   };
 
-  const handleSavePermissions = async (memberId: string, allowedPages: string[]): Promise<boolean> => {
-    return await updateMemberPermissions(memberId, { allowedPages });
+  const handleSavePermissions = async (memberId: string, allowedPages: string[], roleUpdates?: { role?: string; customRoleId?: string | null }): Promise<boolean> => {
+    const updates: any = { allowedPages };
+    
+    if (roleUpdates) {
+      if (roleUpdates.role !== undefined) {
+        updates.role = roleUpdates.role;
+      }
+      if (roleUpdates.customRoleId !== undefined) {
+        updates.customRoleId = roleUpdates.customRoleId;
+      }
+    }
+    
+    return await updateMemberPermissions(memberId, updates);
   };
 
   if (!organization) return null;

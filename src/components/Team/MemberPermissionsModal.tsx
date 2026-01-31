@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckSquare, Square } from 'lucide-react';
-import type { OrganizationMember, OrganizationType } from '../../types/team';
+import { X, CheckSquare, Square, Info } from 'lucide-react';
+import type { OrganizationMember, OrganizationType, CustomRole } from '../../types/team';
 import { getPagesByOrganizationType, getAllAdminPages } from '../../constants/pageDefinitions';
+import { getCustomRoles } from '../../services/roleService';
 
 interface MemberPermissionsModalProps {
   isOpen: boolean;
   onClose: () => void;
   member: OrganizationMember;
   organizationType: OrganizationType;
-  onSave: (memberId: string, allowedPages: string[]) => Promise<boolean>;
+  onSave: (memberId: string, allowedPages: string[], roleUpdates?: { role?: string; customRoleId?: string | null }) => Promise<boolean>;
 }
 
 /**
@@ -23,6 +24,9 @@ export const MemberPermissionsModal: React.FC<MemberPermissionsModalProps> = ({
   onSave,
 }) => {
   const [selectedPages, setSelectedPages] = useState<Set<string>>(new Set());
+  const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
+  const [availableRoles, setAvailableRoles] = useState<CustomRole[]>([]);
+  const [isLoadingRoles, setIsLoadingRoles] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,13 +35,33 @@ export const MemberPermissionsModal: React.FC<MemberPermissionsModalProps> = ({
     ? getAllAdminPages()
     : getPagesByOrganizationType(organizationType);
 
-  // Initialize selected pages from member's allowedPages
+  // Load available roles when modal opens
+  useEffect(() => {
+    const loadRoles = async () => {
+      if (!isOpen) return;
+      
+      setIsLoadingRoles(true);
+      try {
+        const roles = await getCustomRoles(organizationType);
+        setAvailableRoles(roles);
+      } catch (err) {
+        console.error('Error loading roles:', err);
+      } finally {
+        setIsLoadingRoles(false);
+      }
+    };
+
+    loadRoles();
+  }, [isOpen, organizationType]);
+
+  // Initialize selected pages and role from member's data
   useEffect(() => {
     if (isOpen) {
       setSelectedPages(new Set(member.allowedPages || []));
+      setSelectedRoleId(member.customRoleId || null);
       setError(null);
     }
-  }, [isOpen, member.allowedPages]);
+  }, [isOpen, member.allowedPages, member.customRoleId]);
 
   if (!isOpen) return null;
 
@@ -59,12 +83,32 @@ export const MemberPermissionsModal: React.FC<MemberPermissionsModalProps> = ({
     setSelectedPages(new Set());
   };
 
+  const handleRoleChange = (roleId: string) => {
+    setSelectedRoleId(roleId || null);
+    
+    // Update pages based on role's allowed pages
+    if (roleId) {
+      const role = availableRoles.find(r => r.id === roleId);
+      if (role) {
+        setSelectedPages(new Set(role.allowedPages || []));
+      }
+    }
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     setError(null);
 
     try {
-      const success = await onSave(member.id, Array.from(selectedPages));
+      // Find selected role to get its role_key
+      const selectedRole = selectedRoleId ? availableRoles.find(r => r.id === selectedRoleId) : null;
+      
+      const roleUpdates = selectedRoleId ? {
+        role: selectedRole?.roleKey || 'member',
+        customRoleId: selectedRoleId
+      } : undefined;
+
+      const success = await onSave(member.id, Array.from(selectedPages), roleUpdates);
       if (success) {
         onClose();
       } else {
@@ -131,8 +175,50 @@ export const MemberPermissionsModal: React.FC<MemberPermissionsModalProps> = ({
             </div>
           )}
 
-          {/* Content - Page Grid */}
+          {/* Content */}
           <div className="px-6 py-6">
+            {/* Role Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rôle <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedRoleId || ''}
+                onChange={(e) => handleRoleChange(e.target.value)}
+                disabled={isSaving || isLoadingRoles}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">Sélectionner un rôle...</option>
+                {availableRoles.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.displayName}
+                  </option>
+                ))}
+              </select>
+              {selectedRoleId && (
+                <p className="text-sm text-gray-500 mt-1">
+                  {availableRoles.find(r => r.id === selectedRoleId)?.description}
+                </p>
+              )}
+            </div>
+
+            {/* Separator */}
+            <div className="border-t border-gray-200 mb-6" />
+
+            {/* Pages Section Header */}
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-gray-900 mb-1">
+                Pages autorisées
+              </h3>
+              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-blue-800">
+                  Les pages cochées sont héritées du rôle sélectionné. Vous pouvez personnaliser en cochant/décochant.
+                </p>
+              </div>
+            </div>
+
+            {/* Page Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
               {availablePages.map((page) => {
                 const Icon = page.icon;
