@@ -263,3 +263,10 @@ export const STATUS_COLORS: Record<MemberStatus, string> = {
   active: 'bg-green-100 text-green-800',
   inactive: 'bg-gray-100 text-gray-800'
 };
+
+// Status labels for display
+export const STATUS_LABELS: Record<MemberStatus, string> = {
+  pending: 'En attente',
+  active: 'Actif',
+  inactive: 'Inactif'
+};
