@@ -55,7 +55,7 @@ export async function getSalesRepresentativeById(id: string): Promise<SalesRepre
         zone:zones(id, name)
       `)
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching sales representative:', error);
@@ -87,11 +87,15 @@ export async function createSalesRepresentative(
         is_active: data.is_active
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error creating sales representative:', error);
       return { success: false, error: error.message };
+    }
+
+    if (!newRep) {
+      return { success: false, error: 'Failed to create sales representative' };
     }
 
     return { success: true, data: newRep };
@@ -114,11 +118,15 @@ export async function updateSalesRepresentative(
       .update(updates)
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error updating sales representative:', error);
       return { success: false, error: error.message };
+    }
+
+    if (!updatedRep) {
+      return { success: false, error: 'Sales representative not found' };
     }
 
     return { success: true, data: updatedRep };
