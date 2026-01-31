@@ -17,7 +17,8 @@ import {
   Database,
   Settings,
   HelpCircle,
-  Shield
+  Shield,
+  Briefcase
 } from 'lucide-react';
 
 export interface PageDefinition {
@@ -54,23 +55,27 @@ export const SUPPLIER_PAGES: PageDefinition[] = [
   { id: 'profile', label: 'Mon Profil', icon: User },
 ];
 
-// Pour ADMIN (12 pages, dont 6 exclusives Super Admin)
+// Pour ADMIN (pages assignables + pages exclusives Super Admin)
 export const ADMIN_PAGES: PageDefinition[] = [
+  // Pages exclusives Super Admin (non assignables)
   { id: 'super-dashboard', label: 'Tableau de Bord', icon: BarChart3, exclusiveSuperAdmin: true },
+  { id: 'team', label: 'Mon Équipe', icon: Users, exclusiveSuperAdmin: true },
+  { id: 'roles', label: 'Gestion des Rôles', icon: Shield, exclusiveSuperAdmin: true },
+  { id: 'data', label: 'Gestion des Données', icon: Database, exclusiveSuperAdmin: true },
+  { id: 'settings', label: 'Paramètres', icon: Settings, exclusiveSuperAdmin: true },
+  
+  // Pages assignables à d'autres rôles
   { id: 'users', label: 'Utilisateurs', icon: Users, exclusiveSuperAdmin: false },
   { id: 'orders', label: 'Commandes', icon: Package, exclusiveSuperAdmin: false },
   { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag, exclusiveSuperAdmin: false },
   { id: 'treasury', label: 'Trésorerie', icon: CreditCard, exclusiveSuperAdmin: false },
   { id: 'zones', label: 'Zones de Livraison', icon: MapPin, exclusiveSuperAdmin: false },
-  { id: 'roles', label: 'Gestion des Rôles', icon: Shield, exclusiveSuperAdmin: true },
-  { id: 'team', label: 'Mon Équipe', icon: Users, exclusiveSuperAdmin: true },
   { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare, exclusiveSuperAdmin: false },
-  { id: 'data', label: 'Gestion des Données', icon: Database, exclusiveSuperAdmin: true },
-  { id: 'settings', label: 'Paramètres', icon: Settings, exclusiveSuperAdmin: true },
+  { id: 'commercial-activity', label: 'Activité Commerciale', icon: Briefcase, exclusiveSuperAdmin: false },
 ];
 
 // Pages exclusives Super Admin (ne peuvent jamais être assignées à d'autres rôles)
-export const SUPER_ADMIN_EXCLUSIVE_PAGES = ['super-dashboard', 'team', 'settings', 'data', 'roles'];
+export const SUPER_ADMIN_EXCLUSIVE_PAGES = ['super-dashboard', 'team', 'roles', 'data', 'settings'];
 
 // Fonction pour obtenir les pages selon le type d'organisation
 export function getPagesByOrganizationType(orgType: 'client' | 'supplier' | 'admin'): PageDefinition[] {

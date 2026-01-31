@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, UserPlus, AlertCircle, Eye, EyeOff, RefreshCw } from 'lucide-react';
+import { X, UserPlus, AlertCircle, Eye, EyeOff, RefreshCw, CheckCircle, Copy } from 'lucide-react';
 import type { MemberRole, OrganizationType } from '../../types/team';
 import { RoleSelector } from './RoleSelector';
 import { isValidEmail } from '../../utils/validation';
@@ -39,6 +39,12 @@ export const CreateMemberModal: React.FC<CreateMemberModalProps> = ({
   const [role, setRole] = useState<MemberRole | ''>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdMemberInfo, setCreatedMemberInfo] = useState<{
+    email: string;
+    fullName: string;
+    password: string;
+  } | null>(null);
 
   // Generate a random secure password
   const generatePassword = () => {
@@ -94,14 +100,14 @@ export const CreateMemberModal: React.FC<CreateMemberModalProps> = ({
       });
       
       if (success) {
-        // Reset form and close modal
-        setEmail('');
-        setFullName('');
-        setPhone('');
-        setPassword('');
-        setRole('');
-        setError(null);
-        onClose();
+        // Store member info and show success modal with password
+        setCreatedMemberInfo({
+          email: email.trim(),
+          fullName: fullName.trim(),
+          password: password,
+        });
+        setShowSuccessModal(true);
+        // Don't reset form or close modal yet - wait for user to see the password
       }
     } catch (err) {
       setError('Une erreur est survenue lors de la création du membre');
@@ -120,6 +126,19 @@ export const CreateMemberModal: React.FC<CreateMemberModalProps> = ({
       setError(null);
       onClose();
     }
+  };
+
+  const handleCloseSuccess = () => {
+    setShowSuccessModal(false);
+    setCreatedMemberInfo(null);
+    // Reset form
+    setEmail('');
+    setFullName('');
+    setPhone('');
+    setPassword('');
+    setRole('');
+    setError(null);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -308,6 +327,61 @@ export const CreateMemberModal: React.FC<CreateMemberModalProps> = ({
           </form>
         </div>
       </div>
+
+      {/* Success Modal with Password */}
+      {showSuccessModal && createdMemberInfo && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={handleCloseSuccess} />
+          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Membre créé avec succès !
+              </h3>
+              <p className="text-gray-600">
+                {createdMemberInfo.fullName} peut maintenant se connecter.
+              </p>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-3">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Email</p>
+                <p className="text-gray-900 font-mono">{createdMemberInfo.email}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Mot de passe</p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-gray-900 font-mono bg-yellow-50 px-2 py-1 rounded border border-yellow-200">
+                    {createdMemberInfo.password}
+                  </p>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(createdMemberInfo.password)}
+                    className="text-orange-600 hover:text-orange-700 p-1"
+                    title="Copier le mot de passe"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+              <p className="text-sm text-blue-800">
+                ℹ️ Communiquez ces identifiants au membre. Il pourra changer son mot de passe via "Mot de passe oublié".
+              </p>
+            </div>
+            
+            <button
+              onClick={handleCloseSuccess}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

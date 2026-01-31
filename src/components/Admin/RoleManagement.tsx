@@ -399,6 +399,9 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({ isOpen, onClose, onSubmit
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const availablePages = PAGES_BY_ORG_TYPE[formData.organizationType];
+  
+  // Filter out exclusive Super Admin pages for role assignment
+  const assignablePages = availablePages.filter(page => !page.exclusiveSuperAdmin);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -513,7 +516,7 @@ const RoleFormModal: React.FC<RoleFormModalProps> = ({ isOpen, onClose, onSubmit
                 Pages autorisées * ({formData.allowedPages.length} sélectionnée{formData.allowedPages.length > 1 ? 's' : ''})
               </label>
               <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-4">
-                {availablePages.map((page) => (
+                {assignablePages.map((page) => (
                   <label
                     key={page.id}
                     className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
