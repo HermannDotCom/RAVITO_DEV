@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, UserPlus, AlertCircle, Eye, EyeOff, RefreshCw, CheckCircle, Copy } from 'lucide-react';
+import { X, UserPlus, AlertCircle, Eye, EyeOff, RefreshCw, CheckCircle, Copy, Info } from 'lucide-react';
 import type { MemberRole, OrganizationType } from '../../types/team';
 import { RoleSelector } from './RoleSelector';
 import { isValidEmail } from '../../utils/validation';
@@ -367,9 +367,10 @@ export const CreateMemberModal: React.FC<CreateMemberModalProps> = ({
               </div>
             </div>
             
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6 flex items-start space-x-2">
+              <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-blue-800">
-                ℹ️ Communiquez ces identifiants au membre. Il pourra changer son mot de passe via "Mot de passe oublié".
+                Communiquez ces identifiants au membre. Il pourra changer son mot de passe via "Mot de passe oublié".
               </p>
             </div>
             

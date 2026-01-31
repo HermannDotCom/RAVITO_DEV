@@ -94,7 +94,11 @@ export async function createSalesRepresentative(
       return { success: false, error: error.message };
     }
 
-    return { success: true, data: newRep || undefined };
+    if (!newRep) {
+      return { success: false, error: 'Failed to create sales representative' };
+    }
+
+    return { success: true, data: newRep };
   } catch (error) {
     console.error('Exception creating sales representative:', error);
     return { success: false, error: 'Erreur lors de la création du commercial' };
@@ -121,7 +125,11 @@ export async function updateSalesRepresentative(
       return { success: false, error: error.message };
     }
 
-    return { success: true, data: updatedRep || undefined };
+    if (!updatedRep) {
+      return { success: false, error: 'Sales representative not found' };
+    }
+
+    return { success: true, data: updatedRep };
   } catch (error) {
     console.error('Exception updating sales representative:', error);
     return { success: false, error: 'Erreur lors de la mise à jour du commercial' };
