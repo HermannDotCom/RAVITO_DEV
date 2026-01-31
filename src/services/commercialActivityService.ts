@@ -20,7 +20,7 @@ export const getSalesRepByUserId = async (userId: string) => {
       .select('*')
       .eq('user_id', userId)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();  // ✅ CORRIGÉ
 
     if (error) {
       if (error.code === 'PGRST116') return null; // No rows
