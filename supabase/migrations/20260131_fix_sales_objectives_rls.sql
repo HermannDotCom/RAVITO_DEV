@@ -23,7 +23,9 @@ DROP POLICY IF EXISTS "admin_full_access_sales_objectives" ON sales_objectives;
 
 -- 2. Create a single comprehensive policy for ALL operations
 CREATE POLICY "admin_full_access_sales_objectives" ON sales_objectives
-FOR ALL USING (
+FOR ALL 
+TO authenticated
+USING (
   -- Super Admin via profiles.is_super_admin
   EXISTS (
     SELECT 1 FROM profiles p
