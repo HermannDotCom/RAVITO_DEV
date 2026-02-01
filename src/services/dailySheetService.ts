@@ -953,6 +953,9 @@ const mapDailySheet = (data: any): DailySheet => ({
   theoreticalRevenue:  data.theoretical_revenue || 0,
   cashDifference: data.cash_difference,
   expensesTotal: data.expenses_total || 0,
+  creditSales: data.credit_sales || 0,           // ✅ AJOUTÉ
+  creditPayments: data.credit_payments || 0,     // ✅ AJOUTÉ
+  creditBalanceEod: data.credit_balance_eod,     // ✅ AJOUTÉ
   notes: data.notes,
   closedAt: data.closed_at,
   closedBy: data. closed_by,
