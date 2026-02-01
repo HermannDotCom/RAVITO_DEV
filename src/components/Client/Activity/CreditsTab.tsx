@@ -80,6 +80,11 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
     userId: user?.id || '',
   });
 
+  // Calculate credit variation
+  const creditVariation = useMemo(() => {
+    return (sheet?.creditPayments || 0) - (sheet?.creditSales || 0);
+  }, [sheet?.creditPayments, sheet?.creditSales]);
+
   // Filter customers based on search term
   const filteredCustomers = useMemo(() => {
     if (!searchTerm.trim()) return customers;
@@ -273,7 +278,7 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
             <div className="h-px bg-blue-300 my-1"></div>
             
             <div className={`flex items-center justify-between p-2 sm:p-3 rounded-lg border-2 ${
-              (sheet.creditPayments || 0) - (sheet.creditSales || 0) >= 0
+              creditVariation >= 0
                 ? 'bg-green-50 border-green-300'
                 : 'bg-red-50 border-red-300'
             }`}>
@@ -282,12 +287,12 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
                 <p className="text-xs text-slate-600 mt-0.5">(Impact sur la caisse)</p>
               </div>
               <span className={`font-bold text-base sm:text-lg ${
-                (sheet.creditPayments || 0) - (sheet.creditSales || 0) >= 0
+                creditVariation >= 0
                   ? 'text-green-700'
                   : 'text-red-700'
               }`}>
-                {(sheet.creditPayments || 0) - (sheet.creditSales || 0) > 0 ? '+' : ''}
-                {new Intl.NumberFormat('fr-FR').format((sheet.creditPayments || 0) - (sheet.creditSales || 0))} FCFA
+                {creditVariation > 0 ? '+' : ''}
+                {new Intl.NumberFormat('fr-FR').format(creditVariation)} FCFA
               </span>
             </div>
           </div>
