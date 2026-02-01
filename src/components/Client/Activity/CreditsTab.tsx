@@ -291,8 +291,7 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
                   ? 'text-green-700'
                   : 'text-red-700'
               }`}>
-                {creditVariation > 0 ? '+' : ''}
-                {new Intl.NumberFormat('fr-FR').format(creditVariation)} FCFA
+                {creditVariation >= 0 ? '+' : '-'} {new Intl.NumberFormat('fr-FR').format(Math.abs(creditVariation))} FCFA
               </span>
             </div>
           </div>
