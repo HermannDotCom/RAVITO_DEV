@@ -24,6 +24,10 @@ interface CreditsTabProps {
   isReadOnly: boolean;
   onReload?: () => void;
   onAlertCountChange?: (count: number) => void;
+  sheet?: {
+    creditSales?: number;
+    creditPayments?: number;
+  };
 }
 
 export const CreditsTab: React.FC<CreditsTabProps> = ({
@@ -32,6 +36,7 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
   isReadOnly,
   onReload,
   onAlertCountChange,
+  sheet,
 }) => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
@@ -239,6 +244,55 @@ export const CreditsTab: React.FC<CreditsTabProps> = ({
         totalCredit={statistics.totalCredit}
         customersWithBalance={statistics.customersWithBalance}
       />
+
+      {/* Daily Recap Section */}
+      {sheet && (sheet.creditPayments || sheet.creditSales) && (
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <h3 className="text-base font-bold text-blue-900">📊 RÉCAPITULATIF DU JOUR</h3>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between p-2 sm:p-3 bg-white rounded-lg">
+              <span className="text-sm text-slate-700">Remboursements reçus</span>
+              <span className="font-bold text-green-600 text-sm sm:text-base">
+                +{new Intl.NumberFormat('fr-FR').format(sheet.creditPayments || 0)} FCFA
+              </span>
+            </div>
+            
+            <div className="flex items-center justify-between p-2 sm:p-3 bg-white rounded-lg">
+              <span className="text-sm text-slate-700">Nouveaux crédits</span>
+              <span className="font-bold text-orange-600 text-sm sm:text-base">
+                -{new Intl.NumberFormat('fr-FR').format(sheet.creditSales || 0)} FCFA
+              </span>
+            </div>
+            
+            <div className="h-px bg-blue-300 my-1"></div>
+            
+            <div className={`flex items-center justify-between p-2 sm:p-3 rounded-lg border-2 ${
+              (sheet.creditPayments || 0) - (sheet.creditSales || 0) >= 0
+                ? 'bg-green-50 border-green-300'
+                : 'bg-red-50 border-red-300'
+            }`}>
+              <div>
+                <span className="text-sm font-bold text-slate-900">Variation crédits</span>
+                <p className="text-xs text-slate-600 mt-0.5">(Impact sur la caisse)</p>
+              </div>
+              <span className={`font-bold text-base sm:text-lg ${
+                (sheet.creditPayments || 0) - (sheet.creditSales || 0) >= 0
+                  ? 'text-green-700'
+                  : 'text-red-700'
+              }`}>
+                {(sheet.creditPayments || 0) - (sheet.creditSales || 0) > 0 ? '+' : ''}
+                {new Intl.NumberFormat('fr-FR').format((sheet.creditPayments || 0) - (sheet.creditSales || 0))} FCFA
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Alerts Section */}
       {!alertsLoading && alerts.length > 0 && (

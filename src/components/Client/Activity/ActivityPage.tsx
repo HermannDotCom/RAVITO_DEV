@@ -299,6 +299,7 @@ export const ActivityPage: React. FC = () => {
               isReadOnly={sheet?.status === 'closed'}
               onReload={reload}
               onAlertCountChange={setCreditAlertsCount}
+              sheet={sheet}
             />
           )}
 

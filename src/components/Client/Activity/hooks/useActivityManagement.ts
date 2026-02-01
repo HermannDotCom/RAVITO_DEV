@@ -256,13 +256,20 @@ export function useActivityManagement({
   };
 
   // Calculate totals
+  const totalRevenue = stockLines.reduce((sum, line) => sum + (line.revenue || 0), 0);
+  const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const creditPayments = sheet?.creditPayments || 0;
+  const creditSales = sheet?.creditSales || 0;
+  const creditVariation = creditPayments - creditSales;
+
   const calculations = {
-    totalRevenue: stockLines.reduce((sum, line) => sum + (line.revenue || 0), 0),
-    totalExpenses: expenses.reduce((sum, exp) => sum + exp.amount, 0),
+    totalRevenue,
+    totalExpenses,
+    creditPayments,
+    creditSales,
+    creditVariation,
     expectedCash: sheet
-      ? sheet.openingCash +
-        stockLines.reduce((sum, line) => sum + (line.revenue || 0), 0) -
-        expenses.reduce((sum, exp) => sum + exp.amount, 0)
+      ? sheet.openingCash + totalRevenue - totalExpenses + creditVariation
       : 0,
     cashDifference: sheet?.cashDifference || 0,
     packagingAlerts: packaging.filter(
