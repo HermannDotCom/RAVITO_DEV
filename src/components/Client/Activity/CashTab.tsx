@@ -261,16 +261,6 @@ export const CashTab: React.FC<CashTabProps> = ({
 
           {/* Credit Sales (if any) - deducted from cash */}
           {sheet && (sheet.creditSales || 0) > 0 && (
-            <div className="flex items-center justify-between py-2 border-b border-slate-200">
-              <span className="text-slate-700 text-xs sm:text-sm">  └─ dont Ventes à crédit (non encaissées)</span>
-              <span className="font-medium text-orange-600 text-xs sm:text-sm">
-                - {formatCurrency(sheet.creditSales || 0)} FCFA
-              </span>
-            </div>
-          )}
-
-          {/* Credit Sales (if any) - deducted from cash */}
-          {sheet && (sheet.creditSales || 0) > 0 && (
             <div className="flex items-center justify-between py-2 border-b border-slate-200 text-sm">
               <span className="text-slate-700">- Ventes à crédit (non encaissées)</span>
               <span className="font-medium text-orange-600">
