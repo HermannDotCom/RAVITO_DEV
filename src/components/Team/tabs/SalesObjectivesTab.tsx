@@ -17,6 +17,15 @@ export const SalesObjectivesTab: React.FC = () => {
     error
   } = useSalesCommissions();
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[SalesObjectivesTab] Render - isLoading:', isLoading);
+    console.log('[SalesObjectivesTab] salesReps:', salesReps);
+    console.log('[SalesObjectivesTab] objectives:', objectives);
+    console.log('[SalesObjectivesTab] repsWithMetrics:', repsWithMetrics);
+    console.log('[SalesObjectivesTab] selectedPeriod:', selectedPeriod);
+  }, [isLoading, salesReps, objectives, repsWithMetrics, selectedPeriod]);
+
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({

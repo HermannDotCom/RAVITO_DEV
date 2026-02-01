@@ -86,7 +86,9 @@ export const useSalesCommissions = (): UseSalesCommissionsReturn => {
   // Load objectives for selected period
   const loadObjectives = useCallback(async () => {
     try {
+      console.log('[useSalesCommissions] Loading objectives for period:', selectedPeriod);
       const objs = await salesService.getObjectivesByPeriod(selectedPeriod);
+      console.log('[useSalesCommissions] Loaded objectives:', objs);
       setObjectives(objs);
     } catch (err) {
       console.error('Error loading objectives:', err);
@@ -130,7 +132,9 @@ export const useSalesCommissions = (): UseSalesCommissionsReturn => {
   // Load sales reps with metrics
   const loadRepsWithMetrics = useCallback(async () => {
     try {
+      console.log('[useSalesCommissions] Loading reps with metrics for period:', selectedPeriod);
       const reps = await salesService.getSalesRepsWithMetrics(selectedPeriod);
+      console.log('[useSalesCommissions] Loaded reps with metrics:', reps);
       setRepsWithMetrics(reps);
     } catch (err) {
       console.error('Error loading reps with metrics:', err);
