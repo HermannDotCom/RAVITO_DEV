@@ -9,6 +9,9 @@ interface CashTabProps {
   calculations: {
     totalRevenue: number;
     totalExpenses: number;
+    creditPayments: number;
+    creditSales: number;
+    creditVariation: number;
     expectedCash: number;
     cashDifference: number;
   };
@@ -283,6 +286,18 @@ export const CashTab: React.FC<CashTabProps> = ({
               - {formatCurrency(calculations.totalExpenses)} FCFA
             </span>
           </div>
+
+          {/* Credit Variation */}
+          {((calculations.creditPayments || 0) > 0 || (calculations.creditSales || 0) > 0) && (
+            <div className="flex items-center justify-between py-2 border-b border-slate-200 text-sm">
+              <span className="text-slate-700">Variation crédits</span>
+              <span className={`font-medium ${
+                calculations.creditVariation >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {calculations.creditVariation >= 0 ? '+' : '-'} {formatCurrency(Math.abs(calculations.creditVariation))} FCFA
+              </span>
+            </div>
+          )}
 
           {/* Expected cash */}
           <div className="flex items-center justify-between py-2 sm:py-3 bg-blue-50 rounded-lg px-2 sm:px-3 border border-blue-200">

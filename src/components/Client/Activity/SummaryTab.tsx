@@ -13,6 +13,9 @@ interface SummaryTabProps {
   calculations: {
     totalRevenue: number;
     totalExpenses: number;
+    creditPayments: number;
+    creditSales: number;
+    creditVariation: number;
     expectedCash: number;
     cashDifference: number;
     packagingAlerts: DailyPackaging[];
