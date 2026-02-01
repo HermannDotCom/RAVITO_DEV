@@ -175,7 +175,7 @@ export const useSalesCommissions = (): UseSalesCommissionsReturn => {
     }
   }, []);
 
-  // Initial load
+  // Initial load - CORRIGÉ : ajout de loadRepsWithMetrics
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -187,7 +187,8 @@ export const useSalesCommissions = (): UseSalesCommissionsReturn => {
           loadObjectives(),
           loadSettings(),
           loadPayments(),
-          loadPaymentHistory()
+          loadPaymentHistory(),
+          loadRepsWithMetrics()  // ✅ AJOUTÉ
         ]);
       } catch (err) {
         console.error('Error loading data:', err);
@@ -198,7 +199,7 @@ export const useSalesCommissions = (): UseSalesCommissionsReturn => {
     };
     
     loadData();
-  }, [loadSalesReps, loadObjectives, loadSettings, loadPayments, loadPaymentHistory]);
+  }, [loadSalesReps, loadObjectives, loadSettings, loadPayments, loadPaymentHistory, loadRepsWithMetrics]); // ✅ AJOUTÉ loadRepsWithMetrics
 
   // Refresh dashboard when period changes
   const refreshDashboard = useCallback(async () => {
@@ -216,12 +217,15 @@ export const useSalesCommissions = (): UseSalesCommissionsReturn => {
   // Refresh objectives
   const refreshObjectives = useCallback(async () => {
     try {
-      await loadObjectives();
+      await Promise.all([
+        loadObjectives(),
+        loadRepsWithMetrics()  // ✅ AJOUTÉ pour rafraîchir aussi les metrics
+      ]);
     } catch (err) {
       console.error('Error refreshing objectives:', err);
       setError('Erreur lors du rafraîchissement des objectifs');
     }
-  }, [loadObjectives]);
+  }, [loadObjectives, loadRepsWithMetrics]);
 
   // Refresh payments
   const refreshPayments = useCallback(async () => {
@@ -236,7 +240,7 @@ export const useSalesCommissions = (): UseSalesCommissionsReturn => {
     }
   }, [loadPayments, loadPaymentHistory]);
 
-  // Full refresh
+  // Full refresh - CORRIGÉ : ajout de loadRepsWithMetrics
   const refresh = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -247,7 +251,8 @@ export const useSalesCommissions = (): UseSalesCommissionsReturn => {
         loadObjectives(),
         loadSettings(),
         loadPayments(),
-        loadPaymentHistory()
+        loadPaymentHistory(),
+        loadRepsWithMetrics()  // ✅ AJOUTÉ
       ]);
     } catch (err) {
       console.error('Error refreshing:', err);
@@ -255,7 +260,7 @@ export const useSalesCommissions = (): UseSalesCommissionsReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, [loadSalesReps, loadObjectives, loadSettings, loadPayments, loadPaymentHistory]);
+  }, [loadSalesReps, loadObjectives, loadSettings, loadPayments, loadPaymentHistory, loadRepsWithMetrics]); // ✅ AJOUTÉ loadRepsWithMetrics
 
   // Create or update objective
   const createOrUpdateObjective = useCallback(
