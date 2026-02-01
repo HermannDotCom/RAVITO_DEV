@@ -493,8 +493,8 @@ export const closeDailySheet = async (
 ): Promise<{ success: boolean; error: string | null }> => {
   try {
     // Calculate cash difference: closing_cash - expected_cash
-    // expected_cash = opening_cash + theoretical_revenue - expenses_total
-    const expectedCash = closeData.openingCash + closeData.theoreticalRevenue - closeData.expensesTotal;
+    // expected_cash = opening_cash + theoretical_revenue - expenses_total + credit_variation
+    const expectedCash = closeData.openingCash + closeData.theoreticalRevenue - closeData.expensesTotal + creditVariation;
     const cashDifference = closeData.closingCash - expectedCash;
 
     const { error } = await supabase
