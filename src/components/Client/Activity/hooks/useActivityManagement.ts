@@ -219,6 +219,7 @@ export function useActivityManagement({
         theoreticalRevenue: calculations.totalRevenue,
         expensesTotal: calculations.totalExpenses,
         openingCash: sheet.openingCash,
+        creditVariation: calculations.creditVariation,
         notes: closeData.notes
       },
       userId
