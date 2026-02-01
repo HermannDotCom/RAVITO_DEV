@@ -348,6 +348,19 @@ export const CashTab: React.FC<CashTabProps> = ({
                   {formatCurrency(displayedCashDifference)} FCFA
                 </span>
               </div>
+
+              {/* Notes/Observations (if closed and has notes) */}
+              {sheet.notes && (
+                <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
+                  <div className="flex items-start gap-2">
+                    <span className="text-amber-600 text-sm">📝</span>
+                    <div>
+                      <span className="text-xs font-medium text-amber-700 uppercase">Observations</span>
+                      <p className="text-sm text-slate-800 mt-1">{sheet.notes}</p>
+                    </div>
+                  </div>
+                </div>
+              )}  
             </>
           )}
         </div>
