@@ -288,7 +288,7 @@ export const CashTab: React.FC<CashTabProps> = ({
           </div>
 
           {/* Credit Variation */}
-          {(calculations.creditPayments > 0 || calculations.creditSales > 0) && (
+          {((calculations.creditPayments || 0) > 0 || (calculations.creditSales || 0) > 0) && (
             <div className="flex items-center justify-between py-2 border-b border-slate-200 text-sm">
               <span className="text-slate-700">
                 {calculations.creditVariation >= 0 ? '+ ' : '- '}Variation crédits
