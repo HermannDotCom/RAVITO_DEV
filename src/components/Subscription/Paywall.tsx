@@ -10,6 +10,8 @@ interface PaywallProps {
 }
 
 export const Paywall: React.FC<PaywallProps> = ({ plans, onSelectPlan, loading }) => {
+  console.log('[Paywall] Rendering with plans:', plans.length, 'loading:', loading);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex items-center justify-center p-4">
       <div className="max-w-6xl w-full">
@@ -45,6 +47,14 @@ export const Paywall: React.FC<PaywallProps> = ({ plans, onSelectPlan, loading }
               <div className="w-16 h-16 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
               <p className="text-gray-600">Chargement des offres...</p>
             </div>
+          </div>
+        ) : plans.length === 0 ? (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center">
+            <p className="text-red-900 font-semibold mb-2">Aucun plan disponible</p>
+            <p className="text-red-700 text-sm">
+              Les plans d'abonnement ne sont pas disponibles pour le moment.
+              Veuillez réessayer ou contacter le support.
+            </p>
           </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-6 mb-8">

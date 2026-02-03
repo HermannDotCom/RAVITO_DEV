@@ -79,16 +79,24 @@ const transformInvoice = (data: any): SubscriptionInvoice => ({
 
 export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
   try {
+    console.log('[SubscriptionService] Fetching subscription plans...');
     const { data, error } = await supabase
       .from('subscription_plans')
       .select('*')
       .eq('is_active', true)
       .order('display_order');
 
-    if (error) throw error;
-    return (data || []).map(transformPlan);
+    if (error) {
+      console.error('[SubscriptionService] Error fetching plans:', error);
+      throw error;
+    }
+
+    console.log('[SubscriptionService] Plans fetched:', data?.length || 0, 'plans');
+    const plans = (data || []).map(transformPlan);
+    console.log('[SubscriptionService] Plans transformed:', plans);
+    return plans;
   } catch (error) {
-    console.error('Error fetching subscription plans:', error);
+    console.error('[SubscriptionService] Error fetching subscription plans:', error);
     throw error;
   }
 };

@@ -59,31 +59,36 @@ export const useSubscription = (): UseSubscriptionReturn => {
 
   // Charger les données
   const loadData = useCallback(async () => {
-    if (!organization?.id) {
-      setLoading(false);
-      return;
-    }
-
     try {
+      console.log('[useSubscription] Starting to load data, organization:', organization?.id);
       setLoading(true);
       setError(null);
 
-      // Charger en parallèle
-      const [subscriptionData, plansData] = await Promise.all([
-        subscriptionService.getOrganizationSubscription(organization.id),
-        subscriptionService.getSubscriptionPlans()
-      ]);
-
-      setSubscription(subscriptionData);
+      // TOUJOURS charger les plans (ils sont publics)
+      console.log('[useSubscription] Loading plans...');
+      const plansData = await subscriptionService.getSubscriptionPlans();
+      console.log('[useSubscription] Plans loaded:', plansData.length);
       setPlans(plansData);
 
-      // Charger les factures si l'abonnement existe
-      if (subscriptionData) {
-        const invoicesData = await subscriptionService.getSubscriptionInvoices(subscriptionData.id);
-        setInvoices(invoicesData);
+      // Charger l'abonnement et les factures SEULEMENT si on a une organisation
+      if (organization?.id) {
+        console.log('[useSubscription] Loading subscription for org:', organization.id);
+        const subscriptionData = await subscriptionService.getOrganizationSubscription(organization.id);
+        console.log('[useSubscription] Subscription loaded:', subscriptionData?.id);
+        setSubscription(subscriptionData);
+
+        // Charger les factures si l'abonnement existe
+        if (subscriptionData) {
+          console.log('[useSubscription] Loading invoices...');
+          const invoicesData = await subscriptionService.getSubscriptionInvoices(subscriptionData.id);
+          console.log('[useSubscription] Invoices loaded:', invoicesData.length);
+          setInvoices(invoicesData);
+        }
+      } else {
+        console.log('[useSubscription] No organization yet, skipping subscription load');
       }
     } catch (err) {
-      console.error('Error loading subscription data:', err);
+      console.error('[useSubscription] Error loading subscription data:', err);
       setError('Erreur lors du chargement des données d\'abonnement');
     } finally {
       setLoading(false);
