@@ -83,6 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
       case 'client':
         allMenuItems = [
           { id: 'dashboard', label: 'Accueil', icon: Home, moduleKey: 'dashboard' },
+          { id: 'activity', label: 'Gestion Activité', icon: ClipboardList, moduleKey: 'activity' },
           { id: 'catalog', label: 'Catalogue', icon: ShoppingBag, moduleKey: 'catalog' },
           { id: 'cart', label: 'Panier', icon: ShoppingCart, moduleKey: 'cart' },
           { id: 'orders', label: 'Mes Commandes', icon: Package, moduleKey: 'orders' },
@@ -131,7 +132,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         allSecondaryItems = [
           { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
           { id: 'treasury', label: 'Trésorerie', icon: Wallet, moduleKey: 'treasury' },
-          { id: 'activity', label: 'Gestion Activité', icon: ClipboardList, moduleKey: 'activity' },
           { id: 'ravito-gestion-subscription', label: 'Mon Abonnement', icon: CreditCard, moduleKey: 'ravito-gestion-subscription' },
           { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
           { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
