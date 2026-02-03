@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { useNavigate } from '../hooks/useSimpleRouter';
 import { useSubscription } from '../hooks/useSubscription';
 import { useToast } from '../context/ToastContext';
 import { Paywall } from '../components/Subscription/Paywall';
 import { ArrowLeft, CheckCircle, Clock } from 'lucide-react';
-import { formatCurrency, calculateProrata } from '../types/subscription';
+import { formatCurrency } from '../types/subscription';
+import { calculateProrata } from '../services/ravitoGestionSubscriptionService';
 import type { SubscriptionPlan } from '../types/subscription';
 
-export const RavitoGestionSubscription: React.FC = () => {
-  const navigate = useNavigate();
+interface RavitoGestionSubscriptionProps {
+  onSectionChange?: (section: string) => void;
+}
+
+export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps> = ({ onSectionChange }) => {
   const { showToast } = useToast();
   const {
     subscription,
@@ -43,7 +46,9 @@ export const RavitoGestionSubscription: React.FC = () => {
       if (success) {
         showToast('Abonnement créé avec succès ! Votre période d\'essai gratuit a commencé.', 'success');
         // Rediriger vers la page d'activité
-        navigate('/activity');
+        if (onSectionChange) {
+          onSectionChange('activity');
+        }
       } else {
         showToast('Erreur lors de la création de l\'abonnement', 'error');
       }
@@ -58,8 +63,8 @@ export const RavitoGestionSubscription: React.FC = () => {
   const handleBack = () => {
     if (selectedPlanId) {
       setSelectedPlanId(null);
-    } else {
-      navigate('/');
+    } else if (onSectionChange) {
+      onSectionChange('dashboard');
     }
   };
 
@@ -76,7 +81,7 @@ export const RavitoGestionSubscription: React.FC = () => {
             Vous avez déjà un abonnement {subscription.status === 'trial' ? 'd\'essai gratuit' : 'actif'}.
           </p>
           <button
-            onClick={() => navigate('/activity')}
+            onClick={() => onSectionChange && onSectionChange('activity')}
             className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold"
           >
             Accéder à Gestion Activité

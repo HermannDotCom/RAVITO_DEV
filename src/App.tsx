@@ -98,6 +98,9 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { useRealtimeOrders } from './hooks/useRealtimeOrders';
 import { usePendingRatings } from './hooks/usePendingRatings';
 import { useOrder } from './context/OrderContext';
+import { SubscriptionManagementPage } from './components/Admin/SubscriptionManagement';
+import { RavitoGestionSubscription } from './pages/RavitoGestionSubscription';
+import { SubscriptionGuard } from './components/Subscription/SubscriptionGuard';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing, sessionError, refreshSession, logout, clearSessionError } = useAuth();
@@ -236,7 +239,13 @@ const AppContent: React.FC = () => {
           case 'treasury':
             return <ClientTreasury />;
           case 'activity':
-            return <ActivityPage />;
+            return (
+              <SubscriptionGuard onSectionChange={setActiveSection}>
+                <ActivityPage />
+              </SubscriptionGuard>
+            );
+          case 'ravito-gestion-subscription':
+            return <RavitoGestionSubscription onSectionChange={setActiveSection} />;
           case 'team':
             return <TeamPage />;
           case 'commercial-activity':
@@ -332,6 +341,8 @@ const AppContent: React.FC = () => {
             return <SystemSettings />;
           case 'tickets':
             return <TicketManagement />;
+          case 'subscriptions':
+            return <SubscriptionManagementPage />;
           default:
             return <SuperAdminDashboard />;
         }

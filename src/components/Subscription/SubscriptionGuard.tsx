@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from '../../hooks/useSimpleRouter';
 import { useSubscription } from '../../hooks/useSubscription';
 import { Paywall } from './Paywall';
 import { Clock } from 'lucide-react';
@@ -8,6 +7,7 @@ import { formatCurrency } from '../../types/subscription';
 interface SubscriptionGuardProps {
   children: React.ReactNode;
   feature?: string;
+  onSectionChange?: (section: string) => void;
 }
 
 /**
@@ -16,9 +16,9 @@ interface SubscriptionGuardProps {
  */
 export const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
   children,
-  feature = 'Gestion Activité'
+  feature = 'Gestion Activité',
+  onSectionChange
 }) => {
-  const navigate = useNavigate();
   const {
     subscription,
     plans,
@@ -29,7 +29,9 @@ export const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
   } = useSubscription();
 
   const handleSelectPlan = (planId: string) => {
-    navigate(`/ravito-gestion-subscription?planId=${planId}`);
+    if (onSectionChange) {
+      onSectionChange('ravito-gestion-subscription');
+    }
   };
 
   // Affichage du loader pendant le chargement
@@ -69,7 +71,7 @@ export const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
               </span>
             </div>
             <button
-              onClick={() => navigate('/ravito-gestion-subscription')}
+              onClick={() => onSectionChange && onSectionChange('ravito-gestion-subscription')}
               className="bg-white text-green-600 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-green-50 transition-colors"
             >
               Voir les offres
@@ -90,8 +92,7 @@ export const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
 /**
  * Variante simplifiée pour les clients avec abonnement suspendu
  */
-export const SuspendedAccountMessage: React.FC = () => {
-  const navigate = useNavigate();
+export const SuspendedAccountMessage: React.FC<{ onSectionChange?: (section: string) => void }> = ({ onSectionChange }) => {
   const { subscription } = useSubscription();
 
   if (subscription?.status !== 'suspended') {
@@ -112,7 +113,7 @@ export const SuspendedAccountMessage: React.FC = () => {
           Contactez notre équipe pour régulariser votre situation.
         </p>
         <button
-          onClick={() => navigate('/contact')}
+          onClick={() => onSectionChange && onSectionChange('support')}
           className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold"
         >
           Contacter le support
@@ -125,9 +126,7 @@ export const SuspendedAccountMessage: React.FC = () => {
 /**
  * Message pour les utilisateurs en attente de paiement
  */
-export const PendingPaymentMessage: React.FC<{ invoiceAmount?: number }> = ({ invoiceAmount }) => {
-  const navigate = useNavigate();
-
+export const PendingPaymentMessage: React.FC<{ invoiceAmount?: number; onSectionChange?: (section: string) => void }> = ({ invoiceAmount, onSectionChange }) => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
@@ -153,7 +152,7 @@ export const PendingPaymentMessage: React.FC<{ invoiceAmount?: number }> = ({ in
           puis contactez notre équipe pour validation.
         </p>
         <button
-          onClick={() => navigate('/contact')}
+          onClick={() => onSectionChange && onSectionChange('support')}
           className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold"
         >
           Contacter le support

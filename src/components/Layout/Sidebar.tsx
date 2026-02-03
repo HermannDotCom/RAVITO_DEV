@@ -105,6 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'orders', label: 'Commandes', icon: Package, moduleKey: 'orders' },
           { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag, moduleKey: 'products' },
           { id: 'treasury', label: 'Tresorerie', icon: CreditCard, moduleKey: 'treasury' },
+          { id: 'subscriptions', label: 'Gestion d\'abonnements', icon: CreditCard, moduleKey: 'subscriptions' },
           { id: 'zones', label: 'Zones de Livraison', icon: MapPin, moduleKey: 'zones' },
           { id: 'team', label: 'Mon Equipe', icon: Users, moduleKey: 'team' },
           { id: 'roles', label: 'Gestion des Roles', icon: Shield, moduleKey: 'roles' },
@@ -131,6 +132,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
           { id: 'treasury', label: 'Trésorerie', icon: Wallet, moduleKey: 'treasury' },
           { id: 'activity', label: 'Gestion Activité', icon: ClipboardList, moduleKey: 'activity' },
+          { id: 'ravito-gestion-subscription', label: 'Mon Abonnement', icon: CreditCard, moduleKey: 'ravito-gestion-subscription' },
           { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
           { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
         ];

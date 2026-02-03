@@ -439,6 +439,54 @@ export const adminReactivateSubscription = async (
 // ============================================
 
 /**
+ * Obtenir les paramètres d'abonnement
+ */
+export const getSubscriptionSettings = async (): Promise<SubscriptionSettings | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('subscription_settings')
+      .select('*')
+      .limit(1)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No settings found, return default values
+        return {
+          id: '',
+          trialDurationDays: 30,
+          autoSuspendAfterTrial: true,
+          reminderDays: {
+            monthly: [15, 7, 2],
+            semesterly: [60, 30, 15],
+            annually: [90, 60, 30, 15]
+          },
+          gracePeriodDays: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          updatedBy: null
+        };
+      }
+      throw error;
+    }
+
+    return {
+      id: data.id,
+      trialDurationDays: data.trial_duration_days,
+      autoSuspendAfterTrial: data.auto_suspend_after_trial,
+      reminderDays: data.reminder_days,
+      gracePeriodDays: data.grace_period_days,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
+      updatedBy: data.updated_by
+    };
+  } catch (error) {
+    console.error('Error fetching subscription settings:', error);
+    throw error;
+  }
+};
+
+/**
  * Mettre à jour les paramètres d'abonnement
  */
 export const updateSubscriptionSettings = async (
