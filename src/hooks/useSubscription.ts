@@ -37,12 +37,13 @@ interface UseSubscriptionReturn {
  */
 export const useSubscription = (): UseSubscriptionReturn => {
   const { user } = useAuth();
-  const { organization } = useOrganization();
+  const { organizationId } = useOrganization();
 
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [invoices, setInvoices] = useState<SubscriptionInvoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreatingSubscription, setIsCreatingSubscription] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Calculer le nombre de jours restants dans l'essai gratuit
@@ -71,9 +72,9 @@ export const useSubscription = (): UseSubscriptionReturn => {
       setPlans(plansData);
 
       // Charger l'abonnement et les factures SEULEMENT si on a une organisation
-      if (organization?.id) {
-        console.log('[useSubscription] Loading subscription for org:', organization.id);
-        const subscriptionData = await subscriptionService.getOrganizationSubscription(organization.id);
+      if (organizationId) {
+        console.log('[useSubscription] Loading subscription for org:', organizationId);
+        const subscriptionData = await subscriptionService.getOrganizationSubscription(organizationId);
         console.log('[useSubscription] Subscription loaded:', subscriptionData?.id);
         setSubscription(subscriptionData);
 
@@ -93,7 +94,7 @@ export const useSubscription = (): UseSubscriptionReturn => {
     } finally {
       setLoading(false);
     }
-  }, [organization?.id]);
+  }, [organizationId]);
 
   // Charger au montage et quand l'organisation change
   useEffect(() => {
@@ -103,21 +104,23 @@ export const useSubscription = (): UseSubscriptionReturn => {
   // Créer un nouvel abonnement
   const createSubscription = useCallback(
     async (planId: string): Promise<boolean> => {
-      if (!user?.id || !organization?.id) {
+      if (!user?.id || !organizationId) {
         setError('Utilisateur ou organisation non trouvé');
         return false;
       }
 
       try {
-        setLoading(true);
+        setIsCreatingSubscription(true);
         setError(null);
 
         const data: CreateSubscriptionData = {
-          organizationId: organization.id,
+          organizationId,
           planId
         };
 
+        console.log('[useSubscription] Creating subscription with data:', data);
         const newSubscription = await subscriptionService.createSubscription(data);
+        console.log('[useSubscription] Subscription created:', newSubscription.id);
         setSubscription(newSubscription);
 
         // Recharger les données
@@ -129,10 +132,10 @@ export const useSubscription = (): UseSubscriptionReturn => {
         setError('Erreur lors de la création de l\'abonnement');
         return false;
       } finally {
-        setLoading(false);
+        setIsCreatingSubscription(false);
       }
     },
-    [user?.id, organization?.id, loadData]
+    [user?.id, organizationId, loadData]
   );
 
   // Rafraîchir les données

@@ -85,7 +85,8 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
   const paidInvoices = invoices.filter(inv => inv.status === 'paid');
 
   // Si l'utilisateur a déjà un abonnement, afficher la gestion d'abonnement
-  if (subscription && !loading && !selectedPlanId) {
+  // (pas de check sur loading car on veut continuer à afficher l'abonnement pendant le rechargement)
+  if (subscription && !selectedPlanId) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-4xl mx-auto">
