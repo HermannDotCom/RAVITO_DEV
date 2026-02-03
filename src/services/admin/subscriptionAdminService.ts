@@ -91,7 +91,26 @@ export const getAllSubscriptions = async (
     let query = supabase
       .from('subscriptions')
       .select(`
-        *,
+        id,
+        organization_id,
+        plan_id,
+        status,
+        is_first_subscription,
+        trial_start_date,
+        trial_end_date,
+        current_period_start,
+        current_period_end,
+        next_billing_date,
+        amount_due,
+        is_prorata,
+        prorata_days,
+        subscribed_at,
+        activated_at,
+        suspended_at,
+        cancelled_at,
+        cancellation_reason,
+        created_at,
+        updated_at,
         subscription_plans (*),
         organizations (id, name)
       `)
