@@ -61,7 +61,7 @@ export const useSubscription = (): UseSubscriptionReturn => {
   // Charger les données
   const loadData = useCallback(async () => {
     try {
-      console.log('[useSubscription] Starting to load data, organization:', organization?.id);
+      console.log('[useSubscription] Starting to load data, organization:', organizationId);
       setLoading(true);
       setError(null);
 
