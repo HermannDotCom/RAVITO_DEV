@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSubscription } from '../hooks/useSubscription';
 import { useToast } from '../context/ToastContext';
 import { Paywall } from '../components/Subscription/Paywall';
-import { ArrowLeft, CheckCircle, Clock } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, CreditCard, AlertCircle, Info, FileText } from 'lucide-react';
 import { formatCurrency } from '../types/subscription';
 import { calculateProrata } from '../services/ravitoGestionSubscriptionService';
 import type { SubscriptionPlan } from '../types/subscription';
@@ -16,15 +16,21 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
   const {
     subscription,
     plans,
+    invoices,
     loading,
     error: subscriptionError,
-    createSubscription
+    createSubscription,
+    isInTrial,
+    isPendingPayment,
+    isSuspended,
+    daysLeftInTrial
   } = useSubscription();
 
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
+  const currentPlan = subscription?.plan;
 
   // Si un plan est sélectionné, on calcule le prorata
   const prorataInfo = selectedPlan
@@ -68,30 +74,244 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
     }
   };
 
-  // Si l'utilisateur a déjà un abonnement actif, on le redirige
-  if (subscription && !loading) {
+  const handleContactSupport = () => {
+    if (onSectionChange) {
+      onSectionChange('support');
+    }
+  };
+
+  // Filtrer les factures impayées
+  const unpaidInvoices = invoices.filter(inv => inv.status === 'pending' || inv.status === 'overdue');
+  const paidInvoices = invoices.filter(inv => inv.status === 'paid');
+
+  // Si l'utilisateur a déjà un abonnement, afficher la gestion d'abonnement
+  if (subscription && !loading && !selectedPlanId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
-          <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Abonnement actif
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Vous avez déjà un abonnement {subscription.status === 'trial' ? 'd\'essai gratuit' : 'actif'}.
-          </p>
+      <div className="min-h-screen bg-gray-50 p-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Bouton retour */}
           <button
-            onClick={() => onSectionChange && onSectionChange('activity')}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold"
+            onClick={handleBack}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
           >
-            Accéder à Gestion Activité
+            <ArrowLeft className="w-5 h-5" />
+            <span>Retour</span>
           </button>
+
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">Mon Abonnement Ravito Gestion</h1>
+
+          {/* Statut de l'abonnement */}
+          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Statut de l'abonnement</h2>
+
+            {/* Badge de statut */}
+            <div className="flex items-center space-x-4 mb-4">
+              {isInTrial && (
+                <div className="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-800 rounded-full">
+                  <Clock className="w-5 h-5" />
+                  <span className="font-medium">Période d'essai - {daysLeftInTrial} jour{daysLeftInTrial && daysLeftInTrial > 1 ? 's' : ''} restant{daysLeftInTrial && daysLeftInTrial > 1 ? 's' : ''}</span>
+                </div>
+              )}
+              {subscription.status === 'active' && (
+                <div className="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-800 rounded-full">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-medium">Abonnement actif</span>
+                </div>
+              )}
+              {isPendingPayment && (
+                <div className="flex items-center space-x-2 px-4 py-2 bg-orange-100 text-orange-800 rounded-full">
+                  <AlertCircle className="w-5 h-5" />
+                  <span className="font-medium">En attente de paiement</span>
+                </div>
+              )}
+              {isSuspended && (
+                <div className="flex items-center space-x-2 px-4 py-2 bg-red-100 text-red-800 rounded-full">
+                  <AlertCircle className="w-5 h-5" />
+                  <span className="font-medium">Abonnement suspendu</span>
+                </div>
+              )}
+            </div>
+
+            {/* Détails du plan */}
+            {currentPlan && (
+              <div className="border border-gray-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-gray-900">Plan {currentPlan.name}</h3>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {formatCurrency(currentPlan.price)}
+                    <span className="text-sm font-normal text-gray-600 ml-1">
+                      / {currentPlan.billingCycle === 'monthly' ? 'mois' : currentPlan.billingCycle === 'semesterly' ? 'semestre' : 'an'}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-gray-600 text-sm">{currentPlan.description}</p>
+              </div>
+            )}
+
+            {/* Prochaine date de facturation */}
+            {subscription.nextBillingDate && subscription.status === 'active' && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-gray-900">Prochaine facturation</p>
+                    <p className="text-gray-600 text-sm">
+                      {subscription.nextBillingDate.toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Factures en attente de paiement */}
+          {unpaidInvoices.length > 0 && (
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                <FileText className="w-6 h-6" />
+                <span>Factures en attente</span>
+              </h2>
+
+              <div className="space-y-4">
+                {unpaidInvoices.map((invoice) => (
+                  <div key={invoice.id} className="border border-orange-200 bg-orange-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="font-semibold text-gray-900">Facture {invoice.invoiceNumber}</p>
+                        <p className="text-sm text-gray-600">
+                          Période : {invoice.periodStart.toLocaleDateString('fr-FR')} - {invoice.periodEnd.toLocaleDateString('fr-FR')}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Date d'échéance : {invoice.dueDate.toLocaleDateString('fr-FR')}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">Montant à payer</p>
+                        <p className="text-2xl font-bold text-orange-600">{formatCurrency(invoice.amount)}</p>
+                      </div>
+                    </div>
+
+                    {invoice.isProrata && (
+                      <div className="bg-white border border-orange-200 rounded p-3 mb-3">
+                        <p className="text-sm text-gray-700">
+                          <strong>Montant au prorata :</strong> Cette facture correspond à {invoice.daysCalculated} jours de service.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Instructions de paiement */}
+                    <div className="bg-white rounded-lg p-4 mb-3">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
+                        <CreditCard className="w-5 h-5" />
+                        <span>Comment payer ?</span>
+                      </h4>
+
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-700">
+                          Effectuez votre paiement via l'un des moyens suivants :
+                        </p>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p className="font-semibold text-gray-900 mb-1">Espèces</p>
+                            <p className="text-xs text-gray-600">Paiement en liquide</p>
+                          </div>
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p className="font-semibold text-gray-900 mb-1">Wave</p>
+                            <p className="text-xs text-gray-600">Transfert mobile</p>
+                          </div>
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p className="font-semibold text-gray-900 mb-1">Orange Money</p>
+                            <p className="text-xs text-gray-600">Transfert mobile</p>
+                          </div>
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                            <p className="font-semibold text-gray-900 mb-1">MTN Money</p>
+                            <p className="text-xs text-gray-600">Transfert mobile</p>
+                          </div>
+                        </div>
+
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <p className="text-sm text-blue-900">
+                            <strong>Important :</strong> Après avoir effectué votre paiement, contactez notre équipe support avec votre référence de transaction pour validation.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleContactSupport}
+                      className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold transition-colors"
+                    >
+                      Contacter le support après paiement
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Historique des paiements */}
+          {paidInvoices.length > 0 && (
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Historique des paiements</h2>
+
+              <div className="space-y-3">
+                {paidInvoices.map((invoice) => (
+                  <div key={invoice.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-gray-900">Facture {invoice.invoiceNumber}</p>
+                        <p className="text-sm text-gray-600">
+                          Payée le {invoice.paidAt?.toLocaleDateString('fr-FR')}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Période : {invoice.periodStart.toLocaleDateString('fr-FR')} - {invoice.periodEnd.toLocaleDateString('fr-FR')}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                          <span className="text-sm font-medium text-green-600">Payée</span>
+                        </div>
+                        <p className="text-lg font-bold text-gray-900">{formatCurrency(invoice.amount)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Message si abonnement suspendu */}
+          {isSuspended && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 mt-6">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="w-6 h-6 text-red-600 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-red-900 mb-2">Abonnement suspendu</h3>
+                  <p className="text-red-700 mb-4">
+                    Votre abonnement a été suspendu. Veuillez régulariser votre situation en payant les factures en attente.
+                  </p>
+                  <button
+                    onClick={handleContactSupport}
+                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+                  >
+                    Contacter le support
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
-  // Étape 1: Sélection du plan (Paywall)
+  // Étape 1: Sélection du plan (Paywall) - pour les nouveaux utilisateurs
   if (!selectedPlanId) {
     return (
       <div>
