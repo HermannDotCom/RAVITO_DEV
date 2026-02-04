@@ -385,19 +385,25 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
               </h4>
               <div className="space-y-3">
                 <div className="flex justify-between">
+                  <span className="text-gray-600">Date de fin de période d'essai</span>
+                  <span className="font-semibold text-gray-900">
+                    {prorataInfo.trialEndDate.toLocaleDateString('fr-FR')}
+                  </span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-gray-600">Montant au prorata</span>
                   <span className="font-semibold text-gray-900">
                     {formatCurrency(prorataInfo.amount)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Jours jusqu'à la fin de période</span>
+                  <span className="text-gray-600">Jours jusqu'à la fin de période calendaire</span>
                   <span className="font-semibold text-gray-900">
                     {prorataInfo.daysRemaining} jours
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Date de fin de période</span>
+                  <span className="text-gray-600">Date de fin de période calendaire</span>
                   <span className="font-semibold text-gray-900">
                     {prorataInfo.periodEnd.toLocaleDateString('fr-FR')}
                   </span>

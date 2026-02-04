@@ -201,12 +201,23 @@ export const createSubscription = async (
  */
 export const calculateProrata = (
   plan: SubscriptionPlan,
-  startDate: Date
+  subscriptionDate: Date
 ): ProrataCalculation => {
-  const periodEnd = calculatePeriodEnd(startDate, plan.billingCycle);
-  const daysRemaining = Math.ceil((periodEnd.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  const totalDaysInPeriod = plan.daysInCycle;
-
+  // Calculer la fin de l'essai gratuit (30 jours après souscription)
+  const trialEndDate = new Date(subscriptionDate);
+  trialEndDate.setDate(trialEndDate.getDate() + 30);
+  
+  // Calculer la fin de période calendaire APRÈS l'essai
+  const periodEnd = calculatePeriodEnd(trialEndDate, plan.billingCycle);
+  
+  // Jours entre fin essai et fin période
+  const daysRemaining = Math.ceil(
+    (periodEnd.getTime() - trialEndDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  
+  // Diviseur selon le cycle
+  const totalDaysInPeriod = plan.daysInCycle; // 31, 183, ou 365
+  
   const amount = Math.round((plan.price * daysRemaining) / totalDaysInPeriod);
 
   return {
@@ -214,6 +225,7 @@ export const calculateProrata = (
     daysRemaining,
     totalDaysInPeriod,
     periodEnd,
+    trialEndDate,
     fullPrice: plan.price
   };
 };

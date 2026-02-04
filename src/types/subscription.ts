@@ -289,6 +289,7 @@ export interface ProrataCalculation {
   daysRemaining: number;
   totalDaysInPeriod: number;
   periodEnd: Date;
+  trialEndDate: Date;
   fullPrice: number;
 }
 
