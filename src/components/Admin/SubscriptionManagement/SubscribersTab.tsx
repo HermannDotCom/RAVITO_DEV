@@ -11,6 +11,7 @@ import {
   adminSuspendSubscription,
   adminReactivateSubscription
 } from '../../../services/admin/subscriptionAdminService';
+import { calculateProrata } from '../../../services/ravitoGestionSubscriptionService';
 import { useToast } from '../../../context/ToastContext';
 
 export const SubscribersTab: React.FC = () => {
@@ -91,6 +92,40 @@ export const SubscribersTab: React.FC = () => {
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const getAmountDue = (subscription: SubscriptionWithDetails): { amount: string; hasAmount: boolean } => {
+    // Si l'abonnement a déjà un montant dû défini, l'utiliser
+    if (subscription.amountDue > 0) {
+      return { amount: formatCurrency(subscription.amountDue), hasAmount: true };
+    }
+    
+    // Pour les abonnés en essai gratuit, calculer le montant prorata qui sera dû
+    if (subscription.status === 'trial') {
+      const prorataInfo = calculateProrata(subscription.plan, subscription.subscribedAt);
+      return { amount: formatCurrency(prorataInfo.amount), hasAmount: true };
+    }
+    
+    return { amount: '-', hasAmount: false };
+  };
+
+  const getDueDate = (subscription: SubscriptionWithDetails): string => {
+    // Si en essai, retourner la date de fin d'essai
+    if (subscription.status === 'trial' && subscription.trialEndDate) {
+      return subscription.trialEndDate.toLocaleDateString('fr-FR');
+    }
+    
+    // Si en attente de paiement ou actif, retourner la prochaine date de facturation
+    if (subscription.nextBillingDate) {
+      return subscription.nextBillingDate.toLocaleDateString('fr-FR');
+    }
+    
+    // Si la période actuelle a une date de fin
+    if (subscription.currentPeriodEnd) {
+      return subscription.currentPeriodEnd.toLocaleDateString('fr-FR');
+    }
+    
+    return '-';
   };
 
   const getStatusIcon = (status: SubscriptionStatus) => {
@@ -215,7 +250,10 @@ export const SubscribersTab: React.FC = () => {
                   Montant dû
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Date
+                  Date souscription
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Échéance
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                   Actions
@@ -225,7 +263,7 @@ export const SubscribersTab: React.FC = () => {
             <tbody className="divide-y divide-gray-200">
               {filteredSubscriptions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                     Aucun abonné trouvé
                   </td>
                 </tr>
@@ -255,16 +293,22 @@ export const SubscribersTab: React.FC = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {subscription.amountDue > 0 ? (
-                        <span className="font-semibold text-orange-600">
-                          {formatCurrency(subscription.amountDue)}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
+                      {(() => {
+                        const amountDueResult = getAmountDue(subscription);
+                        return amountDueResult.hasAmount ? (
+                          <span className="font-semibold text-orange-600">
+                            {amountDueResult.amount}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">{amountDueResult.amount}</span>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {new Date(subscription.subscribedAt).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {getDueDate(subscription)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       {subscription.status === 'suspended' ? (
