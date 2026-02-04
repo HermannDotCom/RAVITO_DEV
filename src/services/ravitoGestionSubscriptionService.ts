@@ -193,6 +193,12 @@ export const createSubscription = async (
 };
 
 // ============================================
+// CONSTANTS
+// ============================================
+
+const TRIAL_PERIOD_DAYS = 30;
+
+// ============================================
 // PRORATA CALCULATION
 // ============================================
 
@@ -205,7 +211,7 @@ export const calculateProrata = (
 ): ProrataCalculation => {
   // Calculer la fin de l'essai gratuit (30 jours après souscription)
   const trialEndDate = new Date(subscriptionDate);
-  trialEndDate.setDate(trialEndDate.getDate() + 30);
+  trialEndDate.setDate(trialEndDate.getDate() + TRIAL_PERIOD_DAYS);
   
   // Calculer la fin de période calendaire APRÈS l'essai
   const periodEnd = calculatePeriodEnd(trialEndDate, plan.billingCycle);

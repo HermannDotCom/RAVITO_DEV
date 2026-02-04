@@ -94,19 +94,19 @@ export const SubscribersTab: React.FC = () => {
     }
   };
 
-  const getAmountDue = (subscription: SubscriptionWithDetails): string => {
+  const getAmountDue = (subscription: SubscriptionWithDetails): { amount: string; hasAmount: boolean } => {
     // Si l'abonnement a déjà un montant dû défini, l'utiliser
     if (subscription.amountDue > 0) {
-      return formatCurrency(subscription.amountDue);
+      return { amount: formatCurrency(subscription.amountDue), hasAmount: true };
     }
     
     // Pour les abonnés en essai gratuit, calculer le montant prorata qui sera dû
     if (subscription.status === 'trial') {
       const prorataInfo = calculateProrata(subscription.plan, subscription.subscribedAt);
-      return formatCurrency(prorataInfo.amount);
+      return { amount: formatCurrency(prorataInfo.amount), hasAmount: true };
     }
     
-    return '-';
+    return { amount: '-', hasAmount: false };
   };
 
   const getDueDate = (subscription: SubscriptionWithDetails): string => {
@@ -293,9 +293,16 @@ export const SubscribersTab: React.FC = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="font-semibold text-orange-600">
-                        {getAmountDue(subscription)}
-                      </span>
+                      {(() => {
+                        const amountDueResult = getAmountDue(subscription);
+                        return amountDueResult.hasAmount ? (
+                          <span className="font-semibold text-orange-600">
+                            {amountDueResult.amount}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">{amountDueResult.amount}</span>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {new Date(subscription.subscribedAt).toLocaleDateString('fr-FR')}
