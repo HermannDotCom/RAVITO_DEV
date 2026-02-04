@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { User, Phone, MapPin, Clock, Package, Star, Edit3, Save, X, CreditCard, Building, Calendar } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -36,27 +36,7 @@ export const ClientProfile: React.FC = () => {
     deliveryInstructions: user?.deliveryInstructions || ''
   });
 
-  useEffect(() => {
-    if (user && !hasLoadedStats) {
-      loadUserStats();
-      setFormData({
-        name: user.name,
-        phone: user.phone || '',
-        address: user.address || '',
-        zoneId: user.zoneId || '',
-        businessName: (user as any).businessName || user.name,
-        organizationName: organizationName || '',
-        businessHours: (user as any).businessHours || '',
-        responsiblePerson: (user as any).responsiblePerson || user.name,
-        preferredPayments: (user as any).preferredPayments || [],
-        deliveryLatitude: user.deliveryLatitude || null,
-        deliveryLongitude: user.deliveryLongitude || null,
-        deliveryInstructions: user.deliveryInstructions || ''
-      });
-    }
-  }, [user, hasLoadedStats, organizationName]);
-
-  const loadUserStats = async () => {
+  const loadUserStats = useCallback(async () => {
     if (!user) {
       console.log('No user, skipping stats load');
       setIsLoading(false);
@@ -111,7 +91,27 @@ export const ClientProfile: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user && !hasLoadedStats) {
+      loadUserStats();
+      setFormData({
+        name: user.name,
+        phone: user.phone || '',
+        address: user.address || '',
+        zoneId: user.zoneId || '',
+        businessName: (user as any).businessName || user.name,
+        organizationName: organizationName || '',
+        businessHours: (user as any).businessHours || '',
+        responsiblePerson: (user as any).responsiblePerson || user.name,
+        preferredPayments: (user as any).preferredPayments || [],
+        deliveryLatitude: user.deliveryLatitude || null,
+        deliveryLongitude: user.deliveryLongitude || null,
+        deliveryInstructions: user.deliveryInstructions || ''
+      });
+    }
+  }, [user, hasLoadedStats, organizationName, loadUserStats]);
 
   const paymentMethods = [
     { value: 'orange' as PaymentMethod, label: 'Orange Money', color: 'bg-orange-100 text-orange-700' },

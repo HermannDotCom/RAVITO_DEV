@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { User, Phone, MapPin, Clock, Package, Truck, CreditCard, Star, Edit3, Save, X, Building } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PaymentMethod, DeliveryMethod } from '../../types';
@@ -33,14 +33,7 @@ export const SupplierProfile: React.FC = () => {
     accessInstructions: ''
   });
 
-  // Mettre à jour formData quand user change
-  useEffect(() => {
-    if (user) {
-      loadUserProfile();
-    }
-  }, [user, organizationName]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     if (!user?.id) return;
 
     try {
@@ -70,7 +63,14 @@ export const SupplierProfile: React.FC = () => {
     } catch (error) {
       console.error('Error in loadUserProfile:', error);
     }
-  };
+  }, [user, organizationName]);
+
+  // Mettre à jour formData quand user change
+  useEffect(() => {
+    if (user) {
+      loadUserProfile();
+    }
+  }, [user, loadUserProfile]);
 
   const paymentMethods = [
     { value: 'orange' as PaymentMethod, label: 'Orange Money' },
