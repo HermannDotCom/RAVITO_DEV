@@ -374,27 +374,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             .update(updateData)
             .eq('id', authData.user.id);
 
-          // Create organization for Client and Supplier roles
-          if ((userData.role === 'client' || userData.role === 'supplier') && userData.businessName) {
-            try {
-              console.log('Creating organization with name:', userData.businessName);
-              const { data: orgId, error: orgError } = await supabase.rpc('create_organization_with_owner', {
-                org_name: userData.businessName.trim(),
-                org_type: userData.role,
-                owner_id: authData.user.id
-              });
+          // Call edge function to ensure profile and organization are created
+          try {
+            console.log('Calling post-registration edge function...');
+            const { data: sessionData } = await supabase.auth.getSession();
+            const token = sessionData?.session?.access_token;
 
-              if (orgError) {
-                console.error('Error creating organization:', orgError);
-                // Don't fail registration if organization creation fails
-                // The user can still use the system, just won't have organization features
+            if (token) {
+              const response = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/post-registration`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    userId: authData.user.id,
+                    email: userData.email,
+                    name: userData.name,
+                    role: userData.role,
+                    businessName: userData.businessName || userData.name,
+                  }),
+                }
+              );
+
+              if (response.ok) {
+                const result = await response.json();
+                console.log('Post-registration completed:', result);
               } else {
-                console.log('Organization created successfully:', orgId);
+                const error = await response.json();
+                console.error('Post-registration error:', error);
               }
-            } catch (orgException) {
-              console.error('Exception creating organization:', orgException);
-              // Don't fail registration
             }
+          } catch (error) {
+            console.error('Edge function call failed (non-critical):', error);
           }
 
           const success = await fetchUserProfile(authData.user.id);
