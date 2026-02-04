@@ -56,6 +56,7 @@ export interface SubscriptionPlan {
   isActive: boolean;
   displayOrder: number;
   features: string[];
+  freeMonths?: number; // Nombre de mois offerts (0 pour mensuel, 1 pour semestriel, 4 pour annuel)
   createdAt: Date;
   updatedAt: Date;
 }

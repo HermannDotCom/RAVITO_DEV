@@ -26,6 +26,7 @@ const transformPlan = (data: any): SubscriptionPlan => ({
   isActive: data.is_active,
   displayOrder: data.display_order,
   features: data.features || [],
+  freeMonths: data.free_months,
   createdAt: new Date(data.created_at),
   updatedAt: new Date(data.updated_at)
 });

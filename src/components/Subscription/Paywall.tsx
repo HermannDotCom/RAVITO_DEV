@@ -60,6 +60,7 @@ export const Paywall: React.FC<PaywallProps> = ({ plans, onSelectPlan, loading }
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             {plans.map((plan, index) => {
               const isPopular = index === 1; // Semestriel est le plus populaire
+              const hasFreeMonths = plan.freeMonths && plan.freeMonths > 0;
 
               return (
                 <div
@@ -73,6 +74,15 @@ export const Paywall: React.FC<PaywallProps> = ({ plans, onSelectPlan, loading }
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                       <span className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-bold">
                         RECOMMANDÉ
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Badge mois offerts */}
+                  {hasFreeMonths && (
+                    <div className="absolute -top-4 right-4">
+                      <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+                        🎁 {plan.freeMonths} mois offert{plan.freeMonths > 1 ? 's' : ''}
                       </span>
                     </div>
                   )}
@@ -100,42 +110,12 @@ export const Paywall: React.FC<PaywallProps> = ({ plans, onSelectPlan, loading }
 
                     {/* Features */}
                     <ul className="space-y-3 mb-8">
-                      <li className="flex items-start">
-                        <CheckCircle className="w-5 h-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">
-                          Suivi quotidien des stocks
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle className="w-5 h-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">
-                          Gestion des emballages consignés
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle className="w-5 h-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">
-                          Suivi de trésorerie
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle className="w-5 h-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">
-                          Gestion des crédits clients
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle className="w-5 h-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">
-                          Rapports et statistiques
-                        </span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle className="w-5 h-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-700">
-                          Export Excel
-                        </span>
-                      </li>
+                      {plan.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <CheckCircle className="w-5 h-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
+                          <span className="text-gray-700">{feature}</span>
+                        </li>
+                      ))}
                     </ul>
 
                     {/* CTA Button */}
