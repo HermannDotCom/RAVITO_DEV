@@ -374,6 +374,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             .update(updateData)
             .eq('id', authData.user.id);
 
+          // Create organization for Client and Supplier roles
+          if ((userData.role === 'client' || userData.role === 'supplier') && userData.businessName) {
+            try {
+              console.log('Creating organization with name:', userData.businessName);
+              const { data: orgId, error: orgError } = await supabase.rpc('create_organization_with_owner', {
+                org_name: userData.businessName.trim(),
+                org_type: userData.role,
+                owner_id: authData.user.id
+              });
+
+              if (orgError) {
+                console.error('Error creating organization:', orgError);
+                // Don't fail registration if organization creation fails
+                // The user can still use the system, just won't have organization features
+              } else {
+                console.log('Organization created successfully:', orgId);
+              }
+            } catch (orgException) {
+              console.error('Exception creating organization:', orgException);
+              // Don't fail registration
+            }
+          }
+
           const success = await fetchUserProfile(authData.user.id);
           setIsLoading(false);
           return success;

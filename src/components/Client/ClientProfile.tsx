@@ -7,9 +7,11 @@ import { ZoneSelector } from './ZoneSelector';
 import { LocationPicker } from '../Shared/LocationPicker';
 import { RatingBadge } from '../Shared/RatingBadge';
 import { StorefrontImageUpload } from '../Shared/StorefrontImageUpload';
+import { useOrganization } from '../../hooks/useOrganization';
 
 export const ClientProfile: React.FC = () => {
   const { user, refreshUserProfile } = useAuth();
+  const { organizationName, updateOrganization, refreshOrganization } = useOrganization();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadedStats, setHasLoadedStats] = useState(false);
@@ -25,6 +27,7 @@ export const ClientProfile: React.FC = () => {
     address: user?.address || '',
     zoneId: user?.zoneId || '',
     businessName: '',
+    organizationName: '',
     businessHours: '',
     responsiblePerson: user?.name || '',
     preferredPayments: [] as PaymentMethod[],
@@ -42,6 +45,7 @@ export const ClientProfile: React.FC = () => {
         address: user.address || '',
         zoneId: user.zoneId || '',
         businessName: (user as any).businessName || user.name,
+        organizationName: organizationName || '',
         businessHours: (user as any).businessHours || '',
         responsiblePerson: (user as any).responsiblePerson || user.name,
         preferredPayments: (user as any).preferredPayments || [],
@@ -50,7 +54,7 @@ export const ClientProfile: React.FC = () => {
         deliveryInstructions: user.deliveryInstructions || ''
       });
     }
-  }, [user, hasLoadedStats]);
+  }, [user, hasLoadedStats, organizationName]);
 
   const loadUserStats = async () => {
     if (!user) {
@@ -150,6 +154,19 @@ export const ClientProfile: React.FC = () => {
         .eq('id', user.id);
 
       if (error) throw error;
+
+      // Update organization name if it has changed
+      if (formData.organizationName && formData.organizationName !== organizationName) {
+        try {
+          await updateOrganization({ name: formData.organizationName });
+          await refreshOrganization();
+        } catch (orgError) {
+          console.error('Error updating organization name:', orgError);
+          alert('⚠️ Profil mis à jour mais erreur lors de la mise à jour du nom de l\'établissement');
+          setIsEditing(false);
+          return;
+        }
+      }
 
       alert('✅ Profil mis à jour avec succès!');
       setIsEditing(false);
@@ -358,6 +375,24 @@ export const ClientProfile: React.FC = () => {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Nom de l'établissement</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={formData.organizationName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, organizationName: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Ex: Maquis Chez Tantie"
+                />
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Building className="h-4 w-4 text-gray-400" />
+                  <span className="text-gray-900 font-medium">{formData.organizationName || 'Non renseigné'}</span>
+                </div>
+              )}
             </div>
 
             <div className="mt-4">
