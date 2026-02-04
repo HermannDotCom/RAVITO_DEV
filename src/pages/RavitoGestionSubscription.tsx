@@ -418,29 +418,28 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
     );
   }
 
-  // Étape 1: Sélection du plan (Paywall) - pour les nouveaux utilisateurs
-  if (!selectedPlanId || !showConfirmModal) {
-    return (
-      <>
-        <div>
-          <div className="p-4">
-            <button
-              onClick={handleBack}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Retour</span>
-            </button>
-          </div>
-          <Paywall
-            plans={plans}
-            onSelectPlan={handleSelectPlan}
-            loading={loading}
-          />
+  // Étape 1: Sélection du plan (Paywall) - pour les nouveaux utilisateurs ou utilisateur existant sans plan sélectionné
+  return (
+    <>
+      <div>
+        <div className="p-4">
+          <button
+            onClick={handleBack}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Retour</span>
+          </button>
         </div>
+        <Paywall
+          plans={plans}
+          onSelectPlan={handleSelectPlan}
+          loading={loading}
+        />
+      </div>
 
-        {/* Modal de confirmation */}
-        {showConfirmModal && selectedPlan && prorataInfo && (
+      {/* Modal de confirmation */}
+      {showConfirmModal && selectedPlan && prorataInfo && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
@@ -507,7 +506,7 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
                         Création en cours...
                       </>
                     ) : (
-                      "Je m'abonne et je paye plus tard"
+                      "Je m'abonne et je paie plus tard"
                     )}
                   </button>
 
@@ -516,7 +515,7 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
                     disabled={isCreating}
                     className="w-full border-2 border-orange-600 text-orange-600 hover:bg-orange-50 py-4 rounded-lg font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Je m'abonne et je paye maintenant
+                    Je m'abonne et je paie maintenant
                   </button>
                 </div>
               </div>
@@ -591,8 +590,4 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
         )}
       </>
     );
-  }
-
-  // Ce code ne devrait plus être atteint, mais gardé pour la compatibilité
-  return null;
-};
+  };
