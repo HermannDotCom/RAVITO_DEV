@@ -28,6 +28,8 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
 
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showPaymentInstructions, setShowPaymentInstructions] = useState(false);
 
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
   const currentPlan = subscription?.plan;
@@ -39,9 +41,10 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId);
+    setShowConfirmModal(true);
   };
 
-  const handleConfirmSubscription = async () => {
+  const handleConfirmSubscription = async (payNow: boolean = false) => {
     if (!selectedPlanId) return;
 
     try {
@@ -51,9 +54,15 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
 
       if (success) {
         showToast('Abonnement créé avec succès ! Votre période d\'essai gratuit a commencé.', 'success');
-        // Rediriger vers la page d'activité
-        if (onSectionChange) {
-          onSectionChange('activity');
+        setShowConfirmModal(false);
+        
+        if (payNow) {
+          setShowPaymentInstructions(true);
+        } else {
+          // Rediriger vers la page d'activité
+          if (onSectionChange) {
+            onSectionChange('activity');
+          }
         }
       } else {
         showToast('Erreur lors de la création de l\'abonnement', 'error');
@@ -67,7 +76,9 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
   };
 
   const handleBack = () => {
-    if (selectedPlanId) {
+    if (showPaymentInstructions) {
+      setShowPaymentInstructions(false);
+    } else if (selectedPlanId && !showConfirmModal) {
       setSelectedPlanId(null);
     } else if (onSectionChange) {
       onSectionChange('dashboard');
@@ -137,7 +148,14 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
             {currentPlan && (
               <div className="border border-gray-200 rounded-lg p-4 mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-gray-900">Plan {currentPlan.name}</h3>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Plan {currentPlan.name}</h3>
+                    {currentPlan.freeMonths && currentPlan.freeMonths > 0 && (
+                      <span className="inline-flex items-center gap-1 text-green-600 text-sm font-medium mt-1">
+                        🎁 {currentPlan.freeMonths} mois offert{currentPlan.freeMonths > 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
                   <div className="text-2xl font-bold text-orange-600">
                     {formatCurrency(currentPlan.price)}
                     <span className="text-sm font-normal text-gray-600 ml-1">
@@ -167,6 +185,94 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
                 </div>
               </div>
             )}
+
+            {/* Informations supplémentaires pour période d'essai */}
+            {isInTrial && subscription.trialEndDate && (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4">
+                <h4 className="font-semibold text-gray-900 mb-3">Après la période d'essai</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Date de fin de période d'essai</span>
+                    <span className="font-semibold text-gray-900">
+                      {subscription.trialEndDate.toLocaleDateString('fr-FR')}
+                    </span>
+                  </div>
+                  {subscription.isProrata && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Montant au prorata</span>
+                        <span className="font-semibold text-gray-900">
+                          {formatCurrency(subscription.amountDue)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Jours jusqu'à la fin de période</span>
+                        <span className="font-semibold text-gray-900">
+                          {subscription.prorataDays} jours
+                        </span>
+                      </div>
+                      {subscription.currentPeriodEnd && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Date de fin de période calendaire</span>
+                          <span className="font-semibold text-gray-900">
+                            {subscription.currentPeriodEnd.toLocaleDateString('fr-FR')}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {currentPlan && (
+                    <div className="pt-2 border-t border-gray-300">
+                      <p className="text-gray-600">
+                        Ensuite, vous serez facturé {formatCurrency(currentPlan.price)} tous les {
+                          currentPlan.billingCycle === 'monthly' ? 'mois' :
+                          currentPlan.billingCycle === 'semesterly' ? 'semestres' : 'ans'
+                        }.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Boutons d'action */}
+            {(isPendingPayment || isInTrial) && (
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setShowPaymentInstructions(true)}
+                  className="flex-1 bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors"
+                >
+                  Payer maintenant
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedPlanId(null);
+                    setShowConfirmModal(false);
+                  }}
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 py-3 px-4 rounded-lg font-semibold transition-colors"
+                >
+                  Modifier mon abonnement
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Êtes-vous sûr de vouloir résilier votre abonnement ?')) {
+                      // TODO: implémenter la résiliation
+                      showToast('La résiliation sera disponible prochainement', 'info');
+                    }
+                  }}
+                  className="flex-1 border-2 border-red-600 text-red-600 hover:bg-red-50 py-3 px-4 rounded-lg font-semibold transition-colors"
+                >
+                  Résilier
+                </button>
+              </div>
+            )}
+
+            {/* Modes de paiement */}
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-600 text-center">
+                Modes de paiement : <strong>Espèces</strong> | <strong>Wave</strong> | <strong>Orange Money</strong> | <strong>MTN Money</strong>
+              </p>
+            </div>
           </div>
 
           {/* Factures en attente de paiement */}
@@ -312,9 +418,9 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
     );
   }
 
-  // Étape 1: Sélection du plan (Paywall) - pour les nouveaux utilisateurs
-  if (!selectedPlanId) {
-    return (
+  // Étape 1: Sélection du plan (Paywall) - pour les nouveaux utilisateurs ou utilisateur existant sans plan sélectionné
+  return (
+    <>
       <div>
         <div className="p-4">
           <button
@@ -331,152 +437,157 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
           loading={loading}
         />
       </div>
-    );
-  }
 
-  // Étape 2: Confirmation du plan et affichage du prorata
-  return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-2xl mx-auto">
-        <button
-          onClick={handleBack}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span>Retour aux offres</span>
-        </button>
-
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Confirmation de votre abonnement
-          </h2>
-
-          {/* Plan sélectionné */}
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Plan {selectedPlan?.name}
-            </h3>
-            <div className="text-3xl font-bold text-orange-600">
-              {selectedPlan && formatCurrency(selectedPlan.price)}
-              <span className="text-base font-normal text-gray-600 ml-2">
-                / {selectedPlan?.billingCycle === 'monthly' ? 'mois' : selectedPlan?.billingCycle === 'semesterly' ? 'semestre' : 'an'}
-              </span>
-            </div>
-          </div>
-
-          {/* Période d'essai */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-            <div className="flex items-center space-x-3 mb-3">
-              <Clock className="w-6 h-6 text-green-600" />
-              <h4 className="font-semibold text-gray-900">
-                1 mois d'essai gratuit
-              </h4>
-            </div>
-            <p className="text-gray-700">
-              Profitez de 30 jours d'essai gratuit pour tester toutes les fonctionnalités de Ravito Gestion.
-            </p>
-          </div>
-
-          {/* Facturation après l'essai */}
-          {prorataInfo && (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6">
-              <h4 className="font-semibold text-gray-900 mb-4">
-                Après la période d'essai
-              </h4>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Date de fin de période d'essai</span>
-                  <span className="font-semibold text-gray-900">
-                    {prorataInfo.trialEndDate.toLocaleDateString('fr-FR')}
-                  </span>
+      {/* Modal de confirmation */}
+      {showConfirmModal && selectedPlan && prorataInfo && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Confirmation d'abonnement
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowConfirmModal(false);
+                      setSelectedPlanId(null);
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Montant au prorata</span>
-                  <span className="font-semibold text-gray-900">
-                    {formatCurrency(prorataInfo.amount)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Jours jusqu'à la fin de période calendaire</span>
-                  <span className="font-semibold text-gray-900">
-                    {prorataInfo.daysRemaining} jours
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Date de fin de période calendaire</span>
-                  <span className="font-semibold text-gray-900">
-                    {prorataInfo.periodEnd.toLocaleDateString('fr-FR')}
-                  </span>
-                </div>
-                <div className="pt-3 border-t border-gray-300">
-                  <p className="text-sm text-gray-600">
-                    Ensuite, vous serez facturé {formatCurrency(selectedPlan.price)} tous les {
-                      selectedPlan.billingCycle === 'monthly' ? 'mois' :
-                      selectedPlan.billingCycle === 'semesterly' ? 'semestres' : 'ans'
-                    }.
+
+                {/* Plan info */}
+                <div className="mb-6">
+                  <p className="text-gray-700 mb-4">
+                    Confirmez-vous la souscription de votre abonnement <strong>{selectedPlan.name}</strong> ?
                   </p>
+                  
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-gray-900">Plan {selectedPlan.name}</p>
+                        {selectedPlan.freeMonths && selectedPlan.freeMonths > 0 && (
+                          <span className="inline-flex items-center gap-1 text-green-600 text-sm font-medium mt-1">
+                            🎁 {selectedPlan.freeMonths} mois offert{selectedPlan.freeMonths > 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-2xl font-bold text-orange-600">
+                        {formatCurrency(selectedPlan.price)}
+                        <span className="text-sm font-normal text-gray-600 ml-1">
+                          / {selectedPlan.billingCycle === 'monthly' ? 'mois' : selectedPlan.billingCycle === 'semesterly' ? 'semestre' : 'an'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-gray-600">
+                    Après votre période d'essai de 30 jours, vous devrez régler{' '}
+                    <strong>{formatCurrency(prorataInfo.amount)}</strong> puis{' '}
+                    <strong>{formatCurrency(selectedPlan.price)}</strong> par{' '}
+                    {selectedPlan.billingCycle === 'monthly' ? 'mois' : 
+                     selectedPlan.billingCycle === 'semesterly' ? 'semestre' : 'an'}.
+                  </p>
+                </div>
+
+                {/* Action buttons */}
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handleConfirmSubscription(false)}
+                    disabled={isCreating}
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white py-4 rounded-lg font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {isCreating ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Création en cours...
+                      </>
+                    ) : (
+                      "Je m'abonne et je paie plus tard"
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => handleConfirmSubscription(true)}
+                    disabled={isCreating}
+                    className="w-full border-2 border-orange-600 text-orange-600 hover:bg-orange-50 py-4 rounded-lg font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Je m'abonne et je paie maintenant
+                  </button>
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Modes de paiement */}
-          <div className="mb-6">
-            <h4 className="font-semibold text-gray-900 mb-3">
-              Modes de paiement acceptés
-            </h4>
-            <div className="flex flex-wrap gap-3">
-              <span className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium">
-                Espèces
-              </span>
-              <span className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium">
-                Wave
-              </span>
-              <span className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium">
-                Orange Money
-              </span>
-              <span className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium">
-                MTN Money
-              </span>
-            </div>
-            <p className="text-sm text-gray-600 mt-3">
-              Le paiement sera validé manuellement par notre équipe après réception.
-            </p>
           </div>
+        )}
 
-          {/* Erreur */}
-          {subscriptionError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-red-700">{subscriptionError}</p>
+        {/* Modal d'instructions de paiement */}
+        {showPaymentInstructions && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Instructions de paiement
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowPaymentInstructions(false);
+                      if (onSectionChange) {
+                        onSectionChange('activity');
+                      }
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Payment instructions */}
+                <div className="space-y-4">
+                  <p className="text-gray-700">
+                    Effectuez votre paiement via l'un des moyens suivants :
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <p className="font-semibold text-gray-900 mb-1">Espèces</p>
+                      <p className="text-sm text-gray-600">Paiement en liquide</p>
+                    </div>
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <p className="font-semibold text-gray-900 mb-1">Wave</p>
+                      <p className="text-sm text-gray-600">Transfert mobile</p>
+                    </div>
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <p className="font-semibold text-gray-900 mb-1">Orange Money</p>
+                      <p className="text-sm text-gray-600">Transfert mobile</p>
+                    </div>
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <p className="font-semibold text-gray-900 mb-1">MTN Money</p>
+                      <p className="text-sm text-gray-600">Transfert mobile</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-900">
+                      <strong>Important :</strong> Après avoir effectué votre paiement, contactez notre équipe support avec votre référence de transaction pour validation.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleContactSupport}
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold transition-colors"
+                  >
+                    Contacter le support
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
-
-          {/* Bouton de confirmation */}
-          <button
-            onClick={handleConfirmSubscription}
-            disabled={isCreating}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-4 rounded-lg font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-          >
-            {isCreating ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                Création en cours...
-              </>
-            ) : (
-              'Démarrer mon essai gratuit'
-            )}
-          </button>
-
-          {/* Conditions */}
-          <p className="text-xs text-center text-gray-600 mt-4">
-            En cliquant sur "Démarrer mon essai gratuit", vous acceptez nos{' '}
-            <a href="/cgu" className="text-orange-600 hover:underline">
-              Conditions Générales d'Utilisation
-            </a>
-            .
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
+          </div>
+        )}
+      </>
+    );
+  };
