@@ -111,7 +111,7 @@ export const ClientProfile: React.FC = () => {
         deliveryInstructions: user.deliveryInstructions || ''
       });
     }
-  }, [user, hasLoadedStats, organizationName, loadUserStats]);
+  }, [user, hasLoadedStats, organizationName]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const paymentMethods = [
     { value: 'orange' as PaymentMethod, label: 'Orange Money', color: 'bg-orange-100 text-orange-700' },
