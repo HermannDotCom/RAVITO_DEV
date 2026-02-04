@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Clock, Bell } from 'lucide-react';
-import type { SubscriptionSettings } from '../../../types/subscription';
+import { Save, Clock, Bell, CreditCard, Smartphone, Building2, Banknote } from 'lucide-react';
+import type { SubscriptionSettings, PaymentMethodConfig } from '../../../types/subscription';
 import { getSubscriptionSettings, updateSubscriptionSettings } from '../../../services/admin/subscriptionAdminService';
 import { useToast } from '../../../context/ToastContext';
 import { useAuth } from '../../../context/AuthContext';
+import { supabase } from '../../../lib/supabase';
 
 export const SettingsTab: React.FC = () => {
   const { showToast } = useToast();
   const { user } = useAuth();
-  const [settings, setSettings] = useState<SubscriptionSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodConfig[]>([]);
+  const [savingPaymentMethods, setSavingPaymentMethods] = useState(false);
 
   const [formData, setFormData] = useState({
     trialDurationDays: 30,
@@ -25,14 +27,14 @@ export const SettingsTab: React.FC = () => {
 
   useEffect(() => {
     loadSettings();
-  }, []);
+    loadPaymentMethods();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadSettings = async () => {
     try {
       setLoading(true);
       const data = await getSubscriptionSettings();
       if (data) {
-        setSettings(data);
         setFormData({
           trialDurationDays: data.trialDurationDays,
           autoSuspendAfterTrial: data.autoSuspendAfterTrial,
@@ -45,6 +47,38 @@ export const SettingsTab: React.FC = () => {
       showToast('Erreur lors du chargement des paramètres', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPaymentMethods = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payment_methods')
+        .select('*')
+        .order('display_order');
+
+      if (error) throw error;
+
+      const methods: PaymentMethodConfig[] = (data || []).map(d => ({
+        id: d.id,
+        name: d.name,
+        displayName: d.display_name,
+        isActive: d.is_active,
+        phoneNumber: d.phone_number,
+        bankName: d.bank_name,
+        iban: d.iban,
+        accountHolder: d.account_holder,
+        instructions: d.instructions,
+        icon: d.icon,
+        displayOrder: d.display_order,
+        createdAt: new Date(d.created_at),
+        updatedAt: new Date(d.updated_at)
+      }));
+
+      setPaymentMethods(methods);
+    } catch (error) {
+      console.error('Error loading payment methods:', error);
+      showToast('Erreur lors du chargement des modes de paiement', 'error');
     }
   };
 
@@ -73,6 +107,55 @@ export const SettingsTab: React.FC = () => {
         [cycle]: days
       }
     });
+  };
+
+  const updatePaymentMethod = (id: string, updates: Partial<PaymentMethodConfig>) => {
+    setPaymentMethods(prev => prev.map(pm => 
+      pm.id === id ? { ...pm, ...updates } : pm
+    ));
+  };
+
+  const savePaymentMethods = async () => {
+    try {
+      setSavingPaymentMethods(true);
+      
+      for (const method of paymentMethods) {
+        const { error } = await supabase
+          .from('payment_methods')
+          .update({
+            is_active: method.isActive,
+            phone_number: method.phoneNumber,
+            bank_name: method.bankName,
+            iban: method.iban,
+            account_holder: method.accountHolder,
+            instructions: method.instructions
+          })
+          .eq('id', method.id);
+
+        if (error) throw error;
+      }
+
+      showToast('Modes de paiement mis à jour avec succès', 'success');
+      await loadPaymentMethods();
+    } catch (error) {
+      console.error('Error saving payment methods:', error);
+      showToast('Erreur lors de la sauvegarde des modes de paiement', 'error');
+    } finally {
+      setSavingPaymentMethods(false);
+    }
+  };
+
+  const getIconComponent = (iconName?: string) => {
+    switch (iconName) {
+      case 'smartphone':
+        return Smartphone;
+      case 'building2':
+        return Building2;
+      case 'banknote':
+        return Banknote;
+      default:
+        return CreditCard;
+    }
   };
 
   if (loading) {
@@ -272,6 +355,134 @@ export const SettingsTab: React.FC = () => {
               ))}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Moyens de paiement */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <CreditCard className="w-5 h-5 text-green-600" />
+              </div>
+              <h4 className="font-semibold text-gray-900">Moyens de paiement</h4>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">
+              Configurez les modes de paiement disponibles pour vos clients
+            </p>
+          </div>
+          <button
+            onClick={savePaymentMethods}
+            disabled={savingPaymentMethods}
+            className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold disabled:opacity-50"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {savingPaymentMethods ? 'Enregistrement...' : 'Enregistrer'}
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {paymentMethods.map((method) => {
+            const IconComponent = getIconComponent(method.icon);
+            return (
+              <div key={method.id} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-start space-x-4">
+                  <div className="flex items-center space-x-3 flex-1">
+                    <input
+                      type="checkbox"
+                      checked={method.isActive}
+                      onChange={(e) => updatePaymentMethod(method.id, { isActive: e.target.checked })}
+                      className="w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                    />
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <IconComponent className="w-5 h-5 text-gray-600" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900">{method.displayName}</div>
+                      <div className="text-xs text-gray-500">{method.name}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {method.isActive && (
+                  <div className="mt-4 ml-12 space-y-3">
+                    {/* Champs spécifiques pour mobile money */}
+                    {(method.name === 'wave' || method.name === 'orange_money' || method.name === 'mtn_money') && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Numéro de téléphone
+                        </label>
+                        <input
+                          type="text"
+                          value={method.phoneNumber || ''}
+                          onChange={(e) => updatePaymentMethod(method.id, { phoneNumber: e.target.value })}
+                          placeholder="+225 07 XX XX XX XX"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        />
+                      </div>
+                    )}
+
+                    {/* Champs spécifiques pour virement bancaire */}
+                    {method.name === 'bank_transfer' && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Nom de la banque
+                          </label>
+                          <input
+                            type="text"
+                            value={method.bankName || ''}
+                            onChange={(e) => updatePaymentMethod(method.id, { bankName: e.target.value })}
+                            placeholder="Ex: SGBCI"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            IBAN
+                          </label>
+                          <input
+                            type="text"
+                            value={method.iban || ''}
+                            onChange={(e) => updatePaymentMethod(method.id, { iban: e.target.value })}
+                            placeholder="CI XX XXXX..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Titulaire du compte
+                          </label>
+                          <input
+                            type="text"
+                            value={method.accountHolder || ''}
+                            onChange={(e) => updatePaymentMethod(method.id, { accountHolder: e.target.value })}
+                            placeholder="RAVITO SARL"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {/* Instructions personnalisées */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Instructions (optionnel)
+                      </label>
+                      <textarea
+                        value={method.instructions || ''}
+                        onChange={(e) => updatePaymentMethod(method.id, { instructions: e.target.value })}
+                        rows={2}
+                        placeholder="Instructions additionnelles pour le client..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

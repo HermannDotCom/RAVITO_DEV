@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search, FileText, CheckCircle, X } from 'lucide-react';
+import { Search, CheckCircle, X } from 'lucide-react';
 import type { InvoiceWithDetails, InvoiceStatus, PaymentMethod } from '../../../types/subscription';
 import {
   formatCurrency,
   getInvoiceStatusName,
-  getInvoiceStatusColor,
-  getPaymentMethodName
+  getInvoiceStatusColor
 } from '../../../types/subscription';
 import { getAllInvoices, adminValidatePayment } from '../../../services/admin/subscriptionAdminService';
 import { useToast } from '../../../context/ToastContext';
@@ -35,11 +34,11 @@ export const InvoicesTab: React.FC = () => {
 
   useEffect(() => {
     loadInvoices();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     filterInvoices();
-  }, [invoices, statusFilter, searchQuery]);
+  }, [invoices, statusFilter, searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadInvoices = async () => {
     try {
@@ -213,22 +212,22 @@ export const InvoicesTab: React.FC = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Facture
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Organisation
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Plan
+                  Période
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Montant
+                  Montant Dû
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Échéance
+                  Montant Réglé
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Statut
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Échéance
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                   Actions
@@ -243,60 +242,81 @@ export const InvoicesTab: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredInvoices.map((invoice) => (
-                  <tr key={invoice.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <FileText className="w-4 h-4 text-gray-400 mr-2" />
-                        <span className="font-medium text-gray-900">
+                filteredInvoices.map((invoice) => {
+                  const amountDue = invoice.amountDue || invoice.amount;
+                  const amountPaid = invoice.amountPaid || invoice.totalPaid || 0;
+                  const remainingAmount = amountDue - amountPaid;
+                  
+                  // Calculer le statut basé sur les montants
+                  let displayStatus = invoice.status;
+                  if (amountPaid >= amountDue) {
+                    displayStatus = 'paid';
+                  } else if (amountPaid === 0) {
+                    displayStatus = invoice.status; // pending ou overdue
+                  } else if (amountPaid > 0 && amountPaid < amountDue) {
+                    // Statut partiel - on garde le statut actuel mais on l'affichera différemment
+                    displayStatus = invoice.status;
+                  }
+
+                  return (
+                    <tr key={invoice.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">
+                          {invoice.subscription.organizationName}
+                        </div>
+                        <div className="text-xs text-gray-500">
                           {invoice.invoiceNumber}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <div>
+                          {new Date(invoice.periodStart).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}
+                        </div>
+                        {invoice.isProrata && (
+                          <div className="text-xs text-orange-600">
+                            Prorata ({invoice.daysCalculated}j)
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-semibold text-gray-900">
+                          {formatCurrency(amountDue)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className={`font-semibold ${amountPaid > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                          {formatCurrency(amountPaid)}
+                        </div>
+                        {amountPaid > 0 && amountPaid < amountDue && (
+                          <div className="text-xs text-orange-600">
+                            Reste: {formatCurrency(remainingAmount)}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(displayStatus)}`}>
+                          {amountPaid > 0 && amountPaid < amountDue ? 'Partiel' : getInvoiceStatusName(displayStatus)}
                         </span>
-                      </div>
-                      {invoice.isProrata && (
-                        <div className="text-xs text-orange-600 mt-1">
-                          Prorata ({invoice.daysCalculated}j)
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {invoice.subscription.organizationName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {invoice.subscription.plan.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-semibold text-gray-900">
-                        {formatCurrency(invoice.amount)}
-                      </div>
-                      {invoice.totalPaid > 0 && (
-                        <div className="text-xs text-green-600">
-                          Payé: {formatCurrency(invoice.totalPaid)}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {new Date(invoice.dueDate).toLocaleDateString('fr-FR')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(invoice.status)}`}>
-                        {getInvoiceStatusName(invoice.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      {invoice.status === 'pending' || invoice.status === 'overdue' ? (
-                        <button
-                          onClick={() => handleOpenValidation(invoice)}
-                          className="inline-flex items-center px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm"
-                        >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Valider paiement
-                        </button>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {new Date(invoice.dueDate).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        {invoice.status === 'pending' || invoice.status === 'overdue' ? (
+                          <button
+                            onClick={() => handleOpenValidation(invoice)}
+                            className="inline-flex items-center px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Valider paiement
+                          </button>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

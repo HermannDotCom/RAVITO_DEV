@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSubscription } from '../hooks/useSubscription';
 import { useToast } from '../context/ToastContext';
 import { Paywall } from '../components/Subscription/Paywall';
+import { PaymentModal } from '../components/Subscription/PaymentModal';
 import { ArrowLeft, CheckCircle, Clock, CreditCard, AlertCircle, Info, FileText } from 'lucide-react';
 import { formatCurrency } from '../types/subscription';
 import { calculateProrata } from '../services/ravitoGestionSubscriptionService';
@@ -29,7 +30,8 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showPaymentInstructions, setShowPaymentInstructions] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
   const currentPlan = subscription?.plan;
@@ -57,7 +59,7 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
         setShowConfirmModal(false);
         
         if (payNow) {
-          setShowPaymentInstructions(true);
+          setShowPaymentModal(true);
         } else {
           // Rediriger vers la page d'activité
           if (onSectionChange) {
@@ -76,8 +78,8 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
   };
 
   const handleBack = () => {
-    if (showPaymentInstructions) {
-      setShowPaymentInstructions(false);
+    if (showPaymentModal) {
+      setShowPaymentModal(false);
     } else if (selectedPlanId && !showConfirmModal) {
       setSelectedPlanId(null);
     } else if (onSectionChange) {
@@ -89,6 +91,31 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
     if (onSectionChange) {
       onSectionChange('support');
     }
+  };
+
+  const handlePaymentConfirm = async (data: {
+    paymentMethod: string;
+    transactionReference: string;
+  }) => {
+    // TODO: Enregistrer la demande de paiement dans la base de données
+    // Pour l'instant, on affiche juste une notification
+    showToast('Votre demande de paiement a été enregistrée. Notre équipe va la vérifier.', 'success');
+    setShowPaymentModal(false);
+  };
+
+  const handleModifySubscription = () => {
+    // Rediriger vers le Paywall pour choisir un nouveau plan
+    setSelectedPlanId(null);
+  };
+
+  const handleCancelSubscription = () => {
+    setShowCancelModal(true);
+  };
+
+  const confirmCancellation = async () => {
+    // TODO: Implémenter la résiliation
+    showToast('La résiliation sera effective à la fin de votre période en cours', 'info');
+    setShowCancelModal(false);
   };
 
   // Filtrer les factures impayées
@@ -239,27 +266,19 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
             {(isPendingPayment || isInTrial) && (
               <div className="mt-6 flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={() => setShowPaymentInstructions(true)}
+                  onClick={() => setShowPaymentModal(true)}
                   className="flex-1 bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors"
                 >
                   Payer maintenant
                 </button>
                 <button
-                  onClick={() => {
-                    setSelectedPlanId(null);
-                    setShowConfirmModal(false);
-                  }}
+                  onClick={handleModifySubscription}
                   className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 py-3 px-4 rounded-lg font-semibold transition-colors"
                 >
                   Modifier mon abonnement
                 </button>
                 <button
-                  onClick={() => {
-                    if (confirm('Êtes-vous sûr de vouloir résilier votre abonnement ?')) {
-                      // TODO: implémenter la résiliation
-                      showToast('La résiliation sera disponible prochainement', 'info');
-                    }
-                  }}
+                  onClick={handleCancelSubscription}
                   className="flex-1 border-2 border-red-600 text-red-600 hover:bg-red-50 py-3 px-4 rounded-lg font-semibold transition-colors"
                 >
                   Résilier
@@ -523,67 +542,39 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
           </div>
         )}
 
-        {/* Modal d'instructions de paiement */}
-        {showPaymentInstructions && (
+        {/* Payment Modal */}
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          amount={subscription?.amountDue || 0}
+          invoiceNumber={unpaidInvoices[0]?.invoiceNumber}
+          invoiceId={unpaidInvoices[0]?.id}
+          onPaymentConfirm={handlePaymentConfirm}
+        />
+
+        {/* Cancel Confirmation Modal */}
+        {showCancelModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">
-                    Instructions de paiement
-                  </h2>
-                  <button
-                    onClick={() => {
-                      setShowPaymentInstructions(false);
-                      if (onSectionChange) {
-                        onSectionChange('activity');
-                      }
-                    }}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                {/* Payment instructions */}
-                <div className="space-y-4">
-                  <p className="text-gray-700">
-                    Effectuez votre paiement via l'un des moyens suivants :
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <p className="font-semibold text-gray-900 mb-1">Espèces</p>
-                      <p className="text-sm text-gray-600">Paiement en liquide</p>
-                    </div>
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <p className="font-semibold text-gray-900 mb-1">Wave</p>
-                      <p className="text-sm text-gray-600">Transfert mobile</p>
-                    </div>
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <p className="font-semibold text-gray-900 mb-1">Orange Money</p>
-                      <p className="text-sm text-gray-600">Transfert mobile</p>
-                    </div>
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <p className="font-semibold text-gray-900 mb-1">MTN Money</p>
-                      <p className="text-sm text-gray-600">Transfert mobile</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-900">
-                      <strong>Important :</strong> Après avoir effectué votre paiement, contactez notre équipe support avec votre référence de transaction pour validation.
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={handleContactSupport}
-                    className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold transition-colors"
-                  >
-                    Contacter le support
-                  </button>
-                </div>
+            <div className="bg-white rounded-xl max-w-md w-full p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                Confirmer la résiliation
+              </h3>
+              <p className="text-gray-700 mb-6">
+                Êtes-vous sûr de vouloir résilier votre abonnement ? Vous conserverez l'accès jusqu'à la fin de votre période en cours.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={confirmCancellation}
+                  className="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700"
+                >
+                  Confirmer la résiliation
+                </button>
               </div>
             </div>
           </div>
