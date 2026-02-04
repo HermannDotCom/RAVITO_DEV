@@ -20,7 +20,26 @@ export type SubscriptionStatus =
 /**
  * Payment methods
  */
-export type PaymentMethod = 'cash' | 'wave' | 'orange_money' | 'mtn_money';
+export type PaymentMethod = 'cash' | 'wave' | 'orange_money' | 'mtn_money' | 'bank_transfer';
+
+/**
+ * Payment Method Configuration (from database)
+ */
+export interface PaymentMethodConfig {
+  id: string;
+  name: string;
+  displayName: string;
+  isActive: boolean;
+  phoneNumber?: string;
+  bankName?: string;
+  iban?: string;
+  accountHolder?: string;
+  instructions?: string;
+  icon?: string;
+  displayOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 /**
  * Invoice status
@@ -126,6 +145,8 @@ export interface SubscriptionInvoice {
 
   // Amounts
   amount: number;
+  amountDue: number;
+  amountPaid: number;
   prorataAmount: number | null;
   daysCalculated: number | null;
   isProrata: boolean;
@@ -141,6 +162,8 @@ export interface SubscriptionInvoice {
   // Payment
   paidAt: Date | null;
   paidAmount: number | null;
+  transactionReference: string | null;
+  paymentMethod: PaymentMethod | null;
 
   // Metadata
   notes: string | null;

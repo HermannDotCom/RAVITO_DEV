@@ -60,6 +60,8 @@ const transformInvoice = (data: any): SubscriptionInvoice => ({
   subscriptionId: data.subscription_id,
   invoiceNumber: data.invoice_number,
   amount: parseFloat(data.amount),
+  amountDue: parseFloat(data.amount_due || data.amount),
+  amountPaid: parseFloat(data.amount_paid || 0),
   prorataAmount: data.prorata_amount ? parseFloat(data.prorata_amount) : null,
   daysCalculated: data.days_calculated,
   isProrata: data.is_prorata,
@@ -69,6 +71,8 @@ const transformInvoice = (data: any): SubscriptionInvoice => ({
   status: data.status,
   paidAt: data.paid_at ? new Date(data.paid_at) : null,
   paidAmount: data.paid_amount ? parseFloat(data.paid_amount) : null,
+  transactionReference: data.transaction_reference,
+  paymentMethod: data.payment_method,
   notes: data.notes,
   createdAt: new Date(data.created_at),
   updatedAt: new Date(data.updated_at)
