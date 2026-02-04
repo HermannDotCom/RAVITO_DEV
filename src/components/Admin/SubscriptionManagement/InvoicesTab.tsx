@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Search, FileText, CheckCircle, X } from 'lucide-react';
+import { Search, CheckCircle, X } from 'lucide-react';
 import type { InvoiceWithDetails, InvoiceStatus, PaymentMethod } from '../../../types/subscription';
 import {
   formatCurrency,
   getInvoiceStatusName,
-  getInvoiceStatusColor,
-  getPaymentMethodName
+  getInvoiceStatusColor
 } from '../../../types/subscription';
 import { getAllInvoices, adminValidatePayment } from '../../../services/admin/subscriptionAdminService';
 import { useToast } from '../../../context/ToastContext';
@@ -35,11 +34,11 @@ export const InvoicesTab: React.FC = () => {
 
   useEffect(() => {
     loadInvoices();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     filterInvoices();
-  }, [invoices, statusFilter, searchQuery]);
+  }, [invoices, statusFilter, searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadInvoices = async () => {
     try {

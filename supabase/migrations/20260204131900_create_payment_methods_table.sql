@@ -20,7 +20,7 @@ INSERT INTO payment_methods (name, display_name, is_active, icon, display_order)
   ('wave', 'Wave', true, 'smartphone', 1),
   ('orange_money', 'Orange Money', true, 'smartphone', 2),
   ('mtn_money', 'MTN Money', false, 'smartphone', 3),
-  ('bank_transfer', 'Virement bancaire', false, 'building-2', 4),
+  ('bank_transfer', 'Virement bancaire', false, 'building2', 4),
   ('cash', 'Espèces', true, 'banknote', 5)
 ON CONFLICT (name) DO NOTHING;
 

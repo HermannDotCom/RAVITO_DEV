@@ -9,7 +9,6 @@ import { supabase } from '../../../lib/supabase';
 export const SettingsTab: React.FC = () => {
   const { showToast } = useToast();
   const { user } = useAuth();
-  const [settings, setSettings] = useState<SubscriptionSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodConfig[]>([]);
@@ -29,14 +28,13 @@ export const SettingsTab: React.FC = () => {
   useEffect(() => {
     loadSettings();
     loadPaymentMethods();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadSettings = async () => {
     try {
       setLoading(true);
       const data = await getSubscriptionSettings();
       if (data) {
-        setSettings(data);
         setFormData({
           trialDurationDays: data.trialDurationDays,
           autoSuspendAfterTrial: data.autoSuspendAfterTrial,
@@ -151,7 +149,7 @@ export const SettingsTab: React.FC = () => {
     switch (iconName) {
       case 'smartphone':
         return Smartphone;
-      case 'building-2':
+      case 'building2':
         return Building2;
       case 'banknote':
         return Banknote;

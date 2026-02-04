@@ -116,7 +116,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     switch (iconName) {
       case 'smartphone':
         return Smartphone;
-      case 'building-2':
+      case 'building2':
         return Building2;
       case 'banknote':
         return Banknote;
@@ -197,9 +197,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   {/* Mode de paiement sélectionné */}
                   <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
                     <div className="flex items-center space-x-3">
-                      {React.createElement(getIconComponent(selectedMethod.icon), {
-                        className: "w-5 h-5 text-orange-600"
-                      })}
+                      {(() => {
+                        const IconComponent = getIconComponent(selectedMethod.icon);
+                        return <IconComponent className="w-5 h-5 text-orange-600" />;
+                      })()}
                       <span className="font-semibold text-gray-900">
                         {selectedMethod.displayName}
                       </span>
