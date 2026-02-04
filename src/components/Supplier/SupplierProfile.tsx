@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, Phone, MapPin, Clock, Package, Truck, CreditCard, Star, Edit3, Save, X } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { User, Phone, MapPin, Clock, Package, Truck, CreditCard, Star, Edit3, Save, X, Building } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PaymentMethod, DeliveryMethod } from '../../types';
 import { getSupplierStats, SupplierStats } from '../../services/ratingService';
@@ -7,9 +7,11 @@ import { SupplierZoneSelector } from './SupplierZoneSelector';
 import { LocationPicker } from '../Shared/LocationPicker';
 import { supabase } from '../../lib/supabase';
 import { StorefrontImageUpload } from '../Shared/StorefrontImageUpload';
+import { useOrganization } from '../../hooks/useOrganization';
 
 export const SupplierProfile: React.FC = () => {
   const { user, refreshUserProfile } = useAuth();
+  const { organizationName, updateOrganization, refreshOrganization } = useOrganization();
   const [isEditing, setIsEditing] = useState(false);
   const [stats, setStats] = useState<SupplierStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -18,6 +20,7 @@ export const SupplierProfile: React.FC = () => {
     phone: user?.phone || '',
     address: user?.address || '',
     businessName: user?.businessName || user?.name || '',
+    organizationName: '',
     businessHours: '18h00 - 06h00',
     coverageZone: 'Plateau, Marcory, Treichville',
     availableProducts: ['Solibra', 'Brassivoire'],
@@ -30,14 +33,7 @@ export const SupplierProfile: React.FC = () => {
     accessInstructions: ''
   });
 
-  // Mettre à jour formData quand user change
-  useEffect(() => {
-    if (user) {
-      loadUserProfile();
-    }
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     if (!user?.id) return;
 
     try {
@@ -57,6 +53,7 @@ export const SupplierProfile: React.FC = () => {
         phone: user.phone || '',
         address: user.address || '',
         businessName: user.businessName || user.name || '',
+        organizationName: organizationName || '',
         zoneId: data?.zone_id || user.zoneId || '',
         depotLatitude: data?.depot_latitude || null,
         depotLongitude: data?.depot_longitude || null,
@@ -66,7 +63,14 @@ export const SupplierProfile: React.FC = () => {
     } catch (error) {
       console.error('Error in loadUserProfile:', error);
     }
-  };
+  }, [user, organizationName]);
+
+  // Mettre à jour formData quand user change
+  useEffect(() => {
+    if (user) {
+      loadUserProfile();
+    }
+  }, [user, loadUserProfile]);
 
   const paymentMethods = [
     { value: 'orange' as PaymentMethod, label: 'Orange Money' },
@@ -129,6 +133,19 @@ export const SupplierProfile: React.FC = () => {
         .eq('id', user.id);
 
       if (error) throw error;
+
+      // Update organization name if it has changed
+      if (formData.organizationName && formData.organizationName !== organizationName) {
+        try {
+          await updateOrganization({ name: formData.organizationName });
+          await refreshOrganization();
+        } catch (orgError) {
+          console.error('Error updating organization name:', orgError);
+          alert('⚠️ Profil mis à jour mais erreur lors de la mise à jour du nom de l\'établissement');
+          setIsEditing(false);
+          return;
+        }
+      }
 
       alert('✅ Profil mis à jour avec succès!');
       setIsEditing(false);
@@ -268,6 +285,24 @@ export const SupplierProfile: React.FC = () => {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Nom de l'établissement</label>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={formData.organizationName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, organizationName: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Ex: Dépôt Central Marcory"
+                />
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Building className="h-4 w-4 text-gray-400" />
+                  <span className="text-gray-900 font-medium">{formData.organizationName || 'Non renseigné'}</span>
+                </div>
+              )}
             </div>
 
             <div className="mt-4">
