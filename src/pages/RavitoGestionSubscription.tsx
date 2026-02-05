@@ -126,6 +126,20 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
   // Si l'utilisateur a déjà un abonnement, afficher la gestion d'abonnement
   // (pas de check sur loading car on veut continuer à afficher l'abonnement pendant le rechargement)
   if (subscription && !selectedPlanId) {
+    // Debug logs
+    console.log('[RavitoGestionSubscription] Rendering subscription page with data:', {
+      isInTrial,
+      hasActiveSubscription,
+      isPendingPayment,
+      subscriptionStatus: subscription.status,
+      isProrata: subscription.isProrata,
+      prorataDays: subscription.prorataDays,
+      amountDue: subscription.amountDue,
+      nextBillingDate: subscription.nextBillingDate,
+      currentPeriodEnd: subscription.currentPeriodEnd,
+      trialEndDate: subscription.trialEndDate
+    });
+
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-4xl mx-auto">

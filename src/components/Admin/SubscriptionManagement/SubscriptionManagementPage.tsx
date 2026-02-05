@@ -136,7 +136,6 @@ export const SubscriptionManagementPage: React.FC = () => {
         {activeTab === 'subscribers' && <SubscribersTab />}
         {activeTab === 'invoices' && <InvoicesTab />}
         {activeTab === 'plans' && <PlansTab />}
-        {activeTab === 'settings' && <SettingsTab />}
       </div>
     </div>
   );

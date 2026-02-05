@@ -31,29 +31,54 @@ const transformPlan = (data: any): SubscriptionPlan => ({
   updatedAt: new Date(data.updated_at)
 });
 
-const transformSubscription = (data: any): Subscription => ({
-  id: data.id,
-  organizationId: data.organization_id,
-  planId: data.plan_id,
-  status: data.status,
-  isFirstSubscription: data.is_first_subscription,
-  trialStartDate: data.trial_start_date ? new Date(data.trial_start_date) : null,
-  trialEndDate: data.trial_end_date ? new Date(data.trial_end_date) : null,
-  currentPeriodStart: data.current_period_start ? new Date(data.current_period_start) : null,
-  currentPeriodEnd: data.current_period_end ? new Date(data.current_period_end) : null,
-  nextBillingDate: data.next_billing_date ? new Date(data.next_billing_date) : null,
-  amountDue: parseFloat(data.amount_due || 0),
-  isProrata: data.is_prorata,
-  prorataDays: data.prorata_days,
-  subscribedAt: new Date(data.subscribed_at),
-  activatedAt: data.activated_at ? new Date(data.activated_at) : null,
-  suspendedAt: data.suspended_at ? new Date(data.suspended_at) : null,
-  cancelledAt: data.cancelled_at ? new Date(data.cancelled_at) : null,
-  cancellationReason: data.cancellation_reason,
-  createdAt: new Date(data.created_at),
-  updatedAt: new Date(data.updated_at),
-  plan: data.subscription_plans ? transformPlan(data.subscription_plans) : undefined
-});
+const transformSubscription = (data: any): Subscription => {
+  // Debug log pour voir les données brutes
+  console.log('[transformSubscription] Raw data:', {
+    id: data.id,
+    status: data.status,
+    is_prorata: data.is_prorata,
+    prorata_days: data.prorata_days,
+    amount_due: data.amount_due,
+    next_billing_date: data.next_billing_date,
+    current_period_end: data.current_period_end
+  });
+
+  const transformed = {
+    id: data.id,
+    organizationId: data.organization_id,
+    planId: data.plan_id,
+    status: data.status,
+    isFirstSubscription: Boolean(data.is_first_subscription),
+    trialStartDate: data.trial_start_date ? new Date(data.trial_start_date) : null,
+    trialEndDate: data.trial_end_date ? new Date(data.trial_end_date) : null,
+    currentPeriodStart: data.current_period_start ? new Date(data.current_period_start) : null,
+    currentPeriodEnd: data.current_period_end ? new Date(data.current_period_end) : null,
+    nextBillingDate: data.next_billing_date ? new Date(data.next_billing_date) : null,
+    amountDue: parseFloat(data.amount_due || 0),
+    isProrata: Boolean(data.is_prorata),
+    prorataDays: data.prorata_days ? parseInt(data.prorata_days) : null,
+    subscribedAt: new Date(data.subscribed_at),
+    activatedAt: data.activated_at ? new Date(data.activated_at) : null,
+    suspendedAt: data.suspended_at ? new Date(data.suspended_at) : null,
+    cancelledAt: data.cancelled_at ? new Date(data.cancelled_at) : null,
+    cancellationReason: data.cancellation_reason,
+    createdAt: new Date(data.created_at),
+    updatedAt: new Date(data.updated_at),
+    plan: data.subscription_plans ? transformPlan(data.subscription_plans) : undefined
+  };
+
+  console.log('[transformSubscription] Transformed:', {
+    id: transformed.id,
+    status: transformed.status,
+    isProrata: transformed.isProrata,
+    prorataDays: transformed.prorataDays,
+    amountDue: transformed.amountDue,
+    nextBillingDate: transformed.nextBillingDate,
+    currentPeriodEnd: transformed.currentPeriodEnd
+  });
+
+  return transformed;
+};
 
 const transformInvoice = (data: any): SubscriptionInvoice => ({
   id: data.id,
