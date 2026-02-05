@@ -24,6 +24,7 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
     isInTrial,
     isPendingPayment,
     isSuspended,
+    hasActiveSubscription,
     daysLeftInTrial
   } = useSubscription();
 
@@ -194,83 +195,120 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
               </div>
             )}
 
-            {/* Prochaine date de facturation */}
-            {subscription.nextBillingDate && subscription.status === 'active' && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start space-x-3">
-                  <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-gray-900">Prochaine facturation</p>
-                    <p className="text-gray-600 text-sm">
-                      {subscription.nextBillingDate.toLocaleDateString('fr-FR', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                      })}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Informations supplémentaires pour période d'essai */}
-            {isInTrial && subscription.trialEndDate && (
+            {/* Informations de facturation - Pour TOUS les abonnés (essai et actifs) */}
+            {(isInTrial || hasActiveSubscription) && (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4">
-                <h4 className="font-semibold text-gray-900 mb-3">Après la période d'essai</h4>
+                <h4 className="font-semibold text-gray-900 mb-3">
+                  {isInTrial ? "Après la période d'essai" : "Informations de facturation"}
+                </h4>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Date de fin de période d'essai</span>
-                    <span className="font-semibold text-gray-900">
-                      {subscription.trialEndDate.toLocaleDateString('fr-FR')}
-                    </span>
-                  </div>
-                  {subscription.isProrata && (
+                  {/* Pour période d'essai */}
+                  {isInTrial && subscription.trialEndDate && (
                     <>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Montant au prorata</span>
+                        <span className="text-gray-600">Date de fin de période d'essai</span>
                         <span className="font-semibold text-gray-900">
-                          {formatCurrency(subscription.amountDue)}
+                          {subscription.trialEndDate.toLocaleDateString('fr-FR')}
                         </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Jours jusqu'à la fin de période</span>
-                        <span className="font-semibold text-gray-900">
-                          {subscription.prorataDays} jours
-                        </span>
-                      </div>
-                      {subscription.currentPeriodEnd && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Date de fin de période calendaire</span>
-                          <span className="font-semibold text-gray-900">
-                            {subscription.currentPeriodEnd.toLocaleDateString('fr-FR')}
-                          </span>
+                      {subscription.isProrata && (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Montant au prorata</span>
+                            <span className="font-semibold text-gray-900">
+                              {formatCurrency(subscription.amountDue)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Jours jusqu'à la fin de période</span>
+                            <span className="font-semibold text-gray-900">
+                              {subscription.prorataDays} jours
+                            </span>
+                          </div>
+                          {subscription.currentPeriodEnd && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Date de fin de période calendaire</span>
+                              <span className="font-semibold text-gray-900">
+                                {subscription.currentPeriodEnd.toLocaleDateString('fr-FR')}
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {currentPlan && (
+                        <div className="pt-2 border-t border-gray-300">
+                          <p className="text-gray-600">
+                            Ensuite, vous serez facturé {formatCurrency(currentPlan.price)} tous les {
+                              currentPlan.billingCycle === 'monthly' ? 'mois' :
+                              currentPlan.billingCycle === 'semesterly' ? 'semestres' : 'ans'
+                            }.
+                          </p>
                         </div>
                       )}
                     </>
                   )}
-                  {currentPlan && (
-                    <div className="pt-2 border-t border-gray-300">
-                      <p className="text-gray-600">
-                        Ensuite, vous serez facturé {formatCurrency(currentPlan.price)} tous les {
-                          currentPlan.billingCycle === 'monthly' ? 'mois' :
-                          currentPlan.billingCycle === 'semesterly' ? 'semestres' : 'ans'
-                        }.
-                      </p>
-                    </div>
+
+                  {/* Pour abonnement actif */}
+                  {hasActiveSubscription && subscription.nextBillingDate && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Prochaine date de facturation</span>
+                        <span className="font-semibold text-gray-900">
+                          {subscription.nextBillingDate.toLocaleDateString('fr-FR', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                      {(() => {
+                        const daysUntilBilling = Math.ceil(
+                          (subscription.nextBillingDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+                        );
+                        return (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Jours restants avant facturation</span>
+                            <span className="font-semibold text-gray-900">
+                              {daysUntilBilling} jour{daysUntilBilling > 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        );
+                      })()}
+                      {currentPlan && (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Montant de la prochaine facture</span>
+                            <span className="font-semibold text-orange-600">
+                              {formatCurrency(currentPlan.price)}
+                            </span>
+                          </div>
+                          <div className="pt-2 border-t border-gray-300">
+                            <p className="text-gray-600">
+                              Vous êtes facturé {formatCurrency(currentPlan.price)} tous les {
+                                currentPlan.billingCycle === 'monthly' ? 'mois' :
+                                currentPlan.billingCycle === 'semesterly' ? 'semestres' : 'ans'
+                              }.
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
             )}
 
-            {/* Boutons d'action */}
-            {(isPendingPayment || isInTrial) && (
+            {/* Boutons d'action - Pour tous les abonnés (essai, actifs, en attente) */}
+            {(isPendingPayment || isInTrial || hasActiveSubscription) && (
               <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                <button
-                  onClick={() => setShowPaymentModal(true)}
-                  className="flex-1 bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors"
-                >
-                  Payer maintenant
-                </button>
+                {(isPendingPayment || isInTrial) && (
+                  <button
+                    onClick={() => setShowPaymentModal(true)}
+                    className="flex-1 bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors"
+                  >
+                    Payer maintenant
+                  </button>
+                )}
                 <button
                   onClick={handleModifySubscription}
                   className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 py-3 px-4 rounded-lg font-semibold transition-colors"

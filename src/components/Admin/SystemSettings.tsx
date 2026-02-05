@@ -435,71 +435,32 @@ export const SystemSettings: React.FC = () => {
             <CreditCard className="h-5 w-5 mr-2 text-orange-600" />
             Moyens de paiement
           </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="h-8 w-8 bg-orange-100 rounded-full flex items-center justify-center">
-                    <span className="text-orange-600 font-bold text-sm">O</span>
-                  </div>
-                  <span className="font-medium text-gray-900">Orange Money</span>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.enableOrangeMoney}
-                    onChange={(e) => updateSetting('enableOrangeMoney', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
-                </label>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="h-8 w-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                    <span className="text-yellow-600 font-bold text-sm">M</span>
-                  </div>
-                  <span className="font-medium text-gray-900">MTN Mobile Money</span>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.enableMTN}
-                    onChange={(e) => updateSetting('enableMTN', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
-                </label>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-bold text-sm">M</span>
-                  </div>
-                  <span className="font-medium text-gray-900">Moov Money</span>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={settings.enableMoov}
-                    onChange={(e) => updateSetting('enableMoov', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
-                </label>
+
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start space-x-3">
+              <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-semibold text-orange-900 mb-1">Section sensible - Accès restreint aux Super Admin</p>
+                <p className="text-sm text-orange-800">
+                  Les numéros de compte configurés ici seront utilisés pour recevoir les paiements des abonnements Ravito Gestion.
+                  Assurez-vous que ces informations sont correctes et sécurisées.
+                </p>
               </div>
             </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
+          </div>
+
+          <div className="space-y-6">
+            {/* Wave */}
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">
-                  <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <span className="text-purple-600 font-bold text-sm">W</span>
+                  <div className="h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span className="text-purple-600 font-bold">W</span>
                   </div>
-                  <span className="font-medium text-gray-900">Wave</span>
+                  <div>
+                    <span className="font-semibold text-gray-900 block">Wave</span>
+                    <span className="text-xs text-gray-600">Transfert mobile</span>
+                  </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -511,22 +472,201 @@ export const SystemSettings: React.FC = () => {
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
                 </label>
               </div>
-              
-              <div className="flex items-center justify-between">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Numéro de téléphone</label>
+                  <input
+                    type="tel"
+                    placeholder="+225 07 XX XX XX XX"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom du compte</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: RAVITO CI"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
+                </div>
+              </div>
+              <div className="mt-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Instructions (optionnel)</label>
+                <textarea
+                  rows={2}
+                  placeholder="Instructions pour le client..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+              </div>
+            </div>
+
+            {/* Orange Money */}
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">
-                  <CreditCard className="h-5 w-5 text-gray-600" />
-                  <span className="font-medium text-gray-900">Cartes bancaires</span>
+                  <div className="h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center">
+                    <span className="text-orange-600 font-bold">O</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-900 block">Orange Money</span>
+                    <span className="text-xs text-gray-600">Transfert mobile</span>
+                  </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={settings.enableBankCards}
-                    onChange={(e) => updateSetting('enableBankCards', e.target.checked)}
+                    checked={settings.enableOrangeMoney}
+                    onChange={(e) => updateSetting('enableOrangeMoney', e.target.checked)}
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
                 </label>
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Numéro de téléphone</label>
+                  <input
+                    type="tel"
+                    placeholder="+225 07 XX XX XX XX"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom du compte</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: RAVITO CI"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
+                </div>
+              </div>
+              <div className="mt-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Instructions (optionnel)</label>
+                <textarea
+                  rows={2}
+                  placeholder="Instructions pour le client..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+              </div>
+            </div>
+
+            {/* MTN Money */}
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  <div className="h-10 w-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <span className="text-yellow-600 font-bold">M</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-900 block">MTN Money</span>
+                    <span className="text-xs text-gray-600">Transfert mobile</span>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.enableMTN}
+                    onChange={(e) => updateSetting('enableMTN', e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                </label>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Numéro de téléphone</label>
+                  <input
+                    type="tel"
+                    placeholder="+225 05 XX XX XX XX"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom du compte</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: RAVITO CI"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
+                </div>
+              </div>
+              <div className="mt-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Instructions (optionnel)</label>
+                <textarea
+                  rows={2}
+                  placeholder="Instructions pour le client..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                />
+              </div>
+            </div>
+
+            {/* Moov Money */}
+            <div className="border border-gray-200 rounded-lg p-4 opacity-75">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 font-bold">M</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-900 block">Moov Money</span>
+                    <span className="text-xs text-gray-600">Transfert mobile</span>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.enableMoov}
+                    onChange={(e) => updateSetting('enableMoov', e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                </label>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Numéro de téléphone</label>
+                  <input
+                    type="tel"
+                    placeholder="+225 01 XX XX XX XX"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    disabled
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom du compte</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: RAVITO CI"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    disabled
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Espèces */}
+            <div className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-green-600 font-bold text-sm">FCFA</span>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-gray-900 block">Espèces</span>
+                    <span className="text-xs text-gray-600">Paiement en liquide</span>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    disabled
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-orange-600 rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                </label>
+              </div>
+              <p className="text-xs text-gray-600 mt-2">Les paiements en espèces sont toujours acceptés et doivent être validés manuellement par l'équipe.</p>
             </div>
           </div>
         </div>

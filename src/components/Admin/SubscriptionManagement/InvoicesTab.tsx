@@ -143,8 +143,8 @@ export const InvoicesTab: React.FC = () => {
     pending: invoices.filter(i => i.status === 'pending').length,
     paid: invoices.filter(i => i.status === 'paid').length,
     overdue: invoices.filter(i => i.status === 'overdue').length,
-    totalAmount: invoices.reduce((sum, i) => sum + i.amount, 0),
-    paidAmount: invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0)
+    totalAmount: invoices.reduce((sum, i) => sum + (i.amountDue || i.amount), 0),
+    paidAmount: invoices.reduce((sum, i) => sum + (i.amountPaid || i.totalPaid || 0), 0)
   };
 
   if (loading) {
