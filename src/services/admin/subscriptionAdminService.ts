@@ -250,33 +250,30 @@ export const getAllInvoices = async (
     let query = supabase
       .from('subscription_invoices')
       .select(`
-        id,
-        subscription_id,
-        organization_id,
-        invoice_number,
-        amount,
-        amount_due,
-        amount_paid,
-        prorata_amount,
-        days_calculated,
-        is_prorata,
-        period_start,
-        period_end,
-        due_date,
-        status,
-        paid_at,
-        paid_amount,
-        transaction_reference,
-        notes,
-        created_at,
-        updated_at,
-        subscriptions (
+        *,
+        subscriptions!inner (
           id,
           organization_id,
-          organizations (name),
-          subscription_plans (*)
-        ),
-        subscription_payments (*)
+          plan_id,
+          organizations!inner (
+            name
+          ),
+          subscription_plans!inner (
+            id,
+            name,
+            description,
+            price,
+            billing_cycle,
+            days_in_cycle,
+            trial_days,
+            is_active,
+            display_order,
+            features,
+            created_at,
+            updated_at,
+            free_months
+          )
+        )
       `)
       .order('created_at', { ascending: false });
 
@@ -286,7 +283,27 @@ export const getAllInvoices = async (
 
     const { data, error } = await query;
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching all invoices:', error);
+      throw error;
+    }
+
+    // Fetch payments separately to avoid ambiguity
+    const invoiceIds = (data || []).map(d => d.id);
+    let paymentsData: any[] = [];
+
+    if (invoiceIds.length > 0) {
+      const { data: payments, error: paymentsError } = await supabase
+        .from('subscription_payments')
+        .select('*')
+        .in('invoice_id', invoiceIds);
+
+      if (paymentsError) {
+        console.error('Error fetching payments:', paymentsError);
+      } else {
+        paymentsData = payments || [];
+      }
+    }
 
     return (data || []).map(d => {
       const invoice: SubscriptionInvoice = {
@@ -308,7 +325,9 @@ export const getAllInvoices = async (
         updatedAt: new Date(d.updated_at)
       };
 
-      const payments: SubscriptionPayment[] = (d.subscription_payments || []).map((p: any) => ({
+      // Get payments for this invoice
+      const invoicePayments = paymentsData.filter(p => p.invoice_id === d.id);
+      const payments: SubscriptionPayment[] = invoicePayments.map((p: any) => ({
         id: p.id,
         invoiceId: p.invoice_id,
         subscriptionId: p.subscription_id,
@@ -316,7 +335,7 @@ export const getAllInvoices = async (
         paymentMethod: p.payment_method,
         paymentDate: new Date(p.payment_date),
         validatedBy: p.validated_by,
-        validationDate: new Date(p.validation_date),
+        validationDate: p.validation_date ? new Date(p.validation_date) : new Date(p.created_at),
         receiptNumber: p.receipt_number,
         transactionReference: p.transaction_reference,
         notes: p.notes,
