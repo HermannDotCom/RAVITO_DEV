@@ -250,7 +250,26 @@ export const getAllInvoices = async (
     let query = supabase
       .from('subscription_invoices')
       .select(`
-        *,
+        id,
+        subscription_id,
+        organization_id,
+        invoice_number,
+        amount,
+        amount_due,
+        amount_paid,
+        prorata_amount,
+        days_calculated,
+        is_prorata,
+        period_start,
+        period_end,
+        due_date,
+        status,
+        paid_at,
+        paid_amount,
+        transaction_reference,
+        notes,
+        created_at,
+        updated_at,
         subscriptions (
           id,
           organization_id,

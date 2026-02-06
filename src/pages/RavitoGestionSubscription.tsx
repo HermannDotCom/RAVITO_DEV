@@ -158,6 +158,36 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Statut de l'abonnement</h2>
 
+            {/* Encadré Période d'essai - Toujours visible */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <h4 className="font-semibold text-blue-900 mb-2">Période d'essai</h4>
+              <div className="space-y-1 text-sm">
+                {subscription.trialStartDate && subscription.trialEndDate ? (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-blue-800">Dates de la période d'essai</span>
+                      <span className="font-medium text-blue-900">
+                        Du {subscription.trialStartDate.toLocaleDateString('fr-FR')} au {subscription.trialEndDate.toLocaleDateString('fr-FR')}
+                      </span>
+                    </div>
+                    {isInTrial ? (
+                      <p className="text-blue-700 mt-2">
+                        Vous bénéficiez actuellement de votre période d'essai de 30 jours offerts.
+                      </p>
+                    ) : (
+                      <p className="text-blue-700 mt-2">
+                        Votre période d'essai de 30 jours est terminée.
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-blue-700">
+                    Période d'essai de 30 jours offerts lors de la première souscription par organisation.
+                  </p>
+                )}
+              </div>
+            </div>
+
             {/* Badge de statut */}
             <div className="flex items-center space-x-4 mb-4">
               {isInTrial && (
@@ -184,14 +214,22 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
                   <span className="font-medium">Abonnement suspendu</span>
                 </div>
               )}
+              {subscription.status === 'cancelled' && (
+                <div className="flex items-center space-x-2 px-4 py-2 bg-red-100 text-red-800 rounded-full">
+                  <AlertCircle className="w-5 h-5" />
+                  <span className="font-medium">Abonnement résilié</span>
+                </div>
+              )}
             </div>
+
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Abonnement en cours</h3>
 
             {/* Détails du plan */}
             {currentPlan && (
               <div className="border border-gray-200 rounded-lg p-4 mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <h3 className="font-semibold text-gray-900">Plan {currentPlan.name}</h3>
+                    <h4 className="font-semibold text-gray-900">Plan {currentPlan.name}</h4>
                     {currentPlan.freeMonths && currentPlan.freeMonths > 0 && (
                       <span className="inline-flex items-center gap-1 text-green-600 text-sm font-medium mt-1">
                         🎁 {currentPlan.freeMonths} mois offert{currentPlan.freeMonths > 1 ? 's' : ''}
@@ -205,7 +243,46 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
                     </span>
                   </div>
                 </div>
-                <p className="text-gray-600 text-sm">{currentPlan.description}</p>
+                <p className="text-gray-600 text-sm mb-3">{currentPlan.description}</p>
+
+                {/* Date de souscription */}
+                <div className="border-t border-gray-200 pt-3 mt-3 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Date de souscription</span>
+                    <span className="font-medium text-gray-900">
+                      {subscription.subscribedAt.toLocaleDateString('fr-FR')}
+                    </span>
+                  </div>
+
+                  {/* Informations de résiliation si applicable */}
+                  {subscription.status === 'cancelled' && subscription.cancelledAt && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Date de résiliation</span>
+                        <span className="font-medium text-red-600">
+                          {subscription.cancelledAt.toLocaleDateString('fr-FR')}
+                        </span>
+                      </div>
+                      {subscription.currentPeriodEnd && (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Résiliation effective</span>
+                            <span className="font-medium text-red-600">
+                              {(() => {
+                                const effectiveDate = new Date(subscription.currentPeriodEnd);
+                                effectiveDate.setDate(effectiveDate.getDate() + 1);
+                                return effectiveDate.toLocaleDateString('fr-FR');
+                              })()}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 bg-yellow-50 border border-yellow-200 rounded p-2 mt-2">
+                            Votre abonnement restera actif jusqu'au {subscription.currentPeriodEnd.toLocaleDateString('fr-FR')}
+                          </p>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             )}
 
