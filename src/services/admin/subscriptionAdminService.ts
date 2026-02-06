@@ -250,7 +250,22 @@ export const getAllInvoices = async (
     let query = supabase
       .from('subscription_invoices')
       .select(`
-        *,
+        id,
+        subscription_id,
+        invoice_number,
+        amount,
+        prorata_amount,
+        days_calculated,
+        is_prorata,
+        period_start,
+        period_end,
+        due_date,
+        status,
+        paid_at,
+        paid_amount,
+        notes,
+        created_at,
+        updated_at,
         subscriptions!inner (
           id,
           organization_id,
@@ -343,7 +358,7 @@ export const getAllInvoices = async (
       }));
 
       const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
-      const remainingAmount = invoice.amount - totalPaid;
+      const remainingAmount = Math.max(0, invoice.amount - totalPaid);
 
       return {
         ...invoice,
