@@ -57,7 +57,14 @@ export const InvoicesTab: React.FC = () => {
     let filtered = invoices;
 
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(i => i.status === statusFilter);
+      filtered = filtered.filter(i => {
+        const amountDue = i.amount;
+        const amountPaid = i.totalPaid || 0;
+        
+        if (statusFilter === 'paid') return amountPaid >= amountDue;
+        if (statusFilter === 'pending') return amountPaid < amountDue && i.status !== 'overdue';
+        return i.status === statusFilter;
+      });
     }
 
     if (searchQuery.trim()) {
@@ -144,7 +151,7 @@ export const InvoicesTab: React.FC = () => {
     paid: invoices.filter(i => i.status === 'paid').length,
     overdue: invoices.filter(i => i.status === 'overdue').length,
     totalAmount: invoices.reduce((sum, i) => sum + i.amount, 0),
-    paidAmount: invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0)
+    paidAmount: invoices.reduce((sum, i) => sum + (i.totalPaid || 0), 0)
   };
 
   if (loading) {
@@ -243,19 +250,16 @@ export const InvoicesTab: React.FC = () => {
                 </tr>
               ) : (
                 filteredInvoices.map((invoice) => {
-                  const amountDue = invoice.amountDue || invoice.amount;
-                  const amountPaid = invoice.amountPaid || invoice.totalPaid || 0;
-                  const remainingAmount = amountDue - amountPaid;
+                  const amountDue = invoice.amount;
+                  const amountPaid = invoice.totalPaid || 0;
+                  const remainingAmount = invoice.remainingAmount;
                   
                   // Calculer le statut basé sur les montants
                   let displayStatus = invoice.status;
                   if (amountPaid >= amountDue) {
                     displayStatus = 'paid';
-                  } else if (amountPaid === 0) {
-                    displayStatus = invoice.status; // pending ou overdue
                   } else if (amountPaid > 0 && amountPaid < amountDue) {
-                    // Statut partiel - on garde le statut actuel mais on l'affichera différemment
-                    displayStatus = invoice.status;
+                    displayStatus = 'pending'; // Or keep original if preferred
                   }
 
                   return (

@@ -251,11 +251,11 @@ export const getAllInvoices = async (
       .from('subscription_invoices')
       .select(`
         *,
-        subscriptions (
+        subscriptions!inner (
           id,
           organization_id,
-          organizations (name),
-          subscription_plans (*)
+          organizations!inner (name),
+          subscription_plans!inner (*)
         ),
         subscription_payments (*)
       `)
@@ -297,7 +297,7 @@ export const getAllInvoices = async (
         paymentMethod: p.payment_method,
         paymentDate: new Date(p.payment_date),
         validatedBy: p.validated_by,
-        validationDate: new Date(p.validation_date),
+        validationDate: p.validation_date ? new Date(p.validation_date) : null,
         receiptNumber: p.receipt_number,
         transactionReference: p.transaction_reference,
         notes: p.notes,
@@ -305,7 +305,7 @@ export const getAllInvoices = async (
       }));
 
       const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
-      const remainingAmount = invoice.amount - totalPaid;
+      const remainingAmount = Math.max(0, invoice.amount - totalPaid);
 
       return {
         ...invoice,
