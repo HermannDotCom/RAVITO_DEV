@@ -292,13 +292,18 @@ export const PriceGridTable: React.FC = () => {
       await refreshSupplierGrids();
     } catch (error) {
       console.error('Error deleting product:', error);
-      setErrorMessage('Erreur lors de la suppression');
+      setErrorMessage('Erreur lors de la suppression du produit');
     } finally {
+      setDeleteModal(null);
       setTimeout(() => {
         setSuccessMessage(null);
         setErrorMessage(null);
       }, 3000);
     }
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
   };
 
   const startEdit = (product: ProductWithPricing) => {
@@ -309,470 +314,388 @@ export const PriceGridTable: React.FC = () => {
     });
   };
 
-  const cancelEdit = () => {
-    setEditingId(null);
-    setFormData({
-      supplierPrice: 0,
-      initialStock: 0,
-    });
-  };
-
-  const getVarianceInfo = (supplierPrice?: number, productId?: string) => {
-    if (!supplierPrice || !productId) return null;
-    
+  const getVarianceInfo = (supplierPrice: number | undefined, productId: string) => {
     const refPrice = referencePrices.get(productId);
-    if (!refPrice) return null;
-
-    const { variancePercentage, isAbove, isBelow } = compareToReference(supplierPrice, refPrice);
-    const status = getPriceStatus(variancePercentage);
-    const colorClass = getPriceStatusColor(status);
-
-    return {
-      variancePercentage,
-      isAbove,
-      isBelow,
-      status,
-      colorClass,
-    };
-  };
-
-  const handleResetQuantities = async () => {
-    try {
-      if (!user) return;
-
-      const { error } = await supabase.rpc('reset_supplier_sold_quantities', {
-        p_supplier_id: user.id,
-      });
-
-      if (error) throw error;
-
-      await refreshSupplierGrids();
-      setSuccessMessage('Les quantités vendues ont été réinitialisées avec succès');
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (error) {
-      console.error('Error resetting quantities:', error);
-      throw error;
+    if (supplierPrice === undefined || refPrice === undefined || refPrice === 0) {
+      return null;
     }
+    const variance = supplierPrice - refPrice;
+    const variancePercentage = ((variance / refPrice) * 100).toFixed(1);
+    const isAbove = variance > 0;
+    const colorClass = isAbove ? 'text-red-500' : 'text-green-500';
+    return { variancePercentage, isAbove, colorClass };
   };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'decimal',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const supplierName = user?.businessName || user?.name || 'Fournisseur';
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Header with refresh button */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Produits vendus</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Gestion quotidienne de vos stocks et de vos prix
-            </p>
-          </div>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Grille Tarifaire</h1>
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setShowImportExport(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-            >
-              <FileSpreadsheet className="h-4 w-4" />
-              Import/Export
-            </button>
-
-            <button
-              onClick={() => setShowResetModal(true)}
-              className="flex items-center gap-2 px-4 py-2 border border-orange-300 dark:border-orange-600 text-orange-700 dark:text-orange-300 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Réinitialiser quantités
-            </button>
-          </div>
+      {errorMessage && (
+        <div className="bg-red-100 dark:bg-red-800 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded relative mb-4" role="alert">
+          <strong className="font-bold">Erreur!</strong>
+          <span className="block sm:inline"> {errorMessage}</span>
         </div>
+      )}
+      {successMessage && (
+        <div className="bg-green-100 dark:bg-green-800 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-200 px-4 py-3 rounded relative mb-4" role="alert">
+          <strong className="font-bold">Succès!</strong>
+          <span className="block sm:inline"> {successMessage}</span>
+        </div>
+      )}
 
-        {/* Error Display */}
-        {(error || errorMessage) && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <p className="text-red-800 dark:text-red-300">{error || errorMessage}</p>
+      {/* Add Product Section */}
+      <div className="mb-8 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800">
+        <button
+          onClick={() => setShowAddSection(!showAddSection)}
+          className="w-full flex items-center justify-between p-4 bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Plus className="h-5 w-5" />
+            <span className="text-lg font-semibold">Ajouter un produit</span>
           </div>
-        )}
+          {showAddSection ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+        </button>
 
-        {/* Success Display */}
-        {successMessage && (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-            <p className="text-green-800 dark:text-green-300">{successMessage}</p>
-          </div>
-        )}
-
-        {/* Add Product Section */}
-        <div className="bg-white dark:bg-gray-900 border border-orange-200 dark:border-orange-800 rounded-xl overflow-hidden">
-          <button
-            onClick={() => setShowAddSection(!showAddSection)}
-            className="w-full flex items-center justify-between p-4 bg-orange-500 text-white hover:bg-orange-600 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <Plus className="w-5 h-5" />
-              <span className="font-semibold">Ajouter un produit</span>
-            </div>
-            {showAddSection ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-          </button>
-
-          {showAddSection && (
-            <div className="p-4 space-y-4">
-              {/* Search bar */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="🔍 Rechercher un produit (min. 3 car.)..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  />
-                </div>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                >
-                  {PRODUCT_CATEGORIES.map(cat => (
-                    <option key={cat.value} value={cat.value}>{cat.label}</option>
-                  ))}
-                </select>
+        {showAddSection && (
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="mb-4 flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher un produit par nom ou référence..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+                />
               </div>
-
-              {/* Search results */}
-              {searching && (
-                <div className="text-center text-gray-500 dark:text-gray-400 text-sm py-4">
-                  Recherche en cours...
-                </div>
-              )}
-              
-              {searchResults.length > 0 && (
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Résultats de recherche :
-                  </p>
-                  {searchResults.map(product => {
-                    const form = productForms[product.id] || { supplierPrice: '', initialStock: '0' };
-
-                    return (
-                      <div key={product.id} className="flex flex-col sm:flex-row items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <img 
-                          src={product.image_url} 
-                          alt={product.name}
-                          className="w-12 h-12 object-cover rounded flex-shrink-0"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900 dark:text-white text-sm">{product.name}</p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            {product.brand} • {product.crate_type}
-                          </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            Réf: {formatCurrency(product.crate_price)} F/casier
-                          </p>
-                          
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            <div className="flex items-center gap-1">
-                              <label className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                                Prix fournisseur<span className="text-red-500">*</span>:
-                              </label>
-                              <input
-                                type="number"
-                                min="0"
-                                value={form.supplierPrice}
-                                onChange={(e) => setProductForms({
-                                  ...productForms,
-                                  [product.id]: { ...form, supplierPrice: e.target.value }
-                                })}
-                                placeholder="0"
-                                className="w-24 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                              />
-                              <span className="text-xs text-gray-600 dark:text-gray-400">F</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <label className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                                Stock initial:
-                              </label>
-                              <input
-                                type="number"
-                                min="0"
-                                value={form.initialStock}
-                                onChange={(e) => setProductForms({
-                                  ...productForms,
-                                  [product.id]: { ...form, initialStock: e.target.value }
-                                })}
-                                placeholder="0"
-                                className="w-20 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => handleAddProduct(product)}
-                          disabled={addingProductId === product.id}
-                          className="flex items-center gap-1 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium whitespace-nowrap"
-                        >
-                          <Plus className="w-4 h-4" />
-                          {addingProductId === product.id ? 'Ajout...' : 'Ajouter'}
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {searchQuery.length >= 3 && !searching && searchResults.length === 0 && (
-                <div className="text-center text-gray-500 dark:text-gray-400 text-sm py-4">
-                  Aucun produit trouvé
-                </div>
-              )}
-
-              {searchQuery.length < 3 && (
-                <div className="text-center text-gray-400 dark:text-gray-500 text-sm py-4">
-                  Saisissez au moins 3 caractères pour rechercher
-                </div>
-              )}
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-orange-500 focus:border-orange-500"
+              >
+                {PRODUCT_CATEGORIES.map((cat) => (
+                  <option key={cat.value} value={cat.value}>{cat.label}</option>
+                ))}
+              </select>
             </div>
-          )}
-        </div>
 
-        {/* Configured Products Table */}
-        <Card className="overflow-hidden">
-          <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              📦 Mes produits ({configuredProducts.length})
-            </h2>
-          </div>
+            {searching && <p className="text-center text-gray-500 dark:text-gray-400">Recherche en cours...</p>}
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-800">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Produit
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Prix {supplierName}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Référence
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Écart %
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Stock Initial
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Qté Vendue
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Stock Final
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                {isLoadingConfigured ? (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                      Chargement des produits...
-                    </td>
-                  </tr>
-                ) : configuredProducts.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center">
-                      <div className="text-gray-400 dark:text-gray-500">
-                        <p className="font-medium text-lg mb-2">Aucun produit configuré</p>
-                        <p className="text-sm">Utilisez la recherche ci-dessus pour ajouter des produits</p>
+            {searchResults.length > 0 && (
+              <div className="mt-4 border border-gray-200 dark:border-gray-700 rounded-lg max-h-60 overflow-y-auto">
+                {searchResults.map((product) => (
+                  <div key={product.id} className="flex flex-col sm:flex-row items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                    <div className="flex items-center mb-2 sm:mb-0">
+                      <img src={product.image_url} alt={product.name} className="h-10 w-10 rounded-full object-cover mr-3" />
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{product.brand}</p>
                       </div>
-                    </td>
-                  </tr>
-                ) : (
-                  configuredProducts.map((product) => {
-                    const varianceInfo = getVarianceInfo(product.supplierPrice, product.id);
-                    const isEditing = editingId === product.id;
-                    const refPrice = referencePrices.get(product.id);
-
-                    return (
-                      <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {product.name}
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {product.brand} - {product.crateType}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {isEditing ? (
-                            <input
-                              type="number"
-                              value={formData.supplierPrice}
-                              onChange={(e) =>
-                                setFormData({ ...formData, supplierPrice: Number(e.target.value) })
-                              }
-                              className="w-32 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-                              min="0"
-                              placeholder="Prix FCFA"
-                            />
-                          ) : (
-                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                              {product.supplierPrice ? formatPrice(product.supplierPrice) : '-'}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                          {refPrice ? formatPrice(refPrice) : '-'}
-                        </td>
-                        <td className="px-6 py-4">
-                          {varianceInfo ? (
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${varianceInfo.colorClass}`}>
-                              {varianceInfo.isAbove ? '+' : ''}
-                              {varianceInfo.variancePercentage.toFixed(1)}%
-                            </span>
-                          ) : (
-                            <span className="text-xs text-gray-400">N/A</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          {isEditing ? (
-                            <input
-                              type="number"
-                              value={formData.initialStock}
-                              onChange={(e) =>
-                                setFormData({ ...formData, initialStock: Number(e.target.value) })
-                              }
-                              className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-                              min="0"
-                              placeholder="Qté"
-                            />
-                          ) : (
-                            <span className="text-sm text-gray-900 dark:text-white">
-                              {product.initialStock || 0}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-sm text-gray-700 dark:text-gray-300">
-                            {product.soldQuantity || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`text-sm font-medium ${
-                            (product.stockFinal || 0) < 0
-                              ? 'text-red-600 dark:text-red-400'
-                              : 'text-gray-900 dark:text-white'
-                          }`}>
-                            {product.stockFinal || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          {isEditing ? (
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => {
-                                  if (product.gridId) {
-                                    handleUpdate(product.id, product.gridId);
-                                  }
-                                }}
-                                disabled={isSaving || !product.gridId}
-                                className="text-green-600 hover:text-green-800 disabled:opacity-50"
-                                title="Enregistrer"
-                              >
-                                <Save className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={cancelEdit}
-                                disabled={isSaving}
-                                className="text-gray-600 hover:text-gray-800 disabled:opacity-50"
-                                title="Annuler"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => startEdit(product)}
-                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400"
-                                title="Modifier"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  if (product.gridId) {
-                                    handleDelete(product.id, product.gridId, product.name);
-                                  }
-                                }}
-                                disabled={!product.gridId}
-                                className="text-red-600 hover:text-red-800 dark:text-red-400 disabled:opacity-50"
-                                title="Supprimer"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-center gap-2">
+                      <input
+                        type="number"
+                        placeholder="Prix Fournisseur (FCFA)"
+                        value={productForms[product.id]?.supplierPrice || ''}
+                        onChange={(e) => setProductForms(prev => ({ ...prev, [product.id]: { ...prev[product.id], supplierPrice: e.target.value } }))}
+                        className="w-full sm:w-36 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Stock Initial"
+                        value={productForms[product.id]?.initialStock || ''}
+                        onChange={(e) => setProductForms(prev => ({ ...prev, [product.id]: { ...prev[product.id], initialStock: e.target.value } }))}
+                        className="w-full sm:w-32 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      />
+                      <button
+                        onClick={() => handleAddProduct(product)}
+                        disabled={addingProductId === product.id}
+                        className="w-full sm:w-auto px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
+                      >
+                        {addingProductId === product.id ? 'Ajout...' : <><Plus className="h-4 w-4" /> Ajouter</>}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        </Card>
-
-        {/* Info sur le workflow */}
-        <Card className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-          <div className="text-sm text-green-800 dark:text-green-300">
-            <p className="font-medium mb-2">💡 Cycle opérationnel quotidien :</p>
-            <ol className="space-y-1 list-decimal list-inside ml-2">
-              <li><strong>Ouverture</strong> : Saisissez votre stock initial et réinitialisez les quantités vendues</li>
-              <li><strong>Activité</strong> : Les quantités vendues se mettent à jour automatiquement à chaque commande</li>
-              <li><strong>Clôture</strong> : Vérifiez votre stock final et exportez l'inventaire si nécessaire</li>
-            </ol>
-          </div>
-        </Card>
+        )}
       </div>
 
-      {/* Modals */}
-      {showResetModal && (
-        <ResetQuantitiesModal
-          onClose={() => setShowResetModal(false)}
-          onConfirm={handleResetQuantities}
-        />
-      )}
+      {/* Bulk Import/Export Section */}
+      <div className="mb-8 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800">
+        <button
+          onClick={() => setShowImportExport(!showImportExport)}
+          className="w-full flex items-center justify-between p-4 bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <FileSpreadsheet className="h-5 w-5" />
+            <span className="text-lg font-semibold">Import/Export en masse</span>
+          </div>
+          {showImportExport ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+        </button>
+        {showImportExport && (
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <BulkImportExport />
+          </div>
+        )}
+      </div>
+
+      {/* Configured Products Table/Cards */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+        {/* Table view for larger screens */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Produit</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Prix Référence</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Votre Prix</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stock Initial</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Vendu</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stock Final</th>
+                <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+              {configuredProducts.map((product) => {
+                const varianceInfo = getVarianceInfo(product.supplierPrice, product.id);
+                const isEditingThis = editingId === product.id;
+
+                return (
+                  <tr key={product.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          <img className="h-10 w-10 rounded-full" src={product.imageUrl} alt={product.name} />
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{product.name}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{product.brand}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 dark:text-white">
+                        {formatPrice(referencePrices.get(product.id) || 0)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {isEditingThis ? (
+                        <input
+                          type="number"
+                          value={formData.supplierPrice}
+                          onChange={(e) => setFormData({ ...formData, supplierPrice: parseFloat(e.target.value) })}
+                          className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                        />
+                      ) : (
+                        <div className="text-sm text-gray-900 dark:text-white flex items-center gap-2">
+                          {formatPrice(product.supplierPrice || 0)}
+                          {varianceInfo && (
+                            <span className={`text-xs font-semibold ${varianceInfo.colorClass}`}>
+                              ({varianceInfo.isAbove ? '+' : '−'}{varianceInfo.variancePercentage}%)
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {isEditingThis ? (
+                        <input
+                          type="number"
+                          value={formData.initialStock}
+                          onChange={(e) => setFormData({ ...formData, initialStock: parseInt(e.target.value) })}
+                          className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                        />
+                      ) : (
+                        <div className="text-sm text-gray-900 dark:text-white">{product.initialStock}</div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {product.soldQuantity}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {product.stockFinal}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      {isEditingThis ? (
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleUpdate(product.id, product.gridId!)}
+                            disabled={isSaving}
+                            className="text-green-600 hover:text-green-900"
+                          >
+                            <Save className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            className="text-gray-600 hover:text-gray-900"
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => startEdit(product)}
+                            className="text-orange-600 hover:text-orange-900"
+                          >
+                            <Edit className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(product.id, product.gridId!, product.name)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Card view for small screens */}
+        <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
+          {configuredProducts.map((product) => {
+            const varianceInfo = getVarianceInfo(product.supplierPrice, product.id);
+            const isEditingThis = editingId === product.id;
+
+            return (
+              <div key={product.id} className="p-4 bg-white dark:bg-gray-900">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center">
+                    <img className="h-12 w-12 rounded-full object-cover" src={product.imageUrl} alt={product.name} />
+                    <div className="ml-3">
+                      <div className="text-base font-medium text-gray-900 dark:text-white">{product.name}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">{product.brand}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isEditingThis ? (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleUpdate(product.id, product.gridId!)}
+                          disabled={isSaving}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          <Save className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => startEdit(product)}
+                          className="text-orange-600 hover:text-orange-900"
+                        >
+                          <Edit className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(product.id, product.gridId!, product.name)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400">Prix Référence:</p>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {formatPrice(referencePrices.get(product.id) || 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400">Votre Prix:</p>
+                    {isEditingThis ? (
+                      <input
+                        type="number"
+                        value={formData.supplierPrice}
+                        onChange={(e) => setFormData({ ...formData, supplierPrice: parseFloat(e.target.value) })}
+                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      />
+                    ) : (
+                      <p className="font-medium text-gray-900 dark:text-white flex items-center gap-1">
+                        {formatPrice(product.supplierPrice || 0)}
+                        {varianceInfo && (
+                          <span className={`text-xs font-semibold ${varianceInfo.colorClass}`}>
+                            ({varianceInfo.isAbove ? '+' : '−'}{varianceInfo.variancePercentage}%)
+                          </span>
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400">Stock Initial:</p>
+                    {isEditingThis ? (
+                      <input
+                        type="number"
+                        value={formData.initialStock}
+                        onChange={(e) => setFormData({ ...formData, initialStock: parseInt(e.target.value) })}
+                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      />
+                    ) : (
+                      <p className="font-medium text-gray-900 dark:text-white">{product.initialStock}</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400">Vendu:</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{product.soldQuantity}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400">Stock Final:</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{product.stockFinal}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <ResetQuantitiesModal
+        isOpen={showResetModal}
+        onClose={() => setShowResetModal(false)}
+        onConfirm={async () => {
+          try {
+            await supabase.rpc('reset_supplier_stock', { p_supplier_id: user?.id });
+            setSuccessMessage('Quantités réinitialisées avec succès');
+            await refreshSupplierGrids();
+          } catch (err) {
+            console.error('Error resetting quantities:', err);
+            setErrorMessage('Erreur lors de la réinitialisation des quantités');
+          } finally {
+            setShowResetModal(false);
+            setTimeout(() => {
+              setSuccessMessage(null);
+              setErrorMessage(null);
+            }, 3000);
+          }
+        }}
+      />
 
       {deleteModal && (
         <DeleteConfirmationModal
-          productName={deleteModal.productName}
-          onConfirm={confirmDelete}
+          isOpen={!!deleteModal}
           onClose={() => setDeleteModal(null)}
+          onConfirm={confirmDelete}
+          productName={deleteModal.productName}
         />
       )}
-
-      {showImportExport && (
-        <BulkImportExport
-          onClose={() => setShowImportExport(false)}
-          onImportComplete={() => {
-            refreshSupplierGrids();
-            setShowImportExport(false);
-          }}
-        />
-      )}
-    </>
+    </div>
   );
 };
