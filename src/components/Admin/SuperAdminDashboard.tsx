@@ -375,11 +375,11 @@ export const SuperAdminDashboard: React.FC = () => {
       )}
       
       {activeTab === 'subscriptions' && (
-        <SubscriptionStats />
+        <SubscriptionStats selectedYear={selectedYear} />
       )}
       
       {activeTab === 'global' && (
-        <GlobalStats />
+        <GlobalStats selectedYear={selectedYear} />
       )}
     </div>
   );
