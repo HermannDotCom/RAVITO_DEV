@@ -9,7 +9,9 @@ import type {
   ValidatePaymentData,
   SubscriptionStats,
   SubscriptionWithDetails,
-  InvoiceWithDetails
+  InvoiceWithDetails,
+  PaymentMethod,
+  PaymentClaimStatus
 } from '../../types/subscription';
 
 // ============================================
@@ -357,8 +359,10 @@ export const getAllInvoices = async (
         amount: parseFloat(p.amount),
         paymentMethod: p.payment_method,
         paymentDate: new Date(p.payment_date),
+        status: p.status || 'validated',
         validatedBy: p.validated_by,
-        validationDate: p.validation_date ? new Date(p.validation_date) : new Date(p.created_at),
+        validationDate: p.validation_date ? new Date(p.validation_date) : null,
+        rejectionReason: p.rejection_reason || null,
         receiptNumber: p.receipt_number,
         transactionReference: p.transaction_reference,
         notes: p.notes,
@@ -618,6 +622,218 @@ export const updateSubscriptionSettings = async (
     if (error) throw error;
   } catch (error) {
     console.error('Error updating subscription settings:', error);
+    throw error;
+  }
+};
+
+// ============================================
+// ADMIN - PAYMENT CLAIMS MANAGEMENT
+// ============================================
+
+export interface PendingPaymentClaim {
+  id: string;
+  invoiceId: string;
+  subscriptionId: string;
+  amount: number;
+  paymentMethod: PaymentMethod;
+  paymentDate: Date;
+  transactionReference: string | null;
+  status: PaymentClaimStatus;
+  notes: string | null;
+  createdAt: Date;
+  invoiceNumber: string;
+  organizationName: string;
+  organizationId: string;
+}
+
+export const getPendingPaymentClaims = async (): Promise<PendingPaymentClaim[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('subscription_payments')
+      .select(`
+        id,
+        invoice_id,
+        subscription_id,
+        amount,
+        payment_method,
+        payment_date,
+        transaction_reference,
+        status,
+        notes,
+        created_at,
+        subscription_invoices!subscription_payments_invoice_id_fkey (
+          invoice_number,
+          amount,
+          amount_due
+        ),
+        subscriptions!subscription_payments_subscription_id_fkey (
+          organization_id,
+          organizations!subscriptions_organization_id_fkey (
+            name
+          )
+        )
+      `)
+      .eq('status', 'pending_validation')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return (data || []).map((d: any) => ({
+      id: d.id,
+      invoiceId: d.invoice_id,
+      subscriptionId: d.subscription_id,
+      amount: parseFloat(d.amount),
+      paymentMethod: d.payment_method,
+      paymentDate: new Date(d.payment_date),
+      transactionReference: d.transaction_reference,
+      status: d.status,
+      notes: d.notes,
+      createdAt: new Date(d.created_at),
+      invoiceNumber: d.subscription_invoices?.invoice_number || '',
+      organizationName: d.subscriptions?.organizations?.name || 'Organisation inconnue',
+      organizationId: d.subscriptions?.organization_id || ''
+    }));
+  } catch (error) {
+    console.error('Error fetching pending payment claims:', error);
+    throw error;
+  }
+};
+
+export const validatePaymentClaim = async (
+  paymentId: string,
+  adminUserId: string
+): Promise<void> => {
+  try {
+    const { data: payment, error: fetchError } = await supabase
+      .from('subscription_payments')
+      .select('id, invoice_id, subscription_id, amount')
+      .eq('id', paymentId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const { error: updatePaymentError } = await supabase
+      .from('subscription_payments')
+      .update({
+        status: 'validated',
+        validated_by: adminUserId,
+        validation_date: new Date().toISOString()
+      })
+      .eq('id', paymentId);
+
+    if (updatePaymentError) throw updatePaymentError;
+
+    const { error: updateInvoiceError } = await supabase
+      .from('subscription_invoices')
+      .update({
+        status: 'paid',
+        paid_at: new Date().toISOString(),
+        paid_amount: payment.amount,
+        amount_paid: payment.amount
+      })
+      .eq('id', payment.invoice_id);
+
+    if (updateInvoiceError) throw updateInvoiceError;
+
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('id, status, organization_id')
+      .eq('id', payment.subscription_id)
+      .maybeSingle();
+
+    if (subscription && (subscription.status === 'pending_payment' || subscription.status === 'trial' || subscription.status === 'suspended')) {
+      const { error: updateSubError } = await supabase
+        .from('subscriptions')
+        .update({
+          status: 'active',
+          activated_at: new Date().toISOString(),
+          suspended_at: null
+        })
+        .eq('id', payment.subscription_id);
+
+      if (updateSubError) throw updateSubError;
+    }
+
+    if (subscription) {
+      const { data: members } = await supabase
+        .from('organization_members')
+        .select('user_id')
+        .eq('organization_id', subscription.organization_id)
+        .eq('status', 'active');
+
+      for (const member of members || []) {
+        await supabase.from('notifications').insert({
+          user_id: member.user_id,
+          type: 'subscription_reminder',
+          title: 'Paiement valide',
+          message: 'Votre paiement a ete valide ! Merci.',
+          priority: 'normal'
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error validating payment claim:', error);
+    throw error;
+  }
+};
+
+export const rejectPaymentClaim = async (
+  paymentId: string,
+  rejectionReason: string
+): Promise<void> => {
+  try {
+    const { data: payment, error: fetchError } = await supabase
+      .from('subscription_payments')
+      .select('id, invoice_id, subscription_id')
+      .eq('id', paymentId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const { error: updatePaymentError } = await supabase
+      .from('subscription_payments')
+      .update({
+        status: 'rejected',
+        rejection_reason: rejectionReason
+      })
+      .eq('id', paymentId);
+
+    if (updatePaymentError) throw updatePaymentError;
+
+    const { error: updateInvoiceError } = await supabase
+      .from('subscription_invoices')
+      .update({
+        status: 'pending'
+      })
+      .eq('id', payment.invoice_id);
+
+    if (updateInvoiceError) throw updateInvoiceError;
+
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('organization_id')
+      .eq('id', payment.subscription_id)
+      .maybeSingle();
+
+    if (subscription) {
+      const { data: members } = await supabase
+        .from('organization_members')
+        .select('user_id')
+        .eq('organization_id', subscription.organization_id)
+        .eq('status', 'active');
+
+      for (const member of members || []) {
+        await supabase.from('notifications').insert({
+          user_id: member.user_id,
+          type: 'subscription_reminder',
+          title: 'Paiement non valide',
+          message: `Votre paiement n'a pas pu etre valide. Motif : ${rejectionReason}. Veuillez nous contacter.`,
+          priority: 'high'
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error rejecting payment claim:', error);
     throw error;
   }
 };

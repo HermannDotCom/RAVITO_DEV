@@ -139,6 +139,7 @@ export const InvoicesTab: React.FC = () => {
     const colorMap: Record<string, string> = {
       green: 'bg-green-100 text-green-800',
       orange: 'bg-orange-100 text-orange-800',
+      blue: 'bg-blue-100 text-blue-800',
       red: 'bg-red-100 text-red-800',
       gray: 'bg-gray-100 text-gray-800'
     };
@@ -206,9 +207,10 @@ export const InvoicesTab: React.FC = () => {
         >
           <option value="all">Tous les statuts</option>
           <option value="pending">En attente</option>
-          <option value="paid">Payées</option>
+          <option value="payment_submitted">Paiement declare</option>
+          <option value="paid">Payees</option>
           <option value="overdue">En retard</option>
-          <option value="cancelled">Annulées</option>
+          <option value="cancelled">Annulees</option>
         </select>
       </div>
 
@@ -306,7 +308,7 @@ export const InvoicesTab: React.FC = () => {
                         {new Date(invoice.dueDate).toLocaleDateString('fr-FR')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {invoice.status === 'pending' || invoice.status === 'overdue' ? (
+                        {invoice.status === 'pending' || invoice.status === 'overdue' || invoice.status === 'payment_submitted' ? (
                           <button
                             onClick={() => handleOpenValidation(invoice)}
                             className="inline-flex items-center px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm"

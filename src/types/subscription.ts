@@ -44,7 +44,12 @@ export interface PaymentMethodConfig {
 /**
  * Invoice status
  */
-export type InvoiceStatus = 'pending' | 'paid' | 'cancelled' | 'overdue';
+export type InvoiceStatus = 'pending' | 'paid' | 'cancelled' | 'overdue' | 'payment_submitted';
+
+/**
+ * Payment claim status
+ */
+export type PaymentClaimStatus = 'pending_validation' | 'validated' | 'rejected';
 
 /**
  * Reminder types based on days before due date
@@ -184,23 +189,21 @@ export interface SubscriptionPayment {
   invoiceId: string;
   subscriptionId: string;
 
-  // Payment details
   amount: number;
   paymentMethod: PaymentMethod;
   paymentDate: Date;
 
-  // Validation
+  status: PaymentClaimStatus;
   validatedBy: string | null;
-  validationDate: Date;
+  validationDate: Date | null;
+  rejectionReason: string | null;
 
-  // Receipt
   receiptNumber: string | null;
   transactionReference: string | null;
   notes: string | null;
 
   createdAt: Date;
 
-  // Relations (populated)
   invoice?: SubscriptionInvoice;
   validator?: { id: string; fullName: string };
 }
@@ -402,6 +405,7 @@ export const getPaymentMethodName = (method: PaymentMethod): string => {
 export const getInvoiceStatusName = (status: InvoiceStatus): string => {
   const names: Record<InvoiceStatus, string> = {
     pending: 'En attente',
+    payment_submitted: 'Paiement declare',
     paid: 'Payée',
     cancelled: 'Annulée',
     overdue: 'En retard'
@@ -415,6 +419,7 @@ export const getInvoiceStatusName = (status: InvoiceStatus): string => {
 export const getInvoiceStatusColor = (status: InvoiceStatus): string => {
   const colors: Record<InvoiceStatus, string> = {
     pending: 'orange',
+    payment_submitted: 'blue',
     paid: 'green',
     cancelled: 'gray',
     overdue: 'red'

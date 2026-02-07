@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, Users, FileText, Settings, TrendingUp } from 'lucide-react';
+import { CreditCard, Users, FileText, Settings, TrendingUp, Banknote } from 'lucide-react';
 import { PlansTab } from './PlansTab';
 import { SubscribersTab } from './SubscribersTab';
 import { InvoicesTab } from './InvoicesTab';
+import { PaymentsTab } from './PaymentsTab';
 import { SettingsTab } from './SettingsTab';
 import { getSubscriptionStats } from '../../../services/admin/subscriptionAdminService';
 import type { SubscriptionStats } from '../../../types/subscription';
 import { formatCurrency } from '../../../types/subscription';
 
-type TabType = 'plans' | 'subscribers' | 'invoices' | 'settings';
+type TabType = 'plans' | 'subscribers' | 'payments' | 'invoices' | 'settings';
 
 export const SubscriptionManagementPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('subscribers');
@@ -32,10 +33,11 @@ export const SubscriptionManagementPage: React.FC = () => {
   };
 
   const tabs = [
-    { id: 'subscribers', name: 'Abonnés', icon: Users },
+    { id: 'subscribers', name: 'Abonnes', icon: Users },
+    { id: 'payments', name: 'Paiements', icon: Banknote },
     { id: 'invoices', name: 'Factures', icon: FileText },
     { id: 'plans', name: 'Plans', icon: CreditCard },
-    { id: 'settings', name: 'Paramètres', icon: Settings }
+    { id: 'settings', name: 'Parametres', icon: Settings }
   ];
 
   return (
@@ -134,6 +136,7 @@ export const SubscriptionManagementPage: React.FC = () => {
       {/* Tab Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'subscribers' && <SubscribersTab />}
+        {activeTab === 'payments' && <PaymentsTab />}
         {activeTab === 'invoices' && <InvoicesTab />}
         {activeTab === 'plans' && <PlansTab />}
         {activeTab === 'settings' && <SettingsTab />}

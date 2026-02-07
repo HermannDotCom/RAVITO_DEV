@@ -534,31 +534,55 @@ export const submitPaymentClaim = async (
   transactionReference: string
 ): Promise<void> => {
   try {
+    const { data: invoice, error: invoiceError } = await supabase
+      .from('subscription_invoices')
+      .select(`
+        id,
+        subscription_id,
+        invoice_number,
+        amount,
+        amount_due,
+        subscriptions (
+          id,
+          organization_id,
+          organizations (name)
+        )
+      `)
+      .eq('id', invoiceId)
+      .single();
+
+    if (invoiceError) throw invoiceError;
+
+    const subscriptionId = invoice.subscription_id;
+    const amountDue = parseFloat(invoice.amount_due || invoice.amount);
+
+    const { error: paymentError } = await supabase
+      .from('subscription_payments')
+      .insert({
+        invoice_id: invoiceId,
+        subscription_id: subscriptionId,
+        amount: amountDue,
+        payment_method: paymentMethod,
+        payment_date: new Date().toISOString(),
+        transaction_reference: transactionReference,
+        status: 'pending_validation',
+        notes: `Declare par le client le ${new Date().toLocaleDateString('fr-FR')}`
+      });
+
+    if (paymentError) throw paymentError;
+
     const { error: updateError } = await supabase
       .from('subscription_invoices')
       .update({
-        transaction_reference: transactionReference,
-        notes: `Paiement declare via ${paymentMethod} - Ref: ${transactionReference} - Date: ${new Date().toLocaleDateString('fr-FR')}`
+        status: 'payment_submitted',
+        transaction_reference: transactionReference
       })
       .eq('id', invoiceId);
 
     if (updateError) throw updateError;
 
-    const { data: invoice } = await supabase
-      .from('subscription_invoices')
-      .select(`
-        invoice_number,
-        amount,
-        subscriptions (
-          organizations (name)
-        )
-      `)
-      .eq('id', invoiceId)
-      .maybeSingle();
-
     const orgName = (invoice as any)?.subscriptions?.organizations?.name || 'Organisation';
-    const invoiceNumber = invoice?.invoice_number || '';
-    const amount = invoice?.amount || 0;
+    const invoiceNumber = invoice.invoice_number || '';
 
     const { data: admins } = await supabase
       .from('profiles')
@@ -569,8 +593,8 @@ export const submitPaymentClaim = async (
       await supabase.from('notifications').insert({
         user_id: admin.id,
         type: 'subscription_reminder',
-        title: 'Declaration de paiement a valider',
-        message: `${orgName} declare avoir paye la facture ${invoiceNumber} (${amount} FCFA) via ${paymentMethod}. Ref: ${transactionReference}`,
+        title: 'Nouveau paiement a valider',
+        message: `${orgName} - Facture ${invoiceNumber} (${amountDue} FCFA) via ${paymentMethod}. Ref: ${transactionReference}`,
         priority: 'high'
       });
     }
