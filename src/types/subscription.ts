@@ -142,10 +142,13 @@ export interface Subscription {
 export interface SubscriptionInvoice {
   id: string;
   subscriptionId: string;
+  organizationId: string | null;
   invoiceNumber: string;
 
   // Amounts
   amount: number;
+  amountDue: number;
+  amountPaid: number;
   prorataAmount: number | null;
   daysCalculated: number | null;
   isProrata: boolean;
@@ -161,6 +164,8 @@ export interface SubscriptionInvoice {
   // Payment
   paidAt: Date | null;
   paidAmount: number | null;
+  transactionReference: string | null;
+  paymentMethodId: string | null;
 
   // Metadata
   notes: string | null;

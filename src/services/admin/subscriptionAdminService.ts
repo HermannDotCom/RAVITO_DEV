@@ -252,8 +252,11 @@ export const getAllInvoices = async (
       .select(`
         id,
         subscription_id,
+        organization_id,
         invoice_number,
         amount,
+        amount_due,
+        amount_paid,
         prorata_amount,
         days_calculated,
         is_prorata,
@@ -263,17 +266,19 @@ export const getAllInvoices = async (
         status,
         paid_at,
         paid_amount,
+        transaction_reference,
+        payment_method_id,
         notes,
         created_at,
         updated_at,
-        subscriptions (
+        subscriptions!subscription_invoices_subscription_id_fkey (
           id,
           organization_id,
           plan_id,
-          organizations (
+          organizations!subscriptions_organization_id_fkey (
             name
           ),
-          subscription_plans (
+          subscription_plans!subscriptions_plan_id_fkey (
             id,
             name,
             description,
@@ -303,7 +308,6 @@ export const getAllInvoices = async (
       throw error;
     }
 
-    // Fetch payments separately to avoid ambiguity
     const invoiceIds = (data || []).map(d => d.id);
     let paymentsData: any[] = [];
 
@@ -320,27 +324,31 @@ export const getAllInvoices = async (
       }
     }
 
-    return (data || []).map(d => {
+    return (data || []).map((d: any) => {
       const invoice: SubscriptionInvoice = {
         id: d.id,
         subscriptionId: d.subscription_id,
+        organizationId: d.organization_id,
         invoiceNumber: d.invoice_number,
         amount: parseFloat(d.amount),
+        amountDue: parseFloat(d.amount_due || d.amount),
+        amountPaid: parseFloat(d.amount_paid || 0),
         prorataAmount: d.prorata_amount ? parseFloat(d.prorata_amount) : null,
         daysCalculated: d.days_calculated,
-        isProrata: d.is_prorata,
+        isProrata: d.is_prorata || false,
         periodStart: new Date(d.period_start),
         periodEnd: new Date(d.period_end),
         dueDate: new Date(d.due_date),
         status: d.status,
         paidAt: d.paid_at ? new Date(d.paid_at) : null,
         paidAmount: d.paid_amount ? parseFloat(d.paid_amount) : null,
+        transactionReference: d.transaction_reference,
+        paymentMethodId: d.payment_method_id,
         notes: d.notes,
         createdAt: new Date(d.created_at),
         updatedAt: new Date(d.updated_at)
       };
 
-      // Get payments for this invoice
       const invoicePayments = paymentsData.filter(p => p.invoice_id === d.id);
       const payments: SubscriptionPayment[] = invoicePayments.map((p: any) => ({
         id: p.id,
@@ -357,34 +365,38 @@ export const getAllInvoices = async (
         createdAt: new Date(p.created_at)
       }));
 
-      const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
-      const remainingAmount = Math.max(0, invoice.amount - totalPaid);
+      const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0) || parseFloat(d.amount_paid || 0);
+      const remainingAmount = Math.max(0, invoice.amountDue - totalPaid);
+
+      const sub = d.subscriptions;
+      const plan = sub?.subscription_plans;
 
       return {
         ...invoice,
         subscription: {
-          id: d.subscriptions?.id || '',
-          organizationId: d.subscriptions?.organization_id || '',
-          organizationName: d.subscriptions?.organizations?.name || 'Organisation inconnue',
-          plan: d.subscriptions?.subscription_plans ? {
-            id: d.subscriptions.subscription_plans.id,
-            name: d.subscriptions.subscription_plans.name,
-            description: d.subscriptions.subscription_plans.description,
-            price: parseFloat(d.subscriptions.subscription_plans.price),
-            billingCycle: d.subscriptions.subscription_plans.billing_cycle,
-            daysInCycle: d.subscriptions.subscription_plans.days_in_cycle,
-            trialDays: d.subscriptions.subscription_plans.trial_days,
-            isActive: d.subscriptions.subscription_plans.is_active,
-            displayOrder: d.subscriptions.subscription_plans.display_order,
-            features: d.subscriptions.subscription_plans.features || [],
-            createdAt: new Date(d.subscriptions.subscription_plans.created_at),
-            updatedAt: new Date(d.subscriptions.subscription_plans.updated_at)
+          id: sub?.id || '',
+          organizationId: sub?.organization_id || '',
+          organizationName: sub?.organizations?.name || 'Organisation inconnue',
+          plan: plan ? {
+            id: plan.id,
+            name: plan.name,
+            description: plan.description,
+            price: parseFloat(plan.price),
+            billingCycle: plan.billing_cycle,
+            daysInCycle: plan.days_in_cycle,
+            trialDays: plan.trial_days,
+            isActive: plan.is_active,
+            displayOrder: plan.display_order,
+            features: plan.features || [],
+            freeMonths: plan.free_months || 0,
+            createdAt: new Date(plan.created_at),
+            updatedAt: new Date(plan.updated_at)
           } : {
             id: '',
             name: 'Plan inconnu',
             description: '',
             price: 0,
-            billingCycle: 'monthly',
+            billingCycle: 'monthly' as const,
             daysInCycle: 30,
             trialDays: 0,
             isActive: false,
