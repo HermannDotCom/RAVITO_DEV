@@ -26,7 +26,7 @@ interface OfflineProviderProps {
 }
 
 export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isOnline, setIsOnline] = useState(realtimeService.getIsOnline());
   const [pendingActionsCount, setPendingActionsCount] = useState(0);
   const [pendingActions, setPendingActions] = useState<PendingAction[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);

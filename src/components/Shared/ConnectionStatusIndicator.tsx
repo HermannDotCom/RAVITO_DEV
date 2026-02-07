@@ -121,9 +121,16 @@ export const ConnectionStatusIndicator: React.FC = () => {
 
   const config = getStatusConfig();
 
+  const containerClasses = `
+    fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50
+    flex flex-col items-center px-4 py-2 rounded-2xl border shadow-lg
+    ${config.bgColor} ${config.textColor} ${config.borderColor}
+    transition-all duration-300 max-w-sm
+  `.trim().replace(/\s+/g, ' ');
+
   return (
     <div 
-      className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center px-4 py-2 rounded-2xl border shadow-lg ${config.bgColor} ${config.textColor} ${config.borderColor} transition-all duration-300 max-w-sm`}
+      className={containerClasses}
       role="status"
       aria-live="polite"
     >

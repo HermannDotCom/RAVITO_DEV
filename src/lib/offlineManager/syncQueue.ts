@@ -21,7 +21,7 @@ const MAX_RETRIES = 3;
 export const addPendingAction = async (
   action: Omit<PendingAction, 'id' | 'timestamp' | 'status' | 'retryCount'>
 ): Promise<string> => {
-  const id = `action-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const id = `action-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   
   const pendingAction: PendingAction = {
     ...action,
