@@ -2,21 +2,39 @@
 
 **Le ravitaillement qui ne dort jamais** 🌙
 
-Plateforme de ravitaillement B2B 24h/24 connectant les établissements CHR (Cafés, Hôtels, Restaurants) avec les dépôts de boissons à Abidjan, Côte d'Ivoire. 
+Plateforme tout-en-un pour les établissements CHR (Cafés, Hôtels, Restaurants) en Côte d'Ivoire : Gestion d'activité digitale et marketplace de ravitaillement B2B 24h/24.
 
-[![Version](https://img.shields.io/badge/version-1.5.7-orange.svg)](https://github.com/HermannDotCom/RAVITO_DEV/releases/tag/v1.5.7)
+[![Version](https://img.shields.io/badge/version-1.6.3-orange.svg)](https://github.com/HermannDotCom/RAVITO_DEV/releases/tag/v1.6.3)
 [![License](https://img.shields.io/badge/license-Proprietary-red.svg)]()
-[![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E. svg)](https://supabase.com)
+[![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E.svg)](https://supabase.com)
 [![React](https://img.shields.io/badge/Frontend-React%2018-61DAFB.svg)](https://react.dev)
 
 ---
 
 ## 📖 À propos
 
-RAVITO révolutionne la chaîne d'approvisionnement des boissons en Côte d'Ivoire en offrant : 
+RAVITO est LA solution digitale complète pour les bars, maquis et restaurants ivoiriens avec **2 modules complémentaires** :
 
-- **Pour les Clients (Gérants CHR)** : Commandes en ligne 24/7, comparaison d'offres, suivi en temps réel
-- **Pour les Fournisseurs (Dépôts)** : Gestion des commandes, équipe de livraison, tarification personnalisée
+### 🏪 RAVITO Gestion ✅ Disponible maintenant
+Module de gestion d'activité pour digitaliser votre établissement :
+- **Cahier digital** : Enregistrez toutes vos ventes en quelques clics
+- **Gestion des stocks** : Suivez votre inventaire en temps réel avec alertes de rupture
+- **Suivi des dépenses** : Catégorisez et analysez toutes vos dépenses
+- **Crédits clients** : Gérez les crédits sans plus jamais oublier un paiement
+- **Rapports détaillés** : Visualisez vos performances avec des graphiques et statistiques
+- **Mode offline** : Travaillez sans connexion, synchronisation automatique
+
+**Tarification RAVITO Gestion :**
+- Mensuel : **6 000 FCFA/mois**
+- Semestriel : **30 000 FCFA/6 mois** (1 mois offert) - Recommandé
+- Annuel : **48 000 FCFA/an** (4 mois offerts)
+- 🎁 **30 jours d'essai gratuit** pour tous les nouveaux utilisateurs
+- Paiement : Espèces, Wave, Orange Money, MTN Money
+
+### 🚀 RAVITO Marketplace - Lancement le 14 mars 2026
+Plateforme de ravitaillement B2B pour commander vos boissons 24h/24 :
+- **Pour les Clients** : Commandes en ligne 24/7, comparaison d'offres, suivi en temps réel
+- **Pour les Fournisseurs** : Gestion des commandes, équipe de livraison, tarification personnalisée
 - **Pour les Admins** : Supervision complète, analytics, gestion des utilisateurs
 
 ---
@@ -67,7 +85,13 @@ ravito/
 │   │   ├── Client/         # Interface client CHR
 │   │   ├── Supplier/       # Interface fournisseur
 │   │   ├── Auth/           # Authentification
-│   │   └── Team/           # Gestion d'équipe
+│   │   ├── Team/           # Gestion d'équipe
+│   │   ├── Activity/       # Module Gestion Activité
+│   │   ├── Subscription/   # Système d'abonnement
+│   │   └── Landing/        # Pages landing
+│   ├── pages/
+│   │   ├── Landing/        # Landing pages (Gestion, Marketplace)
+│   │   └── Legal/          # Pages légales (CGU, CGV)
 │   ├── context/            # React Context (état global)
 │   ├── hooks/              # Custom hooks
 │   ├── services/           # Services API
@@ -77,6 +101,8 @@ ravito/
 │   ├── migrations/         # Migrations SQL
 │   └── functions/          # Edge Functions
 ├── docs/                   # Documentation
+│   ├── testing/            # Recettes de tests
+│   └── backups/            # Backups Supabase
 └── public/                 # Assets statiques
 ```
 
@@ -92,30 +118,27 @@ ravito/
 | **Emails** | Resend |
 | **Monitoring** | Sentry |
 | **Déploiement** | Vercel |
+| **PWA** | Service Workers, Cache API, IndexedDB |
 
 ---
 
 ## ✨ Fonctionnalités Principales
 
-### 🛒 Système de Commandes
-- Création de commandes avec sélection de zone
-- Système d'offres fournisseurs avec comparaison
-- Paiement et suivi de livraison
+### 🏪 Module RAVITO Gestion (Disponible)
+- **Cahier Digital** : Enregistrement des ventes avec calcul automatique
+- **Gestion Stocks** : Inventaire en temps réel, alertes de rupture, historique
+- **Suivi Dépenses** : Catégorisation, filtres, exports PDF
+- **Crédits Clients** : Suivi des crédits, rappels automatiques, historique
+- **Rapports & Analytics** : KPIs, graphiques, exports personnalisés
+- **Mode Offline** : Fonctionnement sans connexion avec synchronisation auto
+- **Système d'abonnement** : Essai gratuit 30 jours, 3 plans tarifaires
 
-### 👥 Gestion d'Équipe
-- Organisations multi-utilisateurs
-- Rôles et permissions granulaires
-- Invitation de membres (Manager, Livreur, etc.)
-
-### 🚚 Livraison
-- Assignation de livreurs
-- Code de confirmation 8 caractères
-- Suivi GPS (en développement)
-
-### 💰 Trésorerie
-- Historique des transactions
-- Exports CSV
-- Dashboard analytics
+### 🚀 Module RAVITO Marketplace (Mars 2026)
+- **Système de Commandes** : Création de commandes 24/7 avec sélection de zone
+- **Offres Fournisseurs** : Comparaison et sélection des meilleures offres
+- **Gestion d'Équipe** : Organisations multi-utilisateurs, rôles et permissions
+- **Livraison** : Assignation de livreurs, codes de confirmation, suivi GPS
+- **Trésorerie** : Historique transactions, exports CSV, dashboard analytics
 
 ---
 
@@ -137,7 +160,10 @@ Les taux de commission sont **configurables** par l'administrateur :
 | Document | Description |
 |----------|-------------|
 | [Installation](./docs/getting-started/installation.md) | Guide d'installation |
-| [Flux de commande](./docs/features/order-flow.md) | Documentation du système de commandes |
+| [Gestion Activité](./docs/ACTIVITY_MANAGEMENT_MODULE.md) | Module de gestion d'activité |
+| [Système d'abonnement](./docs/RAVITO_GESTION_SUBSCRIPTION_SYSTEM.md) | Abonnements et tarification |
+| [Recette de tests](./docs/testing/RECETTE_TESTS.md) | Validation MEP |
+| [Flux de commande](./docs/features/order-flow.md) | Système de commandes Marketplace |
 | [Gestion d'équipe](./docs/features/team-management.md) | Organisations et permissions |
 | [Déploiement](./docs/deployment/strategy.md) | Stratégie de déploiement |
 | [Backups Supabase](./docs/backups/) | Points de restauration BDD |
@@ -148,9 +174,10 @@ Les taux de commission sont **configurables** par l'administrateur :
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| [v1.6.3](https://github.com/HermannDotCom/RAVITO_DEV/releases/tag/v1.6.3) | 14/02/2026 | 🚀 **MEP RAVITO Gestion** - Landing Page, Documentation complète, Tarifs finaux |
+| [v1.6.0](https://github.com/HermannDotCom/RAVITO_DEV/releases/tag/v1.6.0) | 03/02/2026 | Système d'abonnement complet, Module Gestion Activité |
 | [v1.5.7](https://github.com/HermannDotCom/RAVITO_DEV/releases/tag/v1.5.7) | 29/12/2025 | Fix inscription, triggers Auth, interface Admin |
 | [v1.5.6](https://github.com/HermannDotCom/RAVITO_DEV/releases/tag/v1.5.6) | 27/12/2025 | Géolocalisation, emails complets |
-| [v1.5.5](https://github.com/HermannDotCom/RAVITO_DEV/releases/tag/1.5.5) | 26/12/2025 | Restauration stabilité |
 
 📋 [Voir toutes les releases](https://github.com/HermannDotCom/RAVITO_DEV/releases)
 
@@ -158,11 +185,23 @@ Les taux de commission sont **configurables** par l'administrateur :
 
 ## 🚀 Roadmap
 
-| Version | Description | Statut |
-|---------|-------------|--------|
-| v1.5.8 | Fix acceptation d'offres | 🔴 En cours |
-| v1.6.0 | Intégration paiement Mobile Money | 📅 Planifié |
-| **v1.7.0** | **🚀 MEP MVP Production** | 📅 Planifié |
+| Version | Description | Date | Statut |
+|---------|-------------|------|--------|
+| **v1.6.3** | **🎯 MEP RAVITO Gestion** | 14 février 2026 | ✅ En cours |
+| v1.7.0 | Module Gestion - Fonctionnalités avancées | Mars 2026 | 📅 Planifié |
+| **v2.0.0** | **🚀 Launch RAVITO Marketplace** | **14 mars 2026** | 📅 Planifié |
+| v2.1.0 | Intégration paiement Mobile Money | Avril 2026 | 📅 Planifié |
+
+---
+
+## 📱 Progressive Web App (PWA)
+
+RAVITO Gestion est une PWA complète :
+- ✅ **Installation** : Installable sur mobile et desktop
+- ✅ **Mode Offline** : Fonctionne sans connexion Internet
+- ✅ **Synchronisation** : Sync automatique des données au retour online
+- ✅ **Notifications** : Rappels et alertes push
+- ✅ **Performance** : Chargement rapide avec mise en cache
 
 ---
 
