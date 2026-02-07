@@ -23,6 +23,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useModuleAccess } from '../../hooks/useModuleAccess';
 import { useAllowedPages } from '../../hooks/useAllowedPages';
+import { usePaymentNotifications } from '../../hooks/usePaymentNotifications';
 import { MoreMenu } from '../ui/MoreMenu';
 import { getSalesRepByUserId } from '../../services/commercialActivityService';
 
@@ -37,6 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
   const { user } = useAuth();
   const { hasAccess } = useModuleAccess(user?.role === 'admin' ? 'admin' : user?.role === 'supplier' ? 'supplier' : 'client');
   const { allowedPages, isOwner, isSuperAdmin } = useAllowedPages();
+  const { pendingPaymentsCount } = usePaymentNotifications();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [isSalesRep, setIsSalesRep] = useState(false);
 
@@ -220,6 +222,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
             {mainMenuItems.map((item) => {
               const Icon = item.icon;
+              const showBadge = item.id === 'subscriptions' && user?.role === 'admin' && pendingPaymentsCount > 0;
               return (
                 <button
                   key={item.id}
@@ -233,7 +236,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
                   `}
                 >
                   <Icon className="h-5 w-5 mr-3" />
-                  <span className="font-medium">{item.label}</span>
+                  <span className="font-medium flex-1">{item.label}</span>
+                  {showBadge && (
+                    <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full animate-pulse">
+                      {pendingPaymentsCount}
+                    </span>
+                  )}
                 </button>
               );
             })}

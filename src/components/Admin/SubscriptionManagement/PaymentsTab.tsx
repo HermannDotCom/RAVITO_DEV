@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Clock, AlertTriangle, RefreshCw, Loader2, X } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { CheckCircle, XCircle, Clock, AlertTriangle, RefreshCw, Loader2, X, Sparkles } from 'lucide-react';
 import {
   getPendingPaymentClaims,
   validatePaymentClaim,
@@ -9,6 +9,7 @@ import type { PendingPaymentClaim } from '../../../services/admin/subscriptionAd
 import { formatCurrency, getPaymentMethodName } from '../../../types/subscription';
 import { useToast } from '../../../context/ToastContext';
 import { useAuth } from '../../../context/AuthContext';
+import { supabase } from '../../../lib/supabase';
 
 export const PaymentsTab: React.FC = () => {
   const { showToast } = useToast();
@@ -16,27 +17,64 @@ export const PaymentsTab: React.FC = () => {
   const [claims, setClaims] = useState<PendingPaymentClaim[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [recentIds, setRecentIds] = useState<Set<string>>(new Set());
 
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectingClaim, setRejectingClaim] = useState<PendingPaymentClaim | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
 
-  useEffect(() => {
-    loadClaims();
-  }, []);
+  const knownIdsRef = useRef<Set<string>>(new Set());
 
-  const loadClaims = async () => {
+  const loadClaims = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getPendingPaymentClaims();
+
+      const newIds = new Set<string>();
+      data.forEach(claim => {
+        if (!knownIdsRef.current.has(claim.id)) {
+          newIds.add(claim.id);
+        }
+      });
+
+      knownIdsRef.current = new Set(data.map(c => c.id));
+
+      if (newIds.size > 0) {
+        setRecentIds(newIds);
+        setTimeout(() => setRecentIds(new Set()), 10000);
+      }
+
       setClaims(data);
     } catch (error) {
       console.error('Error loading payment claims:', error);
-      showToast('Erreur lors du chargement des paiements', 'error');
+      showToast({ type: 'error', message: 'Erreur lors du chargement des paiements' });
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
+
+  useEffect(() => {
+    loadClaims();
+
+    const channel = supabase
+      .channel('payments-tab-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'subscription_payments'
+        },
+        () => {
+          loadClaims();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadClaims]);
 
   const handleValidate = async (claim: PendingPaymentClaim) => {
     if (!user?.id) return;
@@ -44,11 +82,11 @@ export const PaymentsTab: React.FC = () => {
     try {
       setProcessingId(claim.id);
       await validatePaymentClaim(claim.id, user.id);
-      showToast('Paiement valide avec succes', 'success');
+      showToast({ type: 'success', message: 'Paiement valide avec succes' });
       await loadClaims();
     } catch (error) {
       console.error('Error validating claim:', error);
-      showToast('Erreur lors de la validation', 'error');
+      showToast({ type: 'error', message: 'Erreur lors de la validation' });
     } finally {
       setProcessingId(null);
     }
@@ -66,13 +104,13 @@ export const PaymentsTab: React.FC = () => {
     try {
       setProcessingId(rejectingClaim.id);
       await rejectPaymentClaim(rejectingClaim.id, rejectionReason.trim());
-      showToast('Paiement rejete', 'success');
+      showToast({ type: 'success', message: 'Paiement rejete' });
       setShowRejectModal(false);
       setRejectingClaim(null);
       await loadClaims();
     } catch (error) {
       console.error('Error rejecting claim:', error);
-      showToast('Erreur lors du rejet', 'error');
+      showToast({ type: 'error', message: 'Erreur lors du rejet' });
     } finally {
       setProcessingId(null);
     }
@@ -117,18 +155,31 @@ export const PaymentsTab: React.FC = () => {
         <div className="space-y-4">
           {claims.map((claim) => {
             const isProcessing = processingId === claim.id;
+            const isRecent = recentIds.has(claim.id);
 
             return (
               <div
                 key={claim.id}
-                className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+                className={`bg-white rounded-xl border shadow-sm overflow-hidden transition-all duration-500 ${
+                  isRecent
+                    ? 'border-green-400 ring-2 ring-green-200 animate-pulse'
+                    : 'border-gray-200'
+                }`}
               >
+                {isRecent && (
+                  <div className="bg-gradient-to-r from-green-500 to-emerald-500 px-4 py-2 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-white" />
+                    <span className="text-sm font-semibold text-white">Nouveau paiement declare</span>
+                  </div>
+                )}
                 <div className="p-5">
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <AlertTriangle className="w-5 h-5 text-orange-600" />
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          isRecent ? 'bg-green-100' : 'bg-orange-100'
+                        }`}>
+                          <AlertTriangle className={`w-5 h-5 ${isRecent ? 'text-green-600' : 'text-orange-600'}`} />
                         </div>
                         <div>
                           <h4 className="font-semibold text-gray-900">{claim.organizationName}</h4>
