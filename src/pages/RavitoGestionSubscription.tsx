@@ -8,6 +8,7 @@ import { ArrowLeft, CheckCircle, Clock, CreditCard, AlertCircle, Info, FileText 
 import { formatCurrency } from '../types/subscription';
 import { calculateProrata } from '../services/ravitoGestionSubscriptionService';
 import { generatePaymentReceipt } from '../services/receiptPdfService';
+import { supabase } from '../lib/supabase';
 import type { SubscriptionPlan, PaymentMethod } from '../types/subscription';
 
 interface RavitoGestionSubscriptionProps {
@@ -142,10 +143,24 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
       const planName = subscription?.plan?.name || 'Plan inconnu';
       const orgName = organizationName || 'Organisation';
       
-      // Pour le moment, on utilise 'wave' comme méthode de paiement par défaut
-      // car cette information n'est pas stockée dans l'invoice
-      // TODO: Récupérer la vraie méthode de paiement depuis les payments
-      const paymentMethod: PaymentMethod = 'wave';
+      // Récupérer la méthode de paiement depuis la table subscription_payments
+      let paymentMethod: PaymentMethod = 'wave'; // Défaut
+      try {
+        const { data: paymentData, error: paymentError } = await supabase
+          .from('subscription_payments')
+          .select('payment_method')
+          .eq('invoice_id', invoiceId)
+          .eq('status', 'validated')
+          .order('payment_date', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (!paymentError && paymentData?.payment_method) {
+          paymentMethod = paymentData.payment_method as PaymentMethod;
+        }
+      } catch (paymentFetchError) {
+        console.warn('Could not fetch payment method, using default:', paymentFetchError);
+      }
       
       await generatePaymentReceipt({
         invoice,

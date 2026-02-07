@@ -41,6 +41,9 @@ const generateReceiptNumber = (invoiceId: string): string => {
 const loadImageAsBase64 = async (url: string): Promise<string> => {
   try {
     const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to load image: ${response.statusText}`);
+    }
     const blob = await response.blob();
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -49,8 +52,8 @@ const loadImageAsBase64 = async (url: string): Promise<string> => {
       reader.readAsDataURL(blob);
     });
   } catch (error) {
-    console.error('Error loading image:', error);
-    throw error;
+    console.error('Error loading logo image:', error);
+    throw new Error('Impossible de charger le logo Ravito. Le reçu sera généré sans logo.');
   }
 };
 
@@ -71,6 +74,8 @@ export const generatePaymentReceipt = async (data: ReceiptData): Promise<void> =
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 20;
   const contentWidth = pageWidth - (2 * margin);
+  const headerHeight = 25;
+  const footerMargin = 35;
 
   try {
     // Charger et ajouter le logo
@@ -80,7 +85,8 @@ export const generatePaymentReceipt = async (data: ReceiptData): Promise<void> =
     const logoX = (pageWidth - logoWidth) / 2;
     doc.addImage(logoBase64, 'PNG', logoX, margin, logoWidth, logoHeight);
   } catch (error) {
-    console.error('Could not load logo, continuing without it:', error);
+    console.warn('Logo non chargé, génération du reçu sans logo:', error);
+    // Continue sans logo
   }
 
   // Titre du document
@@ -215,7 +221,7 @@ export const generatePaymentReceipt = async (data: ReceiptData): Promise<void> =
   // Pied de page avec bordure
   const footerY = pageHeight - 20;
   doc.setDrawColor(200, 200, 200);
-  doc.rect(margin, margin + 25, contentWidth, footerY - margin - 35, 'S');
+  doc.rect(margin, margin + headerHeight, contentWidth, footerY - margin - footerMargin, 'S');
 
   // Télécharger le PDF
   const filename = `Recu_Ravito_${invoice.invoiceNumber}.pdf`;
