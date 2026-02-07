@@ -10,12 +10,10 @@ import type {
 import * as subscriptionService from '../services/ravitoGestionSubscriptionService';
 
 interface UseSubscriptionReturn {
-  // Data
   subscription: Subscription | null;
   plans: SubscriptionPlan[];
   invoices: SubscriptionInvoice[];
 
-  // Status
   hasActiveSubscription: boolean;
   isInTrial: boolean;
   isPendingPayment: boolean;
@@ -23,12 +21,12 @@ interface UseSubscriptionReturn {
   canAccessGestionActivity: boolean;
   daysLeftInTrial: number | null;
 
-  // State
   loading: boolean;
   error: string | null;
 
-  // Actions
   createSubscription: (planId: string) => Promise<boolean>;
+  cancelSubscription: (reason?: string) => Promise<boolean>;
+  submitPaymentClaim: (invoiceId: string, paymentMethod: string, transactionReference: string) => Promise<boolean>;
   refresh: () => Promise<void>;
 }
 
@@ -138,18 +136,51 @@ export const useSubscription = (): UseSubscriptionReturn => {
     [user?.id, organizationId, loadData]
   );
 
-  // Rafraîchir les données
+  const cancelSubscription = useCallback(
+    async (reason?: string): Promise<boolean> => {
+      if (!subscription?.id) {
+        setError('Aucun abonnement trouvé');
+        return false;
+      }
+      try {
+        setError(null);
+        await subscriptionService.cancelSubscription(subscription.id, reason);
+        await loadData();
+        return true;
+      } catch (err) {
+        console.error('Error cancelling subscription:', err);
+        setError('Erreur lors de la résiliation');
+        return false;
+      }
+    },
+    [subscription?.id, loadData]
+  );
+
+  const submitPaymentClaim = useCallback(
+    async (invoiceId: string, paymentMethod: string, transactionReference: string): Promise<boolean> => {
+      try {
+        setError(null);
+        await subscriptionService.submitPaymentClaim(invoiceId, paymentMethod, transactionReference);
+        await loadData();
+        return true;
+      } catch (err) {
+        console.error('Error submitting payment claim:', err);
+        setError('Erreur lors de la déclaration de paiement');
+        return false;
+      }
+    },
+    [loadData]
+  );
+
   const refresh = useCallback(async () => {
     await loadData();
   }, [loadData]);
 
   return {
-    // Data
     subscription,
     plans,
     invoices,
 
-    // Status
     hasActiveSubscription,
     isInTrial,
     isPendingPayment,
@@ -157,12 +188,12 @@ export const useSubscription = (): UseSubscriptionReturn => {
     canAccessGestionActivity,
     daysLeftInTrial,
 
-    // State
     loading,
     error,
 
-    // Actions
     createSubscription,
+    cancelSubscription,
+    submitPaymentClaim,
     refresh
   };
 };

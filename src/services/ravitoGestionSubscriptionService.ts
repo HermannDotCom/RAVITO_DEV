@@ -166,7 +166,7 @@ export const getOrganizationSubscription = async (
         subscription_plans (*)
       `)
       .eq('organization_id', organizationId)
-      .in('status', ['trial', 'pending_payment', 'active'])
+      .in('status', ['trial', 'pending_payment', 'active', 'suspended'])
       .maybeSingle();
 
     if (error) throw error;
@@ -520,6 +520,62 @@ const activateSubscription = async (subscriptionId: string): Promise<void> => {
     if (error) throw error;
   } catch (error) {
     console.error('Error activating subscription:', error);
+    throw error;
+  }
+};
+
+// ============================================
+// PAYMENT CLAIM (Client-side)
+// ============================================
+
+export const submitPaymentClaim = async (
+  invoiceId: string,
+  paymentMethod: string,
+  transactionReference: string
+): Promise<void> => {
+  try {
+    const { error: updateError } = await supabase
+      .from('subscription_invoices')
+      .update({
+        transaction_reference: transactionReference,
+        notes: `Paiement declare via ${paymentMethod} - Ref: ${transactionReference} - Date: ${new Date().toLocaleDateString('fr-FR')}`
+      })
+      .eq('id', invoiceId);
+
+    if (updateError) throw updateError;
+
+    const { data: invoice } = await supabase
+      .from('subscription_invoices')
+      .select(`
+        invoice_number,
+        amount,
+        subscriptions (
+          organizations (name)
+        )
+      `)
+      .eq('id', invoiceId)
+      .maybeSingle();
+
+    const orgName = (invoice as any)?.subscriptions?.organizations?.name || 'Organisation';
+    const invoiceNumber = invoice?.invoice_number || '';
+    const amount = invoice?.amount || 0;
+
+    const { data: admins } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('role', 'admin');
+
+    for (const admin of admins || []) {
+      await supabase.from('notifications').insert({
+        user_id: admin.id,
+        type: 'subscription_reminder',
+        title: 'Declaration de paiement a valider',
+        message: `${orgName} declare avoir paye la facture ${invoiceNumber} (${amount} FCFA) via ${paymentMethod}. Ref: ${transactionReference}`,
+        priority: 'high'
+      });
+    }
+  } catch (error) {
+    console.error('Error submitting payment claim:', error);
     throw error;
   }
 };

@@ -21,6 +21,8 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
     loading,
     error: subscriptionError,
     createSubscription,
+    cancelSubscription,
+    submitPaymentClaim,
     isInTrial,
     isPendingPayment,
     isSuspended,
@@ -29,7 +31,9 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
   } = useSubscription();
 
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [showPlanSelector, setShowPlanSelector] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -98,15 +102,33 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
     paymentMethod: string;
     transactionReference: string;
   }) => {
-    // TODO: Enregistrer la demande de paiement dans la base de données
-    // Pour l'instant, on affiche juste une notification
-    showToast('Votre demande de paiement a été enregistrée. Notre équipe va la vérifier.', 'success');
-    setShowPaymentModal(false);
+    const invoice = unpaidInvoices[0];
+    if (!invoice) {
+      showToast('Aucune facture en attente trouvée', 'error');
+      return;
+    }
+
+    try {
+      const success = await submitPaymentClaim(
+        invoice.id,
+        data.paymentMethod,
+        data.transactionReference
+      );
+
+      if (success) {
+        showToast('Votre déclaration de paiement a été enregistrée. Notre équipe va la vérifier et valider.', 'success');
+        setShowPaymentModal(false);
+      } else {
+        showToast('Erreur lors de l\'enregistrement', 'error');
+      }
+    } catch (error) {
+      console.error('Error submitting payment claim:', error);
+      showToast('Erreur lors de l\'enregistrement', 'error');
+    }
   };
 
   const handleModifySubscription = () => {
-    // Rediriger vers le Paywall pour choisir un nouveau plan
-    setSelectedPlanId(null);
+    setShowPlanSelector(true);
   };
 
   const handleCancelSubscription = () => {
@@ -114,9 +136,22 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
   };
 
   const confirmCancellation = async () => {
-    // TODO: Implémenter la résiliation
-    showToast('La résiliation sera effective à la fin de votre période en cours', 'info');
-    setShowCancelModal(false);
+    try {
+      setIsCancelling(true);
+      const success = await cancelSubscription('Résiliation demandée par le client');
+
+      if (success) {
+        showToast('Votre abonnement a été résilié. L\'accès reste actif jusqu\'à la fin de la période en cours.', 'info');
+        setShowCancelModal(false);
+      } else {
+        showToast('Erreur lors de la résiliation', 'error');
+      }
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      showToast('Erreur lors de la résiliation', 'error');
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   // Filtrer les factures impayées
@@ -125,7 +160,7 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
 
   // Si l'utilisateur a déjà un abonnement, afficher la gestion d'abonnement
   // (pas de check sur loading car on veut continuer à afficher l'abonnement pendant le rechargement)
-  if (subscription && !selectedPlanId) {
+  if (subscription && !selectedPlanId && !showPlanSelector) {
     // Debug logs
     console.log('[RavitoGestionSubscription] Rendering subscription page with data:', {
       isInTrial,
@@ -562,17 +597,67 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
             </div>
           )}
         </div>
+
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          amount={unpaidInvoices[0]?.amount || subscription?.amountDue || 0}
+          invoiceNumber={unpaidInvoices[0]?.invoiceNumber}
+          invoiceId={unpaidInvoices[0]?.id}
+          onPaymentConfirm={handlePaymentConfirm}
+        />
+
+        {showCancelModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl max-w-md w-full p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                Confirmer la résiliation
+              </h3>
+              <p className="text-gray-700 mb-6">
+                Êtes-vous sûr de vouloir résilier votre abonnement ? Vous conserverez l'accès jusqu'à la fin de votre période en cours.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  disabled={isCancelling}
+                  className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={confirmCancellation}
+                  disabled={isCancelling}
+                  className="flex-1 py-2 px-4 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 disabled:opacity-50 flex items-center justify-center"
+                >
+                  {isCancelling ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Résiliation...
+                    </>
+                  ) : (
+                    'Confirmer la résiliation'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
-  // Étape 1: Sélection du plan (Paywall) - pour les nouveaux utilisateurs ou utilisateur existant sans plan sélectionné
   return (
     <>
       <div>
         <div className="p-4">
           <button
-            onClick={handleBack}
+            onClick={() => {
+              if (showPlanSelector) {
+                setShowPlanSelector(false);
+              } else {
+                handleBack();
+              }
+            }}
             className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="w-5 h-5" />
