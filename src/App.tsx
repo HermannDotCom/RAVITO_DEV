@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CommissionProvider } from './context/CommissionContext';
 import { RatingProvider } from './context/RatingContext';
-import { NotificationProvider } from './context/NotificationProvider';
+import { NotificationProvider } from './context/NotificationContext';
 import { ToastProvider } from './context/ToastContext';
 import { PricingProvider } from './context/PricingContext';
 import { PermissionProvider } from './context/PermissionContext';
@@ -31,13 +31,11 @@ import { CommercialActivityPage } from './components/Commercial';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusIndicator';
 import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
-import { RatingReminder } from './components/Shared/RatingReminder';
 import { SessionErrorBanner } from './components/Shared/SessionErrorBanner';
 import { BottomNavigation } from './components/Navigation/BottomNavigation';
 import { InstallPrompt } from './components/PWA/InstallPrompt';
 import { UpdatePrompt } from './components/PWA/UpdatePrompt';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
-import { usePendingRatings } from './hooks/usePendingRatings';
 import { SubscriptionManagementPage } from './components/Admin/SubscriptionManagement';
 import { RavitoGestionSubscription } from './pages/RavitoGestionSubscription';
 import { SubscriptionGuard } from './components/Subscription/SubscriptionGuard';
@@ -49,12 +47,6 @@ const AppContent: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('activity'); // Default for client
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Hook for pending ratings
-  const { pendingOrders } = usePendingRatings(
-    user?.id || null, 
-    user?.role as 'client' | 'supplier' | undefined
-  );
 
   // Handler for session refresh
   const handleSessionRefresh = async () => {
