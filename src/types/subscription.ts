@@ -269,6 +269,48 @@ export interface SubscriptionStats {
   monthlyRecurringRevenue: number;
   averageRevenuePerUser: number;
   churnRate: number;
+  // New fields for enhanced dashboard
+  mrr: number;
+  arr: number;
+  pendingPaymentSubscriptions: number;
+  conversionRate: number;
+  pendingPaymentsAmount: number;
+  pendingPaymentsCount: number;
+}
+
+/**
+ * Plan distribution for subscription analytics
+ */
+export interface PlanDistribution {
+  planId: string;
+  planName: string;
+  count: number;
+  percentage: number;
+  revenue: number;
+}
+
+/**
+ * Monthly subscription data for evolution charts
+ */
+export interface MonthlySubscriptionData {
+  month: string;
+  monthLabel: string;
+  newSubscriptions: number;
+  cancelledSubscriptions: number;
+  revenue: number;
+  activeAtEndOfMonth: number;
+}
+
+/**
+ * Validated payment details for recent payments list
+ */
+export interface ValidatedPayment {
+  id: string;
+  organizationName: string;
+  planName: string;
+  amount: number;
+  paymentMethod: string;
+  validatedAt: Date;
 }
 
 // ============================================
