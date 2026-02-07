@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { OfflineProvider } from './context/OfflineContext';
 import { CommissionProvider } from './context/CommissionContext';
 import { RatingProvider } from './context/RatingContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -269,19 +270,21 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <AuthProvider>
-      <NotificationProvider>
-        <ToastProvider>
-          <PermissionProvider>
-            <CommissionProvider>
-              <PricingProvider>
-                <RatingProvider>
-                  <AppContent />
-                </RatingProvider>
-              </PricingProvider>
-            </CommissionProvider>
-          </PermissionProvider>
-        </ToastProvider>
-      </NotificationProvider>
+      <OfflineProvider>
+        <NotificationProvider>
+          <ToastProvider>
+            <PermissionProvider>
+              <CommissionProvider>
+                <PricingProvider>
+                  <RatingProvider>
+                    <AppContent />
+                  </RatingProvider>
+                </PricingProvider>
+              </CommissionProvider>
+            </PermissionProvider>
+          </ToastProvider>
+        </NotificationProvider>
+      </OfflineProvider>
     </AuthProvider>
   );
 }
