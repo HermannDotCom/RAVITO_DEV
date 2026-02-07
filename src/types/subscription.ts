@@ -93,6 +93,7 @@ export interface SubscriptionSettings {
     annually: number[];
   };
   gracePeriodDays: number;
+  createdAt: Date;
   updatedAt: Date;
   updatedBy: string | null;
 }
@@ -145,8 +146,6 @@ export interface SubscriptionInvoice {
 
   // Amounts
   amount: number;
-  amountDue: number;
-  amountPaid: number;
   prorataAmount: number | null;
   daysCalculated: number | null;
   isProrata: boolean;
@@ -162,8 +161,6 @@ export interface SubscriptionInvoice {
   // Payment
   paidAt: Date | null;
   paidAmount: number | null;
-  transactionReference: string | null;
-  paymentMethod: PaymentMethod | null;
 
   // Metadata
   notes: string | null;
@@ -388,7 +385,8 @@ export const getPaymentMethodName = (method: PaymentMethod): string => {
     cash: 'Espèces',
     wave: 'Wave',
     orange_money: 'Orange Money',
-    mtn_money: 'MTN Money'
+    mtn_money: 'MTN Money',
+    bank_transfer: 'Virement bancaire'
   };
   return names[method];
 };
