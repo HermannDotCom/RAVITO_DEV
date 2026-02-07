@@ -1,14 +1,10 @@
 import React from 'react';
-import { Home, ShoppingBag, ShoppingCart, Package, Truck, Wallet, User } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
+import { User, Users, MessageSquare, CreditCard, ClipboardList } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface BottomNavigationProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
-  pendingOrdersCount?: number;
-  availableOrdersCount?: number;
-  activeDeliveriesCount?: number;
 }
 
 interface NavItem {
@@ -69,12 +65,8 @@ const NavItemComponent: React.FC<NavItemComponentProps> = ({ item, isActive, onC
 
 export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   activeSection,
-  onSectionChange,
-  pendingOrdersCount = 0,
-  availableOrdersCount = 0,
-  activeDeliveriesCount = 0
+  onSectionChange
 }) => {
-  const { cart } = useCart();
   const { user } = useAuth();
 
   const getNavItems = (): NavItem[] => {
@@ -82,20 +74,18 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
 
     if (user.role === 'client') {
       return [
-        { id: 'dashboard', icon: Home, label: 'Accueil' },
-        { id: 'catalog', icon: ShoppingBag, label: 'Catalogue' },
-        { id: 'cart', icon: ShoppingCart, label: 'Panier', badge: cart.length },
-        { id: 'orders', icon: Package, label: 'Commandes', badge: pendingOrdersCount },
+        { id: 'activity', icon: ClipboardList, label: 'Activité' },
+        { id: 'ravito-gestion-subscription', icon: CreditCard, label: 'Abonnement' },
+        { id: 'team', icon: Users, label: 'Équipe' },
+        { id: 'support', icon: MessageSquare, label: 'Support' },
         { id: 'profile', icon: User, label: 'Profil' },
       ];
     }
 
     if (user.role === 'supplier') {
       return [
-        { id: 'dashboard', icon: Home, label: 'Accueil' },
-        { id: 'orders', icon: Package, label: 'Commandes', badge: availableOrdersCount },
-        { id: 'deliveries', icon: Truck, label: 'Livraisons', badge: activeDeliveriesCount },
-        { id: 'treasury', icon: Wallet, label: 'Revenus' },
+        { id: 'team', icon: Users, label: 'Équipe' },
+        { id: 'support', icon: MessageSquare, label: 'Support' },
         { id: 'profile', icon: User, label: 'Profil' },
       ];
     }

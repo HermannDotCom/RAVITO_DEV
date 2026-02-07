@@ -1,24 +1,16 @@
 import {
-  Home,
-  ShoppingBag,
-  ShoppingCart,
-  Package,
   User,
-  Wallet,
   Users,
   MessageSquare,
-  Navigation,
-  Truck,
   MapPin,
-  Clock,
   BarChart3,
   CreditCard,
-  DollarSign,
   Database,
   Settings,
-  HelpCircle,
   Shield,
-  Briefcase
+  Briefcase,
+  ShoppingBag,
+  ClipboardList
 } from 'lucide-react';
 
 export interface PageDefinition {
@@ -28,34 +20,23 @@ export interface PageDefinition {
   exclusiveSuperAdmin?: boolean;
 }
 
-// Pour CLIENT (8 pages uniquement)
+// Pour CLIENT (5 pages uniquement - RAVITO Gestion)
 export const CLIENT_PAGES: PageDefinition[] = [
-  { id: 'dashboard', label: 'Accueil', icon: Home },
-  { id: 'catalog', label: 'Catalogue', icon: ShoppingBag },
-  { id: 'cart', label: 'Panier', icon: ShoppingCart },
-  { id: 'orders', label: 'Mes Commandes', icon: Package },
-  { id: 'treasury', label: 'Trésorerie', icon: Wallet },
+  { id: 'activity', label: 'Gestion Activité', icon: ClipboardList },
+  { id: 'ravito-gestion-subscription', label: 'Mon Abonnement', icon: CreditCard },
   { id: 'team', label: 'Mon Équipe', icon: Users },
   { id: 'support', label: 'Support', icon: MessageSquare },
   { id: 'profile', label: 'Mon Profil', icon: User },
 ];
 
-// Pour SUPPLIER/FOURNISSEUR (11 pages uniquement)
+// Pour SUPPLIER/FOURNISSEUR (3 pages uniquement - RAVITO Gestion)
 export const SUPPLIER_PAGES: PageDefinition[] = [
-  { id: 'dashboard', label: 'Accueil', icon: Home },
-  { id: 'delivery-mode', label: 'Mode Livreur', icon: Navigation },
-  { id: 'orders', label: 'Commandes', icon: Package },
-  { id: 'deliveries', label: 'Livraisons', icon: Truck },
-  { id: 'treasury', label: 'Revenus', icon: Wallet },
-  { id: 'zones', label: 'Mes Zones', icon: MapPin },
-  { id: 'pricing', label: 'Produits vendus', icon: DollarSign },
   { id: 'team', label: 'Mon Équipe', icon: Users },
-  { id: 'history', label: 'Historique', icon: Clock },
   { id: 'support', label: 'Support', icon: MessageSquare },
   { id: 'profile', label: 'Mon Profil', icon: User },
 ];
 
-// Pour ADMIN (pages assignables + pages exclusives Super Admin)
+// Pour ADMIN (pages assignables + pages exclusives Super Admin - RAVITO Gestion)
 export const ADMIN_PAGES: PageDefinition[] = [
   // Pages exclusives Super Admin (non assignables)
   { id: 'super-dashboard', label: 'Tableau de Bord', icon: BarChart3, exclusiveSuperAdmin: true },
@@ -66,12 +47,11 @@ export const ADMIN_PAGES: PageDefinition[] = [
   
   // Pages assignables à d'autres rôles
   { id: 'users', label: 'Utilisateurs', icon: Users, exclusiveSuperAdmin: false },
-  { id: 'orders', label: 'Commandes', icon: Package, exclusiveSuperAdmin: false },
   { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag, exclusiveSuperAdmin: false },
-  { id: 'treasury', label: 'Trésorerie', icon: CreditCard, exclusiveSuperAdmin: false },
   { id: 'zones', label: 'Zones de Livraison', icon: MapPin, exclusiveSuperAdmin: false },
   { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare, exclusiveSuperAdmin: false },
   { id: 'commercial-activity', label: 'Activité Commerciale', icon: Briefcase, exclusiveSuperAdmin: false },
+  { id: 'subscription-management', label: 'Gestion Abonnements', icon: CreditCard, exclusiveSuperAdmin: false },
 ];
 
 // Pages exclusives Super Admin (ne peuvent jamais être assignées à d'autres rôles)

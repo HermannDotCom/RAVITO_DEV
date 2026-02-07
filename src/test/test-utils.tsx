@@ -1,9 +1,7 @@
 import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { AuthProvider } from '../context/AuthContext';
-import { CartProvider } from '../context/CartContext';
 import { CommissionProvider } from '../context/CommissionContext';
-import { OrderProvider } from '../context/OrderContext';
 import { RatingProvider } from '../context/RatingContext';
 
 interface AllTheProvidersProps {
@@ -13,15 +11,11 @@ interface AllTheProvidersProps {
 const AllTheProviders: React.FC<AllTheProvidersProps> = ({ children }) => {
   return (
     <AuthProvider>
-      <CartProvider>
-        <CommissionProvider>
-          <OrderProvider>
-            <RatingProvider>
-              {children}
-            </RatingProvider>
-          </OrderProvider>
-        </CommissionProvider>
-      </CartProvider>
+      <CommissionProvider>
+        <RatingProvider>
+          {children}
+        </RatingProvider>
+      </CommissionProvider>
     </AuthProvider>
   );
 };

@@ -1,24 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Home,
-  ShoppingCart,
-  Package,
-  Truck,
   Settings,
   Users,
   MapPin,
   CreditCard,
-  Clock,
-  ShoppingBag,
   MessageSquare,
-  Wallet,
   MoreHorizontal,
   BarChart3,
-  DollarSign,
-  Navigation,
   Shield,
   ClipboardList,
-  Briefcase
+  Briefcase,
+  ShoppingBag
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useModuleAccess } from '../../hooks/useModuleAccess';
@@ -84,31 +76,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
     switch (user.role) {
       case 'client':
         allMenuItems = [
-          { id: 'dashboard', label: 'Accueil', icon: Home, moduleKey: 'dashboard' },
           { id: 'activity', label: 'Gestion Activité', icon: ClipboardList, moduleKey: 'activity' },
-          { id: 'catalog', label: 'Catalogue', icon: ShoppingBag, moduleKey: 'catalog' },
-          { id: 'cart', label: 'Panier', icon: ShoppingCart, moduleKey: 'cart' },
-          { id: 'orders', label: 'Mes Commandes', icon: Package, moduleKey: 'orders' },
         ];
         break;
       case 'supplier':
-        allMenuItems = [
-          { id: 'dashboard', label: 'Accueil', icon: Home, moduleKey: 'dashboard' },
-          { id: 'delivery-mode', label: 'Mode Livreur', icon: Navigation, moduleKey: 'deliveries' },
-          { id: 'orders', label: 'Commandes', icon: Package, moduleKey: 'orders' },
-          { id: 'deliveries', label: 'Livraisons', icon: Truck, moduleKey: 'deliveries' },
-          { id: 'treasury', label: 'Revenus', icon: Wallet, moduleKey: 'treasury' },
-        ];
+        allMenuItems = [];
         break;
       case 'admin':
         allMenuItems = [
           { id: 'super-dashboard', label: 'Tableau de Bord', icon: BarChart3, moduleKey: 'super-dashboard' },
-          { id: 'commercial-activity', label: 'Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' },  // ✅ AJOUTÉ
+          { id: 'commercial-activity', label: 'Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' },
           { id: 'users', label: 'Utilisateurs', icon: Users, moduleKey: 'users' },
-          { id: 'orders', label: 'Commandes', icon: Package, moduleKey: 'orders' },
           { id: 'products', label: 'Catalogue Produits', icon: ShoppingBag, moduleKey: 'products' },
-          { id: 'treasury', label: 'Tresorerie', icon: CreditCard, moduleKey: 'treasury' },
-          { id: 'subscriptions', label: 'Gestion d\'abonnements', icon: CreditCard, moduleKey: 'subscriptions' },
+          { id: 'subscription-management', label: 'Gestion Abonnements', icon: CreditCard, moduleKey: 'subscription-management' },
           { id: 'zones', label: 'Zones de Livraison', icon: MapPin, moduleKey: 'zones' },
           { id: 'team', label: 'Mon Equipe', icon: Users, moduleKey: 'team' },
           { id: 'roles', label: 'Gestion des Roles', icon: Shield, moduleKey: 'roles' },
@@ -132,29 +112,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
     switch (user.role) {
       case 'client':
         allSecondaryItems = [
-          { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
-          { id: 'treasury', label: 'Trésorerie', icon: Wallet, moduleKey: 'treasury' },
           { id: 'ravito-gestion-subscription', label: 'Mon Abonnement', icon: CreditCard, moduleKey: 'ravito-gestion-subscription' },
           { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
           { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
+          { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
         ];
         // Add commercial activity for sales reps
         if (isSalesRep) {
-          allSecondaryItems.splice(3, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
+          allSecondaryItems.splice(2, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
         }
         break;
       case 'supplier':
         allSecondaryItems = [
-          { id: 'zones', label: 'Mes Zones', icon: MapPin, moduleKey: 'zones' },
-          { id: 'pricing', label: 'Produits vendus', icon: DollarSign, moduleKey: 'pricing' },
           { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
-          { id: 'history', label: 'Historique', icon: Clock, moduleKey: 'history' },
           { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
           { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
         ];
         // Add commercial activity for sales reps
         if (isSalesRep) {
-          allSecondaryItems.splice(3, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
+          allSecondaryItems.splice(1, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
         }
         break;
       default:
