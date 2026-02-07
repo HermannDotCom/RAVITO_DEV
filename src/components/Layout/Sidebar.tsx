@@ -239,7 +239,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
                   <span className="font-medium flex-1">{item.label}</span>
                   {showBadge && (
                     <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full animate-pulse">
-                      {pendingPaymentsCount}
+                      {pendingPaymentsCount > 99 ? '99+' : pendingPaymentsCount}
                     </span>
                   )}
                 </button>
