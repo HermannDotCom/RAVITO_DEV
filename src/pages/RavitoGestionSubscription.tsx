@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { useSubscription } from '../hooks/useSubscription';
+import { useOrganization } from '../hooks/useOrganization';
 import { useToast } from '../context/ToastContext';
 import { Paywall } from '../components/Subscription/Paywall';
 import { PaymentModal } from '../components/Subscription/PaymentModal';
 import { ArrowLeft, CheckCircle, Clock, CreditCard, AlertCircle, Info, FileText } from 'lucide-react';
 import { formatCurrency } from '../types/subscription';
 import { calculateProrata } from '../services/ravitoGestionSubscriptionService';
-import type { SubscriptionPlan } from '../types/subscription';
+import { generatePaymentReceipt } from '../services/receiptPdfService';
+import { supabase } from '../lib/supabase';
+import type { SubscriptionPlan, PaymentMethod } from '../types/subscription';
 
 interface RavitoGestionSubscriptionProps {
   onSectionChange?: (section: string) => void;
@@ -14,6 +17,7 @@ interface RavitoGestionSubscriptionProps {
 
 export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps> = ({ onSectionChange }) => {
   const { showToast } = useToast();
+  const { organizationName } = useOrganization();
   const {
     subscription,
     plans,
@@ -124,6 +128,52 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
     } catch (error) {
       console.error('Error submitting payment claim:', error);
       showToast('Erreur lors de l\'enregistrement', 'error');
+    }
+  };
+
+  const handleDownloadReceipt = async (invoiceId: string) => {
+    try {
+      const invoice = invoices.find(inv => inv.id === invoiceId);
+      if (!invoice) {
+        showToast('Facture non trouvée', 'error');
+        return;
+      }
+
+      // Récupérer les informations nécessaires
+      const planName = subscription?.plan?.name || 'Plan inconnu';
+      const orgName = organizationName || 'Organisation';
+      
+      // Récupérer la méthode de paiement depuis la table subscription_payments
+      let paymentMethod: PaymentMethod = 'wave'; // Default fallback
+      try {
+        const { data: paymentData, error: paymentError } = await supabase
+          .from('subscription_payments')
+          .select('payment_method')
+          .eq('invoice_id', invoiceId)
+          .eq('status', 'validated')
+          .order('payment_date', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (!paymentError && paymentData?.payment_method) {
+          paymentMethod = paymentData.payment_method as PaymentMethod;
+        }
+      } catch (paymentFetchError) {
+        console.warn('Could not fetch payment method, using default:', paymentFetchError);
+      }
+      
+      await generatePaymentReceipt({
+        invoice,
+        organizationName: orgName,
+        planName,
+        paymentMethod,
+        transactionReference: invoice.transactionReference
+      });
+
+      showToast('Reçu téléchargé avec succès', 'success');
+    } catch (error) {
+      console.error('Error generating receipt:', error);
+      showToast('Erreur lors de la génération du reçu', 'error');
     }
   };
 
@@ -553,7 +603,7 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
                 {paidInvoices.map((invoice) => (
                   <div key={invoice.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center justify-between">
-                      <div>
+                      <div className="flex-1">
                         <p className="font-medium text-gray-900">Facture {invoice.invoiceNumber}</p>
                         <p className="text-sm text-gray-600">
                           Payée le {invoice.paidAt?.toLocaleDateString('fr-FR')}
@@ -562,12 +612,22 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
                           Période : {invoice.periodStart.toLocaleDateString('fr-FR')} - {invoice.periodEnd.toLocaleDateString('fr-FR')}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <CheckCircle className="w-5 h-5 text-green-600" />
-                          <span className="text-sm font-medium text-green-600">Payée</span>
+                      <div className="text-right flex items-center gap-4">
+                        <div>
+                          <div className="flex items-center space-x-2 mb-1">
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                            <span className="text-sm font-medium text-green-600">Payée</span>
+                          </div>
+                          <p className="text-lg font-bold text-gray-900">{formatCurrency(invoice.amount)}</p>
                         </div>
-                        <p className="text-lg font-bold text-gray-900">{formatCurrency(invoice.amount)}</p>
+                        <button
+                          onClick={() => handleDownloadReceipt(invoice.id)}
+                          className="flex items-center gap-2 px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg font-medium transition-colors"
+                          title="Télécharger le reçu"
+                        >
+                          <FileText className="w-4 h-4" />
+                          <span>Reçu</span>
+                        </button>
                       </div>
                     </div>
                   </div>
