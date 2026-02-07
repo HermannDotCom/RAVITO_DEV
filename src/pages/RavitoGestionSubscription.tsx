@@ -144,7 +144,7 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
       const orgName = organizationName || 'Organisation';
       
       // Récupérer la méthode de paiement depuis la table subscription_payments
-      let paymentMethod: PaymentMethod = 'wave'; // Défaut
+      let paymentMethod: PaymentMethod = 'wave'; // Default fallback
       try {
         const { data: paymentData, error: paymentError } = await supabase
           .from('subscription_payments')
@@ -626,7 +626,7 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
                           title="Télécharger le reçu"
                         >
                           <FileText className="w-4 h-4" />
-                          <span>📄 Reçu</span>
+                          <span>Reçu</span>
                         </button>
                       </div>
                     </div>

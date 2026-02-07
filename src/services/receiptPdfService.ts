@@ -220,8 +220,9 @@ export const generatePaymentReceipt = async (data: ReceiptData): Promise<void> =
 
   // Pied de page avec bordure
   const footerY = pageHeight - 20;
+  const borderHeight = footerY - (margin + headerHeight);
   doc.setDrawColor(200, 200, 200);
-  doc.rect(margin, margin + headerHeight, contentWidth, footerY - margin - footerMargin, 'S');
+  doc.rect(margin, margin + headerHeight, contentWidth, borderHeight, 'S');
 
   // Télécharger le PDF
   const filename = `Recu_Ravito_${invoice.invoiceNumber}.pdf`;
