@@ -149,7 +149,7 @@ export const PaymentsTab: React.FC = () => {
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-600 mb-2">✅ Aucun paiement en attente de validation</h3>
-          <p className="text-sm text-gray-500">Tous les paiements ont ete traites.</p>
+          <p className="text-sm text-gray-500">Tous les paiements ont été traités.</p>
         </div>
       ) : (
         <div className="space-y-4">

@@ -86,7 +86,7 @@ export const usePaymentNotifications = (): UsePaymentNotificationsReturn => {
 
           showToast({
             type: 'info',
-            title: '💰 Nouveau paiement a valider',
+            title: '💰 Nouveau paiement à valider',
             message: orgName,
             duration: 8000
           });
