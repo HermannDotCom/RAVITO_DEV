@@ -77,10 +77,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
       case 'client':
         allMenuItems = [
           { id: 'activity', label: 'Gestion Activité', icon: ClipboardList, moduleKey: 'activity' },
+          { id: 'ravito-gestion-subscription', label: 'Mon Abonnement', icon: CreditCard, moduleKey: 'ravito-gestion-subscription' },
+          { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
+          { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
+          { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
         ];
+        // Add commercial activity for sales reps
+        if (isSalesRep) {
+          allMenuItems.splice(3, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
+        }
         break;
       case 'supplier':
-        allMenuItems = [];
+        allMenuItems = [
+          { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
+          { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
+          { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
+        ];
+        // Add commercial activity for sales reps
+        if (isSalesRep) {
+          allMenuItems.splice(1, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
+        }
         break;
       case 'admin':
         allMenuItems = [
@@ -111,27 +127,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
 
     switch (user.role) {
       case 'client':
-        allSecondaryItems = [
-          { id: 'ravito-gestion-subscription', label: 'Mon Abonnement', icon: CreditCard, moduleKey: 'ravito-gestion-subscription' },
-          { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
-          { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
-          { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
-        ];
-        // Add commercial activity for sales reps
-        if (isSalesRep) {
-          allSecondaryItems.splice(2, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
-        }
+        allSecondaryItems = [];
         break;
       case 'supplier':
-        allSecondaryItems = [
-          { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
-          { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
-          { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
-        ];
-        // Add commercial activity for sales reps
-        if (isSalesRep) {
-          allSecondaryItems.splice(1, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
-        }
+        allSecondaryItems = [];
         break;
       default:
         return [];
