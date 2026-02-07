@@ -9,6 +9,7 @@ export interface RealtimeSubscription {
 }
 
 type ConnectionStatusCallback = (status: RealtimeConnectionStatus) => void;
+type OnlineStatusCallback = (isOnline: boolean) => void;
 
 class RealtimeService {
   private connectionStatus: RealtimeConnectionStatus = 'disconnected';
@@ -17,9 +18,15 @@ class RealtimeService {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000; // Start with 1 second
   private reconnectTimer: number | null = null;
+  private isOnline: boolean = navigator.onLine;
+  private onlineCallbacks: Set<OnlineStatusCallback> = new Set();
 
   constructor() {
     // Connection monitoring will be set up when subscriptions are created
+    
+    // Listen to browser online/offline events
+    window.addEventListener('online', () => this.handleBrowserOnline());
+    window.addEventListener('offline', () => this.handleBrowserOffline());
   }
 
   public getConnectionStatus(): RealtimeConnectionStatus {
@@ -373,6 +380,60 @@ class RealtimeService {
   }
 
   /**
+   * Handle browser going online
+   */
+  private handleBrowserOnline() {
+    console.log('Browser went online');
+    this.isOnline = true;
+    this.notifyOnlineStatusChange(true);
+    // Trigger reconnection of channels
+    this.resetReconnection();
+  }
+
+  /**
+   * Handle browser going offline
+   */
+  private handleBrowserOffline() {
+    console.log('Browser went offline');
+    this.isOnline = false;
+    this.setConnectionStatus('disconnected');
+    this.notifyOnlineStatusChange(false);
+  }
+
+  /**
+   * Notify all online status callbacks
+   */
+  private notifyOnlineStatusChange(isOnline: boolean) {
+    this.onlineCallbacks.forEach(callback => {
+      try {
+        callback(isOnline);
+      } catch (error) {
+        console.error('Error in online status callback:', error);
+      }
+    });
+  }
+
+  /**
+   * Get current online status
+   */
+  public getIsOnline(): boolean {
+    return this.isOnline;
+  }
+
+  /**
+   * Subscribe to online status changes
+   */
+  public onOnlineStatusChange(callback: OnlineStatusCallback): () => void {
+    this.onlineCallbacks.add(callback);
+    // Immediately call with current status
+    callback(this.isOnline);
+    
+    return () => {
+      this.onlineCallbacks.delete(callback);
+    };
+  }
+
+  /**
    * Clean up all resources
    */
   public cleanup() {
@@ -381,6 +442,7 @@ class RealtimeService {
       this.reconnectTimer = null;
     }
     this.statusCallbacks.clear();
+    this.onlineCallbacks.clear();
   }
 }
 
