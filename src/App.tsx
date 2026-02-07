@@ -105,7 +105,7 @@ const AppContent: React.FC = () => {
   if (!user) {
     // Show landing page on root path when not authenticated
     if (path === '/' || path === '') {
-      return <LandingPage onNavigate={navigate} />;
+      return <LandingPageGestion onNavigate={navigate} />;
     }
     // For other paths (like /login, /register), show AuthScreen
     return <AuthScreen initialPath={path} />;
