@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Menu, User, LogOut, Bell, ShoppingCart } from 'lucide-react';
+import { Menu, User, LogOut, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useCart } from '../../context/CartContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { useOrganizationName } from '../../hooks/useOrganizationName';
 import { NotificationPanel } from '../Notifications/NotificationPanel';
@@ -9,17 +8,13 @@ import { NotificationPanel } from '../Notifications/NotificationPanel';
 interface HeaderProps {
   onMenuToggle: () => void;
   title?: string;
-  onCartClick?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'RAVITO', onCartClick }) => {
+export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'RAVITO' }) => {
   const { user, logout } = useAuth();
-  const { cart } = useCart();
   const { unreadCount } = useNotifications();
   const { organizationName } = useOrganizationName();
   const [showNotifications, setShowNotifications] = useState(false);
-
-  const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg border-b border-orange-100">
@@ -57,21 +52,6 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'RAVITO', 
 
           {user && (
             <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-1 justify-end">
-              {user.role === 'client' && (
-                <button
-                  onClick={onCartClick}
-                  className="p-2 min-h-[44px] min-w-[44px] text-gray-600 active:text-orange-600 active:bg-orange-50 rounded-full transition-colors relative"
-                  aria-label="Panier"
-                >
-                  <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
-                  {cartItemsCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1 bg-orange-500 rounded-full flex items-center justify-center">
-                      <span className="text-xs text-white font-bold">{cartItemsCount > 9 ? '9+' : cartItemsCount}</span>
-                    </span>
-                  )}
-                </button>
-              )}
-
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="p-2 min-h-[44px] min-w-[44px] text-gray-600 active:text-orange-600 active:bg-orange-50 rounded-full transition-colors relative"
