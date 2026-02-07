@@ -63,7 +63,7 @@ subscription_reminders     -- Historique des relances envoyées
 Les 3 plans sont créés automatiquement :
 - **Mensuel** : 6000 FCFA / 31 jours
 - **Semestriel** : 30000 FCFA / 183 jours
-- **Annuel** : 50000 FCFA / 365 jours
+- **Annuel** : 48 000 FCFA / 365 jours (4 mois offerts)
 
 Tous avec 30 jours d'essai gratuit offerts.
 
@@ -130,11 +130,11 @@ Puis chaque semestre : 30000 FCFA
 Essai gratuit : 14/02 → 13/03 (1 mois gratuit)
 
 Prorata : 14/03 → 31/12 (293 jours) → fin d'année
-Calcul : 50000 × 293/365 = 40137 FCFA
+Calcul : 48000 × 293/365 = 38 530 FCFA
 À payer avant le 31/12
 
-Cycle suivant : 01/01/2027 → 31/12/2027 = 50000 FCFA
-Puis chaque année : 50000 FCFA
+Cycle suivant : 01/01/2027 → 31/12/2027 = 48 000 FCFA
+Puis chaque année : 48 000 FCFA
 ```
 
 ---

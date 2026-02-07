@@ -19,7 +19,7 @@ export const CGVPage: React.FC<CGVPageProps> = ({ onNavigate }) => {
               Conditions Générales de Vente
             </h1>
             <p className="text-gray-600">
-              Date de dernière mise à jour : 5 janvier 2026
+              Date de dernière mise à jour : 7 février 2026
             </p>
           </div>
 
@@ -270,59 +270,193 @@ export const CGVPage: React.FC<CGVPageProps> = ({ onNavigate }) => {
               </div>
             </section>
 
-            {/* Article 11 */}
+            {/* Article 11 - TARIFICATION RAVITO GESTION */}
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                ARTICLE 11 - LITIGES
-              </h2>
-              <div className="space-y-3 text-gray-700">
-                <p><strong>11.1 Résolution amiable</strong></p>
-                <p className="ml-4">En cas de litige entre un Client et un Fournisseur, les parties sont encouragées à rechercher une solution amiable. RAVITO peut proposer ses services de médiation.</p>
+              <div className="bg-green-50 border-2 border-green-500 rounded-xl p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  ARTICLE 11 - TARIFICATION RAVITO GESTION
+                </h2>
+                <div className="space-y-3 text-gray-700">
+                  <p><strong>11.1 Grille tarifaire</strong></p>
+                  <p className="ml-4">Le module RAVITO Gestion est accessible sur abonnement payant selon les tarifs suivants :</p>
+                  
+                  <div className="overflow-x-auto ml-4 my-4">
+                    <table className="min-w-full border-collapse border border-gray-300">
+                      <thead className="bg-green-100">
+                        <tr>
+                          <th className="border border-gray-300 px-4 py-2 text-left">Plan</th>
+                          <th className="border border-gray-300 px-4 py-2 text-left">Tarif</th>
+                          <th className="border border-gray-300 px-4 py-2 text-left">Durée</th>
+                          <th className="border border-gray-300 px-4 py-2 text-left">Avantage</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="border border-gray-300 px-4 py-2">Mensuel</td>
+                          <td className="border border-gray-300 px-4 py-2"><strong>6 000 FCFA</strong></td>
+                          <td className="border border-gray-300 px-4 py-2">1 mois</td>
+                          <td className="border border-gray-300 px-4 py-2">-</td>
+                        </tr>
+                        <tr className="bg-green-50">
+                          <td className="border border-gray-300 px-4 py-2"><strong>Semestriel (Recommandé)</strong></td>
+                          <td className="border border-gray-300 px-4 py-2"><strong>30 000 FCFA</strong></td>
+                          <td className="border border-gray-300 px-4 py-2">6 mois</td>
+                          <td className="border border-gray-300 px-4 py-2"><span className="text-green-600">🎁 1 mois offert</span></td>
+                        </tr>
+                        <tr>
+                          <td className="border border-gray-300 px-4 py-2">Annuel</td>
+                          <td className="border border-gray-300 px-4 py-2"><strong>48 000 FCFA</strong></td>
+                          <td className="border border-gray-300 px-4 py-2">12 mois</td>
+                          <td className="border border-gray-300 px-4 py-2"><span className="text-green-600">🎁 4 mois offerts</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
 
-                <p><strong>11.2 Service support</strong></p>
-                <p className="ml-4">Pour toute réclamation, contacter le support RAVITO à : <a href="mailto:support@ravito.ci" className="text-orange-500 hover:text-orange-600">support@ravito.ci</a></p>
+                  <p><strong>11.2 Période d'essai gratuite</strong></p>
+                  <p className="ml-4">
+                    Tout nouvel utilisateur bénéficie d'une période d'essai gratuite de <strong>30 jours</strong> à compter de sa première souscription. Cette période permet de tester l'intégralité des fonctionnalités du module sans engagement et sans moyen de paiement requis.
+                  </p>
 
-                <p><strong>11.3 Conciliation et juridiction compétente</strong></p>
-                <p className="ml-4">En cas de litige persistant, les parties peuvent recourir gratuitement à la conciliation proposée par le CEPICI (Centre de Promotion des Investissements en Côte d'Ivoire) à Abidjan.</p>
-                <p className="ml-4">En cas d'échec de la conciliation, les tribunaux compétents d'Abidjan, Côte d'Ivoire, auront compétence exclusive pour statuer sur le litige.</p>
+                  <p><strong>11.3 Modes de paiement acceptés</strong></p>
+                  <p className="ml-4">Les paiements peuvent être effectués par les moyens suivants :</p>
+                  <ul className="ml-8 space-y-1">
+                    <li>• Espèces (via reçu validé par l'administration RAVITO)</li>
+                    <li>• Wave</li>
+                    <li>• Orange Money</li>
+                    <li>• MTN Money</li>
+                  </ul>
+
+                  <p><strong>11.4 Facturation et reçus</strong></p>
+                  <p className="ml-4">
+                    Une facture PDF est automatiquement générée et envoyée par email à chaque paiement. La facture comprend le détail du plan souscrit, le montant payé, les dates de validité et le numéro de transaction.
+                  </p>
+
+                  <p><strong>11.5 Renouvellement de l'abonnement</strong></p>
+                  <p className="ml-4">
+                    Le renouvellement <strong>n'est pas automatique</strong>. Des rappels sont envoyés par email et notification à :
+                  </p>
+                  <ul className="ml-8 space-y-1">
+                    <li>• <strong>J-30</strong> : Premier rappel</li>
+                    <li>• <strong>J-15</strong> : Deuxième rappel</li>
+                    <li>• <strong>J-7</strong> : Troisième rappel</li>
+                    <li>• <strong>J-2</strong> : Dernier rappel</li>
+                  </ul>
+                  <p className="ml-4 mt-2">
+                    L'utilisateur doit effectuer manuellement le paiement pour renouveler son abonnement. En cas de non-renouvellement, l'accès au module est suspendu à partir de J+1 après l'échéance.
+                  </p>
+
+                  <p><strong>11.6 Modification des tarifs</strong></p>
+                  <p className="ml-4">
+                    RAVITO se réserve le droit de modifier les tarifs de ses abonnements. Toute modification sera notifiée aux utilisateurs avec un préavis minimum de <strong>30 jours</strong>. Les abonnements en cours restent aux tarifs souscrits jusqu'à leur échéance.
+                  </p>
+                </div>
               </div>
             </section>
 
-            {/* Article 12 */}
+            {/* Article 12 - REMBOURSEMENT ET RÉSILIATION */}
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                ARTICLE 12 - MODIFICATION DES CGV
-              </h2>
-              <div className="space-y-3 text-gray-700">
-                <p><strong>12.1</strong> RAVITO se réserve le droit de modifier les présentes CGV à tout moment pour s'adapter aux évolutions législatives, techniques ou commerciales.</p>
-                <p><strong>12.2</strong> Les modifications seront notifiées aux utilisateurs avec un préavis raisonnable.</p>
-                <p><strong>12.3</strong> La poursuite de l'utilisation de la plateforme après notification vaut acceptation des nouvelles CGV.</p>
+              <div className="bg-blue-50 border-2 border-blue-500 rounded-xl p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  ARTICLE 12 - REMBOURSEMENT ET RÉSILIATION RAVITO GESTION
+                </h2>
+                <div className="space-y-3 text-gray-700">
+                  <p><strong>12.1 Droit de rétractation</strong></p>
+                  <p className="ml-4">
+                    Conformément à la loi ivoirienne sur la consommation, l'utilisateur dispose d'un délai de <strong>14 jours</strong> à compter de la souscription pour exercer son droit de rétractation sans avoir à justifier de motifs. En cas de rétractation dans ce délai, le remboursement intégral est effectué sous 14 jours ouvrés.
+                  </p>
+
+                  <p><strong>12.2 Conditions de remboursement</strong></p>
+                  <p className="ml-4">
+                    En dehors du délai de rétractation, les remboursements sont calculés au prorata temporis selon la formule suivante :
+                  </p>
+                  <p className="ml-8 italic">
+                    Montant remboursé = (Montant payé × Jours restants) / Durée totale de l'abonnement
+                  </p>
+                  <p className="ml-4 mt-2">
+                    Les demandes de remboursement doivent être effectuées par email à <a href="mailto:support@ravito.ci" className="text-orange-500 hover:text-orange-600">support@ravito.ci</a> avec justification. Les remboursements sont traités sous 30 jours ouvrés.
+                  </p>
+
+                  <p><strong>12.3 Résiliation par l'utilisateur</strong></p>
+                  <p className="ml-4">
+                    L'utilisateur peut résilier son abonnement à tout moment depuis les paramètres de son compte. La résiliation prend effet à la date d'échéance de l'abonnement en cours. Aucun remboursement n'est effectué pour les jours non utilisés sauf dans le cas d'un dysfonctionnement majeur du service imputable à RAVITO.
+                  </p>
+
+                  <p><strong>12.4 Résiliation par RAVITO</strong></p>
+                  <p className="ml-4">
+                    RAVITO se réserve le droit de résilier un abonnement dans les cas suivants :
+                  </p>
+                  <ul className="ml-8 space-y-1">
+                    <li>• Non-respect des Conditions Générales d'Utilisation</li>
+                    <li>• Utilisation frauduleuse ou abusive du service</li>
+                    <li>• Non-paiement à l'échéance après un délai de grâce de 60 jours</li>
+                    <li>• Inactivité du compte pendant plus de 12 mois consécutifs</li>
+                  </ul>
+                  <p className="ml-4 mt-2">
+                    En cas de résiliation par RAVITO pour manquement de l'utilisateur, aucun remboursement n'est effectué. Un préavis de 7 jours est accordé sauf en cas de fraude avérée.
+                  </p>
+
+                  <p><strong>12.5 Conservation et exportation des données</strong></p>
+                  <p className="ml-4">
+                    En cas de résiliation, l'utilisateur dispose d'un délai de <strong>30 jours</strong> pour exporter l'intégralité de ses données (cahier digital, stocks, dépenses, crédits clients) au format PDF ou Excel. Passé ce délai, les données sont définitivement supprimées des serveurs RAVITO.
+                  </p>
+                </div>
               </div>
             </section>
 
             {/* Article 13 */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                ARTICLE 13 - DROIT APPLICABLE
+                ARTICLE 13 - LITIGES
               </h2>
               <div className="space-y-3 text-gray-700">
-                <p><strong>13.1</strong> Les présentes CGV sont régies par le droit ivoirien et notamment par :</p>
+                <p><strong>13.1 Résolution amiable</strong></p>
+                <p className="ml-4">En cas de litige entre un Client et un Fournisseur, les parties sont encouragées à rechercher une solution amiable. RAVITO peut proposer ses services de médiation.</p>
+
+                <p><strong>13.2 Service support</strong></p>
+                <p className="ml-4">Pour toute réclamation, contacter le support RAVITO à : <a href="mailto:support@ravito.ci" className="text-orange-500 hover:text-orange-600">support@ravito.ci</a></p>
+
+                <p><strong>13.3 Conciliation et juridiction compétente</strong></p>
+                <p className="ml-4">En cas de litige persistant, les parties peuvent recourir gratuitement à la conciliation proposée par le CEPICI (Centre de Promotion des Investissements en Côte d'Ivoire) à Abidjan.</p>
+                <p className="ml-4">En cas d'échec de la conciliation, les tribunaux compétents d'Abidjan, Côte d'Ivoire, auront compétence exclusive pour statuer sur le litige.</p>
+              </div>
+            </section>
+
+            {/* Article 14 */}
+            <section className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                ARTICLE 14 - MODIFICATION DES CGV
+              </h2>
+              <div className="space-y-3 text-gray-700">
+                <p><strong>14.1</strong> RAVITO se réserve le droit de modifier les présentes CGV à tout moment pour s'adapter aux évolutions législatives, techniques ou commerciales.</p>
+                <p><strong>14.2</strong> Les modifications seront notifiées aux utilisateurs avec un préavis raisonnable.</p>
+                <p><strong>14.3</strong> La poursuite de l'utilisation de la plateforme après notification vaut acceptation des nouvelles CGV.</p>
+              </div>
+            </section>
+
+            {/* Article 15 */}
+            <section className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                ARTICLE 15 - DROIT APPLICABLE
+              </h2>
+              <div className="space-y-3 text-gray-700">
+                <p><strong>15.1</strong> Les présentes CGV sont régies par le droit ivoirien et notamment par :</p>
                 <ul className="ml-8 space-y-1 list-disc">
                   <li>L'Acte Uniforme OHADA relatif au droit commercial général (articles 153-160 sur les intermédiaires)</li>
                   <li>La loi n° 2016-412 du 15 juin 2016 relative à la consommation (article 12 sur la transparence)</li>
                   <li>L'ordonnance n° 2017-500 du 2 août 2017 relative aux échanges électroniques</li>
                 </ul>
-                <p className="mt-3"><strong>13.2</strong> Tout litige relatif à l'interprétation ou à l'exécution des présentes sera soumis aux tribunaux compétents d'Abidjan.</p>
+                <p className="mt-3"><strong>15.2</strong> Tout litige relatif à l'interprétation ou à l'exécution des présentes sera soumis aux tribunaux compétents d'Abidjan.</p>
               </div>
             </section>
 
-            {/* Article 14 - NOUVEAU */}
+            {/* Article 16 - NOUVEAU */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                ARTICLE 14 - FORCE MAJEURE
+                ARTICLE 16 - FORCE MAJEURE
               </h2>
               <div className="space-y-3 text-gray-700">
-                <p><strong>14.1 Définition</strong></p>
+                <p><strong>16.1 Définition</strong></p>
                 <p className="ml-4">Sont considérés comme cas de force majeure, conformément à l'article 1148 du Code civil harmonisé OHADA, les événements suivants :</p>
                 <ul className="ml-8 space-y-1 list-disc">
                   <li>Panne majeure des prestataires de paiement (Wave, Orange Money, MTN, Moov, etc.)</li>
@@ -332,21 +466,21 @@ export const CGVPage: React.FC<CGVPageProps> = ({ onNavigate }) => {
                   <li>Décision administrative ou gouvernementale empêchant l'activité</li>
                 </ul>
 
-                <p><strong>14.2 Notification</strong></p>
+                <p><strong>16.2 Notification</strong></p>
                 <p className="ml-4">En cas de survenance d'un événement de force majeure, RAVITO notifiera les utilisateurs par email et/ou SMS dans un délai de 48 heures.</p>
 
-                <p><strong>14.3 Exonération de responsabilité</strong></p>
+                <p><strong>16.3 Exonération de responsabilité</strong></p>
                 <p className="ml-4">RAVITO est exonéré de toute responsabilité pendant la durée de l'événement de force majeure et pendant une période de 7 jours suivant la fin de cet événement pour permettre la reprise normale des activités.</p>
 
-                <p><strong>14.4 Reprise des obligations</strong></p>
+                <p><strong>16.4 Reprise des obligations</strong></p>
                 <p className="ml-4">Les parties reprennent l'exécution de leurs obligations contractuelles dès la cessation de l'événement de force majeure, sans qu'aucune indemnité ne soit due de part et d'autre.</p>
               </div>
             </section>
 
-            {/* Article 15 */}
+            {/* Article 17 */}
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                ARTICLE 15 - CONTACT
+                ARTICLE 17 - CONTACT
               </h2>
               <div className="space-y-2 text-gray-700">
                 <p>Pour toute question relative aux présentes CGV :</p>
