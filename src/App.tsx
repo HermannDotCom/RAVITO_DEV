@@ -12,7 +12,7 @@ import { Sidebar } from './components/Layout/Sidebar';
 import { AuthScreen } from './components/Auth/AuthScreen';
 import { DeactivatedAccountModal } from './components/Auth/DeactivatedAccountModal';
 import { SkipLink } from './components/Accessibility/SkipLink';
-import { LandingPage } from './pages/Landing';
+import { LandingPageGestion } from './pages/Landing';
 import { CGUPage, CGVPage, MentionsLegalesPage, PolitiqueConfidentialitePage } from './pages/Legal';
 import { useSimpleRouter } from './hooks/useSimpleRouter';
 import { SupplierProfile } from './components/Supplier/SupplierProfile';
