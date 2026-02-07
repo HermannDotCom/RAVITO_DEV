@@ -266,14 +266,14 @@ export const getAllInvoices = async (
         notes,
         created_at,
         updated_at,
-        subscriptions!inner (
+        subscriptions (
           id,
           organization_id,
           plan_id,
-          organizations!inner (
+          organizations (
             name
           ),
-          subscription_plans!inner (
+          subscription_plans (
             id,
             name,
             description,
@@ -363,10 +363,10 @@ export const getAllInvoices = async (
       return {
         ...invoice,
         subscription: {
-          id: d.subscriptions.id,
-          organizationId: d.subscriptions.organization_id,
-          organizationName: d.subscriptions.organizations?.name || 'Organisation inconnue',
-          plan: {
+          id: d.subscriptions?.id || '',
+          organizationId: d.subscriptions?.organization_id || '',
+          organizationName: d.subscriptions?.organizations?.name || 'Organisation inconnue',
+          plan: d.subscriptions?.subscription_plans ? {
             id: d.subscriptions.subscription_plans.id,
             name: d.subscriptions.subscription_plans.name,
             description: d.subscriptions.subscription_plans.description,
@@ -379,6 +379,19 @@ export const getAllInvoices = async (
             features: d.subscriptions.subscription_plans.features || [],
             createdAt: new Date(d.subscriptions.subscription_plans.created_at),
             updatedAt: new Date(d.subscriptions.subscription_plans.updated_at)
+          } : {
+            id: '',
+            name: 'Plan inconnu',
+            description: '',
+            price: 0,
+            billingCycle: 'monthly',
+            daysInCycle: 30,
+            trialDays: 0,
+            isActive: false,
+            displayOrder: 0,
+            features: [],
+            createdAt: new Date(),
+            updatedAt: new Date()
           }
         },
         payments,
