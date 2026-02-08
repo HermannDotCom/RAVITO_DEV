@@ -51,7 +51,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
 
           {/* Desktop Navigation */}
           {showNavigation && (
-            <nav className="hidden md:flex items-center space-x-8">
+            <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
               <button
                 onClick={() => scrollToSection('hero')}
                 className="text-gray-600 hover:text-orange-500 transition-colors font-medium"
@@ -87,7 +87,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
 
           {/* Auth Buttons - Desktop */}
           {showNavigation && (
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden lg:flex items-center space-x-4">
               <button
                 onClick={() => onNavigate('/login')}
                 className="px-4 py-2 border border-orange-500 text-orange-500 rounded-lg hover:bg-orange-50 transition-colors font-medium"
@@ -107,7 +107,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           {showNavigation && (
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded-lg"
+              className="lg:hidden p-2 text-gray-600 hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 rounded-lg"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -117,7 +117,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
 
       {/* Mobile Menu */}
       {showNavigation && isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
+        <div className="lg:hidden bg-white border-t border-gray-200 shadow-lg">
           <div className="px-4 py-4 space-y-3">
             <button
               onClick={() => scrollToSection('hero')}
