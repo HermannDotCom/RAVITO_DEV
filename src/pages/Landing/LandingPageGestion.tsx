@@ -15,6 +15,9 @@ import {
   Smartphone,
   Star,
   Rocket,
+  Crown,
+  Eye,
+  Cloud,
 } from 'lucide-react';
 import { LandingHeader } from '../../components/Landing/LandingHeader';
 import { LandingFooter } from '../../components/Landing/LandingFooter';
@@ -150,6 +153,13 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
       rating: 5,
     },
     {
+      name: 'Yao K.',
+      role: 'Propriétaire de 3 maquis',
+      business: 'Abidjan',
+      text: 'J\'ai 3 maquis et je ne peux pas être partout. Avec RAVITO, je suis les ventes de chaque établissement en temps réel depuis mon téléphone. Mon gérant sait que je vois tout, fini les surprises à la fin du mois !',
+      rating: 5,
+    },
+    {
       name: 'Bamba Fatou',
       business: 'Restaurant Chez Tantie, Marcory',
       text: 'Simple, rapide et efficace. Même mes employés peuvent l\'utiliser sans formation. C\'est exactement ce dont j\'avais besoin.',
@@ -186,6 +196,10 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
       question: 'Est-ce que je peux gérer plusieurs établissements ?',
       answer: 'Oui, vous pouvez inviter des membres de votre équipe et gérer plusieurs points de vente avec un seul compte.',
     },
+    {
+      question: 'Je suis propriétaire mais c\'est mon gérant qui gère au quotidien. Comment ça marche ?',
+      answer: 'Parfait ! Vous créez votre compte en tant que propriétaire, puis vous invitez votre gérant dans votre équipe via "Mon Équipe". Vous définissez ses droits (ce qu\'il peut voir et modifier). Votre gérant utilise l\'app au quotidien, et vous avez accès à toutes les données en temps réel. Vous pouvez modifier ou retirer ses droits à tout moment.',
+    },
   ];
 
   return (
@@ -204,6 +218,10 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium mb-4">
+              <Crown className="h-4 w-4 mr-2" />
+              Idéal pour les propriétaires qui délèguent
+            </div>
             <div className="inline-block mb-6 px-4 py-2 bg-orange-100 rounded-full">
               <span className="text-orange-600 font-semibold text-sm">✨ 30 jours d'essai gratuit</span>
             </div>
@@ -242,7 +260,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
                 Commencer gratuitement
               </button>
               <button
-                onClick={() => scrollToSection('tarifs')}
+                onClick={() => scrollToSection('pricing')}
                 className="px-8 py-4 border-2 border-orange-500 text-orange-500 rounded-xl hover:bg-orange-50 transition-colors font-semibold text-lg"
               >
                 Voir les tarifs
@@ -316,6 +334,18 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
                   <span className="text-red-500 text-xl">•</span>
                   <span className="text-gray-700">Difficile de prendre les bonnes décisions</span>
                 </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-red-500 text-xl">•</span>
+                  <span className="text-gray-700">Gérant qui cache des informations</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-red-500 text-xl">•</span>
+                  <span className="text-gray-700">Cahiers de points qui disparaissent</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-red-500 text-xl">•</span>
+                  <span className="text-gray-700">Impossible de contrôler à distance</span>
+                </li>
               </ul>
             </div>
 
@@ -349,6 +379,18 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
                   <Check className="text-green-500 w-6 h-6 flex-shrink-0" />
                   <span className="text-gray-700">Rapports détaillés pour mieux décider</span>
                 </li>
+                <li className="flex items-start gap-3">
+                  <Check className="text-green-500 w-6 h-6 flex-shrink-0" />
+                  <span className="text-gray-700">Transparence totale, tout est tracé</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="text-green-500 w-6 h-6 flex-shrink-0" />
+                  <span className="text-gray-700">Données sécurisées dans le cloud</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="text-green-500 w-6 h-6 flex-shrink-0" />
+                  <span className="text-gray-700">Pilotage en temps réel depuis votre téléphone</span>
+                </li>
               </ul>
             </div>
           </div>
@@ -356,7 +398,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
       </section>
 
       {/* FEATURES */}
-      <section id="fonctionnalites" className="py-16 md:py-24 bg-gray-50">
+      <section id="features" className="py-16 md:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -380,6 +422,146 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
                 <p className="text-gray-600">{feature.description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PILOTAGE PROPRIÉTAIRE */}
+      <section id="proprietaires" className="py-16 md:py-24 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full opacity-5 blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full opacity-5 blur-3xl"></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              👑 Propriétaires : Reprenez le contrôle total
+            </h2>
+            <p className="text-xl md:text-2xl text-purple-100 max-w-3xl mx-auto">
+              Fini le manque de transparence et les rapports tronqués. Pilotez votre activité à distance, en temps réel.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {/* Point 1 */}
+            <div className="bg-white rounded-xl p-6 text-gray-900">
+              <div className="h-12 w-12 bg-gradient-to-br from-orange-400 to-amber-400 rounded-lg flex items-center justify-center mb-4">
+                <Crown className="text-white" size={24} />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Vous êtes le pilote N°1</h3>
+              <ul className="space-y-2 text-gray-600">
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Accès complet à toutes les données</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Tous les droits sur votre établissement</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Vision 360° de votre activité</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Point 2 */}
+            <div className="bg-white rounded-xl p-6 text-gray-900">
+              <div className="h-12 w-12 bg-gradient-to-br from-purple-400 to-indigo-400 rounded-lg flex items-center justify-center mb-4">
+                <Shield className="text-white" size={24} />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Contrôle total des accès</h3>
+              <ul className="space-y-2 text-gray-600">
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Donnez ou retirez des droits à votre gérant</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Définissez qui peut voir ou modifier quoi</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Historique des actions de chaque utilisateur</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Point 3 */}
+            <div className="bg-white rounded-xl p-6 text-gray-900">
+              <div className="h-12 w-12 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-lg flex items-center justify-center mb-4">
+                <Smartphone className="text-white" size={24} />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Pilotage à distance</h3>
+              <ul className="space-y-2 text-gray-600">
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Consultez les ventes en temps réel depuis votre téléphone</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Recevez des alertes sur l'activité</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Pas besoin d'être sur place pour contrôler</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Point 4 */}
+            <div className="bg-white rounded-xl p-6 text-gray-900">
+              <div className="h-12 w-12 bg-gradient-to-br from-green-400 to-emerald-400 rounded-lg flex items-center justify-center mb-4">
+                <Eye className="text-white" size={24} />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Transparence totale</h3>
+              <ul className="space-y-2 text-gray-600">
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Fini les rapports tronqués</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Fini les cahiers de points qui disparaissent</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Toutes les données sont horodatées et traçables</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Point 5 */}
+            <div className="bg-white rounded-xl p-6 text-gray-900">
+              <div className="h-12 w-12 bg-gradient-to-br from-pink-400 to-rose-400 rounded-lg flex items-center justify-center mb-4">
+                <Cloud className="text-white" size={24} />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Données toujours disponibles</h3>
+              <ul className="space-y-2 text-gray-600">
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Changez de téléphone sans perdre vos données</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Accessible sur tablette, ordinateur, téléphone</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <span>Sauvegarde automatique et sécurisée</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={() => onNavigate('/register')}
+              className="px-8 py-4 bg-white text-purple-600 rounded-xl hover:bg-gray-100 transition-all font-semibold text-lg shadow-lg inline-flex items-center gap-2"
+            >
+              Essayer gratuitement pendant 30 jours
+              <ArrowRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </section>
@@ -425,7 +607,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
       </section>
 
       {/* PRICING */}
-      <section id="tarifs" className="py-16 md:py-24 bg-gradient-to-br from-gray-50 to-orange-50">
+      <section id="pricing" className="py-16 md:py-24 bg-gradient-to-br from-gray-50 to-orange-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">

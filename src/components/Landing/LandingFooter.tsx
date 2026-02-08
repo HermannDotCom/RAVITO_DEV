@@ -17,7 +17,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onNavigate }) => {
     <footer id="contact" className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-20 sm:pb-12">
         {/* Top Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 mb-8">
           {/* Column 1: Brand */}
           <div>
             <div className="mb-4">
@@ -28,7 +28,8 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onNavigate }) => {
               />
             </div>
             <p className="text-gray-400 text-sm">
-              Livraison de boissons 24h/24 pour bars, maquis et restaurants à Abidjan.
+              RAVITO Gestion - La gestion digitale pour les établissements CHR en Côte d'Ivoire.
+              Stocks, dépenses, équipe... Tout en un clic !
             </p>
           </div>
 
@@ -46,7 +47,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button
-                  onClick={() => scrollToSection('fonctionnalites')}
+                  onClick={() => scrollToSection('features')}
                   className="text-gray-400 hover:text-orange-400 transition-colors text-sm"
                 >
                   Fonctionnalités
@@ -54,7 +55,15 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button
-                  onClick={() => scrollToSection('tarifs')}
+                  onClick={() => scrollToSection('proprietaires')}
+                  className="text-gray-400 hover:text-orange-400 transition-colors text-sm"
+                >
+                  Propriétaires
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => scrollToSection('pricing')}
                   className="text-gray-400 hover:text-orange-400 transition-colors text-sm"
                 >
                   Tarifs
@@ -62,10 +71,10 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button
-                  onClick={() => scrollToSection('contact')}
+                  onClick={() => scrollToSection('faq')}
                   className="text-gray-400 hover:text-orange-400 transition-colors text-sm"
                 >
-                  Contact
+                  FAQ
                 </button>
               </li>
             </ul>
@@ -156,6 +165,16 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onNavigate }) => {
               </li>
             </ul>
           </div>
+
+          {/* Column 5: Bientôt */}
+          <div>
+            <h3 className="font-semibold text-lg mb-4">🚀 Bientôt</h3>
+            <div className="bg-indigo-900/50 rounded-lg p-4">
+              <p className="text-indigo-300 font-semibold">RAVITO Marketplace</p>
+              <p className="text-gray-400 text-sm">Commandez vos boissons et faites-vous livrer !</p>
+              <p className="text-orange-400 font-bold mt-2">14 Mars 2026</p>
+            </div>
+          </div>
         </div>
 
         {/* Separator */}
@@ -164,7 +183,7 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ onNavigate }) => {
         {/* Bottom Section */}
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0 text-center sm:text-left">
           <p className="text-gray-400 text-xs sm:text-sm">
-            © 2025 RAVITO - Tous droits réservés
+            © 2026 RAVITO - Tous droits réservés
           </p>
           <p className="text-gray-400 text-xs sm:text-sm">
             Fait avec ❤️ en Côte d'Ivoire 🇨🇮
