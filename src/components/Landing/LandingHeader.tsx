@@ -59,16 +59,28 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                 Accueil
               </button>
               <button
-                onClick={() => scrollToSection('fonctionnalites')}
+                onClick={() => scrollToSection('features')}
                 className="text-gray-600 hover:text-orange-500 transition-colors font-medium"
               >
                 Fonctionnalités
               </button>
               <button
-                onClick={() => scrollToSection('contact')}
+                onClick={() => scrollToSection('proprietaires')}
                 className="text-gray-600 hover:text-orange-500 transition-colors font-medium"
               >
-                Contact
+                Propriétaires
+              </button>
+              <button
+                onClick={() => scrollToSection('pricing')}
+                className="text-gray-600 hover:text-orange-500 transition-colors font-medium"
+              >
+                Tarifs
+              </button>
+              <button
+                onClick={() => scrollToSection('faq')}
+                className="text-gray-600 hover:text-orange-500 transition-colors font-medium"
+              >
+                FAQ
               </button>
             </nav>
           )}
@@ -114,16 +126,28 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               Accueil
             </button>
             <button
-              onClick={() => scrollToSection('fonctionnalites')}
+              onClick={() => scrollToSection('features')}
               className="block w-full text-left px-4 py-2 text-gray-600 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors font-medium"
             >
               Fonctionnalités
             </button>
             <button
-              onClick={() => scrollToSection('contact')}
+              onClick={() => scrollToSection('proprietaires')}
               className="block w-full text-left px-4 py-2 text-gray-600 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors font-medium"
             >
-              Contact
+              Propriétaires
+            </button>
+            <button
+              onClick={() => scrollToSection('pricing')}
+              className="block w-full text-left px-4 py-2 text-gray-600 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+            >
+              Tarifs
+            </button>
+            <button
+              onClick={() => scrollToSection('faq')}
+              className="block w-full text-left px-4 py-2 text-gray-600 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors font-medium"
+            >
+              FAQ
             </button>
             <div className="pt-3 border-t border-gray-200 space-y-2">
               <button
