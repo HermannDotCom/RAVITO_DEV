@@ -136,7 +136,7 @@ export function useAllowedPages(): UseAllowedPagesReturn {
 
   useEffect(() => {
     fetchAllowedPages();
-  }, [user?.id]);
+  }, [user?.id, user?.isApproved, user?.approvalStatus]);
 
   const refresh = async () => {
     await fetchAllowedPages();

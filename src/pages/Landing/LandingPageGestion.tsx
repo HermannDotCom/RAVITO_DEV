@@ -237,18 +237,18 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
             </p>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 md:gap-8 mb-8 max-w-2xl mx-auto">
-              <div className="bg-white rounded-xl p-4 shadow-lg">
-                <div className="text-3xl font-bold text-orange-500 mb-1">2h</div>
-                <div className="text-sm text-gray-600">gagnées/jour</div>
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-8 mb-8 max-w-2xl mx-auto">
+              <div className="bg-white rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-lg">
+                <div className="text-2xl sm:text-3xl font-bold text-orange-500 mb-1">2h</div>
+                <div className="text-xs sm:text-sm text-gray-600">gagnées/jour</div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-lg">
-                <div className="text-3xl font-bold text-orange-500 mb-1">0</div>
-                <div className="text-sm text-gray-600">erreur de calcul</div>
+              <div className="bg-white rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-lg">
+                <div className="text-2xl sm:text-3xl font-bold text-orange-500 mb-1">0</div>
+                <div className="text-xs sm:text-sm text-gray-600">erreur de calcul</div>
               </div>
-              <div className="bg-white rounded-xl p-4 shadow-lg">
-                <div className="text-3xl font-bold text-orange-500 mb-1">100%</div>
-                <div className="text-sm text-gray-600">sécurisé</div>
+              <div className="bg-white rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-lg">
+                <div className="text-2xl sm:text-3xl font-bold text-orange-500 mb-1">100%</div>
+                <div className="text-xs sm:text-sm text-gray-600">sécurisé</div>
               </div>
             </div>
 
@@ -271,19 +271,19 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
       </section>
 
       {/* MARKETPLACE ANNOUNCEMENT BANNER */}
-      <section className="py-8 bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+      <section className="py-6 sm:py-8 bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Rocket className="w-8 h-8" />
+            <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3">
+              <Rocket className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0" />
               <div>
-                <div className="font-bold text-lg">🚀 RAVITO Marketplace arrive bientôt !</div>
-                <div className="text-sm text-purple-100">Commandez vos boissons 24h/24 directement depuis l'app</div>
+                <div className="font-bold text-base sm:text-lg">🚀 RAVITO Marketplace arrive bientôt !</div>
+                <div className="text-xs sm:text-sm text-purple-100">Commandez vos boissons 24h/24 directement depuis l'app</div>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="bg-white/20 backdrop-blur-sm rounded-lg px-6 py-3">
-                <div className="text-3xl font-bold">J-{daysUntilMarketplace}</div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 sm:px-6 py-2 sm:py-3">
+                <div className="text-2xl sm:text-3xl font-bold">J-{daysUntilMarketplace}</div>
                 <div className="text-xs text-purple-100">14 mars 2026</div>
               </div>
             </div>
@@ -442,9 +442,9 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12">
             {/* Point 1 */}
-            <div className="bg-white rounded-xl p-6 text-gray-900">
+            <div className="bg-white rounded-xl p-4 sm:p-6 text-gray-900">
               <div className="h-12 w-12 bg-gradient-to-br from-orange-400 to-amber-400 rounded-lg flex items-center justify-center mb-4">
                 <Crown className="text-white" size={24} />
               </div>
@@ -466,7 +466,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
             </div>
 
             {/* Point 2 */}
-            <div className="bg-white rounded-xl p-6 text-gray-900">
+            <div className="bg-white rounded-xl p-4 sm:p-6 text-gray-900">
               <div className="h-12 w-12 bg-gradient-to-br from-purple-400 to-indigo-400 rounded-lg flex items-center justify-center mb-4">
                 <Shield className="text-white" size={24} />
               </div>
@@ -488,7 +488,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
             </div>
 
             {/* Point 3 */}
-            <div className="bg-white rounded-xl p-6 text-gray-900">
+            <div className="bg-white rounded-xl p-4 sm:p-6 text-gray-900">
               <div className="h-12 w-12 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-lg flex items-center justify-center mb-4">
                 <Smartphone className="text-white" size={24} />
               </div>
@@ -510,7 +510,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
             </div>
 
             {/* Point 4 */}
-            <div className="bg-white rounded-xl p-6 text-gray-900">
+            <div className="bg-white rounded-xl p-4 sm:p-6 text-gray-900">
               <div className="h-12 w-12 bg-gradient-to-br from-green-400 to-emerald-400 rounded-lg flex items-center justify-center mb-4">
                 <Eye className="text-white" size={24} />
               </div>
@@ -532,7 +532,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
             </div>
 
             {/* Point 5 */}
-            <div className="bg-white rounded-xl p-6 text-gray-900">
+            <div className="bg-white rounded-xl p-4 sm:p-6 text-gray-900">
               <div className="h-12 w-12 bg-gradient-to-br from-pink-400 to-rose-400 rounded-lg flex items-center justify-center mb-4">
                 <Cloud className="text-white" size={24} />
               </div>
@@ -621,13 +621,13 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
             {pricingPlans.map((plan, index) => (
               <div
                 key={index}
-                className={`bg-white rounded-2xl p-8 border-2 ${
+                className={`bg-white rounded-2xl p-6 sm:p-8 border-2 ${
                   plan.recommended
-                    ? 'border-orange-500 shadow-2xl scale-105 relative'
+                    ? 'border-orange-500 shadow-2xl sm:scale-105 relative'
                     : 'border-gray-200 shadow-lg'
                 }`}
               >
@@ -689,7 +689,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
             {testimonials.map((testimonial, index) => (
               <div
                 key={index}
@@ -760,20 +760,20 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
               <Rocket className="w-6 h-6" />
               <span className="font-bold">Prochainement</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
               RAVITO Marketplace
             </h2>
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <div className="text-6xl font-bold">J-{daysUntilMarketplace}</div>
-              <div className="text-left">
-                <div className="text-2xl font-semibold">14 mars 2026</div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-6">
+              <div className="text-5xl sm:text-6xl font-bold">J-{daysUntilMarketplace}</div>
+              <div className="text-center sm:text-left">
+                <div className="text-xl sm:text-2xl font-semibold">14 mars 2026</div>
                 <div className="text-purple-200">Le grand lancement</div>
               </div>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-12">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
               <div className="flex items-start gap-4">
                 <div className="bg-white/20 rounded-lg p-3">
                   <Clock className="w-6 h-6" />
@@ -787,7 +787,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
               <div className="flex items-start gap-4">
                 <div className="bg-white/20 rounded-lg p-3">
                   <TrendingUp className="w-6 h-6" />
@@ -801,7 +801,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
               <div className="flex items-start gap-4">
                 <div className="bg-white/20 rounded-lg p-3">
                   <Zap className="w-6 h-6" />
@@ -815,7 +815,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
               <div className="flex items-start gap-4">
                 <div className="bg-white/20 rounded-lg p-3">
                   <Smartphone className="w-6 h-6" />
@@ -830,9 +830,9 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
             </div>
           </div>
 
-          <div className="text-center">
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-8 inline-block">
-              <p className="text-xl mb-4">
+          <div className="text-center px-4">
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 sm:p-6 md:p-8 inline-block max-w-full">
+              <p className="text-base sm:text-xl mb-4">
                 🎁 <strong>Offre de lancement :</strong> Les premiers abonnés RAVITO Gestion auront un accès prioritaire au Marketplace !
               </p>
               <button
