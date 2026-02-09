@@ -42,4 +42,3 @@ WITH inserted_suppliers AS (
   RETURNING id
 )
 SELECT COUNT(*) AS supplier_count FROM inserted_suppliers;
-
