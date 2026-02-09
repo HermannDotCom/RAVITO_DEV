@@ -88,8 +88,17 @@ export function useAllowedPages(): UseAllowedPagesReturn {
       }
 
       if (ownedOrg) {
-        // User is owner - grant pages based on role and super admin status
+        // User is owner
         setIsOwner(true);
+
+        // Check approval status - non-approved users only get profile page
+        if (!user.isApproved || user.approvalStatus === 'pending' || user.approvalStatus === 'rejected') {
+          setAllowedPages(['profile']);
+          setIsLoading(false);
+          return;
+        }
+
+        // Approved owner - grant all pages based on role and super admin status
         setAllowedPages(getAllPagesByRole(user.role, userIsSuperAdmin));
         setIsLoading(false);
         return;

@@ -15,6 +15,9 @@ interface PendingUser {
   businessName?: string;
   created_at: string;
   approval_status: 'pending' | 'approved' | 'rejected';
+  storefront_image_url?: string;
+  delivery_latitude?: number;
+  delivery_longitude?: number;
 }
 
 export const UserManagement: React.FC = () => {

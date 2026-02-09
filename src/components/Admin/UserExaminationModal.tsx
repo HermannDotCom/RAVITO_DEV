@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle, XCircle, Phone, Shield, AlertTriangle, Activity, Clock } from 'lucide-react';
+import { X, CheckCircle, XCircle, Phone, Shield, AlertTriangle, Activity, Clock, MapPin, Building } from 'lucide-react';
 import { UserRole } from '../../types';
 import { activityService, UserActivity } from '../../services/activityService';
 
@@ -13,6 +13,9 @@ interface PendingUser {
   businessName?: string;
   created_at: string;
   approval_status: 'pending' | 'approved' | 'rejected';
+  storefront_image_url?: string;
+  delivery_latitude?: number;
+  delivery_longitude?: number;
 }
 
 interface UserExaminationModalProps {
@@ -164,6 +167,66 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
                   <span className="font-medium text-gray-900">{user.address}</span>
                 </div>
               </div>
+            </div>
+
+            {/* Photo de la devanture */}
+            <div className="bg-purple-50 rounded-xl p-4 sm:p-5 md:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                <Building className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-purple-600" />
+                Photo de la devanture
+              </h3>
+              {user.storefront_image_url ? (
+                <div className="space-y-3">
+                  <img
+                    src={user.storefront_image_url}
+                    alt="Devanture de l'établissement"
+                    className="w-full h-48 sm:h-64 object-cover rounded-lg border border-purple-200"
+                  />
+                  <div className="flex items-center space-x-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg">
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Photo fournie</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2 text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>Photo non fournie - En attente de complétion du profil</span>
+                </div>
+              )}
+            </div>
+
+            {/* Localisation */}
+            <div className="bg-green-50 rounded-xl p-4 sm:p-5 md:p-6">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                <MapPin className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-600" />
+                Localisation de l'établissement
+              </h3>
+              {user.delivery_latitude && user.delivery_longitude ? (
+                <div className="space-y-3">
+                  <div className="w-full h-48 sm:h-64 bg-gray-200 rounded-lg overflow-hidden relative">
+                    <iframe
+                      title="Carte de localisation"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${user.delivery_longitude - 0.01},${user.delivery_latitude - 0.01},${user.delivery_longitude + 0.01},${user.delivery_latitude + 0.01}&layer=mapnik&marker=${user.delivery_latitude},${user.delivery_longitude}`}
+                      className="w-full h-full border-0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2 text-sm text-green-700 bg-green-100 px-3 py-2 rounded-lg">
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Localisation GPS fournie</span>
+                    </div>
+                    <div className="text-xs text-gray-600 bg-white px-3 py-2 rounded-lg border border-green-200">
+                      <div>Latitude: {user.delivery_latitude.toFixed(6)}</div>
+                      <div>Longitude: {user.delivery_longitude.toFixed(6)}</div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2 text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>Localisation GPS non fournie - En attente de complétion du profil</span>
+                </div>
+              )}
             </div>
 
             <div className="bg-gray-50 rounded-xl p-4 sm:p-5 md:p-6">
