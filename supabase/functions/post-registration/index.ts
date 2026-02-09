@@ -41,6 +41,7 @@ Deno.serve(async (req: Request) => {
           method: "GET",
           headers: {
             Authorization: `Bearer ${supabaseKey}`,
+            apikey: supabaseKey,
             "Content-Type": "application/json",
           },
         }
@@ -60,6 +61,7 @@ Deno.serve(async (req: Request) => {
           method: "POST",
           headers: {
             Authorization: `Bearer ${supabaseKey}`,
+            apikey: supabaseKey,
             "Content-Type": "application/json",
             Prefer: "return=representation",
           },
@@ -92,6 +94,7 @@ Deno.serve(async (req: Request) => {
           method: "GET",
           headers: {
             Authorization: `Bearer ${supabaseKey}`,
+            apikey: supabaseKey,
             "Content-Type": "application/json",
           },
         }
@@ -107,7 +110,7 @@ Deno.serve(async (req: Request) => {
     if (!orgExists) {
       const orgName =
         data.role === "client"
-          ? `${data.name} (Client)`
+          ? data.businessName || `${data.name} (Client)`
           : data.role === "supplier"
           ? data.businessName || data.name
           : `${data.name} (Admin)`;
@@ -118,6 +121,7 @@ Deno.serve(async (req: Request) => {
           method: "POST",
           headers: {
             Authorization: `Bearer ${supabaseKey}`,
+            apikey: supabaseKey,
             "Content-Type": "application/json",
             Prefer: "return=representation",
           },
