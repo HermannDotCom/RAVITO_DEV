@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useSubscription } from '../hooks/useSubscription';
 import { useOrganization } from '../hooks/useOrganization';
 import { useToast } from '../context/ToastContext';
@@ -50,10 +50,10 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
     ? calculateProrata(selectedPlan, new Date())
     : null;
 
-  const handleSelectPlan = (planId: string) => {
+  const handleSelectPlan = useCallback((planId: string) => {
     setSelectedPlanId(planId);
     setShowConfirmModal(true);
-  };
+  }, []);
 
   const handleConfirmSubscription = async (payNow: boolean = false) => {
     if (!selectedPlanId) return;
@@ -315,7 +315,7 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <h4 className="font-semibold text-gray-900">Plan {currentPlan.name}</h4>
-                    {currentPlan.freeMonths && currentPlan.freeMonths > 0 && (
+                    {currentPlan.freeMonths > 0 && (
                       <span className="inline-flex items-center gap-1 text-green-600 text-sm font-medium mt-1">
                         🎁 {currentPlan.freeMonths} mois offert{currentPlan.freeMonths > 1 ? 's' : ''}
                       </span>
@@ -762,7 +762,7 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-semibold text-gray-900">Plan {selectedPlan.name}</p>
-                        {selectedPlan.freeMonths && selectedPlan.freeMonths > 0 && (
+                        {selectedPlan.freeMonths > 0 && (
                           <span className="inline-flex items-center gap-1 text-green-600 text-sm font-medium mt-1">
                             🎁 {selectedPlan.freeMonths} mois offert{selectedPlan.freeMonths > 1 ? 's' : ''}
                           </span>
