@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, Filter, Eye, CheckCircle, XCircle, Star, Phone, MapPin, X, Calendar, AlertTriangle, Mail, Shield } from 'lucide-react';
+import { Users, Search, Filter, Eye, CheckCircle, XCircle, Star, Phone, MapPin, X, Calendar, AlertTriangle, Mail, Shield, RefreshCw } from 'lucide-react';
 import { User, UserRole } from '../../types';
 import { supabase } from '../../lib/supabase';
 import { UserExaminationModal } from './UserExaminationModal';
@@ -77,10 +77,10 @@ export const UserManagement: React.FC = () => {
         throw pendingError;
       }
 
-      console.log('Pending users:', pendingData);
+      console.log('Pending users raw data:', pendingData);
 
       const mappedPending: PendingUser[] = (pendingData || []).map(profile => {
-        return {
+        const mapped = {
           id: profile.id,
           email: profile.email || '',
           role: profile.role as UserRole,
@@ -89,12 +89,23 @@ export const UserManagement: React.FC = () => {
           address: profile.address || '',
           businessName: profile.business_name || profile.name,
           created_at: profile.created_at,
-          approval_status: profile.approval_status
+          approval_status: profile.approval_status,
+          storefront_image_url: profile.storefront_image_url,
+          delivery_latitude: profile.delivery_latitude ? Number(profile.delivery_latitude) : undefined,
+          delivery_longitude: profile.delivery_longitude ? Number(profile.delivery_longitude) : undefined
         };
+        console.log(`Mapped user ${profile.name}:`, {
+          has_photo: !!mapped.storefront_image_url,
+          has_lat: !!mapped.delivery_latitude,
+          has_lng: !!mapped.delivery_longitude,
+          photo_url: mapped.storefront_image_url?.substring(0, 50) + '...',
+          coords: `${mapped.delivery_latitude}, ${mapped.delivery_longitude}`
+        });
+        return mapped;
       });
 
       setPendingUsers(mappedPending);
-      console.log('Users loaded successfully');
+      console.log('Users loaded successfully, total:', mappedPending.length);
     } catch (error) {
       console.error('Error loading users:', error);
       alert('Erreur lors du chargement des utilisateurs. Vérifiez la console pour plus de détails.');
@@ -392,6 +403,15 @@ export const UserManagement: React.FC = () => {
                   <option value="inactive">Inactifs</option>
                 </select>
               )}
+              <button
+                onClick={loadUsers}
+                disabled={isLoading}
+                className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Actualiser la liste"
+              >
+                <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Actualiser</span>
+              </button>
             </div>
 
             {activeTab === 'pending' ? (

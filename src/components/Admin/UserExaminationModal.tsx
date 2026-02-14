@@ -39,6 +39,19 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
   const [recentActivities, setRecentActivities] = useState<UserActivity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
 
+  // Debug: Log user data received
+  useEffect(() => {
+    console.log('UserExaminationModal - User data received:', {
+      name: user.name,
+      has_storefront_image: !!user.storefront_image_url,
+      storefront_url: user.storefront_image_url,
+      has_coordinates: !!(user.delivery_latitude && user.delivery_longitude),
+      latitude: user.delivery_latitude,
+      longitude: user.delivery_longitude,
+      address: user.address
+    });
+  }, [user]);
+
   useEffect(() => {
     const fetchActivities = async () => {
       setLoadingActivities(true);
