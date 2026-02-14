@@ -30,7 +30,6 @@ import { TicketManagement } from './components/Admin/TicketManagement';
 import { TeamPage } from './components/Team';
 import { CommercialActivityPage } from './components/Commercial';
 import { NotificationsPage } from './pages/NotificationsPage';
-import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusIndicator';
 import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
 import { SessionErrorBanner } from './components/Shared/SessionErrorBanner';
 import { BottomNavigation } from './components/Navigation/BottomNavigation';
@@ -251,10 +250,10 @@ const AppContent: React.FC = () => {
           onSectionChange={setActiveSection}
         />
       )}
-      
-      {/* Connection Status Indicator */}
-      <ConnectionStatusIndicator />
-      
+
+      {/* Connection Status Indicator - Now in Header as compact badge */}
+      {/* <ConnectionStatusIndicator /> */}
+
       {/* Notification Permission Prompt */}
       <NotificationPermissionPrompt />
 

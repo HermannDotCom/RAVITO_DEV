@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { useOrganizationName } from '../../hooks/useOrganizationName';
 import { NotificationPanel } from '../Notifications/NotificationPanel';
+import { ConnectionStatusBadge } from '../Shared/ConnectionStatusBadge';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -52,6 +53,9 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'RAVITO' }
 
           {user && (
             <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-1 justify-end">
+              {/* Connection Status Badge */}
+              <ConnectionStatusBadge />
+
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="p-2 min-h-[44px] min-w-[44px] text-gray-600 active:text-orange-600 active:bg-orange-50 rounded-full transition-colors relative"
