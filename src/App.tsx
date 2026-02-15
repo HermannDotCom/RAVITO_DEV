@@ -32,6 +32,8 @@ import { CommercialActivityPage } from './components/Commercial';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { NotificationPermissionPrompt } from './components/Shared/NotificationPermissionPrompt';
 import { SessionErrorBanner } from './components/Shared/SessionErrorBanner';
+import { ConnectionStatusIndicator } from './components/Shared/ConnectionStatusIndicator';
+import { OfflineBanner } from './components/Shared/OfflineBanner';
 import { BottomNavigation } from './components/Navigation/BottomNavigation';
 import { InstallPrompt } from './components/PWA/InstallPrompt';
 import { UpdatePrompt } from './components/PWA/UpdatePrompt';
@@ -213,6 +215,9 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Offline Mode Banner */}
+      <OfflineBanner />
+      
       {/* Session Error Banner */}
       {sessionError && (
         <SessionErrorBanner
@@ -251,8 +256,8 @@ const AppContent: React.FC = () => {
         />
       )}
 
-      {/* Connection Status Indicator - Now in Header as compact badge */}
-      {/* <ConnectionStatusIndicator /> */}
+      {/* Connection Status Indicator */}
+      <ConnectionStatusIndicator />
 
       {/* Notification Permission Prompt */}
       <NotificationPermissionPrompt />

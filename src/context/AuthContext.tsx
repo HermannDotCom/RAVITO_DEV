@@ -3,6 +3,15 @@ import { User as AuthUser, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { User, UserRole } from '../types';
 import { setUser as setSentryUser } from '../lib/sentry';
+import { 
+  cacheAuthSession, 
+  getCachedAuthSession, 
+  clearAuthSessionCache,
+  cacheUserProfile,
+  getCachedUserProfile,
+  clearAllOfflineCache
+} from '../lib/offlineStorage';
+import { syncManager } from '../lib/syncManager';
 
 interface AuthContextType {
   user: User | null;
@@ -17,6 +26,7 @@ interface AuthContextType {
   refreshSession: () => Promise<boolean>;
   clearSessionError: () => void;
   setSessionError: (error: string | null) => void;
+  isOfflineMode: boolean;
 }
 
 export interface RegisterData {
@@ -52,6 +62,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
   const initStartedRef = React.useRef(false);
   const refreshAttemptsRef = React.useRef(0);
   const MAX_REFRESH_ATTEMPTS = 2;
@@ -139,6 +150,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(mappedUser);
       console.log('User set successfully:', mappedUser.email);
       
+      // Cache user profile for offline access
+      await cacheUserProfile(userId, mappedUser);
+      
       // Définir l'utilisateur dans Sentry pour le tracking
       setSentryUser({
         id: mappedUser.id,
@@ -163,25 +177,130 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const initializeAuth = async () => {
       try {
         console.log('Initializing auth...');
+        
+        // Check if online
+        const isOnline = navigator.onLine && syncManager.getIsOnline();
+        
+        if (!isOnline) {
+          console.log('📵 Offline mode detected, checking for cached session...');
+          
+          // Try to load cached session
+          const cachedAuth = await getCachedAuthSession();
+          
+          if (cachedAuth) {
+            console.log('✅ Cached session found, loading offline mode...');
+            setSession(cachedAuth.session);
+            setIsOfflineMode(true);
+            
+            // Try to load cached user profile
+            const cachedProfile = await getCachedUserProfile(cachedAuth.user.id);
+            if (cachedProfile) {
+              console.log('✅ Cached profile found:', cachedProfile.email);
+              setUser(cachedProfile);
+              
+              // Set Sentry user
+              setSentryUser({
+                id: cachedProfile.id,
+                email: cachedProfile.email,
+                role: cachedProfile.role,
+              });
+            } else {
+              console.warn('⚠️ No cached profile found');
+            }
+          } else {
+            console.log('⚠️ No cached session found, user needs to login online');
+          }
+          
+          setIsInitializing(false);
+          return;
+        }
+        
+        // Online: Try to get session from Supabase
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
 
         if (error) {
           console.error('Error getting session:', error);
+          
+          // If error, try to fall back to cached session
+          const cachedAuth = await getCachedAuthSession();
+          if (cachedAuth) {
+            console.log('⚠️ Supabase session error, using cached session as fallback');
+            setSession(cachedAuth.session);
+            setIsOfflineMode(true);
+            
+            const cachedProfile = await getCachedUserProfile(cachedAuth.user.id);
+            if (cachedProfile) {
+              setUser(cachedProfile);
+              setSentryUser({
+                id: cachedProfile.id,
+                email: cachedProfile.email,
+                role: cachedProfile.role,
+              });
+            }
+          }
+          
           setIsInitializing(false);
           return;
         }
 
         console.log('Session retrieved:', currentSession ? 'Active session' : 'No session');
         setSession(currentSession);
+        setIsOfflineMode(false);
 
         if (currentSession?.user) {
+          // Cache the session
+          await cacheAuthSession(currentSession, currentSession.user);
+          
           const success = await fetchUserProfile(currentSession.user.id);
           if (!success) {
             console.warn('Failed to fetch profile during initialization');
           }
+          
+          // Cache user data for offline access (only if profile fetch was successful)
+          if (success) {
+            try {
+              // Get organization ID if exists
+              const { data: orgMember } = await supabase
+                .from('organization_members')
+                .select('organization_id')
+                .eq('user_id', currentSession.user.id)
+                .eq('status', 'active')
+                .maybeSingle();
+              
+              if (orgMember?.organization_id) {
+                await syncManager.cacheUserData(currentSession.user.id, orgMember.organization_id);
+              } else {
+                await syncManager.cacheUserData(currentSession.user.id);
+              }
+            } catch (cacheError) {
+              console.warn('Non-critical: Failed to cache user data:', cacheError);
+            }
+          }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
+        
+        // Try to load cached session as last resort
+        try {
+          const cachedAuth = await getCachedAuthSession();
+          if (cachedAuth) {
+            console.log('🔄 Error during init, using cached session as fallback');
+            setSession(cachedAuth.session);
+            setIsOfflineMode(true);
+            
+            const cachedProfile = await getCachedUserProfile(cachedAuth.user.id);
+            if (cachedProfile) {
+              setUser(cachedProfile);
+              setSentryUser({
+                id: cachedProfile.id,
+                email: cachedProfile.email,
+                role: cachedProfile.role,
+              });
+            }
+          }
+        } catch (cacheError) {
+          console.error('Failed to load cached session:', cacheError);
+        }
       } finally {
         console.log('Auth initialization complete');
         initializing = false;
@@ -211,11 +330,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setSession(newSession);
 
       if (event === 'SIGNED_IN' && newSession?.user) {
+        // Cache session on sign in
+        await cacheAuthSession(newSession, newSession.user);
+        setIsOfflineMode(false);
+        
         await fetchUserProfile(newSession.user.id);
+        
+        // Cache user data
+        try {
+          const { data: orgMember } = await supabase
+            .from('organization_members')
+            .select('organization_id')
+            .eq('user_id', newSession.user.id)
+            .eq('status', 'active')
+            .maybeSingle();
+          
+          if (orgMember?.organization_id) {
+            await syncManager.cacheUserData(newSession.user.id, orgMember.organization_id);
+          } else {
+            await syncManager.cacheUserData(newSession.user.id);
+          }
+        } catch (error) {
+          console.warn('Non-critical: Failed to cache user data on sign in:', error);
+        }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setIsOfflineMode(false);
+        // Clear cached data on sign out
+        await clearAuthSessionCache();
       } else if (event === 'USER_UPDATED' && newSession?.user) {
+        await cacheAuthSession(newSession, newSession.user);
         await fetchUserProfile(newSession.user.id);
+      } else if (event === 'TOKEN_REFRESHED' && newSession?.user) {
+        // Update cached session when token is refreshed
+        await cacheAuthSession(newSession, newSession.user);
       }
     });
 
@@ -276,11 +424,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('Session created:', !!data.session);
         console.log('Now fetching profile...');
 
+        // Cache session if available
+        if (data.session) {
+          await cacheAuthSession(data.session, data.user);
+        }
+
         const profileSuccess = await fetchUserProfile(data.user.id);
+
+        // Cache user data for offline access
+        if (profileSuccess) {
+          try {
+            const { data: orgMember } = await supabase
+              .from('organization_members')
+              .select('organization_id')
+              .eq('user_id', data.user.id)
+              .eq('status', 'active')
+              .maybeSingle();
+            
+            if (orgMember?.organization_id) {
+              await syncManager.cacheUserData(data.user.id, orgMember.organization_id);
+            } else {
+              await syncManager.cacheUserData(data.user.id);
+            }
+          } catch (cacheError) {
+            console.warn('Non-critical: Failed to cache user data after login:', cacheError);
+          }
+        }
 
         console.log('Profile fetch result:', profileSuccess);
         console.log('=== LOGIN END ===');
         setIsLoading(false);
+        setIsOfflineMode(false);
         return profileSuccess;
       }
 
@@ -439,7 +613,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(null);
       setSession(null);
       setSessionError(null);
+      setIsOfflineMode(false);
       refreshAttemptsRef.current = 0;
+      
+      // Clear all offline cache on logout
+      await clearAllOfflineCache();
       
       // Effacer l'utilisateur de Sentry lors de la déconnexion
       setSentryUser(null);
@@ -484,6 +662,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setSession(data.session);
         setSessionError(null);
         refreshAttemptsRef.current = 0;
+        
+        // Cache refreshed session
+        if (data.session.user) {
+          await cacheAuthSession(data.session, data.session.user);
+        }
         
         // Re-fetch user profile with new session
         if (data.session.user) {
@@ -533,7 +716,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       sessionError,
       refreshSession,
       clearSessionError,
-      setSessionError
+      setSessionError,
+      isOfflineMode
     }}>
       {children}
     </AuthContext.Provider>
