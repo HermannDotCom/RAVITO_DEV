@@ -98,10 +98,10 @@ export const useOffline = (): UseOfflineReturn => {
     };
   }, [updatePendingActions, updateLastSyncTime]);
 
-  // Poll pending actions when offline
+  // Poll pending actions when offline (every 15 seconds to conserve battery)
   useEffect(() => {
     if (!isOnline) {
-      const interval = setInterval(updatePendingActions, 5000);
+      const interval = setInterval(updatePendingActions, 15000);
       return () => clearInterval(interval);
     }
   }, [isOnline, updatePendingActions]);

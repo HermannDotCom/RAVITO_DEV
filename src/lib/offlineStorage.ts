@@ -246,7 +246,19 @@ export const cacheAuthSession = async (session: Session, user: AuthUser): Promis
   const now = Date.now();
   
   // Use session expiration if available, otherwise use default TTL
-  const sessionExpiresAt = session.expires_at ? session.expires_at * 1000 : now + CACHE_TTL;
+  // Supabase expires_at is in seconds (Unix timestamp), convert to milliseconds
+  let sessionExpiresAt = now + CACHE_TTL;
+  if (session.expires_at) {
+    // Check if expires_at is already in milliseconds (> year 2100 in seconds = 4102444800)
+    const expiresAtValue = session.expires_at;
+    if (expiresAtValue > 4102444800) {
+      // Already in milliseconds
+      sessionExpiresAt = expiresAtValue;
+    } else {
+      // In seconds, convert to milliseconds
+      sessionExpiresAt = expiresAtValue * 1000;
+    }
+  }
   
   const sessionCache: AuthSessionCache = {
     session,

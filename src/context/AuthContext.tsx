@@ -256,8 +256,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             console.warn('Failed to fetch profile during initialization');
           }
           
-          // Cache user data for offline access
-          if (success && user) {
+          // Cache user data for offline access (only if profile fetch was successful)
+          if (success) {
             try {
               // Get organization ID if exists
               const { data: orgMember } = await supabase
@@ -419,13 +419,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return false;
       }
 
-      if (data.user && data.session) {
+      if (data.user) {
         console.log('Auth successful! User ID:', data.user.id);
         console.log('Session created:', !!data.session);
         console.log('Now fetching profile...');
 
-        // Cache session immediately after successful login
-        await cacheAuthSession(data.session, data.user);
+        // Cache session if available
+        if (data.session) {
+          await cacheAuthSession(data.session, data.user);
+        }
 
         const profileSuccess = await fetchUserProfile(data.user.id);
 

@@ -70,6 +70,10 @@ export const ConnectionStatusIndicator: React.FC = () => {
     
     const now = new Date();
     const diff = now.getTime() - date.getTime();
+    
+    // Handle future dates (clock skew or incorrect caching)
+    if (diff < 0) return 'À l\'instant';
+    
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);

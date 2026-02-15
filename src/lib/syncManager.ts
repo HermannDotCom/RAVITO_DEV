@@ -233,27 +233,45 @@ class SyncManager {
 
     const { type, table, data } = action;
 
-    switch (type) {
-      case 'create':
-        await supabase.from(table).insert(data);
-        break;
-
-      case 'update':
-        if (!data.id) {
-          throw new Error('Update action requires id in data');
+    try {
+      switch (type) {
+        case 'create': {
+          const { error } = await supabase.from(table).insert(data);
+          if (error) {
+            throw new Error(`Failed to create in ${table}: ${error.message}`);
+          }
+          break;
         }
-        await supabase.from(table).update(data).eq('id', data.id);
-        break;
 
-      case 'delete':
-        if (!data.id) {
-          throw new Error('Delete action requires id in data');
+        case 'update': {
+          if (!data.id) {
+            throw new Error('Update action requires id in data');
+          }
+          const { error } = await supabase.from(table).update(data).eq('id', data.id);
+          if (error) {
+            throw new Error(`Failed to update in ${table}: ${error.message}`);
+          }
+          break;
         }
-        await supabase.from(table).delete().eq('id', data.id);
-        break;
 
-      default:
-        throw new Error(`Unknown action type: ${type}`);
+        case 'delete': {
+          if (!data.id) {
+            throw new Error('Delete action requires id in data');
+          }
+          const { error } = await supabase.from(table).delete().eq('id', data.id);
+          if (error) {
+            throw new Error(`Failed to delete from ${table}: ${error.message}`);
+          }
+          break;
+        }
+
+        default:
+          throw new Error(`Unknown action type: ${type}`);
+      }
+    } catch (error) {
+      // Re-throw with action context
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Action ${action.id} (${type} on ${table}): ${errorMessage}`);
     }
   }
 
