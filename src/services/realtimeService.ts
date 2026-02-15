@@ -22,11 +22,36 @@ class RealtimeService {
   private onlineCallbacks: Set<OnlineStatusCallback> = new Set();
 
   constructor() {
-    // Connection monitoring will be set up when subscriptions are created
+    // Vérifier la connexion initiale au démarrage
+    this.checkInitialConnection();
     
     // Listen to browser online/offline events
     window.addEventListener('online', () => this.handleBrowserOnline());
     window.addEventListener('offline', () => this.handleBrowserOffline());
+  }
+
+  /**
+   * Vérifier la connexion initiale à Supabase
+   */
+  private async checkInitialConnection() {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // L'utilisateur a une session active = connecté
+        this.setConnectionStatus('connected');
+      }
+      
+      // Écouter les changements d'authentification
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          this.setConnectionStatus('connected');
+        } else if (event === 'SIGNED_OUT') {
+          this.setConnectionStatus('disconnected');
+        }
+      });
+    } catch (error) {
+      console.error('Error checking initial connection:', error);
+    }
   }
 
   public getConnectionStatus(): RealtimeConnectionStatus {
@@ -385,6 +410,7 @@ class RealtimeService {
   private handleBrowserOnline() {
     console.log('Browser went online');
     this.isOnline = true;
+    this.setConnectionStatus('connected');
     this.notifyOnlineStatusChange(true);
     // Trigger reconnection of channels
     this.resetReconnection();
