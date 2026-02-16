@@ -66,9 +66,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
-      <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-2xl w-full h-[90vh] sm:h-auto sm:max-w-lg sm:max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 sticky top-0 bg-white">
+      <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-2xl w-full sm:max-w-lg max-h-[calc(100vh-120px)] sm:max-h-[calc(100vh-120px)] flex flex-col">
+        {/* Header - fixe */}
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 flex-shrink-0 bg-white">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-100 rounded-full flex items-center justify-center">
               <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" />
@@ -87,8 +87,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3 sm:space-y-4">
+        {/* Form - scrollable */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="p-4 sm:p-5 space-y-3 sm:space-y-4 overflow-y-auto flex-1">
           {/* Current Balance */}
           <div className="bg-orange-50 rounded-lg p-3 sm:p-4 border border-orange-200">
             <div className="flex items-center justify-between">
@@ -221,8 +222,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
+          </div>
+
+          {/* Footer with buttons - fixe */}
+          <div className="p-4 sm:p-5 border-t flex-shrink-0 flex flex-col sm:flex-row gap-2 sm:gap-3">
             <button
               type="button"
               onClick={onClose}
