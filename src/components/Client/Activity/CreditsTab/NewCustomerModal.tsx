@@ -41,9 +41,9 @@ export const NewCustomerModal: React.FC<NewCustomerModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 sticky top-0 bg-white">
+      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[calc(100vh-120px)] flex flex-col">
+        {/* Header - fixe */}
+        <div className="flex items-center justify-between p-4 border-b border-slate-200 flex-shrink-0 bg-white">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-orange-600" />
@@ -59,8 +59,9 @@ export const NewCustomerModal: React.FC<NewCustomerModalProps> = ({
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        {/* Form - scrollable */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="p-4 space-y-4 overflow-y-auto flex-1">
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -147,8 +148,10 @@ export const NewCustomerModal: React.FC<NewCustomerModalProps> = ({
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-2">
+          </div>
+
+          {/* Footer with buttons - fixe */}
+          <div className="p-4 border-t flex-shrink-0 flex gap-3">
             <button
               type="button"
               onClick={onClose}

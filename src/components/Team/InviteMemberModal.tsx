@@ -87,9 +87,9 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
 
       {/* Modal */}
       <div className="flex items-center justify-center min-h-screen p-4">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full max-h-[calc(100vh-120px)] flex flex-col">
+          {/* Header - fixe */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
             <div className="flex items-center space-x-2">
               <UserPlus className="w-6 h-6 text-orange-600" />
               <h2 className="text-xl font-semibold text-gray-900">
@@ -106,8 +106,9 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
             </button>
           </div>
 
-          {/* Content */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Content - scrollable */}
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+            <div className="p-6 space-y-4 overflow-y-auto flex-1">
             {/* Available slots info */}
             {availableSlots === 0 ? (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-2">
@@ -157,8 +158,10 @@ export const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
               excludeOwner={true}
             />
 
-            {/* Actions */}
-            <div className="flex space-x-3 pt-4">
+            </div>
+
+            {/* Footer avec boutons - fixe */}
+            <div className="p-4 border-t flex-shrink-0 flex gap-3 justify-end">
               <button
                 type="button"
                 onClick={handleClose}

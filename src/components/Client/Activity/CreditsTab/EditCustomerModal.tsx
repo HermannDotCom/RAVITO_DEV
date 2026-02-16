@@ -115,9 +115,9 @@ export const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[calc(100vh-120px)] flex flex-col">
+        {/* Header - fixe */}
+        <div className="flex items-center justify-between p-6 border-b border-slate-200 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
               <Edit className="w-5 h-5 text-orange-600" />
@@ -135,9 +135,9 @@ export const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          {/* Content */}
-          <div className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          {/* Content - scrollable */}
+          <div className="p-6 space-y-6 overflow-y-auto flex-1">
             {/* Statistics Section (Read-only) */}
             <div>
               <h3 className="text-sm font-semibold text-slate-700 mb-3">Statistiques (lecture seule)</h3>
@@ -319,8 +319,8 @@ export const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
             )}
           </div>
 
-          {/* Footer */}
-          <div className="flex gap-3 p-6 border-t border-slate-200">
+          {/* Footer - fixe */}
+          <div className="flex gap-3 p-6 border-t border-slate-200 flex-shrink-0">
             {onDelete && !showDeleteConfirm && (
               <button
                 type="button"
