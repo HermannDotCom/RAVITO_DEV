@@ -44,9 +44,9 @@ export const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
       <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={onClose} />
       
       <div className="flex items-center justify-center min-h-screen p-4">
-        <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full">
-          {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
+        <div className="relative bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[calc(100vh-120px)] flex flex-col">
+          {/* Header - fixe */}
+          <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0">
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
@@ -65,8 +65,8 @@ export const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
             </div>
           </div>
 
-          {/* Content */}
-          <div className="grid md:grid-cols-2 divide-x divide-gray-200">
+          {/* Content - scrollable */}
+          <div className="grid md:grid-cols-2 divide-x divide-gray-200 overflow-y-auto flex-1">
             {/* Left Column - Member Information */}
             <div className="px-6 py-6 space-y-6">
               <div>
@@ -204,8 +204,8 @@ export const MemberDetailsModal: React.FC<MemberDetailsModalProps> = ({
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+          {/* Footer - fixe */}
+          <div className="px-6 py-4 border-t border-gray-200 flex-shrink-0 flex justify-end">
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"

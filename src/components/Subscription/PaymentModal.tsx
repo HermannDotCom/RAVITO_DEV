@@ -187,9 +187,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[calc(100vh-120px)] shadow-2xl flex flex-col">
+        {/* Header - fixe */}
+        <div className="p-6 flex-shrink-0 border-b">
+          <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-gray-900">Payer mon abonnement</h2>
               {invoiceNumber && (
@@ -203,7 +204,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               <X className="w-5 h-5" />
             </button>
           </div>
+        </div>
 
+        {/* Content - scrollable */}
+        <div className="p-6 overflow-y-auto flex-1">
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
             <div className="text-center">
               <p className="text-sm text-gray-600 mb-1">Montant a regler</p>
