@@ -72,25 +72,31 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   const getNavItems = (): NavItem[] => {
     if (!user) return [];
 
+    let items: NavItem[] = [];
+
     if (user.role === 'client') {
-      return [
+      items = [
         { id: 'activity', icon: ClipboardList, label: 'Activité' },
         { id: 'ravito-gestion-subscription', icon: CreditCard, label: 'Abonnement' },
         { id: 'team', icon: Users, label: 'Équipe' },
         { id: 'support', icon: MessageSquare, label: 'Support' },
         { id: 'profile', icon: User, label: 'Profil' },
       ];
-    }
-
-    if (user.role === 'supplier') {
-      return [
+    } else if (user.role === 'supplier') {
+      items = [
         { id: 'team', icon: Users, label: 'Équipe' },
         { id: 'support', icon: MessageSquare, label: 'Support' },
         { id: 'profile', icon: User, label: 'Profil' },
       ];
     }
 
-    return [];
+    // Filter menu items based on approval status
+    // Non-approved users (except admins) should only see "Mon Profil"
+    if (!user.isApproved && user.role !== 'admin') {
+      items = items.filter(item => item.id === 'profile');
+    }
+
+    return items;
   };
 
   const navItems = getNavItems();
