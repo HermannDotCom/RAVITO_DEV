@@ -92,7 +92,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
 
     // Filter menu items based on approval status
     // Non-approved users (except admins) should only see "Mon Profil"
-    if (!user.isApproved && user.role !== 'admin') {
+    if (!user?.isApproved && user?.role !== 'admin') {
       items = items.filter(item => item.id === 'profile');
     }
 

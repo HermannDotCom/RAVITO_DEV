@@ -223,7 +223,7 @@ export const ClientProfile: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Alert for non-approved users */}
-      {user && (!user.isApproved || user.approvalStatus === 'pending') && (
+      {user && !user.isApproved && (
         <div className="mb-6 bg-amber-50 border-2 border-amber-400 rounded-xl p-6">
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
@@ -241,10 +241,10 @@ export const ClientProfile: React.FC = () => {
                   <MapPin className="h-4 w-4 flex-shrink-0" />
                   <span>
                     <strong>Adresse de livraison géolocalisée</strong>
-                    {(!formData.address || !formData.deliveryLatitude) && (
+                    {(!formData.address || !formData.deliveryLatitude || !formData.deliveryLongitude) && (
                       <span className="ml-2 text-sm bg-red-100 text-red-700 px-2 py-0.5 rounded-full">À compléter</span>
                     )}
-                    {formData.address && formData.deliveryLatitude && (
+                    {formData.address && formData.deliveryLatitude && formData.deliveryLongitude && (
                       <span className="ml-2 text-sm bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ Complété</span>
                     )}
                   </span>
