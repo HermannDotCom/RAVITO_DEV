@@ -146,14 +146,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
   // 1. User is client or supplier (not admin)
   // 2. There are secondary items to show
   const mainMenuItems = React.useMemo(() => {
-    const items = [...baseMainMenuItems];
+    let items = [...baseMainMenuItems];
+
+    // Filter menu items based on approval status
+    // Non-approved users (except admins) should only see "Mon Profil"
+    if (!user?.isApproved && user?.role !== 'admin') {
+      items = items.filter(item => item.id === 'profile');
+    }
 
     if ((user?.role === 'client' || user?.role === 'supplier') && secondaryMenuItems.length > 0) {
-      items.push({ id: 'more', label: 'Plus...', icon: MoreHorizontal });
+      // Only add "more" button if user is approved
+      if (user?.isApproved || user?.role === 'admin') {
+        items.push({ id: 'more', label: 'Plus...', icon: MoreHorizontal });
+      }
     }
 
     return items;
-  }, [baseMainMenuItems, secondaryMenuItems.length, user?.role]);
+  }, [baseMainMenuItems, secondaryMenuItems.length, user?.role, user?.isApproved]);
 
   const handleMenuItemClick = (itemId: string) => {
     if (itemId === 'more') {

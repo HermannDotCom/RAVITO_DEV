@@ -175,6 +175,54 @@ export const SupplierProfile: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Alert for non-approved users */}
+      {user && (!user.isApproved || user.approvalStatus === 'pending') && (
+        <div className="mb-6 bg-amber-50 border-2 border-amber-400 rounded-xl p-6">
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0">
+              <Clock className="h-6 w-6 text-amber-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-amber-900 mb-2">
+                Complétez votre profil pour accélérer l'approbation
+              </h3>
+              <p className="text-amber-800 mb-4">
+                Votre compte est en attente d'approbation. Pour accélérer le processus, veuillez compléter les informations suivantes :
+              </p>
+              <ul className="space-y-2 text-amber-800">
+                <li className="flex items-center space-x-2">
+                  <MapPin className="h-4 w-4 flex-shrink-0" />
+                  <span>
+                    <strong>Adresse du dépôt géolocalisée</strong>
+                    {(!formData.depotAddress || !formData.depotLatitude) && (
+                      <span className="ml-2 text-sm bg-red-100 text-red-700 px-2 py-0.5 rounded-full">À compléter</span>
+                    )}
+                    {formData.depotAddress && formData.depotLatitude && (
+                      <span className="ml-2 text-sm bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ Complété</span>
+                    )}
+                  </span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <Building className="h-4 w-4 flex-shrink-0" />
+                  <span>
+                    <strong>Photo de la devanture de votre établissement</strong>
+                    {!user.storefrontImageUrl && (
+                      <span className="ml-2 text-sm bg-red-100 text-red-700 px-2 py-0.5 rounded-full">À compléter</span>
+                    )}
+                    {user.storefrontImageUrl && (
+                      <span className="ml-2 text-sm bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ Complété</span>
+                    )}
+                  </span>
+                </li>
+              </ul>
+              <p className="text-sm text-amber-700 mt-4">
+                💡 Ces informations seront automatiquement transmises à notre équipe dès que vous les aurez sauvegardées.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
