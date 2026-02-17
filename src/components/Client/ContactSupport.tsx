@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { MessageSquare, Send, Clock, CheckCircle, X, Eye, MessageCircle } from 'lucide-react';
+import { MessageSquare, Send, Clock, CheckCircle, X, Eye, MessageCircle, ThumbsUp, RotateCcw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
   ticketService,
@@ -112,7 +112,34 @@ export const ContactSupport: React.FC = () => {
     if (success) {
       setNewMessage('');
       loadTicketMessages(selectedTicket.id);
-      await ticketService.updateTicketStatus(selectedTicket.id, 'waiting_response', user.id);
+      if (selectedTicket.status === 'resolved') {
+        await ticketService.reopenTicketByUser(selectedTicket.id, user.id);
+      } else {
+        await ticketService.updateTicketStatus(selectedTicket.id, 'waiting_response', user.id);
+      }
+      const updated = await ticketService.getTicketById(selectedTicket.id);
+      if (updated) setSelectedTicket(updated);
+      loadTickets();
+    }
+  };
+
+  const handleCloseTicket = async () => {
+    if (!user || !selectedTicket) return;
+    const success = await ticketService.closeTicketByUser(selectedTicket.id, user.id);
+    if (success) {
+      const updated = await ticketService.getTicketById(selectedTicket.id);
+      if (updated) setSelectedTicket(updated);
+      loadTickets();
+    }
+  };
+
+  const handleReopenTicket = async () => {
+    if (!user || !selectedTicket) return;
+    const success = await ticketService.reopenTicketByUser(selectedTicket.id, user.id);
+    if (success) {
+      loadTicketMessages(selectedTicket.id);
+      const updated = await ticketService.getTicketById(selectedTicket.id);
+      if (updated) setSelectedTicket(updated);
       loadTickets();
     }
   };
@@ -207,7 +234,63 @@ export const ContactSupport: React.FC = () => {
             ))}
           </div>
 
-          {selectedTicket.status !== 'closed' && (
+          {selectedTicket.status === 'resolved' && (
+            <div className="border-t pt-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                <p className="text-sm font-medium text-green-800 mb-3">
+                  Ce ticket a été marqué comme résolu. Tout est en ordre ?
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={handleCloseTicket}
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                  >
+                    <ThumbsUp className="h-4 w-4" />
+                    <span>Fermer le ticket</span>
+                  </button>
+                  <button
+                    onClick={handleReopenTicket}
+                    className="flex items-center space-x-2 px-4 py-2 bg-white border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    <span>Rouvrir (problème non résolu)</span>
+                  </button>
+                </div>
+              </div>
+              <textarea
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                placeholder="Ou envoyez un message pour rouvrir automatiquement ce ticket..."
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!newMessage.trim()}
+                className="mt-3 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+              >
+                <Send className="h-4 w-4" />
+                <span>Envoyer</span>
+              </button>
+            </div>
+          )}
+
+          {selectedTicket.status === 'closed' && (
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-500 italic">Ce ticket est fermé.</p>
+                <button
+                  onClick={handleReopenTicket}
+                  className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  <span>Rouvrir</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {selectedTicket.status !== 'closed' && selectedTicket.status !== 'resolved' && (
             <div className="border-t pt-4">
               <textarea
                 value={newMessage}

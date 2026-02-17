@@ -19,6 +19,8 @@ export interface SupportTicket {
   created_at: string;
   updated_at: string;
   resolved_at?: string | null;
+  auto_close_at?: string | null;
+  follow_up_count?: number;
   user_name?: string;
   user_email?: string;
   assigned_admin_name?: string;
@@ -235,8 +237,19 @@ export const ticketService = {
     try {
       const updateData: any = { status };
 
-      if (status === 'resolved' || status === 'closed') {
+      if (status === 'resolved') {
         updateData.resolved_at = new Date().toISOString();
+        const autoCloseDate = new Date();
+        autoCloseDate.setDate(autoCloseDate.getDate() + 6);
+        updateData.auto_close_at = autoCloseDate.toISOString();
+        updateData.follow_up_count = 0;
+        updateData.last_follow_up_at = null;
+      } else if (status === 'closed') {
+        updateData.resolved_at = new Date().toISOString();
+      } else if (status === 'open' || status === 'in_progress') {
+        updateData.auto_close_at = null;
+        updateData.follow_up_count = 0;
+        updateData.last_follow_up_at = null;
       }
 
       const { error } = await supabase
@@ -255,11 +268,64 @@ export const ticketService = {
           message: `Le statut de votre ticket ${ticket.ticket_number} a été mis à jour: ${this.getStatusLabel(status)}`,
           data: { ticket_id: ticketId, status }
         });
+
+        if (status === 'resolved') {
+          await supabase.from('ticket_messages').insert({
+            ticket_id: ticketId,
+            user_id: userId,
+            message: `Bonjour,\n\nNous avons marqué votre ticket #${ticket.ticket_number} comme résolu. Nous espérons avoir pu répondre à votre demande.\n\n- Si votre problème est bien résolu, vous pouvez **fermer ce ticket** en cliquant sur le bouton "Fermer le ticket".\n- Si le problème persiste, vous pouvez **rouvrir ce ticket** en cliquant sur "Rouvrir".\n\nSans réponse de votre part, ce ticket sera fermé automatiquement dans 6 jours.\n\nMerci,\nL'équipe Support Ravito`,
+            is_internal: false
+          });
+        }
       }
 
       return true;
     } catch (error) {
       console.error('Error updating ticket status:', error);
+      return false;
+    }
+  },
+
+  async closeTicketByUser(ticketId: string, userId: string): Promise<boolean> {
+    return this.updateTicketStatus(ticketId, 'closed', userId);
+  },
+
+  async reopenTicketByUser(ticketId: string, userId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('support_tickets')
+        .update({
+          status: 'open',
+          auto_close_at: null,
+          follow_up_count: 0,
+          last_follow_up_at: null,
+          resolved_at: null
+        })
+        .eq('id', ticketId);
+
+      if (error) throw error;
+
+      const ticket = await this.getTicketById(ticketId);
+      if (ticket) {
+        await supabase.from('ticket_messages').insert({
+          ticket_id: ticketId,
+          user_id: userId,
+          message: 'Ce ticket a été rouvert par le client.',
+          is_internal: false
+        });
+
+        await supabase.from('notifications').insert({
+          user_id: ticket.assigned_to || userId,
+          type: 'ticket_status_changed',
+          title: 'Ticket rouvert',
+          message: `Le ticket #${ticket.ticket_number} a été rouvert par le client.`,
+          data: { ticket_id: ticketId, status: 'open' }
+        });
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error reopening ticket:', error);
       return false;
     }
   },
