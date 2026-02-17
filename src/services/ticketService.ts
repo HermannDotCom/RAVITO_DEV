@@ -291,9 +291,9 @@ export const ticketService = {
     }
   },
 
-  async getTicketMessages(ticketId: string): Promise<TicketMessage[]> {
+  async getTicketMessages(ticketId: string, userRole?: string): Promise<TicketMessage[]> {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('ticket_messages')
         .select(`
           *,
@@ -301,6 +301,12 @@ export const ticketService = {
         `)
         .eq('ticket_id', ticketId)
         .order('created_at', { ascending: true });
+
+      if (userRole !== 'admin') {
+        query = query.eq('is_internal', false);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 

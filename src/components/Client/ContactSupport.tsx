@@ -69,7 +69,7 @@ export const ContactSupport: React.FC = () => {
   }, [selectedTicket]);
 
   const loadTicketMessages = async (ticketId: string) => {
-    const messages = await ticketService.getTicketMessages(ticketId);
+    const messages = await ticketService.getTicketMessages(ticketId, user?.role);
     setTicketMessages(messages);
   };
 
