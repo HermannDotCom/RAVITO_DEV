@@ -26,8 +26,12 @@ export const TicketManagement: React.FC = () => {
   const [isInternalNote, setIsInternalNote] = useState(false);
   const [newStatus, setNewStatus] = useState<TicketStatus>('open');
 
-  // Track if we've loaded tickets at least once
   const hasLoadedRef = useRef(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const loadTickets = useCallback(async () => {
     // Only show loader on initial load
@@ -89,6 +93,10 @@ export const TicketManagement: React.FC = () => {
       loadTicketMessages(selectedTicket.id);
     }
   }, [selectedTicket, user?.role]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [ticketMessages]);
 
   const loadTicketMessages = async (ticketId: string) => {
     const messages = await ticketService.getTicketMessages(ticketId, user?.role || 'admin');
@@ -212,7 +220,7 @@ export const TicketManagement: React.FC = () => {
             <div className="bg-white rounded-xl shadow-md p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Messages</h3>
 
-              <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
+              <div className="space-y-4 mb-6 max-h-96 overflow-y-auto pr-1">
                 {ticketMessages.map((msg) => (
                   <div
                     key={msg.id}
@@ -238,6 +246,7 @@ export const TicketManagement: React.FC = () => {
                     <p className="text-gray-700">{msg.message}</p>
                   </div>
                 ))}
+                <div ref={messagesEndRef} />
               </div>
 
               {selectedTicket.status !== 'closed' && (
