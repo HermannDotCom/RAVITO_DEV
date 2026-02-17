@@ -137,22 +137,34 @@ const AppContent: React.FC = () => {
         switch (activeSection) {
           case 'profile':
             return <ClientProfile />;
+          case 'support':
+            return <ContactSupport />;
+          case 'ravito-gestion-subscription':
+            return <RavitoGestionSubscription onSectionChange={setActiveSection} />;
           case 'activity':
             return (
               <SubscriptionGuard onSectionChange={setActiveSection}>
                 <ActivityPage />
               </SubscriptionGuard>
             );
-          case 'ravito-gestion-subscription':
-            return <RavitoGestionSubscription onSectionChange={setActiveSection} />;
           case 'team':
-            return <TeamPage />;
+            return (
+              <SubscriptionGuard onSectionChange={setActiveSection}>
+                <TeamPage />
+              </SubscriptionGuard>
+            );
           case 'commercial-activity':
-            return <CommercialActivityPage />;
+            return (
+              <SubscriptionGuard onSectionChange={setActiveSection}>
+                <CommercialActivityPage />
+              </SubscriptionGuard>
+            );
           case 'notifications':
-            return <NotificationsPage />;
-          case 'support':
-            return <ContactSupport />;
+            return (
+              <SubscriptionGuard onSectionChange={setActiveSection}>
+                <NotificationsPage />
+              </SubscriptionGuard>
+            );
           default:
             return (
               <SubscriptionGuard onSectionChange={setActiveSection}>
@@ -160,19 +172,33 @@ const AppContent: React.FC = () => {
               </SubscriptionGuard>
             );
         }
-      
+
       case 'supplier':
         switch (activeSection) {
           case 'profile':
             return <SupplierProfile />;
-          case 'team':
-            return <TeamPage />;
-          case 'commercial-activity':
-            return <CommercialActivityPage />;
-          case 'notifications':
-            return <NotificationsPage />;
           case 'support':
             return <SupplierContactSupport />;
+          case 'ravito-gestion-subscription':
+            return <RavitoGestionSubscription onSectionChange={setActiveSection} />;
+          case 'team':
+            return (
+              <SubscriptionGuard onSectionChange={setActiveSection}>
+                <TeamPage />
+              </SubscriptionGuard>
+            );
+          case 'commercial-activity':
+            return (
+              <SubscriptionGuard onSectionChange={setActiveSection}>
+                <CommercialActivityPage />
+              </SubscriptionGuard>
+            );
+          case 'notifications':
+            return (
+              <SubscriptionGuard onSectionChange={setActiveSection}>
+                <NotificationsPage />
+              </SubscriptionGuard>
+            );
           default:
             return <SupplierProfile />;
         }

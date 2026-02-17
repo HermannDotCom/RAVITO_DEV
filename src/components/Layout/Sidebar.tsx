@@ -16,6 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useModuleAccess } from '../../hooks/useModuleAccess';
 import { useAllowedPages } from '../../hooks/useAllowedPages';
 import { usePaymentNotifications } from '../../hooks/usePaymentNotifications';
+import { useSubscription } from '../../hooks/useSubscription';
 import { MoreMenu } from '../ui/MoreMenu';
 import { getSalesRepByUserId } from '../../services/commercialActivityService';
 
@@ -31,6 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
   const { hasAccess } = useModuleAccess(user?.role === 'admin' ? 'admin' : user?.role === 'supplier' ? 'supplier' : 'client');
   const { allowedPages, isOwner, isSuperAdmin } = useAllowedPages();
   const { pendingPaymentsCount } = usePaymentNotifications();
+  const { canAccessGestionActivity, loading: subscriptionLoading } = useSubscription();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [isSalesRep, setIsSalesRep] = useState(false);
 
@@ -89,6 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         break;
       case 'supplier':
         allMenuItems = [
+          { id: 'ravito-gestion-subscription', label: 'Mon Abonnement', icon: CreditCard, moduleKey: 'ravito-gestion-subscription' },
           { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
           { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
           { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
@@ -148,21 +151,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
   const mainMenuItems = React.useMemo(() => {
     let items = [...baseMainMenuItems];
 
-    // Filter menu items based on approval status
     // Non-approved users (except admins) should only see "Mon Profil" and "Support"
     if (!user?.isApproved && user?.role !== 'admin') {
       items = items.filter(item => item.id === 'profile' || item.id === 'support');
+    } else if ((user?.role === 'client' || user?.role === 'supplier') && !canAccessGestionActivity && !subscriptionLoading) {
+      // Users without active subscription can only access "Support", "Mon Profil" and "Mon Abonnement"
+      items = items.filter(item =>
+        item.id === 'profile' ||
+        item.id === 'support' ||
+        item.id === 'ravito-gestion-subscription'
+      );
     }
 
     if ((user?.role === 'client' || user?.role === 'supplier') && secondaryMenuItems.length > 0) {
-      // Only add "more" button if user is approved
       if (user?.isApproved || user?.role === 'admin') {
         items.push({ id: 'more', label: 'Plus...', icon: MoreHorizontal });
       }
     }
 
     return items;
-  }, [baseMainMenuItems, secondaryMenuItems.length, user?.role, user?.isApproved]);
+  }, [baseMainMenuItems, secondaryMenuItems.length, user?.role, user?.isApproved, canAccessGestionActivity, subscriptionLoading]);
 
   const handleMenuItemClick = (itemId: string) => {
     if (itemId === 'more') {
