@@ -33,6 +33,11 @@ export const ContactSupport: React.FC = () => {
   
   // Track if we've loaded tickets at least once
   const hasLoadedRef = useRef(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const loadTickets = useCallback(async () => {
     if (!userId) {
@@ -67,6 +72,10 @@ export const ContactSupport: React.FC = () => {
       loadTicketMessages(selectedTicket.id);
     }
   }, [selectedTicket]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [ticketMessages]);
 
   const loadTicketMessages = async (ticketId: string) => {
     const messages = await ticketService.getTicketMessages(ticketId, user?.role);
@@ -205,7 +214,7 @@ export const ContactSupport: React.FC = () => {
             Messages
           </h3>
 
-          <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
+          <div className="space-y-4 mb-6 max-h-96 overflow-y-auto pr-1">
             <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium text-gray-900">Vous</span>
@@ -232,6 +241,7 @@ export const ContactSupport: React.FC = () => {
                 <p className="text-gray-700">{msg.message}</p>
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
 
           {selectedTicket.status === 'resolved' && (
