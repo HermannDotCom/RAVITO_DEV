@@ -1,6 +1,7 @@
 import React from 'react';
 import { User, Users, MessageSquare, CreditCard, ClipboardList } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useSubscription } from '../../hooks/useSubscription';
 
 interface BottomNavigationProps {
   activeSection: string;
@@ -68,6 +69,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   onSectionChange
 }) => {
   const { user } = useAuth();
+  const { canAccessGestionActivity, loading: subscriptionLoading } = useSubscription();
 
   const getNavItems = (): NavItem[] => {
     if (!user) return [];
@@ -84,16 +86,23 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
       ];
     } else if (user.role === 'supplier') {
       items = [
+        { id: 'ravito-gestion-subscription', icon: CreditCard, label: 'Abonnement' },
         { id: 'team', icon: Users, label: 'Équipe' },
         { id: 'support', icon: MessageSquare, label: 'Support' },
         { id: 'profile', icon: User, label: 'Profil' },
       ];
     }
 
-    // Filter menu items based on approval status
-    // Non-approved users (except admins) should only see "Mon Profil"
+    // Non-approved users should only see "Mon Profil" and "Support"
     if (!user.isApproved && user.role !== 'admin') {
-      items = items.filter(item => item.id === 'profile');
+      items = items.filter(item => item.id === 'profile' || item.id === 'support');
+    } else if ((user.role === 'client' || user.role === 'supplier') && !canAccessGestionActivity && !subscriptionLoading) {
+      // Users without active subscription can only access "Support", "Profil" and "Abonnement"
+      items = items.filter(item =>
+        item.id === 'profile' ||
+        item.id === 'support' ||
+        item.id === 'ravito-gestion-subscription'
+      );
     }
 
     return items;
