@@ -1,7 +1,7 @@
 import React from 'react';
 import { User, Users, MessageSquare, CreditCard, ClipboardList } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useSubscription } from '../../hooks/useSubscription';
+import { useSubscriptionContext } from '../../context/SubscriptionContext';
 
 interface BottomNavigationProps {
   activeSection: string;
@@ -69,7 +69,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   onSectionChange
 }) => {
   const { user } = useAuth();
-  const { canAccessGestionActivity, loading: subscriptionLoading } = useSubscription();
+  const { canAccessGestionActivity, loading: subscriptionLoading } = useSubscriptionContext();
 
   const getNavItems = (): NavItem[] => {
     if (!user) return [];

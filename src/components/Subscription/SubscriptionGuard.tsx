@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSubscription } from '../../hooks/useSubscription';
+import { useSubscriptionContext } from '../../context/SubscriptionContext';
 import { Paywall } from './Paywall';
 import { Clock } from 'lucide-react';
 import { formatCurrency } from '../../types/subscription';
@@ -26,7 +26,7 @@ export const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
     canAccessGestionActivity,
     daysLeftInTrial,
     isInTrial
-  } = useSubscription();
+  } = useSubscriptionContext();
 
   const handleSelectPlan = (planId: string) => {
     if (onSectionChange) {
@@ -34,14 +34,17 @@ export const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
     }
   };
 
-  // Affichage du loader pendant le chargement
+  // Pendant le chargement, afficher un skeleton neutre sans jamais montrer le Paywall
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Vérification de votre abonnement...</p>
+      <div className="p-6 space-y-4 animate-pulse">
+        <div className="h-8 bg-gray-200 rounded-lg w-1/3" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="h-32 bg-gray-200 rounded-xl" />
+          <div className="h-32 bg-gray-200 rounded-xl" />
+          <div className="h-32 bg-gray-200 rounded-xl" />
         </div>
+        <div className="h-64 bg-gray-200 rounded-xl" />
       </div>
     );
   }
@@ -93,7 +96,7 @@ export const SubscriptionGuard: React.FC<SubscriptionGuardProps> = ({
  * Variante simplifiée pour les clients avec abonnement suspendu
  */
 export const SuspendedAccountMessage: React.FC<{ onSectionChange?: (section: string) => void }> = ({ onSectionChange }) => {
-  const { subscription } = useSubscription();
+  const { subscription } = useSubscriptionContext();
 
   if (subscription?.status !== 'suspended') {
     return null;

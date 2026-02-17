@@ -16,7 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useModuleAccess } from '../../hooks/useModuleAccess';
 import { useAllowedPages } from '../../hooks/useAllowedPages';
 import { usePaymentNotifications } from '../../hooks/usePaymentNotifications';
-import { useSubscription } from '../../hooks/useSubscription';
+import { useSubscriptionContext } from '../../context/SubscriptionContext';
 import { MoreMenu } from '../ui/MoreMenu';
 import { getSalesRepByUserId } from '../../services/commercialActivityService';
 
@@ -32,7 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
   const { hasAccess } = useModuleAccess(user?.role === 'admin' ? 'admin' : user?.role === 'supplier' ? 'supplier' : 'client');
   const { allowedPages, isOwner, isSuperAdmin } = useAllowedPages();
   const { pendingPaymentsCount } = usePaymentNotifications();
-  const { canAccessGestionActivity, loading: subscriptionLoading } = useSubscription();
+  const { canAccessGestionActivity, loading: subscriptionLoading } = useSubscriptionContext();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [isSalesRep, setIsSalesRep] = useState(false);
 

@@ -42,6 +42,7 @@ import { SubscriptionManagementPage } from './components/Admin/SubscriptionManag
 import { RavitoGestionSubscription } from './pages/RavitoGestionSubscription';
 import { SubscriptionGuard } from './components/Subscription/SubscriptionGuard';
 import { ContactSupport } from './components/Client/ContactSupport';
+import { SubscriptionProvider } from './context/SubscriptionContext';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing, sessionError, refreshSession, logout, clearSessionError } = useAuth();
@@ -239,7 +240,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  return (
+  const content = (
     <div className="min-h-screen bg-gray-50">
       {/* Offline Mode Banner */}
       <OfflineBanner />
@@ -295,6 +296,12 @@ const AppContent: React.FC = () => {
       <UpdatePrompt />
     </div>
   );
+
+  if (user?.role === 'client' || user?.role === 'supplier') {
+    return <SubscriptionProvider>{content}</SubscriptionProvider>;
+  }
+
+  return content;
 };
 
 function App() {

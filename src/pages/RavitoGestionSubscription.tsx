@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useSubscription } from '../hooks/useSubscription';
+import { useSubscriptionContext } from '../context/SubscriptionContext';
 import { useOrganization } from '../hooks/useOrganization';
 import { useToast } from '../context/ToastContext';
 import { Paywall } from '../components/Subscription/Paywall';
@@ -32,7 +32,7 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
     isSuspended,
     hasActiveSubscription,
     daysLeftInTrial
-  } = useSubscription();
+  } = useSubscriptionContext();
 
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [showPlanSelector, setShowPlanSelector] = useState(false);
