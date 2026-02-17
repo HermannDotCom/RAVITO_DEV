@@ -11,27 +11,39 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 
     console.log('Service Worker registered:', registration.scope);
 
-    // Check for updates
+    // Notify app when new version is available
     registration.addEventListener('updatefound', () => {
       const newWorker = registration.installing;
       if (newWorker) {
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // New content available, dispatch event
             window.dispatchEvent(new CustomEvent('swUpdate', { detail: registration }));
           }
         });
       }
     });
 
+    // Listen for messages from Service Worker (e.g. TRIGGER_SYNC from background sync)
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data?.type === 'TRIGGER_SYNC') {
+        window.dispatchEvent(new CustomEvent('ravito:triggerSync'));
+      }
+    });
+
+    // Register background sync tag when supported
+    if ('SyncManager' in window) {
+      window.addEventListener('online', async () => {
+        try {
+          await registration.sync.register('ravito-sync-queue');
+        } catch {
+          // Background sync not available — syncManager handles it via browser events
+        }
+      });
+    }
+
     return registration;
   } catch (error) {
     console.error('Service Worker registration failed:', error);
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      name: error instanceof Error ? error.name : 'Unknown',
-    });
-    console.log('💡 Tip: Check if the browser supports Service Workers and if the app is served over HTTPS');
     return null;
   }
 }

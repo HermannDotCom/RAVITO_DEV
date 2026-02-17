@@ -7,12 +7,12 @@ import { runAuthDiagnostics } from './utils/authDiagnostics';
 import { registerServiceWorker } from './registerSW';
 import { initSentry } from './lib/sentry';
 import { SentryErrorBoundary } from './components/ErrorBoundary/SentryErrorBoundary';
+import { syncManager } from './lib/syncManager';
 
 // Initialiser Sentry en premier
 initSentry();
 
 // Perform targeted cleanup of obsolete localStorage keys on app startup
-// This only removes known obsolete keys, preserving all legitimate user data
 cleanupObsoleteLocalStorage();
 
 // Expose diagnostics for debugging login issues
@@ -23,6 +23,11 @@ if (typeof window !== 'undefined') {
 
 // Register Service Worker
 registerServiceWorker();
+
+// Handle background sync trigger from Service Worker message
+window.addEventListener('ravito:triggerSync', () => {
+  syncManager.syncOfflineActions().catch(() => {});
+});
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

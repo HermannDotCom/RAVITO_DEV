@@ -1,13 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { realtimeService } from '../services/realtimeService';
+import { syncManager, SyncStatus } from '../lib/syncManager';
 import { getPendingActionsCount, getPendingActions, PendingAction } from '../lib/offlineManager';
+import { getLastSyncTime } from '../lib/offlineStorage';
 
 interface OfflineContextType {
   isOnline: boolean;
+  isOfflineMode: boolean;
   pendingActionsCount: number;
-  isSyncing: boolean;
-  lastSyncTime: Date | null;
   pendingActions: PendingAction[];
+  isSyncing: boolean;
+  syncStatus: SyncStatus;
+  lastSyncTime: Date | null;
+  forceSync: () => Promise<void>;
   refreshPendingActions: () => Promise<void>;
 }
 
@@ -26,16 +30,20 @@ interface OfflineProviderProps {
 }
 
 export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) => {
-  const [isOnline, setIsOnline] = useState(realtimeService.getIsOnline());
+  const [isOnline, setIsOnline] = useState(() => syncManager.getIsOnline());
   const [pendingActionsCount, setPendingActionsCount] = useState(0);
   const [pendingActions, setPendingActions] = useState<PendingAction[]>([]);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(() => syncManager.getSyncStatus());
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+
+  const isSyncing = syncStatus === 'syncing';
 
   const refreshPendingActions = useCallback(async () => {
     try {
-      const count = await getPendingActionsCount();
-      const actions = await getPendingActions();
+      const [count, actions] = await Promise.all([
+        getPendingActionsCount(),
+        getPendingActions(),
+      ]);
       setPendingActionsCount(count);
       setPendingActions(actions);
     } catch (error) {
@@ -43,33 +51,55 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) =>
     }
   }, []);
 
+  const refreshLastSyncTime = useCallback(async () => {
+    try {
+      const timestamp = await getLastSyncTime('global');
+      setLastSyncTime(timestamp ? new Date(timestamp) : null);
+    } catch {
+      // non-critical
+    }
+  }, []);
+
+  const forceSync = useCallback(async () => {
+    await syncManager.forceSync();
+    await refreshPendingActions();
+    await refreshLastSyncTime();
+  }, [refreshPendingActions, refreshLastSyncTime]);
+
   useEffect(() => {
-    // Subscribe to online status changes from realtimeService
-    const unsubscribe = realtimeService.onOnlineStatusChange((online) => {
-      setIsOnline(online);
-      
-      if (online) {
-        // Trigger sync when coming back online
-        setIsSyncing(true);
-        refreshPendingActions().then(() => {
-          setLastSyncTime(new Date());
-          setIsSyncing(false);
-        });
-      }
+    refreshPendingActions();
+    refreshLastSyncTime();
+
+    const handleOnline = () => {
+      setIsOnline(true);
+      refreshPendingActions();
+    };
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    const unsubscribeStatus = syncManager.onStatusChange((status) => {
+      setSyncStatus(status);
     });
 
-    // Initial load of pending actions
-    refreshPendingActions();
+    const unsubscribeSuccess = syncManager.onSuccess(() => {
+      refreshPendingActions();
+      refreshLastSyncTime();
+    });
 
     return () => {
-      unsubscribe();
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      unsubscribeStatus();
+      unsubscribeSuccess();
     };
-  }, [refreshPendingActions]);
+  }, [refreshPendingActions, refreshLastSyncTime]);
 
   // Refresh pending actions periodically when offline
   useEffect(() => {
     if (!isOnline) {
-      const interval = setInterval(refreshPendingActions, 5000);
+      const interval = setInterval(refreshPendingActions, 10000);
       return () => clearInterval(interval);
     }
   }, [isOnline, refreshPendingActions]);
@@ -78,10 +108,13 @@ export const OfflineProvider: React.FC<OfflineProviderProps> = ({ children }) =>
     <OfflineContext.Provider
       value={{
         isOnline,
+        isOfflineMode: !isOnline,
         pendingActionsCount,
-        isSyncing,
-        lastSyncTime,
         pendingActions,
+        isSyncing,
+        syncStatus,
+        lastSyncTime,
+        forceSync,
         refreshPendingActions,
       }}
     >

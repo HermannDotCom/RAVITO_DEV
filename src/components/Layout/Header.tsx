@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Menu, User, LogOut, Bell } from 'lucide-react';
+import { Menu, User, LogOut, Bell, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { useOrganizationName } from '../../hooks/useOrganizationName';
 import { NotificationPanel } from '../Notifications/NotificationPanel';
 import { ConnectionStatusBadge } from '../Shared/ConnectionStatusBadge';
+import { useOffline } from '../../context/OfflineContext';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -15,6 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'RAVITO' }
   const { user, logout } = useAuth();
   const { unreadCount } = useNotifications();
   const { organizationName } = useOrganizationName();
+  const { pendingActionsCount, isSyncing, isOfflineMode, forceSync, isOnline } = useOffline();
   const [showNotifications, setShowNotifications] = useState(false);
 
   return (
@@ -53,6 +55,38 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = 'RAVITO' }
 
           {user && (
             <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-1 justify-end">
+              {/* Sync status indicator */}
+              {user && (pendingActionsCount > 0 || isSyncing) && (
+                <button
+                  onClick={isOnline && !isSyncing ? forceSync : undefined}
+                  disabled={isSyncing || !isOnline}
+                  title={
+                    isSyncing
+                      ? 'Synchronisation en cours...'
+                      : isOfflineMode
+                      ? `${pendingActionsCount} action(s) en attente - hors ligne`
+                      : `${pendingActionsCount} action(s) à synchroniser - cliquer pour sync`
+                  }
+                  className={`relative p-2 min-h-[44px] min-w-[44px] rounded-full transition-colors ${
+                    isOfflineMode
+                      ? 'text-amber-600 bg-amber-50'
+                      : isSyncing
+                      ? 'text-blue-500 bg-blue-50'
+                      : 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+                  }`}
+                  aria-label="État de la synchronisation"
+                >
+                  <RefreshCw className={`h-5 w-5 ${isSyncing ? 'animate-spin' : ''}`} />
+                  {pendingActionsCount > 0 && !isSyncing && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-amber-500 rounded-full flex items-center justify-center">
+                      <span className="text-[10px] text-white font-bold">
+                        {pendingActionsCount > 9 ? '9+' : pendingActionsCount}
+                      </span>
+                    </span>
+                  )}
+                </button>
+              )}
+
               {/* Connection Status Badge */}
               <ConnectionStatusBadge />
 
