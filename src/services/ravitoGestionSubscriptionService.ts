@@ -198,7 +198,10 @@ export const createSubscription = async (
     const trialEndDate = new Date();
     trialEndDate.setDate(trialEndDate.getDate() + plan.trialDays);
 
-    // Créer l'abonnement
+    // Calculer le prorata pour la période après l'essai
+    const prorata = calculateProrata(plan, trialStartDate);
+
+    // Créer l'abonnement avec les informations de prorata
     const { data: subscriptionData, error } = await supabase
       .from('subscriptions')
       .insert({
@@ -207,7 +210,13 @@ export const createSubscription = async (
         status: 'trial',
         is_first_subscription: true,
         trial_start_date: trialStartDate.toISOString(),
-        trial_end_date: trialEndDate.toISOString()
+        trial_end_date: trialEndDate.toISOString(),
+        current_period_start: trialEndDate.toISOString(),
+        current_period_end: prorata.periodEnd.toISOString(),
+        next_billing_date: prorata.periodEnd.toISOString().split('T')[0],
+        amount_due: prorata.amount,
+        is_prorata: true,
+        prorata_days: prorata.daysRemaining
       })
       .select(`
         *,
@@ -216,6 +225,37 @@ export const createSubscription = async (
       .single();
 
     if (error) throw error;
+
+    // Créer une facture prorata
+    const { data: invoiceNumber, error: invoiceNumError } = await supabase
+      .rpc('generate_invoice_number');
+
+    if (invoiceNumError) {
+      console.error('Error generating invoice number:', invoiceNumError);
+      throw invoiceNumError;
+    }
+
+    const { error: invoiceError } = await supabase
+      .from('subscription_invoices')
+      .insert({
+        subscription_id: subscriptionData.id,
+        organization_id: data.organizationId,
+        invoice_number: invoiceNumber,
+        amount: prorata.amount,
+        amount_due: prorata.amount,
+        prorata_amount: prorata.amount,
+        days_calculated: prorata.daysRemaining,
+        is_prorata: true,
+        period_start: trialEndDate.toISOString().split('T')[0],
+        period_end: prorata.periodEnd.toISOString().split('T')[0],
+        due_date: prorata.periodEnd.toISOString().split('T')[0],
+        status: 'pending'
+      });
+
+    if (invoiceError) {
+      console.error('Error creating invoice:', invoiceError);
+    }
+
     return transformSubscription(subscriptionData);
   } catch (error) {
     console.error('Error creating subscription:', error);
