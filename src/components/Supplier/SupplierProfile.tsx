@@ -147,6 +147,7 @@ export const SupplierProfile: React.FC = () => {
         }
       }
 
+      await refreshUserProfile();
       alert('✅ Profil mis à jour avec succès!');
       setIsEditing(false);
     } catch (error) {

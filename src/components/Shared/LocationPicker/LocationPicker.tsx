@@ -124,6 +124,19 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
     });
   }, [onLocationChange]);
 
+  // Sync position when initialLatitude/initialLongitude are provided asynchronously
+  useEffect(() => {
+    if (initialLatitude && initialLongitude) {
+      setPosition([initialLatitude, initialLongitude]);
+    }
+    if (initialAddress) {
+      setAddress(initialAddress);
+    }
+    if (initialInstructions) {
+      setInstructions(initialInstructions);
+    }
+  }, [initialLatitude, initialLongitude, initialAddress, initialInstructions]);
+
   // Update position when GPS position is obtained
   useEffect(() => {
     if (gpsPosition) {
