@@ -149,9 +149,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
     let items = [...baseMainMenuItems];
 
     // Filter menu items based on approval status
-    // Non-approved users (except admins) should only see "Mon Profil"
+    // Non-approved users (except admins) should only see "Mon Profil" and "Support"
     if (!user?.isApproved && user?.role !== 'admin') {
-      items = items.filter(item => item.id === 'profile');
+      items = items.filter(item => item.id === 'profile' || item.id === 'support');
     }
 
     if ((user?.role === 'client' || user?.role === 'supplier') && secondaryMenuItems.length > 0) {

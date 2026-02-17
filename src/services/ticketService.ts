@@ -95,8 +95,7 @@ export const ticketService = {
             subject: data.subject,
             message: data.message,
             category: data.category,
-            priority: data.priority,
-            ticket_number: ''
+            priority: data.priority
           })
           .select()
           .single();
@@ -433,8 +432,7 @@ export const ticketService = {
           category,
           priority,
           status: 'waiting_response',
-          assigned_to: adminUser.id,
-          ticket_number: ''
+          assigned_to: adminUser.id
         })
         .select()
         .single();
