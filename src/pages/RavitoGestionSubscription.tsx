@@ -55,13 +55,18 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
     setShowConfirmModal(true);
   }, []);
 
-  const handleConfirmSubscription = async (payNow: boolean = false) => {
-    if (!selectedPlanId) return;
+  const handleConfirmSubscription = async (planId: string, payNow: boolean = false) => {
+    console.log('[RavitoGestionSubscription] handleConfirmSubscription called with:', { planId, payNow, isCreating });
+    
+    if (!planId || isCreating) {
+      console.log('[RavitoGestionSubscription] Early exit - planId:', planId, 'isCreating:', isCreating);
+      return;
+    }
 
     try {
       setIsCreating(true);
 
-      const success = await createSubscription(selectedPlanId);
+      const success = await createSubscription(planId);
 
       if (success) {
         showToast('Abonnement créé avec succès ! Votre période d\'essai gratuit a commencé.', 'success');
@@ -789,8 +794,8 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
                 {/* Action buttons */}
                 <div className="space-y-3">
                   <button
-                    onClick={() => handleConfirmSubscription(false)}
-                    disabled={isCreating}
+                    onClick={() => selectedPlan && handleConfirmSubscription(selectedPlan.id, false)}
+                    disabled={isCreating || !selectedPlan}
                     className="w-full bg-orange-600 hover:bg-orange-700 text-white py-4 rounded-lg font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
                     {isCreating ? (
@@ -804,8 +809,8 @@ export const RavitoGestionSubscription: React.FC<RavitoGestionSubscriptionProps>
                   </button>
 
                   <button
-                    onClick={() => handleConfirmSubscription(true)}
-                    disabled={isCreating}
+                    onClick={() => selectedPlan && handleConfirmSubscription(selectedPlan.id, true)}
+                    disabled={isCreating || !selectedPlan}
                     className="w-full border-2 border-orange-600 text-orange-600 hover:bg-orange-50 py-4 rounded-lg font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Je m'abonne et je paie maintenant
