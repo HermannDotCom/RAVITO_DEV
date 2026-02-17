@@ -407,6 +407,75 @@ export const ticketService = {
     }
   },
 
+  /**
+   * Admin creates a ticket on behalf of a user, with an initial admin message.
+   * The ticket is created using the admin's session but assigned to the target user.
+   */
+  async adminCreateTicketForUser(
+    targetUserId: string,
+    subject: string,
+    initialMessage: string,
+    category: TicketCategory,
+    priority: TicketPriority
+  ): Promise<{ success: boolean; ticketNumber?: string; error?: string }> {
+    try {
+      const { data: { user: adminUser } } = await supabase.auth.getUser();
+      if (!adminUser) {
+        return { success: false, error: 'Session admin introuvable' };
+      }
+
+      const { data: ticket, error: ticketError } = await supabase
+        .from('support_tickets')
+        .insert({
+          user_id: targetUserId,
+          subject,
+          message: initialMessage,
+          category,
+          priority,
+          status: 'waiting_response',
+          assigned_to: adminUser.id,
+          ticket_number: ''
+        })
+        .select()
+        .single();
+
+      if (ticketError || !ticket) {
+        console.error('[ticketService] adminCreateTicketForUser error:', ticketError);
+        return { success: false, error: ticketError?.message || 'Erreur création ticket' };
+      }
+
+      const { error: msgError } = await supabase
+        .from('ticket_messages')
+        .insert({
+          ticket_id: ticket.id,
+          user_id: adminUser.id,
+          message: initialMessage,
+          is_internal: false
+        });
+
+      if (msgError) {
+        console.warn('[ticketService] Failed to add initial message:', msgError);
+      }
+
+      try {
+        await supabase.from('notifications').insert({
+          user_id: targetUserId,
+          type: 'ticket_created',
+          title: 'Message de l\'administration',
+          message: `Un message vous a été envoyé concernant votre demande d'inscription. Consultez votre support.`,
+          data: { ticket_id: ticket.id, ticket_number: ticket.ticket_number }
+        });
+      } catch (notifErr) {
+        console.warn('[ticketService] Notification error:', notifErr);
+      }
+
+      return { success: true, ticketNumber: ticket.ticket_number };
+    } catch (err: any) {
+      console.error('[ticketService] adminCreateTicketForUser exception:', err);
+      return { success: false, error: err?.message || 'Erreur inattendue' };
+    }
+  },
+
   getCategoryLabel(category: TicketCategory): string {
     const labels = {
       technical: 'Technique',
