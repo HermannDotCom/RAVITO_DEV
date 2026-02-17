@@ -88,10 +88,10 @@ export const TicketManagement: React.FC = () => {
     if (selectedTicket) {
       loadTicketMessages(selectedTicket.id);
     }
-  }, [selectedTicket]);
+  }, [selectedTicket, user?.role]);
 
   const loadTicketMessages = async (ticketId: string) => {
-    const messages = await ticketService.getTicketMessages(ticketId, user?.role);
+    const messages = await ticketService.getTicketMessages(ticketId, user?.role || 'admin');
     setTicketMessages(messages);
   };
 
