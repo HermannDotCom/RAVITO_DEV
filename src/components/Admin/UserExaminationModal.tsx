@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle, XCircle, Phone, Shield, AlertTriangle, Activity, Clock, MapPin, Building } from 'lucide-react';
+import { X, CheckCircle, XCircle, Phone, AlertTriangle, MapPin, Building, MessageSquare, Loader2 } from 'lucide-react';
 import { UserRole } from '../../types';
-import { activityService, UserActivity } from '../../services/activityService';
+import { ticketService } from '../../services/ticketService';
+import { useToast } from '../../context/ToastContext';
 
 interface PendingUser {
   id: string;
@@ -33,13 +34,14 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
   onReject,
   isProcessing
 }) => {
+  const { showToast } = useToast();
   const [showRejectForm, setShowRejectForm] = useState(false);
+  const [showMessageForm, setShowMessageForm] = useState(false);
   const [selectedRejectReasons, setSelectedRejectReasons] = useState<string[]>([]);
   const [customRejectReason, setCustomRejectReason] = useState('');
-  const [recentActivities, setRecentActivities] = useState<UserActivity[]>([]);
-  const [loadingActivities, setLoadingActivities] = useState(true);
+  const [messageText, setMessageText] = useState('');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
-  // Debug: Log user data received
   useEffect(() => {
     console.log('UserExaminationModal - User data received:', {
       name: user.name,
@@ -51,17 +53,6 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
       address: user.address
     });
   }, [user]);
-
-  useEffect(() => {
-    const fetchActivities = async () => {
-      setLoadingActivities(true);
-      const activities = await activityService.getUserRecentActivity(user.id, 4);
-      setRecentActivities(activities);
-      setLoadingActivities(false);
-    };
-
-    fetchActivities();
-  }, [user.id]);
 
   const rejectReasons = [
     'Informations de contact incomplètes ou incorrectes',
@@ -86,22 +77,38 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
 
   const handleReject = () => {
     if (selectedRejectReasons.length === 0 && !customRejectReason.trim()) return;
-
     const allReasons = [...selectedRejectReasons];
-    if (customRejectReason.trim()) {
-      allReasons.push(customRejectReason.trim());
-    }
+    if (customRejectReason.trim()) allReasons.push(customRejectReason.trim());
+    onReject(user.id, allReasons.join('; '));
+  };
 
-    const finalReason = allReasons.join('; ');
-    onReject(user.id, finalReason);
+  const handleSendMessage = async () => {
+    if (!messageText.trim()) return;
+    setIsSendingMessage(true);
+    try {
+      const result = await ticketService.adminCreateTicketForUser(
+        user.id,
+        'Votre demande d\'inscription',
+        messageText.trim(),
+        'account',
+        'high'
+      );
+      if (result.success) {
+        showToast({ type: 'success', message: `Message envoyé. Ticket ${result.ticketNumber} créé.` });
+        setShowMessageForm(false);
+        setMessageText('');
+      } else {
+        showToast({ type: 'error', message: result.error || 'Erreur lors de l\'envoi du message' });
+      }
+    } catch {
+      showToast({ type: 'error', message: 'Erreur lors de l\'envoi du message' });
+    } finally {
+      setIsSendingMessage(false);
+    }
   };
 
   const getRoleLabel = (role: UserRole) => {
-    const labels = {
-      client: 'Client',
-      supplier: 'Fournisseur',
-      admin: 'Administrateur'
-    };
+    const labels = { client: 'Client', supplier: 'Fournisseur', admin: 'Administrateur' };
     return labels[role];
   };
 
@@ -109,7 +116,7 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
     const colors = {
       client: 'bg-blue-100 text-blue-700',
       supplier: 'bg-green-100 text-green-700',
-      admin: 'bg-purple-100 text-purple-700'
+      admin: 'bg-orange-100 text-orange-700'
     };
     return colors[role];
   };
@@ -117,11 +124,7 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
   const formatDate = (date: Date | string) => {
     const d = typeof date === 'string' ? new Date(date) : date;
     return new Intl.DateTimeFormat('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
     }).format(d);
   };
 
@@ -129,12 +132,12 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
       <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full h-[90vh] sm:h-auto sm:max-w-2xl sm:max-h-[90vh] overflow-y-auto">
         <div className="p-4 sm:p-6 md:p-8">
+
+          {/* Header */}
           <div className="flex items-center justify-between mb-4 sm:mb-6 md:mb-8">
             <div className="flex items-center space-x-3 sm:space-x-4">
               <div className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg sm:text-xl">
-                  {user.name.charAt(0)}
-                </span>
+                <span className="text-white font-bold text-lg sm:text-xl">{user.name.charAt(0)}</span>
               </div>
               <div>
                 <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{user.businessName || user.name}</h2>
@@ -148,15 +151,15 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
                 </div>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-            >
+            <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
               <X className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
           </div>
 
+          {/* Informations */}
           <div className="grid grid-cols-1 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 md:mb-8">
+
+            {/* Contact */}
             <div className="bg-blue-50 rounded-xl p-4 sm:p-5 md:p-6">
               <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center">
                 <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
@@ -182,10 +185,10 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
               </div>
             </div>
 
-            {/* Photo de la devanture */}
-            <div className="bg-purple-50 rounded-xl p-4 sm:p-5 md:p-6">
+            {/* Photo devanture */}
+            <div className="bg-gray-50 rounded-xl p-4 sm:p-5 md:p-6">
               <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center">
-                <Building className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-purple-600" />
+                <Building className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-600" />
                 Photo de la devanture
               </h3>
               {user.storefront_image_url ? (
@@ -193,7 +196,7 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
                   <img
                     src={user.storefront_image_url}
                     alt="Devanture de l'établissement"
-                    className="w-full h-48 sm:h-64 object-cover rounded-lg border border-purple-200"
+                    className="w-full h-48 sm:h-64 object-cover rounded-lg border border-gray-200"
                   />
                   <div className="flex items-center space-x-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg">
                     <CheckCircle className="h-4 w-4" />
@@ -241,67 +244,59 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
                 </div>
               )}
             </div>
-
-            <div className="bg-gray-50 rounded-xl p-4 sm:p-5 md:p-6">
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 flex items-center">
-                <Activity className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-700" />
-                Activités récentes
-              </h3>
-              {loadingActivities ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                </div>
-              ) : recentActivities.length > 0 ? (
-                <div className="space-y-2 sm:space-y-3">
-                  {recentActivities.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200 hover:border-gray-300 transition-colors"
-                    >
-                      <div className="flex items-start space-x-2 sm:space-x-3">
-                        <div className="flex-shrink-0 mt-1">
-                          <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs sm:text-sm font-medium text-gray-900">
-                            {activityService.getActivityTypeLabel(activity.activity_type)}
-                          </p>
-                          <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                            {activity.activity_description}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1 sm:mt-2">
-                            {formatDate(activity.created_at)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Activity className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-xs sm:text-sm">Aucune activité récente</p>
-                </div>
-              )}
-            </div>
           </div>
 
+          {/* Formulaire message */}
+          {showMessageForm && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-5 md:p-6 mb-4 sm:mb-5 md:mb-6">
+              <h4 className="text-base sm:text-lg font-bold text-blue-900 mb-1">Envoyer un message</h4>
+              <p className="text-sm text-blue-700 mb-3">
+                Un ticket support sera créé pour <strong>{user.businessName || user.name}</strong> avec l'objet <strong>"Votre demande d'inscription"</strong>.
+                L'utilisateur pourra consulter et répondre depuis sa page Support.
+              </p>
+              <textarea
+                rows={4}
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-white text-sm"
+                placeholder="Ex: Merci de nous faire parvenir votre licence commerciale et une pièce d'identité valide..."
+              />
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => { setShowMessageForm(false); setMessageText(''); }}
+                  disabled={isSendingMessage}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={isSendingMessage || !messageText.trim()}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+                >
+                  {isSendingMessage ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" /><span>Envoi...</span></>
+                  ) : (
+                    <><MessageSquare className="h-4 w-4" /><span>Envoyer le message</span></>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Formulaire rejet */}
           {showRejectForm && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4 sm:p-5 md:p-6 mb-4 sm:mb-5 md:mb-6">
               <h4 className="text-base sm:text-lg font-bold text-red-900 mb-3 sm:mb-4">Confirmation du rejet</h4>
-
               <div className="bg-white border border-red-200 rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
                 <div className="flex items-start space-x-2 sm:space-x-3">
                   <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 mt-0.5" />
                   <div className="text-xs sm:text-sm">
                     <p className="font-medium text-red-800 mb-1">Action de rejet</p>
-                    <p className="text-red-700">
-                      Le demandeur recevra une notification avec les raisons du rejet.
-                    </p>
+                    <p className="text-red-700">Le demandeur recevra une notification avec les raisons du rejet.</p>
                   </div>
                 </div>
               </div>
-
               <div className="mb-3 sm:mb-4">
                 <label className="block text-xs sm:text-sm font-medium text-red-800 mb-2 sm:mb-3">
                   Sélectionnez les raisons du rejet :
@@ -320,7 +315,6 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
                   ))}
                 </div>
               </div>
-
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   Raison personnalisée (optionnel)
@@ -336,8 +330,9 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
             </div>
           )}
 
+          {/* Boutons d'action */}
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            {!showRejectForm ? (
+            {!showRejectForm && !showMessageForm ? (
               <>
                 <button
                   onClick={() => setShowRejectForm(true)}
@@ -348,24 +343,26 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
                   <span>Rejeter la demande</span>
                 </button>
                 <button
+                  onClick={() => setShowMessageForm(true)}
+                  disabled={isProcessing}
+                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  <span>Envoyer un message</span>
+                </button>
+                <button
                   onClick={() => onApprove(user.id)}
                   disabled={isProcessing}
                   className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-green-600 text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
                 >
                   {isProcessing ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Approbation...</span>
-                    </>
+                    <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /><span>Approbation...</span></>
                   ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4" />
-                      <span>Approuver et activer</span>
-                    </>
+                    <><CheckCircle className="h-4 w-4" /><span>Approuver et activer</span></>
                   )}
                 </button>
               </>
-            ) : (
+            ) : showRejectForm ? (
               <>
                 <button
                   onClick={() => setShowRejectForm(false)}
@@ -380,20 +377,15 @@ export const UserExaminationModal: React.FC<UserExaminationModalProps> = ({
                   className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-red-600 text-white rounded-lg text-sm sm:text-base font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
                 >
                   {isProcessing ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Rejet...</span>
-                    </>
+                    <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /><span>Rejet...</span></>
                   ) : (
-                    <>
-                      <XCircle className="h-4 w-4" />
-                      <span>Confirmer le rejet</span>
-                    </>
+                    <><XCircle className="h-4 w-4" /><span>Confirmer le rejet</span></>
                   )}
                 </button>
               </>
-            )}
+            ) : null}
           </div>
+
         </div>
       </div>
     </div>

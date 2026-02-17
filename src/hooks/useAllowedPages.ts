@@ -91,9 +91,9 @@ export function useAllowedPages(): UseAllowedPagesReturn {
         // User is owner
         setIsOwner(true);
 
-        // Check approval status - non-approved users only get profile page
+        // Check approval status - non-approved users get profile and support pages
         if (!user.isApproved || user.approvalStatus === 'pending' || user.approvalStatus === 'rejected') {
-          setAllowedPages(['profile']);
+          setAllowedPages(['profile', 'support']);
           setIsLoading(false);
           return;
         }
