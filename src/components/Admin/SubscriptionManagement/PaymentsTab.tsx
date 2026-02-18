@@ -19,6 +19,9 @@ export const PaymentsTab: React.FC = () => {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [recentIds, setRecentIds] = useState<Set<string>>(new Set());
 
+  const [showValidateModal, setShowValidateModal] = useState(false);
+  const [validatingClaim, setValidatingClaim] = useState<PendingPaymentClaim | null>(null);
+
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectingClaim, setRejectingClaim] = useState<PendingPaymentClaim | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -76,13 +79,20 @@ export const PaymentsTab: React.FC = () => {
     };
   }, [loadClaims]);
 
-  const handleValidate = async (claim: PendingPaymentClaim) => {
-    if (!user?.id) return;
+  const openValidateModal = (claim: PendingPaymentClaim) => {
+    setValidatingClaim(claim);
+    setShowValidateModal(true);
+  };
+
+  const handleValidate = async () => {
+    if (!validatingClaim || !user?.id) return;
 
     try {
-      setProcessingId(claim.id);
-      await validatePaymentClaim(claim.id, user.id);
+      setProcessingId(validatingClaim.id);
+      await validatePaymentClaim(validatingClaim.id, user.id);
       showToast({ type: 'success', message: 'Paiement valide avec succes' });
+      setShowValidateModal(false);
+      setValidatingClaim(null);
       await loadClaims();
     } catch (error) {
       console.error('Error validating claim:', error);
@@ -217,7 +227,7 @@ export const PaymentsTab: React.FC = () => {
 
                     <div className="flex md:flex-col gap-2 md:min-w-[140px]">
                       <button
-                        onClick={() => handleValidate(claim)}
+                        onClick={() => openValidateModal(claim)}
                         disabled={isProcessing}
                         className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -242,6 +252,74 @@ export const PaymentsTab: React.FC = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {showValidateModal && validatingClaim && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Confirmer la validation</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setShowValidateModal(false);
+                  setValidatingClaim(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <p className="text-gray-600 mb-4">
+              Vous êtes sur le point de valider le paiement suivant. Cette action activera ou prolongera l'abonnement du client.
+            </p>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="text-gray-600">Organisation :</div>
+                <div className="font-semibold">{validatingClaim.organizationName}</div>
+                <div className="text-gray-600">Facture :</div>
+                <div className="font-semibold">{validatingClaim.invoiceNumber}</div>
+                <div className="text-gray-600">Montant :</div>
+                <div className="font-bold text-green-700">{formatCurrency(validatingClaim.amount)}</div>
+                <div className="text-gray-600">Moyen de paiement :</div>
+                <div className="font-semibold">{getPaymentMethodName(validatingClaim.paymentMethod)}</div>
+                <div className="text-gray-600">Référence :</div>
+                <div className="font-mono text-sm">{validatingClaim.transactionReference || '-'}</div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowValidateModal(false);
+                  setValidatingClaim(null);
+                }}
+                disabled={processingId !== null}
+                className="flex-1 py-2.5 px-4 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleValidate}
+                disabled={processingId !== null}
+                className="flex-1 py-2.5 px-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
+              >
+                {processingId ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CheckCircle className="w-4 h-4" />
+                )}
+                <span>Confirmer la validation</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
