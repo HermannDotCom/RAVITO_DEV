@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import {
   BookOpen,
-  Rocket,
-  Store,
+  LayoutDashboard,
+  Truck,
   ClipboardList,
-  Send,
-  MapPin,
+  Package,
   Wallet,
-  BadgeCheck,
-  BarChart2,
+  MapPin,
+  Tag,
+  History,
+  Store,
   Users,
   Headphones,
   ChevronRight,
@@ -18,15 +19,16 @@ import { SUPPLIER_GUIDE_TABS, GuideTab } from './steps';
 import { GuideTabContent } from './GuideTabContent';
 
 const TAB_ICONS: Record<string, React.FC<{ className?: string }>> = {
-  demarrage: Rocket,
-  profil: Store,
-  commandes: ClipboardList,
-  offres: Send,
+  dashboard: LayoutDashboard,
+  'delivery-mode': Truck,
+  orders: ClipboardList,
+  deliveries: Package,
+  treasury: Wallet,
   zones: MapPin,
-  tresorerie: Wallet,
-  abonnement: BadgeCheck,
-  intelligence: BarChart2,
-  equipe: Users,
+  pricing: Tag,
+  history: History,
+  profile: Store,
+  team: Users,
   support: Headphones,
 };
 
@@ -47,6 +49,8 @@ export const SupplierGuidePage: React.FC = () => {
       setActiveTab(SUPPLIER_GUIDE_TABS[currentIndex - 1].id);
     }
   };
+
+  const totalSteps = SUPPLIER_GUIDE_TABS.reduce((acc, t) => acc + t.steps.length, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -75,23 +79,22 @@ export const SupplierGuidePage: React.FC = () => {
             </button>
           </div>
           <p className="mt-4 text-emerald-100 text-sm leading-relaxed">
-            Ce guide décrit le fonctionnement de chaque section de votre espace Fournisseur Ravito.
-            Il vous accompagne de la configuration initiale de votre profil jusqu&apos;à la gestion
-            quotidienne de vos commandes et de votre trésorerie.
+            Ce guide couvre l&apos;ensemble des sections de votre espace Fournisseur Ravito :
+            gestion des commandes, offres, livraisons, zones, revenus, produits vendus et équipe.
           </p>
-          <div className="mt-4 flex items-center gap-2 text-emerald-200 text-xs">
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-emerald-200 text-xs">
             <span className="bg-white/20 rounded-full px-2 py-0.5">
               {SUPPLIER_GUIDE_TABS.length} sections
             </span>
             <span className="bg-white/20 rounded-full px-2 py-0.5">
-              {SUPPLIER_GUIDE_TABS.reduce((acc, t) => acc + t.steps.length, 0)} étapes expliquées
+              {totalSteps} étapes expliquées
             </span>
           </div>
         </div>
 
         <div className="flex gap-6">
           {/* Sidebar navigation */}
-          <nav className="hidden md:flex flex-col gap-1 w-56 flex-shrink-0">
+          <nav className="hidden md:flex flex-col gap-1 w-52 flex-shrink-0">
             {SUPPLIER_GUIDE_TABS.map((tab, idx) => {
               const Icon = TAB_ICONS[tab.id] ?? BookOpen;
               const isActive = tab.id === activeTab;
@@ -99,7 +102,7 @@ export const SupplierGuidePage: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group ${
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all group ${
                     isActive
                       ? 'bg-emerald-600 text-white shadow-md'
                       : 'text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:shadow-sm'
@@ -120,11 +123,11 @@ export const SupplierGuidePage: React.FC = () => {
                       }`}
                     />
                   </div>
-                  <span className="text-sm font-medium truncate">{tab.label}</span>
-                  {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto flex-shrink-0" />}
+                  <span className="text-sm font-medium truncate flex-1">{tab.label}</span>
+                  {isActive && <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" />}
                   {!isActive && (
-                    <span className="ml-auto text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
-                      {idx + 1}/{SUPPLIER_GUIDE_TABS.length}
+                    <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
+                      {idx + 1}
                     </span>
                   )}
                 </button>
@@ -174,7 +177,8 @@ export const SupplierGuidePage: React.FC = () => {
                     {currentTab.label}
                   </h2>
                   <p className="text-gray-400 dark:text-gray-500 text-xs">
-                    {currentIndex + 1} sur {SUPPLIER_GUIDE_TABS.length} sections
+                    Section {currentIndex + 1} sur {SUPPLIER_GUIDE_TABS.length} —{' '}
+                    {currentTab.steps.length} étape{currentTab.steps.length > 1 ? 's' : ''}
                   </p>
                 </div>
               </div>

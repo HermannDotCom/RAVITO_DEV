@@ -16,388 +16,453 @@ export interface GuideTab {
 
 export const SUPPLIER_GUIDE_TABS: GuideTab[] = [
   {
-    id: 'demarrage',
-    label: 'Démarrage',
-    icon: 'rocket',
+    id: 'dashboard',
+    label: 'Accueil',
+    icon: 'layout-dashboard',
     intro:
-      "Bienvenue dans l'espace Fournisseur Ravito. Ce guide vous explique comment configurer votre profil, recevoir des commandes, gérer vos offres et suivre votre activité sur la plateforme.",
+      "L'écran d'Accueil est votre tableau de bord principal en tant que fournisseur. Il vous donne une vue synthétique de votre activité en cours, des commandes disponibles et de votre performance.",
     steps: [
       {
         number: 1,
-        title: "S'inscrire et soumettre sa demande",
+        title: "Consulter les indicateurs en temps réel",
         description:
-          "Lors de votre inscription, renseignez le nom de votre établissement, votre numéro de téléphone, votre zone de couverture et les produits que vous distribuez (Solibra, Brassivoire). Votre dossier est ensuite soumis à l'équipe Ravito pour validation.",
-        tip: "Une inscription complète (avec photo de devanture et géolocalisation du dépôt) est traitée beaucoup plus rapidement.",
+          "Le tableau de bord affiche vos KPIs clés : nombre de commandes disponibles dans vos zones, offres en attente de réponse client, commandes actives en cours de livraison et votre solde disponible. Ces chiffres se mettent à jour en temps réel.",
       },
       {
         number: 2,
-        title: "Attendre la validation de votre compte",
+        title: "Voir les commandes urgentes",
         description:
-          "Après soumission, votre dossier est examiné par un administrateur Ravito. Vous recevez une notification dès que votre compte est approuvé. En attendant, vous pouvez compléter votre profil.",
+          "Les commandes récentes ou arrivant bientôt à expiration sont mises en avant pour que vous puissiez y répondre en priorité. Un indicateur de temps vous signale les commandes à traiter rapidement.",
+        tip: "Répondre dans les premières minutes augmente significativement vos chances d'être sélectionné par le client.",
       },
       {
         number: 3,
-        title: "Compléter votre profil",
+        title: "Accéder rapidement aux sections",
         description:
-          "Dans l'onglet 'Mon Profil', renseignez toutes vos informations : nom du gérant, téléphone, adresse du dépôt, horaires d'activité, produits disponibles, moyens de paiement acceptés et géolocalisation de votre dépôt. Ces données sont visibles par les clients lors de la sélection d'un fournisseur.",
-        tip: "Un profil 100% complet augmente vos chances d'être sélectionné par les clients.",
+          "Des raccourcis en bas du tableau de bord permettent d'aller directement aux commandes disponibles, à vos offres en cours ou à votre trésorerie sans passer par le menu latéral.",
       },
       {
         number: 4,
-        title: "Comprendre la navigation",
+        title: "Comprendre votre statut de disponibilité",
         description:
-          "Le menu latéral vous donne accès aux différentes sections de votre espace fournisseur : profil, commandes disponibles, mes offres, zones, trésorerie, équipe et support. Naviguez en cliquant sur chaque item.",
+          "Un indicateur sur l'accueil affiche si vous êtes en mode 'Disponible' ou 'Indisponible'. Quand vous êtes indisponible, vous ne recevez plus de nouvelles commandes. Basculez votre statut depuis votre profil.",
       },
     ],
     notes: [
-      "Votre compte doit être approuvé par un admin Ravito avant de pouvoir recevoir des commandes.",
-      "Toutes vos informations de profil sont stockées de manière sécurisée et ne sont jamais partagées avec des tiers.",
+      "Le tableau de bord se rafraîchit automatiquement pour refléter les nouvelles commandes entrantes.",
+      "Un compte non encore approuvé par Ravito verra un message d'alerte sur l'accueil.",
     ],
   },
   {
-    id: 'profil',
-    label: 'Mon Profil',
-    icon: 'store',
+    id: 'delivery-mode',
+    label: 'Mode Livreur',
+    icon: 'truck',
     intro:
-      "Votre profil est votre vitrine sur Ravito. Il est consulté par les clients avant de vous sélectionner comme fournisseur. Plus il est complet et précis, plus vous avez de chances d'être choisi.",
+      "Le Mode Livreur est une vue simplifiée et optimisée pour les membres de votre équipe en charge des livraisons. Il affiche uniquement les informations nécessaires à la réalisation d'une tournée.",
     steps: [
       {
         number: 1,
-        title: "Renseigner vos informations de contact",
+        title: "Activer le mode livreur",
         description:
-          "Saisissez le nom de votre gérant, votre numéro de téléphone principal et le nom de votre établissement. Ces informations permettent aux clients et à l'équipe Ravito de vous contacter rapidement.",
+          "Depuis l'accueil ou le menu, activez le mode livreur pour basculer vers l'interface simplifiée. Ce mode est conçu pour être utilisé sur téléphone mobile lors des déplacements.",
       },
       {
         number: 2,
-        title: "Définir vos horaires d'activité",
+        title: "Consulter les livraisons assignées",
         description:
-          "Précisez les horaires pendant lesquels vous êtes disponible pour recevoir et préparer des commandes (ex : '18h00 - 06h00'). Les clients voient ces horaires lors de la sélection d'un fournisseur.",
-        tip: "Si vos horaires varient, indiquez la plage la plus large et ajustez votre statut de disponibilité manuellement.",
+          "La liste affiche uniquement les commandes qui vous sont assignées en tant que livreur, avec l'adresse de livraison, le nom du client, les articles à livrer et le mode de paiement prévu.",
       },
       {
         number: 3,
-        title: "Sélectionner vos produits disponibles",
+        title: "Naviguer vers l'adresse de livraison",
         description:
-          "Cochez les marques que vous distribuez : Solibra et/ou Brassivoire. Ces informations sont utilisées pour filtrer les commandes pertinentes dans votre zone.",
+          "Appuyez sur l'adresse d'une livraison pour ouvrir votre application de navigation et obtenir l'itinéraire jusqu'au client. La géolocalisation du dépôt du client est utilisée si disponible.",
+        tip: "Si le client a fourni des instructions d'accès, elles sont affichées sous l'adresse. Lisez-les avant de partir.",
       },
       {
         number: 4,
-        title: "Configurer les moyens de paiement acceptés",
+        title: "Confirmer une livraison avec le code",
         description:
-          "Indiquez les modes de règlement que vous acceptez : Orange Money, MTN Mobile Money, Moov Money, Wave, espèces. Cela aide les clients à choisir leur mode de paiement au moment de la commande.",
+          "À la remise de la commande, demandez au client son code de confirmation à 8 chiffres. Saisissez ce code dans l'interface pour valider définitivement la livraison. Cette action déclenche le paiement.",
+        tip: "Ne confirmez jamais une livraison sans le code du client, même si le client insiste. Ce code protège les deux parties.",
       },
       {
         number: 5,
-        title: "Géolocaliser votre dépôt",
+        title: "Signaler un problème de livraison",
         description:
-          "Utilisez le sélecteur de localisation pour placer le marqueur précisément sur votre dépôt. Renseignez également l'adresse complète et les instructions d'accès (ex : 'Portail bleu, derrière la station Total'). Cela guide les livreurs et les clients.",
-        tip: "Une géolocalisation précise est indispensable pour que vos livraisons arrivent au bon endroit.",
-      },
-      {
-        number: 6,
-        title: "Ajouter la photo de votre devanture",
-        description:
-          "Téléchargez une photo claire et récente de la façade de votre établissement. Cette photo rassure les clients sur l'existence physique de votre commerce et accélère la validation de votre compte.",
-      },
-      {
-        number: 7,
-        title: "Activer/désactiver votre disponibilité",
-        description:
-          "Depuis la carte de résumé en haut de votre profil, vous pouvez activer ou désactiver votre disponibilité en un clic. En mode 'Indisponible', vous ne recevrez plus de nouvelles commandes jusqu'à réactivation.",
-        tip: "Pensez à passer en 'Indisponible' lors de vos congés ou ruptures de stock importantes.",
+          "En cas d'incident (client absent, adresse introuvable, refus de la commande), utilisez le bouton 'Signaler un problème' pour notifier l'équipe support et le client.",
       },
     ],
     notes: [
-      "Les modifications de profil sont enregistrées immédiatement et visibles par les clients.",
-      "Un alerte en haut de votre profil vous indique les informations manquantes qui pourraient freiner votre validation.",
+      "Le mode livreur peut être utilisé par n'importe quel membre de votre équipe ayant les permissions de livraison.",
+      "Les confirmations de livraison sont irréversibles. Vérifiez bien le code avant de valider.",
     ],
   },
   {
-    id: 'commandes',
-    label: 'Commandes Disponibles',
+    id: 'orders',
+    label: 'Commandes',
     icon: 'clipboard-list',
     intro:
-      "La section 'Commandes Disponibles' affiche toutes les commandes de clients dans vos zones de livraison auxquelles vous pouvez répondre. C'est ici que vous commencez à générer du chiffre d'affaires.",
+      "La section Commandes est le cœur de votre activité sur Ravito. Elle centralise les commandes disponibles dans vos zones auxquelles vous pouvez répondre, vos offres en attente et vos commandes actives.",
     steps: [
       {
         number: 1,
-        title: "Consulter les commandes disponibles",
+        title: "Onglet 'Disponibles' — Commandes sans offre",
         description:
-          "La liste affiche toutes les commandes ouvertes dans vos zones : produits demandés, quantités, adresse de livraison et heure de passage de la commande. Les commandes récentes apparaissent en premier.",
-        tip: "Répondez rapidement : un client peut sélectionner le premier fournisseur qui propose une offre attractive.",
+          "Cet onglet affiche toutes les commandes ouvertes dans vos zones pour lesquelles vous n'avez pas encore soumis d'offre. Pour chaque commande, vous voyez les produits demandés, les quantités, la zone de livraison et le temps écoulé depuis la commande.",
+        tip: "Les commandes les plus récentes sont en haut. Plus vous répondez vite, plus vous avez de chances d'être choisi.",
       },
       {
         number: 2,
-        title: "Analyser le détail d'une commande",
+        title: "Créer une offre pour une commande",
         description:
-          "Cliquez sur une commande pour voir son détail complet : liste des produits avec les quantités demandées, l'adresse de livraison du client, la distance approximative et l'heure souhaitée.",
+          "Cliquez sur une commande puis sur 'Faire une offre'. Dans le formulaire, vous pouvez ajuster les quantités disponibles, appliquer vos prix personnalisés ou les prix de référence, et indiquer le statut des emballages consignés (caisses). Vérifiez le montant total avant de soumettre.",
+        tip: "Si vous n'avez pas tous les produits, vous pouvez quand même soumettre une offre partielle. Le client décidera s'il l'accepte.",
       },
       {
         number: 3,
-        title: "Créer une offre pour une commande",
+        title: "Onglet 'Mes Offres' — En attente de réponse",
         description:
-          "Cliquez sur 'Faire une offre'. Dans le formulaire, vous pouvez confirmer ou ajuster les quantités disponibles, appliquer vos prix personnalisés, et indiquer les emballages consignés (caisses, palettes). Vérifiez le montant total avant de soumettre.",
-        tip: "Si vous n'avez pas tous les produits demandés, vous pouvez quand même proposer une offre partielle. Le client décidera.",
+          "Cet onglet liste toutes les offres que vous avez soumises et pour lesquelles le client n'a pas encore statué. Vous voyez pour chaque offre le délai depuis la soumission et le montant proposé.",
       },
       {
         number: 4,
-        title: "Suivre l'état de vos offres",
+        title: "Onglet 'Actives' — Commandes en cours",
         description:
-          "Une fois votre offre soumise, elle apparaît dans la section 'Mes Offres' avec le statut 'En attente'. Le client recevra une notification et pourra accepter, refuser ou négocier votre offre.",
+          "Les commandes dont votre offre a été acceptée apparaissent ici. Chaque commande affiche son statut actuel : 'En attente de paiement', 'Payé', 'En préparation' ou 'En livraison'. Mettez à jour le statut au fur et à mesure.",
+      },
+      {
+        number: 5,
+        title: "Mettre à jour le statut d'une commande",
+        description:
+          "Une fois qu'une commande est payée, passez-la en 'En préparation' pour informer le client. Quand la commande est remise au livreur, passez-la en 'En livraison'. Ces changements déclenchent des notifications automatiques pour le client.",
       },
     ],
     notes: [
       "Vous ne pouvez soumettre qu'une seule offre par commande.",
-      "Les commandes expirent après un délai défini par la plateforme si aucun fournisseur ne répond.",
-      "Votre taux de réponse aux commandes disponibles est pris en compte dans votre score de fiabilité.",
+      "Une offre refusée par le client n'est pas facturée. Votre taux de refus peut influencer votre visibilité.",
+      "Les commandes expirent si aucun fournisseur ne répond dans le délai imparti.",
     ],
   },
   {
-    id: 'offres',
-    label: 'Mes Offres',
-    icon: 'send',
+    id: 'deliveries',
+    label: 'Livraisons',
+    icon: 'package',
     intro:
-      "La section 'Mes Offres' centralise toutes les offres que vous avez soumises et les commandes acceptées. C'est votre tableau de suivi de l'activité commerciale en cours.",
+      "La section Livraisons regroupe toutes les commandes en cours de livraison. C'est ici que vous suivez et finalisez les livraisons jusqu'à la confirmation par le client.",
     steps: [
       {
         number: 1,
-        title: "Consulter vos offres en attente",
+        title: "Consulter les livraisons en cours",
         description:
-          "L'onglet 'Offres en attente' liste les offres que vous avez soumises mais pour lesquelles le client n'a pas encore statué. Le délai depuis la soumission est affiché pour chaque offre.",
+          "La liste affiche les commandes actuellement en statut 'En livraison' avec les informations de chaque client : adresse, articles commandés, code de confirmation attendu et heure d'envoi.",
       },
       {
         number: 2,
-        title: "Suivre les commandes actives",
+        title: "Voir le détail d'une livraison",
         description:
-          "L'onglet 'Commandes actives' affiche les commandes dont votre offre a été acceptée par le client. Pour chaque commande, vous voyez le statut : 'En attente de paiement', 'Payé', 'En préparation', 'En livraison'.",
-        tip: "Mettez à jour le statut de chaque commande au fur et à mesure pour informer le client en temps réel.",
+          "Cliquez sur une livraison pour voir le détail complet : adresse précise avec instructions d'accès, liste des articles avec quantités, montant total et mode de paiement prévu.",
       },
       {
         number: 3,
-        title: "Préparer et confirmer une commande payée",
+        title: "Confirmer la réception avec le code client",
         description:
-          "Dès qu'une commande passe au statut 'Payé', commencez la préparation. Passez manuellement la commande en statut 'En préparation' pour signaler au client que vous avez bien pris en charge sa commande.",
+          "À la livraison, le client communique son code de confirmation à 8 chiffres visible dans son application. Saisissez ce code dans l'interface pour valider la livraison. La transaction est alors définitivement enregistrée.",
+        tip: "En cas de code refusé, vérifiez que vous êtes bien sur la bonne commande et que le client communique le bon code (visible dans 'Mes commandes').",
       },
       {
         number: 4,
-        title: "Gérer la livraison",
+        title: "Gérer les livraisons problématiques",
         description:
-          "Quand la commande est prête et remise au livreur, passez-la en 'En livraison'. Le client reçoit une notification et peut suivre la progression de sa commande.",
-      },
-      {
-        number: 5,
-        title: "Confirmer la livraison avec le code",
-        description:
-          "À la réception, le client communique son code de confirmation à 8 chiffres. Saisissez ce code pour valider définitivement la livraison. Cette étape déclenche le virement de votre paiement.",
-        tip: "Ne confirmez jamais une livraison sans le code du client. Cela protège à la fois le client et vous.",
+          "Si une livraison échoue (client absent, adresse incorrecte, refus), utilisez le bouton de signalement pour documenter le problème. L'équipe support sera notifiée et pourra intervenir.",
       },
     ],
     notes: [
-      "Une offre refusée par le client n'est pas facturée. Vous pouvez proposer une nouvelle offre sur une autre commande.",
-      "La confirmation de livraison par code est obligatoire pour que le paiement soit libéré.",
+      "La confirmation de livraison déclenche automatiquement le virement du montant sur votre solde Ravito.",
+      "Un livreur assigné à votre équipe peut confirmer les livraisons depuis le mode livreur.",
     ],
   },
   {
-    id: 'zones',
-    label: 'Zones de Livraison',
-    icon: 'map-pin',
-    intro:
-      "Les Zones de Livraison définissent les secteurs géographiques dans lesquels vous pouvez opérer et recevoir des commandes. Plus vous couvrez de zones actives, plus vous avez de commandes potentielles.",
-    steps: [
-      {
-        number: 1,
-        title: "Consulter les zones disponibles",
-        description:
-          "La liste affiche toutes les zones actives de la plateforme avec le nombre de fournisseurs déjà présents dans chaque zone. Cliquez sur une zone pour voir sa description géographique.",
-      },
-      {
-        number: 2,
-        title: "Demander l'accès à une nouvelle zone",
-        description:
-          "Cliquez sur 'Demander l'accès' pour la zone souhaitée. Votre demande est transmise aux administrateurs Ravito qui vérifient que votre dépôt peut effectivement couvrir cette zone.",
-        tip: "Choisissez uniquement les zones que vous pouvez couvrir réellement. Une mauvaise couverture dégrade votre note de fiabilité.",
-      },
-      {
-        number: 3,
-        title: "Suivre le statut de vos demandes",
-        description:
-          "Vos demandes en cours apparaissent dans la section 'Demandes en attente' avec leur statut (En attente, Approuvée, Refusée). En cas de refus, le motif est indiqué pour vous permettre de corriger votre dossier.",
-      },
-      {
-        number: 4,
-        title: "Consulter vos zones approuvées",
-        description:
-          "Les zones dans lesquelles vous êtes approuvé apparaissent dans la section 'Mes zones'. Ce sont les zones pour lesquelles vous recevez des commandes disponibles.",
-      },
-    ],
-    notes: [
-      "Votre abonnement peut limiter le nombre de zones dans lesquelles vous pouvez opérer simultanément.",
-      "Une zone désactivée par l'administration ne génère plus de commandes jusqu'à sa réactivation.",
-    ],
-  },
-  {
-    id: 'tresorerie',
-    label: 'Trésorerie',
+    id: 'treasury',
+    label: 'Revenus',
     icon: 'wallet',
     intro:
-      "La Trésorerie vous donne une vue complète de vos flux financiers sur Ravito : revenus des ventes, commissions prélevées, retraits effectués et solde disponible.",
+      "La section Revenus vous donne une vision complète de vos flux financiers sur Ravito : encaissements, commissions, retraits et évolution de votre chiffre d'affaires.",
     steps: [
       {
         number: 1,
         title: "Consulter votre solde disponible",
         description:
-          "La carte de solde en haut de la page affiche votre solde disponible en temps réel. C'est le montant que vous pouvez retirer à tout moment.",
+          "La carte en haut de la page affiche votre solde disponible (montant retirable), le montant en attente de confirmation (livraisons en cours), et le total gagné sur le mois.",
       },
       {
         number: 2,
-        title: "Lire l'historique des transactions",
+        title: "Analyser le graphique de revenus",
         description:
-          "La liste des transactions affiche l'ensemble de vos mouvements financiers : encaissements (commandes payées), commissions Ravito déduites, retraits et éventuels bonus. Chaque transaction est horodatée avec le libellé de la commande associée.",
+          "Le graphique affiche votre chiffre d'affaires mensuel sur les 6 derniers mois. La partie verte représente votre revenu net après commission Ravito. Utilisez ce graphique pour identifier vos meilleures périodes et adapter vos disponibilités.",
       },
       {
         number: 3,
-        title: "Filtrer vos transactions",
+        title: "Lire l'historique des transactions",
         description:
-          "Utilisez les filtres pour afficher uniquement les transactions d'une période donnée ou d'un type précis (Vente, Commission, Retrait, Bonus). Cela facilite la réconciliation comptable.",
+          "La liste détaille chaque mouvement financier avec son type : Vente (encaissement d'une commande), Commission (part Ravito déduite automatiquement), Retrait (virement vers Mobile Money), Bonus (promotion ou ajustement). Chaque ligne affiche le montant, le libellé et la date.",
       },
       {
         number: 4,
-        title: "Visualiser vos revenus",
+        title: "Filtrer les transactions",
         description:
-          "Le graphique de revenus affiche votre chiffre d'affaires mensuel sur les dernières semaines ou mois. Il vous aide à identifier vos meilleures périodes et à anticiper votre activité.",
+          "Utilisez les filtres pour afficher une période précise (7 jours, 30 jours, 90 jours, tout) ou un type de transaction spécifique. La barre de recherche permet de retrouver une transaction par description ou numéro de commande.",
       },
       {
         number: 5,
         title: "Effectuer un retrait",
         description:
-          "Cliquez sur 'Retirer des fonds'. Saisissez le montant souhaité et votre numéro de Mobile Money (Orange, MTN, Moov ou Wave). Validez la demande. Le virement est traité dans les délais indiqués.",
-        tip: "Vérifiez bien le numéro de Mobile Money avant de confirmer. Les retraits sur numéros incorrects ne peuvent pas être annulés.",
+          "Cliquez sur 'Retirer des fonds'. Saisissez le montant souhaité (inférieur ou égal à votre solde disponible) et votre numéro de Mobile Money. Choisissez l'opérateur (Orange Money, MTN, Moov ou Wave) et confirmez. Le virement est effectué dans les délais affichés.",
+        tip: "Vérifiez minutieusement votre numéro Mobile Money avant de confirmer. Les retraits vers des numéros incorrects ne peuvent pas être annulés.",
       },
       {
         number: 6,
         title: "Exporter vos données financières",
         description:
-          "Cliquez sur 'Exporter' pour télécharger vos transactions au format Excel ou CSV sur la période sélectionnée. Utile pour votre comptabilité ou votre déclaration fiscale.",
+          "Cliquez sur 'Exporter' pour télécharger un fichier Excel ou CSV de vos transactions sur la période sélectionnée. Utile pour votre comptabilité mensuelle ou votre déclaration fiscale.",
       },
     ],
     notes: [
-      "La commission Ravito est automatiquement déduite de chaque transaction avant crédit de votre solde.",
-      "Les retraits peuvent être soumis à un délai de traitement selon le volume et le prestataire Mobile Money.",
+      "La commission Ravito (5%) est déduite automatiquement à chaque encaissement et apparaît comme une ligne séparée dans l'historique.",
+      "Les retraits peuvent prendre jusqu'à 24h selon l'opérateur Mobile Money et le volume des demandes en cours.",
     ],
   },
   {
-    id: 'abonnement',
-    label: 'Mon Abonnement',
-    icon: 'badge-check',
+    id: 'zones',
+    label: 'Mes Zones',
+    icon: 'map-pin',
     intro:
-      "Votre abonnement détermine votre niveau d'accès sur la plateforme Ravito : nombre de zones, accès aux analytics, support prioritaire. Choisissez le plan adapté à votre volume d'activité.",
+      "La section Mes Zones vous permet de gérer les secteurs géographiques dans lesquels vous êtes autorisé à opérer et recevoir des commandes. Votre couverture de zone est directement liée au volume de commandes que vous recevrez.",
     steps: [
       {
         number: 1,
-        title: "Consulter votre plan actuel",
+        title: "Consulter vos zones approuvées",
         description:
-          "La page d'abonnement affiche votre plan en cours (Gratuit, Argent, Or ou Platine), sa date d'expiration et les fonctionnalités incluses. Un encadré met en évidence les fonctionnalités que vous n'avez pas encore débloquées.",
+          "La liste de vos zones actives apparaît en haut de la page. Ce sont les zones pour lesquelles vous recevez des commandes disponibles dans la section 'Commandes'. Chaque zone indique le nombre de fournisseurs actifs concurrents.",
       },
       {
         number: 2,
-        title: "Comprendre les niveaux d'abonnement",
+        title: "Demander l'accès à une nouvelle zone",
         description:
-          "Chaque niveau débloque des capacités supplémentaires : le plan Gratuit permet d'opérer dans une zone limitée, les plans supérieurs (Argent, Or, Platine) augmentent le nombre de zones, donnent accès aux analytics avancés et au support prioritaire.",
-        tip: "Si vous souhaitez couvrir plusieurs zones simultanément, un plan payant est nécessaire.",
+          "Parcourez la liste des zones disponibles (non encore demandées) et cliquez sur 'Demander l'accès' pour la zone souhaitée. Votre demande est transmise aux administrateurs Ravito pour validation.",
+        tip: "Demandez uniquement les zones que vous pouvez couvrir réellement en respectant vos délais de livraison. Des livraisons tardives ou annulées dégradent votre note et votre visibilité.",
       },
       {
         number: 3,
-        title: "Upgrader son abonnement",
+        title: "Suivre vos demandes en attente",
         description:
-          "Cliquez sur le plan souhaité puis sur 'Passer à ce plan'. Sélectionnez votre moyen de paiement (Mobile Money), confirmez le montant, puis validez. Votre plan est mis à jour instantanément après confirmation du paiement.",
+          "L'onglet 'Demandes en attente' liste toutes vos demandes de zones non encore traitées. Chaque demande affiche son statut (En attente, Approuvée, Refusée) et la date de soumission.",
       },
       {
         number: 4,
-        title: "Gérer le renouvellement",
+        title: "Comprendre un refus de zone",
         description:
-          "Votre abonnement est renouvelé automatiquement à l'échéance si le paiement est configuré. Vous recevez des rappels par notification 7 jours et 1 jour avant l'expiration. En cas de non-renouvellement, votre compte est suspendu après le délai de grâce.",
-        tip: "Assurez-vous d'avoir un solde suffisant sur votre Mobile Money à la date de renouvellement.",
+          "Si une demande est refusée, le motif du refus est affiché. Corrigez les points soulevés (ex : profil incomplet, zone hors périmètre de votre dépôt) puis resoumettez une nouvelle demande.",
+      },
+      {
+        number: 5,
+        title: "Retirer une zone ou annuler une demande",
+        description:
+          "Vous pouvez annuler une demande en attente ou demander le retrait d'une zone approuvée si vous ne souhaitez plus y opérer. Cette action prend effet immédiatement : vous ne recevrez plus de commandes de cette zone.",
       },
     ],
     notes: [
-      "Un compte suspendu ne reçoit plus de commandes disponibles, mais vos données et historiques sont conservés.",
-      "En cas de problème de paiement, contactez le support immédiatement pour éviter l'interruption de service.",
+      "Votre plan d'abonnement détermine le nombre maximum de zones que vous pouvez couvrir simultanément.",
+      "Une zone désactivée par l'administration ne génère plus de commandes jusqu'à sa réactivation par Ravito.",
     ],
   },
   {
-    id: 'intelligence',
-    label: 'Analytics & Intelligence',
-    icon: 'bar-chart-2',
+    id: 'pricing',
+    label: 'Produits Vendus',
+    icon: 'tag',
     intro:
-      "Le tableau de bord Analytics (disponible à partir du plan Argent) vous donne accès à des indicateurs de performance détaillés pour piloter et optimiser votre activité sur Ravito.",
+      "La section Produits Vendus vous permet de définir vos grilles tarifaires personnalisées par produit et par zone. Ces prix sont utilisés lors de la création de vos offres et peuvent différer des prix de référence Ravito.",
     steps: [
       {
         number: 1,
-        title: "Consulter vos indicateurs de performance (KPIs)",
+        title: "Consulter vos grilles de prix existantes",
         description:
-          "Le dashboard affiche vos KPIs clés : taux d'acceptation des offres, délai de réponse moyen, note client moyenne et chiffre d'affaires de la période. Chaque indicateur est coloré selon votre niveau de performance (vert = bon, orange = à améliorer, rouge = critique).",
-        tip: "Un taux d'acceptation élevé et un délai de réponse court augmentent votre priorité dans les suggestions faites aux clients.",
+          "La liste affiche toutes vos grilles tarifaires actives et passées, avec pour chaque produit : le prix unitaire, le prix à la caisse, le prix de la consigne, la zone concernée et les dates de validité.",
       },
       {
         number: 2,
-        title: "Analyser votre évolution dans le temps",
+        title: "Créer une nouvelle grille tarifaire",
         description:
-          "Les graphiques d'évolution montrent vos performances semaine par semaine ou mois par mois. Comparez vos tendances pour identifier vos meilleures périodes et adapter votre disponibilité en conséquence.",
+          "Cliquez sur '+ Nouvelle grille'. Sélectionnez le produit, la zone de livraison concernée (ou toutes les zones), puis renseignez vos trois tarifs : prix unitaire (à la bouteille/unité), prix caisse et prix de la consigne de l'emballage. Définissez si nécessaire une date de début et de fin de validité.",
+        tip: "Des prix compétitifs augmentent votre taux de sélection, mais assurez-vous de rester rentable après la commission Ravito.",
       },
       {
         number: 3,
-        title: "Identifier vos produits les plus vendus",
+        title: "Définir des quantités minimales et maximales",
         description:
-          "Le tableau des produits les plus demandés dans vos zones vous aide à prioriser vos stocks. Si un produit revient souvent dans les commandes, assurez-vous d'en avoir toujours en stock.",
+          "Pour chaque grille, vous pouvez définir une quantité minimale de commande (ex : minimum 5 caisses) et une quantité maximale que vous pouvez honorer. Ces contraintes sont visibles par les clients lors de leur commande.",
       },
       {
         number: 4,
-        title: "Comprendre les limites par niveau",
+        title: "Appliquer un taux de remise",
         description:
-          "Certaines fonctionnalités analytics sont réservées aux plans supérieurs : historique sur 12 mois (plan Or), intelligence concurrentielle (plan Platine). Les fonctionnalités verrouillées sont indiquées avec un bouton d'upgrade.",
+          "Vous pouvez configurer un pourcentage de remise automatique sur une grille tarifaire. Utile pour les clients réguliers ou les grandes commandes. La remise est calculée et affichée lors de la création de votre offre.",
+      },
+      {
+        number: 5,
+        title: "Mettre à jour ou désactiver un tarif",
+        description:
+          "Cliquez sur une grille existante pour la modifier ou la désactiver. Une grille désactivée n'est plus proposée lors de la création des offres ; les prix de référence Ravito prennent automatiquement le relais.",
+      },
+      {
+        number: 6,
+        title: "Consulter l'historique des modifications",
+        description:
+          "Chaque grille conserve un historique complet de ses modifications (création, mise à jour, activation, désactivation) avec la date et l'auteur du changement. Cet historique est visible en cliquant sur 'Historique des prix' dans le détail d'une grille.",
       },
     ],
     notes: [
-      "Les données analytics sont mises à jour toutes les 24 heures.",
-      "Le plan Gratuit donne accès à un historique limité à 30 jours. Les plans payants débloquent des historiques plus longs.",
+      "Si aucune grille personnalisée n'est définie pour un produit, le prix de référence Ravito est utilisé automatiquement lors de vos offres.",
+      "Des prix trop éloignés des prix de référence peuvent déclencher une alerte lors de la création de l'offre.",
     ],
   },
   {
-    id: 'equipe',
+    id: 'history',
+    label: 'Historique',
+    icon: 'history',
+    intro:
+      "La section Historique centralise toutes vos commandes et livraisons passées, complétées ou annulées. C'est votre archive complète de l'activité commerciale sur Ravito.",
+    steps: [
+      {
+        number: 1,
+        title: "Consulter les commandes terminées",
+        description:
+          "L'historique liste l'ensemble de vos commandes livrées avec, pour chaque entrée : la date, le client (anonymisé), les produits et quantités, le montant encaissé net de commission, et la note laissée par le client.",
+      },
+      {
+        number: 2,
+        title: "Filtrer et rechercher dans l'historique",
+        description:
+          "Utilisez les filtres de période (semaine, mois, trimestre, tout) et la barre de recherche pour retrouver une commande précise par numéro, zone ou produit. L'affichage peut être trié par date ou par montant.",
+      },
+      {
+        number: 3,
+        title: "Voir le détail d'une commande passée",
+        description:
+          "Cliquez sur une commande pour afficher son détail complet : articles, quantités, montant brut, commission déduite, montant net, et la note du client si elle a été laissée.",
+      },
+      {
+        number: 4,
+        title: "Consulter les commandes annulées ou refusées",
+        description:
+          "Un onglet dédié affiche les offres refusées et les commandes annulées avec le motif si renseigné. Ces données vous aident à comprendre pourquoi certaines offres ne sont pas retenues et à ajuster vos tarifs.",
+      },
+      {
+        number: 5,
+        title: "Exporter l'historique",
+        description:
+          "Cliquez sur 'Exporter' pour télécharger votre historique complet en Excel sur la période sélectionnée. Ce fichier contient toutes les colonnes nécessaires à votre déclaration comptable.",
+      },
+    ],
+    notes: [
+      "L'historique est conservé indéfiniment sur votre compte, même après annulation d'un abonnement.",
+      "Les notes clients visibles dans l'historique sont utilisées pour calculer votre note moyenne affichée sur votre profil.",
+    ],
+  },
+  {
+    id: 'profile',
+    label: 'Mon Profil',
+    icon: 'store',
+    intro:
+      "Votre profil est votre vitrine sur Ravito. Il est consulté par les clients avant de vous sélectionner. Un profil complet et à jour augmente significativement votre taux de sélection.",
+    steps: [
+      {
+        number: 1,
+        title: "Renseigner vos informations de contact",
+        description:
+          "Saisissez le nom de votre gérant, votre numéro de téléphone et le nom de votre établissement. Ces informations permettent aux clients et à l'équipe Ravito de vous identifier rapidement.",
+      },
+      {
+        number: 2,
+        title: "Définir vos horaires d'activité",
+        description:
+          "Précisez les horaires pendant lesquels vous êtes disponible pour recevoir et préparer des commandes (ex : '18h00 - 06h00'). Ces horaires sont visibles par les clients lors du choix d'un fournisseur.",
+        tip: "Si vos horaires varient les week-ends, indiquez la plage la plus large et activez/désactivez manuellement votre disponibilité.",
+      },
+      {
+        number: 3,
+        title: "Sélectionner les marques disponibles",
+        description:
+          "Cochez les marques que vous distribuez : Solibra et/ou Brassivoire. Ces informations filtrent les commandes pertinentes dans votre zone et informent les clients de ce que vous proposez.",
+      },
+      {
+        number: 4,
+        title: "Configurer les moyens de paiement acceptés",
+        description:
+          "Indiquez les modes de règlement que vous acceptez : Orange Money, MTN Mobile Money, Moov Money, Wave, espèces. Les clients voient cette information lors de la validation de leur commande.",
+      },
+      {
+        number: 5,
+        title: "Géolocaliser votre dépôt",
+        description:
+          "Utilisez le sélecteur de localisation pour placer le marqueur précisément sur votre dépôt. Renseignez l'adresse complète et les instructions d'accès pour les livreurs (ex : 'Portail bleu, derrière la station Total'). Cette géolocalisation est indispensable pour les itinéraires de livraison.",
+        tip: "Une géolocalisation précise réduit les erreurs de livraison et les réclamations clients.",
+      },
+      {
+        number: 6,
+        title: "Ajouter la photo de votre devanture",
+        description:
+          "Téléchargez une photo claire et récente de la façade de votre établissement. Cette photo rassure les clients et accélère la validation de votre compte par l'administration Ravito.",
+      },
+      {
+        number: 7,
+        title: "Gérer votre disponibilité",
+        description:
+          "Le bouton en haut de votre profil vous permet de basculer entre 'Disponible' et 'Indisponible'. En mode indisponible, vous n'apparaissez plus dans les résultats de recherche et ne recevez plus de nouvelles commandes.",
+        tip: "Passez en 'Indisponible' lors de vos congés, ruptures de stock ou périodes de forte charge pour éviter les commandes que vous ne pourrez pas honorer.",
+      },
+    ],
+    notes: [
+      "Les modifications de profil sont enregistrées immédiatement et visibles instantanément par les clients.",
+      "Une alerte en haut du profil signale les informations manquantes qui pourraient freiner l'approbation de votre compte.",
+    ],
+  },
+  {
+    id: 'team',
     label: 'Mon Équipe',
     icon: 'users',
     intro:
-      "La section Mon Équipe vous permet d'inviter des collaborateurs (livreurs, caissiers, assistants) et de leur attribuer des accès spécifiques à votre espace fournisseur.",
+      "La section Mon Équipe vous permet d'inviter des collaborateurs (livreurs, assistants, caissiers) et de gérer leurs accès à votre espace fournisseur Ravito.",
     steps: [
       {
         number: 1,
-        title: "Inviter un collaborateur",
+        title: "Inviter un nouveau membre",
         description:
-          "Cliquez sur '+ Inviter un membre'. Saisissez l'email de votre collaborateur et sélectionnez son rôle (Livreur, Assistant, etc.). Il recevra un email d'invitation pour créer son compte et rejoindre votre espace.",
-        tip: "Votre plan d'abonnement détermine le nombre maximum de membres que vous pouvez inviter.",
+          "Cliquez sur '+ Inviter un membre'. Saisissez l'adresse email de votre collaborateur et sélectionnez son rôle (Livreur, Assistant, etc.). Il recevra un email d'invitation pour créer son compte et rejoindre votre espace.",
+        tip: "Votre plan d'abonnement détermine le nombre maximum de membres que vous pouvez avoir simultanément.",
       },
       {
         number: 2,
-        title: "Attribuer des permissions",
+        title: "Attribuer des permissions modulaires",
         description:
-          "Pour chaque membre, vous pouvez configurer ses droits d'accès : quelles sections il peut voir et quelles actions il peut effectuer. Un livreur n'a pas besoin d'accéder à votre trésorerie, par exemple.",
+          "Pour chaque membre, configurez précisément ses droits d'accès : quelles sections il peut consulter (commandes, livraisons, trésorerie...) et quelles actions il peut effectuer. Un livreur n'a pas besoin d'accéder à votre trésorerie.",
       },
       {
         number: 3,
         title: "Gérer les membres actifs",
         description:
-          "La liste des membres affiche le nom, le rôle et le statut de chaque collaborateur. Vous pouvez désactiver un accès temporairement (ex : pendant les congés) ou le supprimer définitivement.",
+          "La liste affiche tous vos collaborateurs avec leur nom, rôle, statut et date d'invitation. Vous pouvez désactiver un accès temporairement (congés) ou le supprimer définitivement si le collaborateur quitte votre établissement.",
       },
       {
         number: 4,
         title: "Suivre les invitations en attente",
         description:
-          "L'onglet 'Invitations' liste les invitations envoyées qui n'ont pas encore été acceptées. Vous pouvez relancer ou annuler une invitation depuis cette liste.",
+          "L'onglet 'Invitations' liste les invitations envoyées non encore acceptées. Vous pouvez relancer l'email d'invitation ou annuler une invitation depuis cette liste.",
       },
     ],
     notes: [
-      "Les membres de votre équipe agissent au nom de votre compte. Vous êtes responsable de leurs actions.",
-      "Un membre désactivé ne peut plus se connecter mais ses données historiques sont conservées.",
+      "Les membres de votre équipe agissent au nom de votre compte fournisseur. Vous êtes responsable de leurs actions sur la plateforme.",
+      "Un membre désactivé ne peut plus se connecter, mais toutes ses actions passées restent tracées dans l'historique.",
     ],
   },
   {
@@ -405,37 +470,37 @@ export const SUPPLIER_GUIDE_TABS: GuideTab[] = [
     label: 'Support',
     icon: 'headphones',
     intro:
-      "Le Support vous permet de contacter directement l'équipe Ravito pour tout problème ou question concernant votre activité sur la plateforme.",
+      "Le Support vous permet de contacter directement l'équipe Ravito pour tout problème ou question : commandes litigieuses, problèmes de paiement, questions sur votre abonnement ou votre compte.",
     steps: [
       {
         number: 1,
         title: "Créer un nouveau ticket",
         description:
-          "Cliquez sur '+ Nouveau ticket'. Sélectionnez la catégorie de votre problème (Facturation, Technique, Commande, Zone, Compte...) et la priorité (Normale, Haute, Urgente). Rédigez un message clair et détaillé pour une prise en charge rapide.",
-        tip: "Plus votre description est précise (numéro de commande, montant, heure), plus la résolution sera rapide.",
+          "Cliquez sur '+ Nouveau ticket'. Choisissez la catégorie (Facturation, Technique, Commande, Zone, Compte...) et la priorité (Normale, Haute, Urgente). Rédigez un message détaillé avec toutes les informations pertinentes : numéro de commande, montant, date, captures d'écran si nécessaire.",
+        tip: "Plus votre description est précise, plus la résolution est rapide. Pensez à inclure le numéro de la commande concernée.",
       },
       {
         number: 2,
-        title: "Suivre vos tickets ouverts",
+        title: "Suivre l'avancement de vos tickets",
         description:
-          "La liste de vos tickets affiche leur statut (En attente, En cours, Résolu) et la date du dernier message. Cliquez sur un ticket pour consulter la conversation et voir la réponse de l'équipe support.",
+          "La liste de vos tickets affiche leur statut actuel (En attente, En cours de traitement, Résolu) et le délai depuis la dernière réponse. Cliquez sur un ticket pour lire la conversation complète.",
       },
       {
         number: 3,
-        title: "Répondre et échanger avec le support",
+        title: "Répondre aux questions du support",
         description:
-          "Dans le détail d'un ticket, utilisez la zone de texte en bas pour répondre aux questions du support ou fournir des informations complémentaires. Chaque échange est horodaté.",
+          "Dans le détail d'un ticket, utilisez la zone de saisie en bas pour répondre aux demandes d'information du support ou fournir des précisions complémentaires. Chaque message est horodaté.",
       },
       {
         number: 4,
-        title: "Clôturer un ticket résolu",
+        title: "Rouvrir un ticket non résolu",
         description:
-          "Une fois votre problème résolu, le support clôture le ticket. Si vous estimez que le problème persiste, rouvrez-le depuis la liste en cliquant sur 'Rouvrir'. Un ticket résolu reste consultable dans l'historique.",
+          "Si vous estimez que votre problème persiste après la clôture d'un ticket, rouvrez-le depuis la liste en cliquant sur 'Rouvrir'. Précisez pourquoi le problème n'est pas résolu pour une prise en charge rapide.",
       },
     ],
     notes: [
-      "Les tickets urgents sont traités en priorité dans la file d'attente de l'équipe support.",
-      "Pour les problèmes de paiement non résolu sous 24h, indiquez 'Urgente' dans la priorité.",
+      "Les tickets avec priorité 'Urgente' sont traités en premier dans la file d'attente du support.",
+      "Pour les problèmes de paiement ou de livraison non résolus sous 24h, passez la priorité à 'Urgente'.",
     ],
   },
 ];
