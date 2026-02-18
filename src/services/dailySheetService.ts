@@ -74,20 +74,16 @@ export const getOrCreateDailySheet = async (
       });
 
     if (createError) {
-      // If duplicate key error (race condition), try to fetch again
       if (createError.code === '23505') {
-        console.log('Sheet was created by another request, fetching...');
-        const { data: retrySheets } = await supabase
+        const { data: retrySheet } = await supabase
           .from('daily_sheets')
           .select('*')
           .eq('organization_id', organizationId)
-          .eq('sheet_date', date);
+          .eq('sheet_date', date)
+          .maybeSingle();
 
-        if (retrySheets && retrySheets.length > 0) {
-          return {
-            data: mapDailySheet(retrySheets[0]),
-            error: null
-          };
+        if (retrySheet) {
+          return { data: mapDailySheet(retrySheet), error: null };
         }
       }
 
@@ -98,18 +94,18 @@ export const getOrCreateDailySheet = async (
       };
     }
 
-    // Fetch the newly created sheet
-    const { data: newSheet, error: newFetchError } = await supabase
-      .from('daily_sheets')
-      .select('*')
-      .eq('id', newSheetId)
-      .single();
+    // Fetch the newly created sheet — use maybeSingle to avoid PGRST116 crash
+    const fetchQuery = newSheetId
+      ? supabase.from('daily_sheets').select('*').eq('id', newSheetId).maybeSingle()
+      : supabase.from('daily_sheets').select('*').eq('organization_id', organizationId).eq('sheet_date', date).maybeSingle();
 
-    if (newFetchError) {
+    const { data: newSheet, error: newFetchError } = await fetchQuery;
+
+    if (newFetchError || !newSheet) {
       console.error('Error fetching new daily sheet:', newFetchError);
       return {
         data: null,
-        error: newFetchError.message || 'Failed to fetch created sheet'
+        error: newFetchError?.message || 'Failed to fetch created sheet'
       };
     }
 
