@@ -40,7 +40,12 @@ export const ResponsiveKPIGrid: React.FC<ResponsiveKPIGridProps> = ({
 }) => {
   const getGridClasses = () => {
     const mobileClass = mobileColumns === 1 ? 'grid-cols-1' : 'grid-cols-2';
-    const desktopClass = `lg:grid-cols-${desktopColumns}`;
+    const desktopClassMap: Record<3 | 4 | 5, string> = {
+      3: 'lg:grid-cols-3',
+      4: 'lg:grid-cols-4',
+      5: 'lg:grid-cols-5',
+    };
+    const desktopClass = desktopClassMap[desktopColumns] ?? 'lg:grid-cols-4';
     return `grid ${mobileClass} sm:grid-cols-2 md:grid-cols-3 ${desktopClass} gap-3 sm:gap-4`;
   };
 

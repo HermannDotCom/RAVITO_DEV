@@ -38,7 +38,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
     <div className="bg-white border-b-[3px] border-transparent" style={{
       borderImage: 'linear-gradient(90deg, #F97316, #10B981, #F59E0B) 1'
     }}>
-      <div className="px-6 py-4">
+      <div className="px-4 sm:px-6 py-4">
         {/* Breadcrumbs */}
         {breadcrumbs && breadcrumbs.length > 0 && (
           <nav className="flex items-center gap-2 text-sm mb-3">
@@ -84,7 +84,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             {/* Title + Subtitle */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="font-display font-bold text-2xl text-slate-900">
+                <h1 className="font-display font-bold text-xl sm:text-2xl text-slate-900">
                   {title}
                 </h1>
                 {badge && (
