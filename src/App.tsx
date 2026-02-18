@@ -46,6 +46,7 @@ import { SubscriptionProvider } from './context/SubscriptionContext';
 import { ClientGuidePage } from './pages/Guide/ClientGuide';
 import { AdminGuidePage } from './pages/Guide/AdminGuide';
 import { SupplierGuidePage } from './pages/Guide/SupplierGuide';
+import { ProductCatalogPage } from './components/Admin/ProductCatalog';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing, sessionError, refreshSession, logout, clearSessionError } = useAuth();
@@ -204,7 +205,7 @@ const AppContent: React.FC = () => {
           case 'users':
             return <UserManagement />;
           case 'products':
-            return <div className="p-8"><p className="text-gray-600">Catalogue Produits - Module Marketplace à venir le 14/03/2026</p></div>;
+            return <ProductCatalogPage />;
           case 'zones':
             return <ZoneManagement />;
           case 'team':
