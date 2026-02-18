@@ -263,6 +263,71 @@ export const ADMIN_GUIDE_TABS: GuideTab[] = [
     ],
   },
   {
+    id: 'equipe',
+    label: 'Mon Équipe',
+    icon: 'users',
+    intro:
+      "La section Mon Équipe vous permet de gérer votre équipe administrative : inviter des collaborateurs, assigner des rôles, suivre les performances commerciales et gérer les commissions et objectifs.",
+    steps: [
+      {
+        number: 1,
+        title: 'Onglet Membres : Gérer votre équipe admin',
+        description:
+          'L\'onglet "Membres" liste tous les collaborateurs de votre équipe administrative. Pour chaque membre, vous voyez : son nom, son rôle (Propriétaire, Administrateur, Commercial, Support), son statut (Actif, Invité, Inactif) et sa date d\'ajout.',
+      },
+      {
+        number: 2,
+        title: 'Inviter un nouveau membre',
+        description:
+          'Cliquez sur "+ Inviter un membre". Saisissez l\'email du collaborateur, choisissez son rôle (ex : Support pour les tickets, Commercial pour la vente) et définissez ses permissions spécifiques. Une invitation est envoyée par email. Le nouveau membre crée son mot de passe lors de sa première connexion.',
+        tip: 'Assignez le rôle le plus restrictif possible. Vous pourrez toujours élever les permissions plus tard.',
+      },
+      {
+        number: 3,
+        title: 'Onglet Invitations : Suivre les invitations en attente',
+        description:
+          'L\'onglet "Invitations" affiche les invitations envoyées qui n\'ont pas encore été acceptées. Vous pouvez renvoyer une invitation expirée ou l\'annuler si le collaborateur ne doit plus rejoindre l\'équipe.',
+      },
+      {
+        number: 4,
+        title: 'Modifier les permissions d\'un membre',
+        description:
+          'Cliquez sur un membre existant pour ouvrir sa fiche. Vous pouvez modifier son rôle, ajuster ses permissions page par page (ex : accès aux tickets uniquement, ou gestion des utilisateurs uniquement) ou désactiver son compte.',
+        tip: 'La modification de permissions prend effet immédiatement. Le membre doit se reconnecter pour voir les changements.',
+      },
+      {
+        number: 5,
+        title: 'Onglet Tableau de Bord : Analyser l\'activité commerciale',
+        description:
+          'L\'onglet "Tableau de Bord" affiche les statistiques de votre réseau commercial : nombre de clients actifs, commissions générées, progression vs période précédente. Sélectionnez la période pour affiner la vue (semaine, mois, trimestre, année).',
+      },
+      {
+        number: 6,
+        title: 'Onglet Objectifs : Définir les cibles commerciales',
+        description:
+          'Dans l\'onglet "Objectifs", définissez des cibles mensuelles ou trimestrielles pour chaque commercial. Une fois les objectifs saisis, la progression de chaque commercial est affichée sous forme de barre de progression en temps réel.',
+        tip: 'Des objectifs réalistes et mesurables motivent mieux que des objectifs trop élevés et inatteignables.',
+      },
+      {
+        number: 7,
+        title: 'Onglet Primes : Gérer les commissions commerciales',
+        description:
+          'L\'onglet "Primes" liste les commissions dues à chaque commercial avec leur chiffre d\'affaires réalisé et leur statut de paiement (En attente / Payé). Vous pouvez marquer une commission comme payée, filtrer par commercial et exporter les données pour la comptabilité.',
+      },
+      {
+        number: 8,
+        title: 'Consulter les clients inscrits par les commerciaux',
+        description:
+          'Dans l\'onglet "Tableau de Bord", la section "Clients inscrits" affiche tous les clients qui ont été recommandés par les commerciaux. Vous pouvez vérifier quel commercial a apporté quel client, depuis quelle date et son niveau d\'activité.',
+      },
+    ],
+    notes: [
+      'Chaque membre de l\'équipe reçoit un email de notification lors de toute modification de ses permissions.',
+      'Les membres avec le rôle "Propriétaire" ont accès à toutes les sections et ne peuvent pas être restreints.',
+      'Désactivez un compte au lieu de le supprimer pour conserver l\'historique de ses actions dans les journaux.',
+    ],
+  },
+  {
     id: 'activite-commerciale',
     label: 'Activité Commerciale',
     icon: 'briefcase',
