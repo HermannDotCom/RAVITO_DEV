@@ -193,25 +193,42 @@ export const createSubscription = async (
       throw new Error('Organization already has an active subscription');
     }
 
-    // Calculer les dates de période d'essai
+    // Vérifier si l'organisation a déjà bénéficié d'une période d'essai (historique complet)
+    const { data: trialHistory, error: trialHistoryError } = await supabase
+      .from('subscriptions')
+      .select('id')
+      .eq('organization_id', data.organizationId)
+      .eq('is_first_subscription', true)
+      .limit(1);
+
+    if (trialHistoryError) throw trialHistoryError;
+
+    const hasPreviousTrialHistory = trialHistory && trialHistory.length > 0;
+
+    // Calculer les dates : essai seulement si jamais bénéficié auparavant
     const trialStartDate = new Date();
     const trialEndDate = new Date();
-    trialEndDate.setDate(trialEndDate.getDate() + plan.trialDays);
+    if (!hasPreviousTrialHistory) {
+      trialEndDate.setDate(trialEndDate.getDate() + plan.trialDays);
+    }
+    // Si déjà eu un essai, pas de période d'essai : l'abonnement démarre immédiatement
+    const hasTrial = !hasPreviousTrialHistory;
 
     // Calculer le prorata pour la période après l'essai
     const prorata = calculateProrata(plan, trialStartDate);
 
     // Créer l'abonnement avec les informations de prorata
+    const periodStart = hasTrial ? trialEndDate : trialStartDate;
     const { data: subscriptionData, error } = await supabase
       .from('subscriptions')
       .insert({
         organization_id: data.organizationId,
         plan_id: data.planId,
-        status: 'trial',
-        is_first_subscription: true,
-        trial_start_date: trialStartDate.toISOString(),
-        trial_end_date: trialEndDate.toISOString(),
-        current_period_start: trialEndDate.toISOString(),
+        status: hasTrial ? 'trial' : 'pending_payment',
+        is_first_subscription: hasTrial,
+        trial_start_date: hasTrial ? trialStartDate.toISOString() : null,
+        trial_end_date: hasTrial ? trialEndDate.toISOString() : null,
+        current_period_start: periodStart.toISOString(),
         current_period_end: prorata.periodEnd.toISOString(),
         next_billing_date: prorata.periodEnd.toISOString().split('T')[0],
         amount_due: prorata.amount,

@@ -120,7 +120,7 @@ const AppContent: React.FC = () => {
         userName={user.name || 'Utilisateur'}
         onContactSupport={() => {
           // For now, just logout and show message - support system requires active account
-          alert('Pour contacter le support, veuillez envoyer un email à support@ravito.app en mentionnant votre adresse email et votre nom.');
+          alert('Pour contacter le support, veuillez envoyer un email à support@ravito.ci en mentionnant votre adresse email et votre nom.');
           logout();
         }}
         onLogout={logout}
