@@ -10,7 +10,8 @@ import {
   Shield,
   ClipboardList,
   Briefcase,
-  ShoppingBag
+  ShoppingBag,
+  BookOpen
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useModuleAccess } from '../../hooks/useModuleAccess';
@@ -83,6 +84,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
           { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
           { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
+          { id: 'guide', label: 'Mode Opératoire', icon: BookOpen, moduleKey: 'guide' },
         ];
         // Add commercial activity for sales reps
         if (isSalesRep) {
@@ -154,11 +156,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
     if (!user?.isApproved && user?.role !== 'admin') {
       items = items.filter(item => item.id === 'profile' || item.id === 'support');
     } else if (user?.role === 'client' && !canAccessGestionActivity && !subscriptionLoading) {
-      // Clients without active subscription can only access "Support", "Mon Profil" and "Mon Abonnement"
+      // Clients without active subscription can only access "Support", "Mon Profil", "Mon Abonnement" and "Mode Opératoire"
       items = items.filter(item =>
         item.id === 'profile' ||
         item.id === 'support' ||
-        item.id === 'ravito-gestion-subscription'
+        item.id === 'ravito-gestion-subscription' ||
+        item.id === 'guide'
       );
     }
 

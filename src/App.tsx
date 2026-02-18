@@ -43,6 +43,7 @@ import { RavitoGestionSubscription } from './pages/RavitoGestionSubscription';
 import { SubscriptionGuard } from './components/Subscription/SubscriptionGuard';
 import { ContactSupport } from './components/Client/ContactSupport';
 import { SubscriptionProvider } from './context/SubscriptionContext';
+import { ClientGuidePage } from './pages/Guide/ClientGuide';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing, sessionError, refreshSession, logout, clearSessionError } = useAuth();
@@ -166,6 +167,8 @@ const AppContent: React.FC = () => {
                 <NotificationsPage />
               </SubscriptionGuard>
             );
+          case 'guide':
+            return <ClientGuidePage />;
           default:
             return (
               <SubscriptionGuard onSectionChange={setActiveSection}>
