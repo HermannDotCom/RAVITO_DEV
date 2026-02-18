@@ -194,7 +194,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
     },
     {
       question: 'Est-ce que je peux gérer plusieurs établissements ?',
-      answer: 'Oui, vous pouvez inviter des membres de votre équipe et gérer plusieurs points de vente avec un seul compte.',
+      answer: 'Oui, mais il vous faudra une inscription par établissement ou par point de vente.',
     },
     {
       question: 'Je suis propriétaire mais c\'est mon gérant qui gère au quotidien. Comment ça marche ?',
@@ -312,7 +312,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <span className="text-red-500 text-xl">•</span>
-                  <span className="text-gray-700">3 heures par jour à compter les cahiers papier</span>
+                  <span className="text-gray-700">3 heures par jour pour faire le point de la journée</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-red-500 text-xl">•</span>
@@ -474,7 +474,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-start gap-2">
                   <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Donnez ou retirez des droits à votre gérant</span>
+                  <span>Donnez ou retirez des droits à votre gérant et vos employés</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -504,7 +504,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Pas besoin d'être sur place pour contrôler</span>
+                  <span>RAVITO simplifie votre compte rendu quotidien d'activité</span>
                 </li>
               </ul>
             </div>
@@ -522,7 +522,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Fini les cahiers de points qui disparaissent</span>
+                  <span>Fini les points qui disparaissent avec les cahiers en papier</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -685,7 +685,7 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
               Ils nous font confiance
             </h2>
             <p className="text-xl text-gray-600">
-              Des centaines de gérants satisfaits en Côte d'Ivoire
+              Des centaines de propriétaires et gérants satisfaits en Côte d'Ivoire
             </p>
           </div>
 
