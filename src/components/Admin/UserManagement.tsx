@@ -287,58 +287,58 @@ export const UserManagement: React.FC = () => {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des Utilisateurs</h1>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Gestion des Utilisateurs</h1>
           <p className="text-gray-600">Gérez les comptes utilisateurs et validez les nouvelles demandes</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl border border-orange-200">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 sm:p-6 rounded-xl border border-orange-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-orange-600 text-sm font-medium">En attente</p>
-                <p className="text-3xl font-bold text-orange-700 mt-1">{pendingUsers.length}</p>
+                <p className="text-orange-600 text-xs sm:text-sm font-medium">En attente</p>
+                <p className="text-2xl sm:text-3xl font-bold text-orange-700 mt-1">{pendingUsers.length}</p>
               </div>
-              <div className="h-12 w-12 bg-orange-200 rounded-full flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-orange-600" />
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-orange-200 rounded-full flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 sm:p-6 rounded-xl border border-blue-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-600 text-sm font-medium">Clients</p>
-                <p className="text-3xl font-bold text-blue-700 mt-1">{totalClients}</p>
+                <p className="text-blue-600 text-xs sm:text-sm font-medium">Clients</p>
+                <p className="text-2xl sm:text-3xl font-bold text-blue-700 mt-1">{totalClients}</p>
               </div>
-              <div className="h-12 w-12 bg-blue-200 rounded-full flex items-center justify-center">
-                <Users className="h-6 w-6 text-blue-600" />
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-200 rounded-full flex items-center justify-center">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 sm:p-6 rounded-xl border border-green-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-600 text-sm font-medium">Fournisseurs</p>
-                <p className="text-3xl font-bold text-green-700 mt-1">{totalSuppliers}</p>
+                <p className="text-green-600 text-xs sm:text-sm font-medium">Fournisseurs</p>
+                <p className="text-2xl sm:text-3xl font-bold text-green-700 mt-1">{totalSuppliers}</p>
               </div>
-              <div className="h-12 w-12 bg-green-200 rounded-full flex items-center justify-center">
-                <Users className="h-6 w-6 text-green-600" />
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-green-200 rounded-full flex items-center justify-center">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 rounded-xl border border-slate-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-600 text-sm font-medium">Actifs</p>
-                <p className="text-3xl font-bold text-purple-700 mt-1">{totalActiveUsers}</p>
+                <p className="text-slate-600 text-xs sm:text-sm font-medium">Actifs</p>
+                <p className="text-2xl sm:text-3xl font-bold text-slate-700 mt-1">{totalActiveUsers}</p>
               </div>
-              <div className="h-12 w-12 bg-purple-200 rounded-full flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-purple-600" />
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-slate-200 rounded-full flex items-center justify-center">
+                <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-slate-600" />
               </div>
             </div>
           </div>
@@ -346,26 +346,26 @@ export const UserManagement: React.FC = () => {
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="border-b border-gray-200">
-            <div className="flex space-x-4 p-4">
+            <div className="flex flex-wrap gap-2 p-3 sm:p-4">
               <button
                 onClick={() => setActiveTab('pending')}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                className={`flex-1 sm:flex-none px-4 py-3 min-h-[44px] rounded-lg font-medium text-sm transition-colors ${
                   activeTab === 'pending'
                     ? 'bg-orange-100 text-orange-700'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                En attente d'approbation ({pendingUsers.length})
+                En attente ({pendingUsers.length})
               </button>
               <button
                 onClick={() => setActiveTab('approved')}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                className={`flex-1 sm:flex-none px-4 py-3 min-h-[44px] rounded-lg font-medium text-sm transition-colors ${
                   activeTab === 'approved'
                     ? 'bg-green-100 text-green-700'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                Utilisateurs approuvés ({users.length})
+                Approuvés ({users.length})
               </button>
             </div>
           </div>
@@ -423,27 +423,26 @@ export const UserManagement: React.FC = () => {
                   </div>
                 ) : (
                   filteredPendingUsers.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 bg-orange-50 border border-orange-200 rounded-lg hover:shadow-md transition-shadow">
-                      <div className="flex items-center space-x-4">
-                        <div className="h-12 w-12 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                    <div key={user.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg hover:shadow-md transition-shadow">
+                      <div className="flex items-center space-x-3">
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
                           <span className="text-white font-bold">
                             {user.name.charAt(0)}
                           </span>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{user.businessName || user.name}</h3>
-                          <div className="flex items-center space-x-3 mt-1">
-                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getRoleColor(user.role)}`}>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-gray-900 truncate">{user.businessName || user.name}</h3>
+                          <div className="flex flex-wrap items-center gap-2 mt-1">
+                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${getRoleColor(user.role)}`}>
                               {getRoleLabel(user.role)}
                             </span>
-                            <span className="text-sm text-gray-600">{user.email}</span>
-                            <span className="text-sm text-gray-500">Demandé le {formatDate(user.created_at)}</span>
+                            <span className="text-xs text-gray-600 truncate">{user.email}</span>
                           </div>
                         </div>
                       </div>
                       <button
                         onClick={() => setExaminedUser(user)}
-                        className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-2"
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm font-medium flex-shrink-0"
                       >
                         <Eye className="h-4 w-4" />
                         <span>Examiner</span>
@@ -461,32 +460,32 @@ export const UserManagement: React.FC = () => {
                   </div>
                 ) : (
                   filteredUsers.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                      <div className="flex items-center space-x-4">
-                        <div className="h-12 w-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center">
+                    <div key={user.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                      <div className="flex items-center space-x-3">
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center">
                           <span className="text-white font-bold">
                             {user.name.charAt(0)}
                           </span>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{user.name}</h3>
-                          <div className="flex items-center space-x-3 mt-1">
-                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getRoleColor(user.role)}`}>
+                        <div className="min-w-0">
+                          <h3 className="font-semibold text-gray-900 truncate">{user.name}</h3>
+                          <div className="flex flex-wrap items-center gap-2 mt-1">
+                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${getRoleColor(user.role)}`}>
                               {getRoleLabel(user.role)}
                             </span>
-                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${
                               user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                             }`}>
                               {user.isActive ? 'Actif' : 'Inactif'}
                             </span>
-                            <span className="text-sm text-gray-600">{user.email}</span>
+                            <span className="text-xs text-gray-600 truncate">{user.email}</span>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={() => setSelectedUser(user)}
-                          className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-blue-600 text-white hover:bg-blue-700 rounded-lg font-medium transition-colors text-sm flex-shrink-0"
                         >
                           <Eye className="h-4 w-4" />
                           <span>Détails</span>
