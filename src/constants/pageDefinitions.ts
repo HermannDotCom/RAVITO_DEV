@@ -10,7 +10,8 @@ import {
   Shield,
   Briefcase,
   ShoppingBag,
-  ClipboardList
+  ClipboardList,
+  BookOpen
 } from 'lucide-react';
 
 export interface PageDefinition {
@@ -20,13 +21,14 @@ export interface PageDefinition {
   exclusiveSuperAdmin?: boolean;
 }
 
-// Pour CLIENT (5 pages uniquement - RAVITO Gestion)
+// Pour CLIENT (6 pages uniquement - RAVITO Gestion)
 export const CLIENT_PAGES: PageDefinition[] = [
   { id: 'activity', label: 'Gestion Activité', icon: ClipboardList },
   { id: 'ravito-gestion-subscription', label: 'Mon Abonnement', icon: CreditCard },
   { id: 'team', label: 'Mon Équipe', icon: Users },
   { id: 'support', label: 'Support', icon: MessageSquare },
   { id: 'profile', label: 'Mon Profil', icon: User },
+  { id: 'guide', label: 'Mode Opératoire', icon: BookOpen },
 ];
 
 // Pour SUPPLIER/FOURNISSEUR (3 pages uniquement - RAVITO Gestion)
