@@ -94,17 +94,17 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
             {onEdit && (
               <button
                 onClick={() => onEdit(customer)}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                className="flex items-center justify-center w-10 h-10 hover:bg-slate-100 rounded-lg transition-colors"
                 title="Modifier"
               >
-                <Edit className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
+                <Edit className="w-5 h-5 text-slate-600" />
               </button>
             )}
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-600"
+              className="flex items-center justify-center w-10 h-10 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
             >
-              <X className="w-4 h-4 sm:w-5 sm:h-5" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -197,7 +197,7 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
               <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
                 <button
                   onClick={() => setFilter('all')}
-                  className={`px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded ${
+                  className={`px-3 py-2 min-h-[36px] text-xs font-medium rounded transition-colors ${
                     filter === 'all'
                       ? 'bg-white text-slate-900 shadow-sm'
                       : 'text-slate-600 hover:text-slate-900'
@@ -207,7 +207,7 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
                 </button>
                 <button
                   onClick={() => setFilter('month')}
-                  className={`px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded ${
+                  className={`px-3 py-2 min-h-[36px] text-xs font-medium rounded transition-colors ${
                     filter === 'month'
                       ? 'bg-white text-slate-900 shadow-sm'
                       : 'text-slate-600 hover:text-slate-900'
@@ -217,7 +217,7 @@ export const CustomerDetailsModal: React.FC<CustomerDetailsModalProps> = ({
                 </button>
                 <button
                   onClick={() => setFilter('week')}
-                  className={`px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded ${
+                  className={`px-3 py-2 min-h-[36px] text-xs font-medium rounded transition-colors ${
                     filter === 'week'
                       ? 'bg-white text-slate-900 shadow-sm'
                       : 'text-slate-600 hover:text-slate-900'

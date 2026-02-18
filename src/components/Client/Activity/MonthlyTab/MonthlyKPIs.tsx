@@ -30,7 +30,7 @@ export const MonthlyKPIs: React.FC<MonthlyKPIsProps> = ({ kpis, previousMonthKPI
       <h2 className="text-lg sm:text-xl font-bold text-slate-900">Indicateurs Clés du Mois</h2>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {/* Revenue Card */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-3 sm:p-5">
           <div className="flex items-center justify-between mb-1 sm:mb-2">
@@ -131,7 +131,7 @@ export const MonthlyKPIs: React.FC<MonthlyKPIsProps> = ({ kpis, previousMonthKPI
       </div>
 
       {/* Additional Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 sm:p-4 border border-green-200">
           <p className="text-xs sm:text-sm font-medium text-green-800 mb-1">CA Moyen Journalier</p>
           <p className="text-base sm:text-xl font-bold text-green-900">{formatCurrency(kpis.avgDailyRevenue)} F</p>
