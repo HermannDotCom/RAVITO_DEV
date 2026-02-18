@@ -1,13 +1,49 @@
 import React, { useState } from 'react';
 import { useEffect } from 'react';
-import { Settings, Bell, CreditCard, Package, Clock, Shield, Save, AlertTriangle } from 'lucide-react';
+import { Settings, Bell, CreditCard, Package, Clock, Shield, Save, AlertTriangle, BookOpen, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useCommission } from '../../context/CommissionContext';
 import { CrateTypesSettings } from './Settings/CrateTypesSettings';
 import { PaymentMethodsSettings } from './Settings/PaymentMethodsSettings';
+import { usePlatformSettings } from '../../hooks/usePlatformSettings';
 
 export const SystemSettings: React.FC = () => {
   const { commissionSettings, refreshCommissionSettings } = useCommission();
+  const { settings: platformSettings, loading: platformLoading, updateSetting: updatePlatformSetting } = usePlatformSettings();
+  const [guideToggles, setGuideToggles] = useState({
+    guide_client_enabled: true,
+    guide_supplier_enabled: true,
+    guide_admin_enabled: true,
+  });
+  const [guideSaving, setGuideSaving] = useState<string | null>(null);
+  const [guideSaveStatus, setGuideSaveStatus] = useState<Record<string, 'success' | 'error' | null>>({});
+
+  useEffect(() => {
+    if (!platformLoading) {
+      setGuideToggles({
+        guide_client_enabled: platformSettings.guide_client_enabled,
+        guide_supplier_enabled: platformSettings.guide_supplier_enabled,
+        guide_admin_enabled: platformSettings.guide_admin_enabled,
+      });
+    }
+  }, [platformSettings, platformLoading]);
+
+  const handleGuideToggle = async (key: 'guide_client_enabled' | 'guide_supplier_enabled' | 'guide_admin_enabled', value: boolean) => {
+    setGuideToggles(prev => ({ ...prev, [key]: value }));
+    setGuideSaving(key);
+    setGuideSaveStatus(prev => ({ ...prev, [key]: null }));
+
+    const success = await updatePlatformSetting(key, value);
+    setGuideSaveStatus(prev => ({ ...prev, [key]: success ? 'success' : 'error' }));
+    setGuideSaving(null);
+
+    if (!success) {
+      setGuideToggles(prev => ({ ...prev, [key]: !value }));
+    } else {
+      setTimeout(() => setGuideSaveStatus(prev => ({ ...prev, [key]: null })), 2000);
+    }
+  };
+
   const [settings, setSettings] = useState({
     // General Settings
     platformName: 'RAVITO',
@@ -580,6 +616,103 @@ export const SystemSettings: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Guide Settings */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-1 flex items-center">
+            <BookOpen className="h-5 w-5 mr-2 text-orange-600" />
+            Affichage du Mode Opératoire
+          </h3>
+          <p className="text-sm text-gray-500 mb-5">
+            Contrôle la visibilité de la page "Mode Opératoire" dans le menu de chaque interface.
+            Désactiver un guide le masque immédiatement pour tous les utilisateurs concernés.
+          </p>
+
+          <div className="space-y-4">
+            {[
+              {
+                key: 'guide_client_enabled' as const,
+                label: 'Interface Client',
+                description: 'Page "Mode Opératoire" visible dans le menu des clients',
+                color: 'orange',
+              },
+              {
+                key: 'guide_supplier_enabled' as const,
+                label: 'Interface Fournisseur',
+                description: 'Page "Mode Opératoire" visible dans le menu des fournisseurs',
+                color: 'emerald',
+              },
+              {
+                key: 'guide_admin_enabled' as const,
+                label: 'Interface Admin',
+                description: 'Page "Mode Opératoire" visible dans le menu des administrateurs',
+                color: 'slate',
+              },
+            ].map(({ key, label, description, color }) => {
+              const isEnabled = guideToggles[key];
+              const isSavingThis = guideSaving === key;
+              const status = guideSaveStatus[key];
+              return (
+                <div
+                  key={key}
+                  className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${
+                    isEnabled
+                      ? 'bg-green-50 border-green-200'
+                      : 'bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      isEnabled ? 'bg-green-100' : 'bg-gray-200'
+                    }`}>
+                      <BookOpen className={`h-4 w-4 ${isEnabled ? 'text-green-600' : 'text-gray-400'}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-900 text-sm">{label}</span>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                          isEnabled
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-gray-200 text-gray-500'
+                        }`}>
+                          {isEnabled ? 'Activé' : 'Désactivé'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{description}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 ml-4 flex-shrink-0">
+                    {isSavingThis && (
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-orange-400 border-t-transparent" />
+                    )}
+                    {status === 'success' && !isSavingThis && (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    )}
+                    {status === 'error' && !isSavingThis && (
+                      <XCircle className="h-4 w-4 text-red-500" />
+                    )}
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isEnabled}
+                        disabled={isSavingThis || platformLoading}
+                        onChange={(e) => handleGuideToggle(key, e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"></div>
+                    </label>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="mt-4 text-xs text-gray-400 flex items-start gap-1.5">
+            <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5 text-amber-400" />
+            La modification prend effet immédiatement. Les utilisateurs actuellement connectés verront le changement au prochain rechargement de leur menu.
+          </p>
         </div>
 
         {/* System Status */}

@@ -20,6 +20,7 @@ import { usePaymentNotifications } from '../../hooks/usePaymentNotifications';
 import { useSubscriptionContext } from '../../context/SubscriptionContext';
 import { MoreMenu } from '../ui/MoreMenu';
 import { getSalesRepByUserId } from '../../services/commercialActivityService';
+import { usePlatformSettings } from '../../hooks/usePlatformSettings';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
   const { allowedPages, isOwner, isSuperAdmin } = useAllowedPages();
   const { pendingPaymentsCount } = usePaymentNotifications();
   const { canAccessGestionActivity, loading: subscriptionLoading } = useSubscriptionContext();
+  const { settings: platformSettings } = usePlatformSettings();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [isSalesRep, setIsSalesRep] = useState(false);
 
@@ -84,9 +86,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
           { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
           { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
-          { id: 'guide', label: 'Mode Opératoire', icon: BookOpen, moduleKey: 'guide' },
+          ...(platformSettings.guide_client_enabled
+            ? [{ id: 'guide', label: 'Mode Opératoire', icon: BookOpen, moduleKey: 'guide' }]
+            : []),
         ];
-        // Add commercial activity for sales reps
         if (isSalesRep) {
           allMenuItems.splice(3, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
         }
@@ -96,9 +99,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
           { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
           { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
-          { id: 'supplier-guide', label: 'Mode Opératoire', icon: BookOpen, moduleKey: 'supplier-guide' },
+          ...(platformSettings.guide_supplier_enabled
+            ? [{ id: 'supplier-guide', label: 'Mode Opératoire', icon: BookOpen, moduleKey: 'supplier-guide' }]
+            : []),
         ];
-        // Add commercial activity for sales reps
         if (isSalesRep) {
           allMenuItems.splice(0, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
         }
@@ -116,7 +120,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare, moduleKey: 'tickets' },
           { id: 'data', label: 'Gestion des Donnees', icon: Settings, moduleKey: 'data' },
           { id: 'settings', label: 'Parametres', icon: Settings, moduleKey: 'settings' },
-          { id: 'admin-guide', label: 'Mode Opératoire', icon: BookOpen, moduleKey: 'admin-guide' },
+          ...(platformSettings.guide_admin_enabled
+            ? [{ id: 'admin-guide', label: 'Mode Opératoire', icon: BookOpen, moduleKey: 'admin-guide' }]
+            : []),
         ];
         break;
       default:
@@ -174,7 +180,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
     }
 
     return items;
-  }, [baseMainMenuItems, secondaryMenuItems.length, user?.role, user?.isApproved, canAccessGestionActivity, subscriptionLoading]);
+  }, [baseMainMenuItems, secondaryMenuItems.length, user?.role, user?.isApproved, canAccessGestionActivity, subscriptionLoading, platformSettings]);
 
   const handleMenuItemClick = (itemId: string) => {
     if (itemId === 'more') {
