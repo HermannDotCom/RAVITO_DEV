@@ -44,6 +44,7 @@ import { SubscriptionGuard } from './components/Subscription/SubscriptionGuard';
 import { ContactSupport } from './components/Client/ContactSupport';
 import { SubscriptionProvider } from './context/SubscriptionContext';
 import { ClientGuidePage } from './pages/Guide/ClientGuide';
+import { AdminGuidePage } from './pages/Guide/AdminGuide';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing, sessionError, refreshSession, logout, clearSessionError } = useAuth();
@@ -220,6 +221,8 @@ const AppContent: React.FC = () => {
           case 'subscription-management':
           case 'subscriptions':
             return <SubscriptionManagementPage />;
+          case 'admin-guide':
+            return <AdminGuidePage />;
           default:
             return <SuperAdminDashboard />;
         }

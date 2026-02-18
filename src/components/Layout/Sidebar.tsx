@@ -114,7 +114,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'roles', label: 'Gestion des Roles', icon: Shield, moduleKey: 'roles' },
           { id: 'tickets', label: 'Support & Tickets', icon: MessageSquare, moduleKey: 'tickets' },
           { id: 'data', label: 'Gestion des Donnees', icon: Settings, moduleKey: 'data' },
-          { id: 'settings', label: 'Parametres', icon: Settings, moduleKey: 'settings' }
+          { id: 'settings', label: 'Parametres', icon: Settings, moduleKey: 'settings' },
+          { id: 'admin-guide', label: 'Mode Opératoire', icon: BookOpen, moduleKey: 'admin-guide' },
         ];
         break;
       default:
