@@ -308,7 +308,7 @@ export const StocksTab: React.FC<StocksTabProps> = ({
                                   [product.id]: { ...form, initialStock: e.target.value }
                                 })}
                                 placeholder="0"
-                                className="w-20 px-2 py-1 text-sm border border-slate-300 rounded"
+                                className="w-20 px-2 py-2 min-h-[40px] text-sm border border-slate-300 rounded-lg"
                               />
                             </div>
                             <div className="flex items-center gap-1">
@@ -322,7 +322,7 @@ export const StocksTab: React.FC<StocksTabProps> = ({
                                   [product.id]: { ...form, sellingPrice: e.target.value }
                                 })}
                                 placeholder="0"
-                                className="w-24 px-2 py-1 text-sm border border-slate-300 rounded"
+                                className="w-24 px-2 py-2 min-h-[40px] text-sm border border-slate-300 rounded-lg"
                               />
                               <span className="text-xs text-slate-600">F/bout.</span>
                             </div>
@@ -422,7 +422,7 @@ export const StocksTab: React.FC<StocksTabProps> = ({
                   <button
                     onClick={() => handleRemoveProduct(line.id)}
                     disabled={removingProductId === line.id}
-                    className="text-red-600 hover:text-red-700 p-1"
+                    className="flex items-center justify-center w-10 h-10 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg disabled:opacity-50 transition-colors flex-shrink-0"
                     title="Supprimer"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -489,13 +489,13 @@ export const StocksTab: React.FC<StocksTabProps> = ({
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleSave(line.id)}
-                        className="flex-1 px-3 py-1.5 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700"
+                        className="flex-1 px-3 py-2.5 min-h-[44px] bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
                       >
                         Sauvegarder
                       </button>
                       <button
                         onClick={handleCancel}
-                        className="flex-1 px-3 py-1.5 bg-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-400"
+                        className="flex-1 px-3 py-2.5 min-h-[44px] bg-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-400"
                       >
                         Annuler
                       </button>
@@ -503,7 +503,7 @@ export const StocksTab: React.FC<StocksTabProps> = ({
                   ) : (
                     <button
                       onClick={() => handleEdit(line)}
-                      className="w-full px-3 py-1.5 bg-orange-500 text-white rounded text-sm font-medium hover:bg-orange-600"
+                      className="w-full px-3 py-2.5 min-h-[44px] bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600"
                     >
                       Modifier
                     </button>

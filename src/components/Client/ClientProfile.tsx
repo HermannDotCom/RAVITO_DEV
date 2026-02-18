@@ -221,7 +221,7 @@ export const ClientProfile: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6">
       {/* Alert for non-approved users */}
       {user && !user.isApproved && (
         <div className="mb-6 bg-amber-50 border-2 border-amber-400 rounded-xl p-6">
@@ -304,8 +304,8 @@ export const ClientProfile: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-1">
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 text-center">
             <div className="h-24 w-24 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-white text-2xl font-bold">
@@ -389,7 +389,7 @@ export const ClientProfile: React.FC = () => {
           </div>
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
+        <div className="md:col-span-2 space-y-6">
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
               <User className="h-5 w-5 mr-2 text-orange-600" />
