@@ -297,11 +297,7 @@ const AppContent: React.FC = () => {
     </div>
   );
 
-  if (user?.role === 'client' || user?.role === 'supplier') {
-    return <SubscriptionProvider>{content}</SubscriptionProvider>;
-  }
-
-  return content;
+  return <SubscriptionProvider>{content}</SubscriptionProvider>;
 };
 
 function App() {
