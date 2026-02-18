@@ -96,6 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
           { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
           { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
           { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
+          { id: 'supplier-guide', label: 'Mode Opératoire', icon: BookOpen, moduleKey: 'supplier-guide' },
         ];
         // Add commercial activity for sales reps
         if (isSalesRep) {

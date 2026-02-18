@@ -45,6 +45,7 @@ import { ContactSupport } from './components/Client/ContactSupport';
 import { SubscriptionProvider } from './context/SubscriptionContext';
 import { ClientGuidePage } from './pages/Guide/ClientGuide';
 import { AdminGuidePage } from './pages/Guide/AdminGuide';
+import { SupplierGuidePage } from './pages/Guide/SupplierGuide';
 
 const AppContent: React.FC = () => {
   const { user, isInitializing, sessionError, refreshSession, logout, clearSessionError } = useAuth();
@@ -190,6 +191,8 @@ const AppContent: React.FC = () => {
             return <CommercialActivityPage />;
           case 'notifications':
             return <NotificationsPage />;
+          case 'supplier-guide':
+            return <SupplierGuidePage />;
           default:
             return <SupplierProfile />;
         }

@@ -36,6 +36,7 @@ export const SUPPLIER_PAGES: PageDefinition[] = [
   { id: 'team', label: 'Mon Équipe', icon: Users },
   { id: 'support', label: 'Support', icon: MessageSquare },
   { id: 'profile', label: 'Mon Profil', icon: User },
+  { id: 'supplier-guide', label: 'Mode Opératoire', icon: BookOpen },
 ];
 
 // Pour ADMIN (pages assignables + pages exclusives Super Admin - RAVITO Gestion)
