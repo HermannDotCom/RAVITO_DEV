@@ -15,7 +15,7 @@ const formatPaymentMethod = (method: PaymentMethod): string => {
     orange_money: 'Orange Money',
     mtn_money: 'MTN Money',
     bank_transfer: 'Virement bancaire',
-    cash: 'Espèces'
+    cash: 'Especes'
   };
   return methodMap[method] || method;
 };
@@ -26,29 +26,35 @@ const generateReceiptNumber = (invoiceId: string): string => {
   return `REC-${year}-${lastSixChars}`;
 };
 
+// Formate un montant avec espace insecable ASCII-safe pour jsPDF
 const formatAmount = (amount: number): string => {
-  return amount.toLocaleString('fr-FR', { useGrouping: true }).replace(/\s/g, '\u202F') + ' FCFA';
+  const parts = Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return parts + ' FCFA';
+};
+
+const formatDate = (d: Date | null | undefined): string => {
+  if (!d) return 'N/A';
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+};
+
+const formatDateShort = (d: Date | null | undefined): string => {
+  if (!d) return 'N/A';
+  const day = d.getDate().toString().padStart(2, '0');
+  const month = (d.getMonth() + 1).toString().padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
 };
 
 const loadImageAsBase64 = async (url: string): Promise<string> => {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Failed to load image: ${response.statusText}`);
-    const blob = await response.blob();
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  } catch (error) {
-    console.error('Error loading logo image:', error);
-    throw error;
-  }
-};
-
-const drawRoundedRect = (doc: jsPDF, x: number, y: number, w: number, h: number, r: number, style: 'F' | 'S' | 'FD' = 'S') => {
-  doc.roundedRect(x, y, w, h, r, r, style);
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Failed to load image: ${response.statusText}`);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 };
 
 export const generatePaymentReceipt = async (data: ReceiptData): Promise<void> => {
@@ -56,326 +62,317 @@ export const generatePaymentReceipt = async (data: ReceiptData): Promise<void> =
 
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 18;
-  const contentWidth = pageWidth - margin * 2;
+  const W = doc.internal.pageSize.getWidth();   // 210
+  const H = doc.internal.pageSize.getHeight();  // 297
+  const mg = 20;
+  const cw = W - mg * 2;
 
-  // ─── Couleurs ───────────────────────────────────────────────────────────────
-  const orange     = [234, 88, 12]  as [number, number, number];
-  const orangeLight= [255, 237, 213]as [number, number, number];
-  const dark       = [30, 30, 30]   as [number, number, number];
-  const mid        = [80, 80, 80]   as [number, number, number];
-  const light      = [140, 140, 140]as [number, number, number];
-  const divider    = [230, 230, 230]as [number, number, number];
-  const greenBg    = [240, 253, 244]as [number, number, number];
-  const green      = [22, 163, 74]  as [number, number, number];
-  const cardBg     = [250, 250, 250]as [number, number, number];
-
-  // ─── Fond général blanc ─────────────────────────────────────────────────────
-  doc.setFillColor(255, 255, 255);
-  doc.rect(0, 0, pageWidth, pageHeight, 'F');
-
-  // ─── Barre de titre supérieure ──────────────────────────────────────────────
-  doc.setFillColor(...orange);
-  doc.rect(0, 0, pageWidth, 38, 'F');
-
-  // Accent décoratif (petite bande claire en bas de la barre)
-  doc.setFillColor(255, 255, 255, 0.15);
-  doc.setDrawColor(255, 255, 255);
-  doc.setLineWidth(0.3);
-  doc.setGState(doc.GState({ opacity: 0.15 }));
-  doc.rect(0, 35, pageWidth, 3, 'F');
-  doc.setGState(doc.GState({ opacity: 1 }));
-
-  // Logo dans la barre
-  try {
-    const logoBase64 = await loadImageAsBase64('/logo_sans_slogan.png');
-    doc.addImage(logoBase64, 'PNG', margin, 7, 28, 22);
-  } catch {
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255);
-    doc.text('RAVITO', margin, 22);
-  }
-
-  // Titre "REÇU DE PAIEMENT" dans la barre
-  doc.setFontSize(17);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(255, 255, 255);
-  doc.text('REÇU DE PAIEMENT', pageWidth - margin, 19, { align: 'right' });
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(255, 220, 190);
-  const receiptNumber = generateReceiptNumber(invoice.id);
-  doc.text(`N° ${receiptNumber}`, pageWidth - margin, 27, { align: 'right' });
-
-  // ─── Zone principale ─────────────────────────────────────────────────────────
-  let y = 50;
-
-  // Bandeau de statut "Payé" (vert)
-  doc.setFillColor(...greenBg);
-  drawRoundedRect(doc, margin, y, contentWidth, 13, 3, 'F');
-  doc.setDrawColor(...green);
-  doc.setLineWidth(0.4);
-  drawRoundedRect(doc, margin, y, contentWidth, 13, 3, 'S');
-
-  // Icone check (cercle vert + checkmark)
-  doc.setFillColor(...green);
-  doc.circle(margin + 8, y + 6.5, 3.5, 'F');
-  doc.setDrawColor(255, 255, 255);
-  doc.setLineWidth(0.7);
-  doc.line(margin + 6.4, y + 6.5, margin + 7.6, y + 7.8);
-  doc.line(margin + 7.6, y + 7.8, margin + 9.8, y + 5.2);
-
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...green);
-  doc.text('Paiement confirmé', margin + 14, y + 7.3);
-
-  const emissionDate = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 130, 100);
-  doc.text(`Émis le ${emissionDate}`, pageWidth - margin, y + 7.3, { align: 'right' });
-
-  y += 22;
-
-  // ─── Carte Montant payé ──────────────────────────────────────────────────────
-  doc.setFillColor(...orangeLight);
-  drawRoundedRect(doc, margin, y, contentWidth, 28, 4, 'F');
-  doc.setDrawColor(...orange);
-  doc.setLineWidth(0.5);
-  drawRoundedRect(doc, margin, y, contentWidth, 28, 4, 'S');
-
-  // Accent barre gauche
-  doc.setFillColor(...orange);
-  doc.roundedRect(margin, y, 3.5, 28, 2, 2, 'F');
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...light);
-  doc.text('MONTANT RÉGLÉ', margin + 9, y + 9);
-
-  doc.setFontSize(22);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...orange);
-  doc.text(formatAmount(invoice.paidAmount ?? invoice.amount), margin + 9, y + 22);
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...light);
-  doc.text(formatPaymentMethod(paymentMethod), pageWidth - margin - 5, y + 13, { align: 'right' });
-  const paymentDateStr = invoice.paidAt?.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) || '';
-  doc.setFontSize(8.5);
-  doc.setTextColor(...mid);
-  doc.text(paymentDateStr, pageWidth - margin - 5, y + 21, { align: 'right' });
-
-  y += 38;
-
-  // ─── Bloc 2 colonnes : Client + Facture ──────────────────────────────────────
-  const colGap = 5;
-  const colW = (contentWidth - colGap) / 2;
-
-  const drawCard = (cx: number, cy: number, cw: number, ch: number) => {
-    doc.setFillColor(...cardBg);
-    drawRoundedRect(doc, cx, cy, cw, ch, 3, 'F');
-    doc.setDrawColor(...divider);
-    doc.setLineWidth(0.3);
-    drawRoundedRect(doc, cx, cy, cw, ch, 3, 'S');
+  // Palette
+  const C = {
+    orange:   [234, 88,  12]  as [number,number,number],
+    darkGray: [40,  40,  40]  as [number,number,number],
+    midGray:  [90,  90,  90]  as [number,number,number],
+    lightGray:[150, 150, 150] as [number,number,number],
+    rule:     [220, 220, 220] as [number,number,number],
+    pageBg:   [248, 248, 248] as [number,number,number],
+    white:    [255, 255, 255] as [number,number,number],
+    greenTxt: [21,  128, 61]  as [number,number,number],
+    greenBg:  [220, 252, 231] as [number,number,number],
   };
 
-  const cardH = 38;
-  drawCard(margin, y, colW, cardH);
-  drawCard(margin + colW + colGap, y, colW, cardH);
+  // ── Fond page gris tres clair ─────────────────────────────────────────────
+  doc.setFillColor(...C.pageBg);
+  doc.rect(0, 0, W, H, 'F');
 
-  // Card gauche — CLIENT
-  doc.setFontSize(8);
+  // ── En-tete blanc avec bordure basse orange ───────────────────────────────
+  doc.setFillColor(...C.white);
+  doc.rect(0, 0, W, 45, 'F');
+  doc.setFillColor(...C.orange);
+  doc.rect(0, 43, W, 2, 'F');
+
+  // Logo blanc : on charge logo_with_slogan_transparent (fond transparent)
+  // Sur fond blanc le logo orange s'affiche parfaitement
+  let logoLoaded = false;
+  try {
+    const logoB64 = await loadImageAsBase64('/Logo_Ravito_avec_slogan.png');
+    doc.addImage(logoB64, 'PNG', mg, 8, 42, 28);
+    logoLoaded = true;
+  } catch {
+    // Fallback texte
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...C.orange);
+    doc.text('RAVITO', mg, 28);
+    logoLoaded = false;
+  }
+  void logoLoaded;
+
+  // Titre document a droite
+  doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...orange);
-  doc.text('CLIENT', margin + 5, y + 8);
+  doc.setTextColor(...C.darkGray);
+  doc.text('RECU DE PAIEMENT', W - mg, 20, { align: 'right' });
 
-  doc.setDrawColor(...orange);
-  doc.setLineWidth(0.4);
-  doc.line(margin + 5, y + 9.5, margin + 18, y + 9.5);
-
+  const receiptNumber = generateReceiptNumber(invoice.id);
   doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...dark);
-  doc.text(organizationName, margin + 5, y + 17);
-
-  doc.setFontSize(8.5);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...mid);
-  doc.text('Abonné Ravito Gestion', margin + 5, y + 24);
+  doc.setTextColor(...C.lightGray);
+  doc.text(`N  ${receiptNumber}`, W - mg, 28, { align: 'right' });
 
-  // Card droite — ABONNEMENT
-  const rx = margin + colW + colGap;
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...orange);
-  doc.text('ABONNEMENT', rx + 5, y + 8);
+  const emissionDate = formatDate(new Date());
+  doc.text(`Emis le ${emissionDate}`, W - mg, 35, { align: 'right' });
 
-  doc.setDrawColor(...orange);
-  doc.setLineWidth(0.4);
-  doc.line(rx + 5, y + 9.5, rx + 26, y + 9.5);
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...dark);
-  doc.text(`Plan ${planName}`, rx + 5, y + 17);
-
-  const periodStart = invoice.periodStart.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
-  const periodEnd = invoice.periodEnd.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...mid);
-  doc.text(`${periodStart} → ${periodEnd}`, rx + 5, y + 24);
-
-  y += cardH + 8;
-
-  // ─── Tableau récapitulatif ───────────────────────────────────────────────────
-  doc.setFillColor(...cardBg);
-  drawRoundedRect(doc, margin, y, contentWidth, 8, 2, 'F');
-  doc.setDrawColor(...divider);
+  // ── Zone contenu (carte blanche) ─────────────────────────────────────────
+  const cardY = 52;
+  const cardH = H - cardY - 18;
+  doc.setFillColor(...C.white);
+  doc.roundedRect(mg, cardY, cw, cardH, 3, 3, 'F');
+  doc.setDrawColor(...C.rule);
   doc.setLineWidth(0.3);
-  drawRoundedRect(doc, margin, y, contentWidth, 8, 2, 'S');
-  doc.setFontSize(8.5);
+  doc.roundedRect(mg, cardY, cw, cardH, 3, 3, 'S');
+
+  let y = cardY + 10;
+  const x = mg + 8;
+  const xr = W - mg - 8;
+
+  // ── Statut paiement confirme ─────────────────────────────────────────────
+  doc.setFillColor(...C.greenBg);
+  doc.roundedRect(x - 2, y - 4, cw - 12, 11, 2, 2, 'F');
+
+  doc.setFillColor(...C.greenTxt);
+  doc.circle(x + 3.5, y + 1.2, 3, 'F');
+  doc.setDrawColor(...C.white);
+  doc.setLineWidth(0.6);
+  doc.line(x + 2.1, y + 1.2, x + 3.1, y + 2.3);
+  doc.line(x + 3.1, y + 2.3, x + 5.1, y + 0.1);
+
+  doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...light);
-  doc.text('DESCRIPTION', margin + 5, y + 5.2);
-  doc.text('MONTANT', pageWidth - margin - 5, y + 5.2, { align: 'right' });
+  doc.setTextColor(...C.greenTxt);
+  doc.text('Paiement confirme', x + 9, y + 2.2);
+
+  y += 16;
+
+  // ── Separateur ───────────────────────────────────────────────────────────
+  doc.setDrawColor(...C.rule);
+  doc.setLineWidth(0.3);
+  doc.line(x - 2, y, xr + 2, y);
+
+  y += 10;
+
+  // ── Section MONTANT mis en avant ─────────────────────────────────────────
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...C.lightGray);
+  doc.text('MONTANT REGLE', x, y);
+
+  y += 7;
+  doc.setFontSize(26);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...C.orange);
+  const amountText = formatAmount(invoice.paidAmount ?? invoice.amount);
+  doc.text(amountText, x, y);
+
+  // Badge mode de paiement a droite
+  const pmLabel = formatPaymentMethod(paymentMethod);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...C.darkGray);
+  const pmW = doc.getTextWidth(pmLabel) + 8;
+  doc.setFillColor(...C.pageBg);
+  doc.setDrawColor(...C.rule);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(xr - pmW, y - 7, pmW, 8, 2, 2, 'FD');
+  doc.text(pmLabel, xr - pmW / 2, y - 2.2, { align: 'center' });
+
+  // Date de paiement sous le badge
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...C.lightGray);
+  doc.text(formatDate(invoice.paidAt), xr, y + 2, { align: 'right' });
+
+  y += 12;
+
+  // ── Separateur ───────────────────────────────────────────────────────────
+  doc.setDrawColor(...C.rule);
+  doc.setLineWidth(0.3);
+  doc.line(x - 2, y, xr + 2, y);
+
+  y += 10;
+
+  // ── Bloc 2 colonnes : Client | Abonnement ────────────────────────────────
+  const colGap = 6;
+  const colW = (cw - 16 - colGap) / 2;
+
+  const drawSubCard = (cx: number, cy: number, w: number, h: number) => {
+    doc.setFillColor(...C.pageBg);
+    doc.setDrawColor(...C.rule);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(cx, cy, w, h, 2, 2, 'FD');
+  };
+
+  const blockH = 32;
+  drawSubCard(x - 2, y, colW, blockH);
+  drawSubCard(x - 2 + colW + colGap, y, colW, blockH);
+
+  // Colonne gauche — CLIENT
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...C.orange);
+  doc.text('CLIENT', x + 3, y + 7);
+  doc.setDrawColor(...C.orange);
+  doc.setLineWidth(0.5);
+  doc.line(x + 3, y + 8, x + 14, y + 8);
+
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...C.darkGray);
+  // Tronquer si trop long
+  const orgDisplay = organizationName.length > 22 ? organizationName.substring(0, 22) + '...' : organizationName;
+  doc.text(orgDisplay, x + 3, y + 16);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...C.midGray);
+  doc.text('Abonne Ravito Gestion', x + 3, y + 23);
+
+  // Colonne droite — ABONNEMENT
+  const rx2 = x - 2 + colW + colGap;
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...C.orange);
+  doc.text('ABONNEMENT', rx2 + 3, y + 7);
+  doc.setDrawColor(...C.orange);
+  doc.setLineWidth(0.5);
+  doc.line(rx2 + 3, y + 8, rx2 + 26, y + 8);
+
+  doc.setFontSize(9.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...C.darkGray);
+  doc.text(`Plan ${planName}`, rx2 + 3, y + 16);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...C.midGray);
+  const periodLine = `${formatDateShort(invoice.periodStart)} au ${formatDateShort(invoice.periodEnd)}`;
+  doc.text(periodLine, rx2 + 3, y + 23);
+
+  y += blockH + 12;
+
+  // ── Tableau recapitulatif ────────────────────────────────────────────────
+  // En-tete tableau
+  doc.setFillColor(245, 245, 245);
+  doc.setDrawColor(...C.rule);
+  doc.setLineWidth(0.25);
+  doc.roundedRect(x - 2, y, cw - 12, 8, 1, 1, 'FD');
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...C.lightGray);
+  doc.text('DESCRIPTION', x + 3, y + 5.3);
+  doc.text('MONTANT', xr, y + 5.3, { align: 'right' });
 
   y += 8;
 
-  const rows: [string, string, boolean][] = [
-    ['Numéro de facture', invoice.invoiceNumber, false],
-    ['Montant facturé', formatAmount(invoice.amount), false],
-    ['Montant réglé', formatAmount(invoice.paidAmount ?? invoice.amount), true],
+  const tableRows: Array<{ label: string; value: string; highlight: boolean }> = [
+    { label: 'Numero de facture', value: invoice.invoiceNumber, highlight: false },
+    { label: 'Periode de service', value: `${formatDateShort(invoice.periodStart)} - ${formatDateShort(invoice.periodEnd)}`, highlight: false },
+    { label: 'Plan souscrit', value: `Plan ${planName}`, highlight: false },
+    { label: 'Montant facture', value: formatAmount(invoice.amount), highlight: false },
+    { label: 'Montant regle', value: formatAmount(invoice.paidAmount ?? invoice.amount), highlight: true },
   ];
 
-  if (invoice.amount !== (invoice.paidAmount ?? invoice.amount)) {
-    const remaining = invoice.amount - (invoice.paidAmount ?? 0);
-    if (remaining > 0) {
-      rows.push(['Reste à régler', formatAmount(remaining), false]);
-    }
-  }
+  tableRows.forEach((row, i) => {
+    const rowH = 9;
+    const ry = y + i * rowH;
+    doc.setFillColor(i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 250, i % 2 === 0 ? 255 : 250);
+    doc.rect(x - 2, ry, cw - 12, rowH, 'F');
 
-  rows.forEach(([label, value, isHighlight], idx) => {
-    const rowH = 10;
-    const rowY = y + idx * rowH;
+    doc.setDrawColor(...C.rule);
+    doc.setLineWidth(0.15);
+    doc.line(x - 2, ry + rowH, x - 2 + cw - 12, ry + rowH);
 
-    if (idx % 2 === 0) {
-      doc.setFillColor(255, 255, 255);
-    } else {
-      doc.setFillColor(248, 248, 248);
-    }
-    doc.rect(margin, rowY, contentWidth, rowH, 'F');
-
-    if (isHighlight) {
-      doc.setFontSize(9);
+    doc.setFontSize(8.5);
+    if (row.highlight) {
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...orange);
-    } else {
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...mid);
-    }
-    doc.text(label, margin + 5, rowY + 6.5);
-
-    if (isHighlight) {
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...orange);
+      doc.setTextColor(...C.orange);
     } else {
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(...dark);
+      doc.setTextColor(...C.midGray);
     }
-    doc.text(value, pageWidth - margin - 5, rowY + 6.5, { align: 'right' });
+    doc.text(row.label, x + 3, ry + 6);
 
-    doc.setDrawColor(...divider);
-    doc.setLineWidth(0.2);
-    doc.line(margin, rowY + rowH, pageWidth - margin, rowY + rowH);
+    if (row.highlight) {
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...C.orange);
+    } else {
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...C.darkGray);
+    }
+    doc.text(row.value, xr, ry + 6, { align: 'right' });
   });
 
-  // Bordure du tableau
-  const tableH = rows.length * 10;
-  doc.setDrawColor(...divider);
-  doc.setLineWidth(0.3);
-  doc.rect(margin, y, contentWidth, tableH, 'S');
+  // Bordure tableau
+  doc.setDrawColor(...C.rule);
+  doc.setLineWidth(0.25);
+  doc.rect(x - 2, y, cw - 12, tableRows.length * 9, 'S');
 
-  y += tableH + 8;
+  y += tableRows.length * 9 + 12;
 
-  // ─── Détails du paiement ─────────────────────────────────────────────────────
-  drawCard(margin, y, contentWidth, transactionReference ? 36 : 28);
+  // ── Details paiement ─────────────────────────────────────────────────────
+  const detailsH = transactionReference ? 34 : 26;
+  drawSubCard(x - 2, y, cw - 12, detailsH);
 
-  doc.setFontSize(8);
+  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...orange);
-  doc.text('DÉTAILS DU PAIEMENT', margin + 5, y + 8);
-  doc.setDrawColor(...orange);
-  doc.setLineWidth(0.4);
-  doc.line(margin + 5, y + 9.5, margin + 48, y + 9.5);
+  doc.setTextColor(...C.orange);
+  doc.text('DETAILS DU PAIEMENT', x + 3, y + 7);
+  doc.setDrawColor(...C.orange);
+  doc.setLineWidth(0.5);
+  doc.line(x + 3, y + 8, x + 44, y + 8);
 
-  const detailCol1 = margin + 5;
-  const detailCol2 = pageWidth / 2 + 5;
-  let dy = y + 18;
+  const halfX = x + 3;
+  const halfX2 = mg + 8 + cw / 2 - 10;
 
-  doc.setFontSize(8.5);
+  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...light);
-  doc.text('Mode de paiement', detailCol1, dy - 4);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...dark);
-  doc.text(formatPaymentMethod(paymentMethod), detailCol1, dy + 1);
+  doc.setTextColor(...C.lightGray);
+  doc.text('Mode de paiement', halfX, y + 16);
+  doc.text('Date de paiement', halfX2, y + 16);
 
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...light);
-  doc.text('Date de paiement', detailCol2, dy - 4);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...dark);
-  doc.text(invoice.paidAt?.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) || 'N/A', detailCol2, dy + 1);
+  doc.setTextColor(...C.darkGray);
+  doc.text(formatPaymentMethod(paymentMethod), halfX, y + 22);
+  doc.text(formatDate(invoice.paidAt), halfX2, y + 22);
 
   if (transactionReference) {
-    dy += 14;
+    doc.setFontSize(7.5);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...light);
-    doc.text('Référence de transaction', detailCol1, dy - 4);
+    doc.setTextColor(...C.lightGray);
+    doc.text('Reference de transaction', halfX, y + 29);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...dark);
-    doc.text(transactionReference, detailCol1, dy + 1);
+    doc.setTextColor(...C.darkGray);
+    const refDisplay = transactionReference.length > 30 ? transactionReference.substring(0, 30) + '...' : transactionReference;
+    doc.text(refDisplay, halfX, y + 35);
   }
 
-  y += (transactionReference ? 36 : 28) + 10;
+  // ── Pied de page ─────────────────────────────────────────────────────────
+  const footY = H - 14;
 
-  // ─── Pied de page ────────────────────────────────────────────────────────────
-  const footerY = pageHeight - 28;
-
-  doc.setDrawColor(...divider);
-  doc.setLineWidth(0.3);
-  doc.line(margin, footerY, pageWidth - margin, footerY);
-
-  // Accents décoratifs
-  doc.setFillColor(...orange);
-  doc.rect(margin, footerY, 20, 0.8, 'F');
-  doc.setFillColor(...divider);
-  doc.rect(margin + 22, footerY, contentWidth - 22, 0.8, 'F');
-
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...dark);
-  doc.text('Merci pour votre confiance !', pageWidth / 2, footerY + 9, { align: 'center' });
+  doc.setFillColor(...C.orange);
+  doc.rect(0, H - 3, W, 3, 'F');
 
   doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...C.darkGray);
+  doc.text('Merci pour votre confiance !', W / 2, footY - 2, { align: 'center' });
+
+  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...light);
-  doc.text('Ravito · Le ravitaillement qui ne dort jamais · ravito.app', pageWidth / 2, footerY + 16, { align: 'center' });
+  doc.setTextColor(...C.lightGray);
+  doc.text('Ravito  -  Le ravitaillement qui ne dort jamais  -  ravito.app', W / 2, footY + 4, { align: 'center' });
 
-  // Numéro de page
-  doc.setFontSize(8);
-  doc.setTextColor(...divider);
-  doc.text('Page 1 / 1', pageWidth - margin, footerY + 9, { align: 'right' });
-
-  // ─── Téléchargement ──────────────────────────────────────────────────────────
+  // ── Telechargement ────────────────────────────────────────────────────────
   doc.save(`Recu_Ravito_${invoice.invoiceNumber}.pdf`);
 };
