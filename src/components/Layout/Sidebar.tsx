@@ -56,6 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
    * Filtering logic:
    * - Owners: Have full access to everything
    * - Team members: Only see pages in their allowedPages list
+   * - Mode Opératoire pages: Visible to all users of that role if enabled via platform settings
    *
    * Note: Module-level permissions (hasAccess) are NOT checked here for team members
    * because allowed_pages is the source of truth for page access in team context.
@@ -67,6 +68,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
 
       // Owners have full access to everything
       if (isOwner) return true;
+
+      // Mode Opératoire pages are accessible to ALL users of that role
+      // when enabled via platform settings (no permission filtering needed)
+      // The visibility is already controlled by the toggle in admin settings
+      if (item.id === 'admin-guide' && platformSettings.guide_admin_enabled) return true;
+      if (item.id === 'guide' && platformSettings.guide_client_enabled) return true;
+      if (item.id === 'supplier-guide' && platformSettings.guide_supplier_enabled) return true;
 
       // For team members, check if page is in their allowedPages list
       return allowedPages.includes(item.id);
