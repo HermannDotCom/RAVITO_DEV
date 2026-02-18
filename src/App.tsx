@@ -180,26 +180,12 @@ const AppContent: React.FC = () => {
             return <SupplierProfile />;
           case 'support':
             return <SupplierContactSupport />;
-          case 'ravito-gestion-subscription':
-            return <RavitoGestionSubscription onSectionChange={setActiveSection} />;
           case 'team':
-            return (
-              <SubscriptionGuard onSectionChange={setActiveSection}>
-                <TeamPage />
-              </SubscriptionGuard>
-            );
+            return <TeamPage />;
           case 'commercial-activity':
-            return (
-              <SubscriptionGuard onSectionChange={setActiveSection}>
-                <CommercialActivityPage />
-              </SubscriptionGuard>
-            );
+            return <CommercialActivityPage />;
           case 'notifications':
-            return (
-              <SubscriptionGuard onSectionChange={setActiveSection}>
-                <NotificationsPage />
-              </SubscriptionGuard>
-            );
+            return <NotificationsPage />;
           default:
             return <SupplierProfile />;
         }

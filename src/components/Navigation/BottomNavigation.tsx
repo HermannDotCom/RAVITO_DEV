@@ -86,7 +86,6 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
       ];
     } else if (user.role === 'supplier') {
       items = [
-        { id: 'ravito-gestion-subscription', icon: CreditCard, label: 'Abonnement' },
         { id: 'team', icon: Users, label: 'Équipe' },
         { id: 'support', icon: MessageSquare, label: 'Support' },
         { id: 'profile', icon: User, label: 'Profil' },
@@ -96,8 +95,8 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
     // Non-approved users should only see "Mon Profil" and "Support"
     if (!user.isApproved && user.role !== 'admin') {
       items = items.filter(item => item.id === 'profile' || item.id === 'support');
-    } else if ((user.role === 'client' || user.role === 'supplier') && !canAccessGestionActivity && !subscriptionLoading) {
-      // Users without active subscription can only access "Support", "Profil" and "Abonnement"
+    } else if (user.role === 'client' && !canAccessGestionActivity && !subscriptionLoading) {
+      // Clients without active subscription can only access "Support", "Profil" and "Abonnement"
       items = items.filter(item =>
         item.id === 'profile' ||
         item.id === 'support' ||

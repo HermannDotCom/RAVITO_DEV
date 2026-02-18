@@ -91,14 +91,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
         break;
       case 'supplier':
         allMenuItems = [
-          { id: 'ravito-gestion-subscription', label: 'Mon Abonnement', icon: CreditCard, moduleKey: 'ravito-gestion-subscription' },
           { id: 'team', label: 'Mon Équipe', icon: Users, moduleKey: 'team' },
           { id: 'support', label: 'Support', icon: MessageSquare, moduleKey: 'support' },
           { id: 'profile', label: 'Mon Profil', icon: Settings, moduleKey: 'profile' },
         ];
         // Add commercial activity for sales reps
         if (isSalesRep) {
-          allMenuItems.splice(1, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
+          allMenuItems.splice(0, 0, { id: 'commercial-activity', label: 'Mon Activité Commerciale', icon: Briefcase, moduleKey: 'commercial-activity' });
         }
         break;
       case 'admin':
@@ -154,8 +153,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, activeSection
     // Non-approved users (except admins) should only see "Mon Profil" and "Support"
     if (!user?.isApproved && user?.role !== 'admin') {
       items = items.filter(item => item.id === 'profile' || item.id === 'support');
-    } else if ((user?.role === 'client' || user?.role === 'supplier') && !canAccessGestionActivity && !subscriptionLoading) {
-      // Users without active subscription can only access "Support", "Mon Profil" and "Mon Abonnement"
+    } else if (user?.role === 'client' && !canAccessGestionActivity && !subscriptionLoading) {
+      // Clients without active subscription can only access "Support", "Mon Profil" and "Mon Abonnement"
       items = items.filter(item =>
         item.id === 'profile' ||
         item.id === 'support' ||
