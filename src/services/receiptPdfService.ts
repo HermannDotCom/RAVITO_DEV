@@ -160,36 +160,17 @@ export const generatePaymentReceipt = async (data: ReceiptData): Promise<void> =
 
   y += 10;
 
-  // ── Section MONTANT mis en avant ─────────────────────────────────────────
-  doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...C.lightGray);
-  doc.text('MONTANT REGLE', x, y);
-
-  y += 7;
-  doc.setFontSize(26);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...C.orange);
-  const amountText = formatAmount(invoice.paidAmount ?? invoice.amount);
-  doc.text(amountText, x, y);
-
-  // Badge mode de paiement a droite
-  const pmLabel = formatPaymentMethod(paymentMethod);
-  doc.setFontSize(9);
+  // ── Section MONTANT : label a gauche, montant a droite sur la meme ligne ─
+  doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...C.darkGray);
-  const pmW = doc.getTextWidth(pmLabel) + 8;
-  doc.setFillColor(...C.pageBg);
-  doc.setDrawColor(...C.rule);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(xr - pmW, y - 7, pmW, 8, 2, 2, 'FD');
-  doc.text(pmLabel, xr - pmW / 2, y - 2.2, { align: 'center' });
+  doc.text('Montant regle', x, y);
 
-  // Date de paiement sous le badge
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...C.lightGray);
-  doc.text(formatDate(invoice.paidAt), xr, y + 2, { align: 'right' });
+  const amountText = formatAmount(invoice.paidAmount ?? invoice.amount);
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...C.orange);
+  doc.text(amountText, xr, y, { align: 'right' });
 
   y += 12;
 
@@ -371,7 +352,7 @@ export const generatePaymentReceipt = async (data: ReceiptData): Promise<void> =
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...C.lightGray);
-  doc.text('Ravito  -  Le ravitaillement qui ne dort jamais  -  ravito.app', W / 2, footY + 4, { align: 'center' });
+  doc.text('Ravito  -  Le ravitaillement qui ne dort jamais  -  ravito.ci', W / 2, footY + 4, { align: 'center' });
 
   // ── Telechargement ────────────────────────────────────────────────────────
   doc.save(`Recu_Ravito_${invoice.invoiceNumber}.pdf`);
