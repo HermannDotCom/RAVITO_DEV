@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   BookOpen,
   Package,
@@ -18,6 +18,23 @@ import {
   Crown,
   Eye,
   Cloud,
+  Sparkles,
+  Target,
+  Lock,
+  Bell,
+  Wallet,
+  TrendingDown,
+  Calendar,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  X,
+  Menu,
+  MapPin,
+  Award,
+  CheckCircle2,
+  ArrowUpRight,
 } from 'lucide-react';
 import { LandingHeader } from '../../components/Landing/LandingHeader';
 import { LandingFooter } from '../../components/Landing/LandingFooter';
@@ -26,9 +43,239 @@ interface LandingPageGestionProps {
   onNavigate: (path: string) => void;
 }
 
+// Animation hook for scroll reveal
+const useScrollReveal = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, isVisible };
+};
+
+// Animated counter component
+const AnimatedCounter: React.FC<{ end: number; suffix?: string; duration?: number }> = ({
+  end,
+  suffix = '',
+  duration = 2000,
+}) => {
+  const [count, setCount] = useState(0);
+  const countRef = useRef<HTMLSpanElement>(null);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          let startTime: number;
+          const animate = (currentTime: number) => {
+            if (!startTime) startTime = currentTime;
+            const progress = Math.min((currentTime - startTime) / duration, 1);
+            const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+            setCount(Math.floor(easeOutQuart * end));
+            if (progress < 1) {
+              requestAnimationFrame(animate);
+            }
+          };
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (countRef.current) {
+      observer.observe(countRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [end, duration, hasAnimated]);
+
+  return (
+    <span ref={countRef}>
+      {count}
+      {suffix}
+    </span>
+  );
+};
+
+// Testimonial carousel component
+const TestimonialCarousel: React.FC<{
+  testimonials: Array<{
+    name: string;
+    business: string;
+    role?: string;
+    text: string;
+    rating: number;
+    avatar?: string;
+  }>;
+}> = ({ testimonials }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, testimonials.length]);
+
+  const goTo = (index: number) => {
+    setCurrentIndex(index);
+    setIsAutoPlaying(false);
+    setTimeout(() => setIsAutoPlaying(true), 10000);
+  };
+
+  const next = () => goTo((currentIndex + 1) % testimonials.length);
+  const prev = () => goTo((currentIndex - 1 + testimonials.length) % testimonials.length);
+
+  return (
+    <div className="relative max-w-4xl mx-auto">
+      <div className="overflow-hidden">
+        <div
+          className="flex transition-transform duration-500 ease-out"
+          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+        >
+          {testimonials.map((testimonial, index) => (
+            <div key={index} className="w-full flex-shrink-0 px-4">
+              <div className="bg-white rounded-3xl p-8 md:p-12 shadow-xl border border-orange-100">
+                <div className="flex gap-1 mb-6">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="w-6 h-6 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <blockquote className="text-xl md:text-2xl text-gray-700 mb-8 leading-relaxed">
+                  "{testimonial.text}"
+                </blockquote>
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white text-xl font-bold">
+                    {testimonial.name.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="font-bold text-gray-900 text-lg">{testimonial.name}</div>
+                    <div className="text-gray-500">{testimonial.role || testimonial.business}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <button
+        onClick={prev}
+        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-orange-50 transition-colors"
+      >
+        <ChevronLeft className="w-6 h-6 text-gray-600" />
+      </button>
+      <button
+        onClick={next}
+        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-orange-50 transition-colors"
+      >
+        <ChevronRight className="w-6 h-6 text-gray-600" />
+      </button>
+
+      {/* Dots */}
+      <div className="flex justify-center gap-2 mt-8">
+        {testimonials.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => goTo(index)}
+            className={`w-3 h-3 rounded-full transition-all ${
+              index === currentIndex ? 'bg-orange-500 w-8' : 'bg-gray-300 hover:bg-gray-400'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Feature card with hover effect
+const FeatureCard: React.FC<{
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  color: string;
+  delay: number;
+}> = ({ icon: Icon, title, description, color, delay }) => {
+  const { ref, isVisible } = useScrollReveal();
+
+  return (
+    <div
+      ref={ref}
+      className={`group relative bg-white rounded-2xl p-8 border border-gray-100 hover:border-transparent transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      <div
+        className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${color}`}
+      />
+      <div className="relative z-10">
+        <div
+          className={`h-14 w-14 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
+        >
+          <Icon className="text-white" size={28} />
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-gray-900 transition-colors">
+          {title}
+        </h3>
+        <p className="text-gray-600 leading-relaxed">{description}</p>
+      </div>
+    </div>
+  );
+};
+
+// Benefit comparison item
+const BenefitItem: React.FC<{
+  type: 'before' | 'after';
+  text: string;
+  delay: number;
+}> = ({ type, text, delay }) => {
+  const { ref, isVisible } = useScrollReveal();
+
+  return (
+    <div
+      ref={ref}
+      className={`flex items-start gap-3 transition-all duration-500 ${
+        isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
+      }`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {type === 'before' ? (
+        <X className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+      ) : (
+        <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+      )}
+      <span className={type === 'before' ? 'text-gray-600' : 'text-gray-700'}>{text}</span>
+    </div>
+  );
+};
+
 export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNavigate }) => {
   const [daysUntilMarketplace, setDaysUntilMarketplace] = useState(0);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   // Calculate days until marketplace launch
   useEffect(() => {
@@ -49,51 +296,69 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
   const features = [
     {
       icon: BookOpen,
-      title: 'Cahier Digital',
-      description: 'Enregistrez toutes vos ventes en quelques clics. Fini les cahiers papier illisibles.',
+      title: 'Cahier Digital Intelligent',
+      description:
+        'Enregistrez vos ventes en 2 clics. Fini les cahiers papier illisibles et les erreurs de calcul.',
+      color: 'from-orange-400 to-amber-500',
     },
     {
       icon: Package,
-      title: 'Suivi des Stocks',
-      description: 'Gérez votre inventaire en temps réel. Recevez des alertes avant la rupture.',
+      title: 'Gestion des Stocks',
+      description:
+        'Suivi en temps réel avec alertes avant rupture. Ne manquez jamais une vente par manque de stock.',
+      color: 'from-purple-400 to-indigo-500',
     },
     {
       icon: CreditCard,
-      title: 'Gestion des Dépenses',
-      description: 'Suivez toutes vos dépenses par catégorie. Sachez où part votre argent.',
+      title: 'Suivi des Dépenses',
+      description:
+        'Catégorisez et analysez toutes vos dépenses. Sachez exactement où va votre argent.',
+      color: 'from-emerald-400 to-teal-500',
     },
     {
       icon: Users,
       title: 'Crédits Clients',
-      description: 'Gérez les crédits de vos clients. Plus aucun oubli de paiement.',
+      description:
+        'Gérez les crédits sans oublier un seul paiement. Récupérez tout votre argent, sans exception.',
+      color: 'from-pink-400 to-rose-500',
     },
     {
       icon: BarChart3,
       title: 'Rapports Détaillés',
-      description: 'Visualisez vos performances en un coup d\'œil. Prenez les bonnes décisions.',
+      description:
+        'Visualisez vos performances avec des graphiques clairs. Prenez les bonnes décisions basées sur des données.',
+      color: 'from-blue-400 to-cyan-500',
     },
     {
       icon: Shield,
       title: '100% Sécurisé',
-      description: 'Vos données sont sauvegardées automatiquement et protégées.',
+      description:
+        'Vos données sont chiffrées et sauvegardées automatiquement. Changez de téléphone sans rien perdre.',
+      color: 'from-violet-400 to-purple-500',
     },
   ];
 
   const steps = [
     {
       number: '1',
-      title: 'Inscrivez-vous',
-      description: 'Créez votre compte en 2 minutes. Essai gratuit pendant 30 jours.',
+      title: 'Créez votre compte',
+      description: 'Inscription en 2 minutes. 30 jours gratuits, sans carte bancaire.',
+      icon: Sparkles,
+      color: 'from-orange-400 to-amber-500',
     },
     {
       number: '2',
-      title: 'Configurez',
-      description: 'Ajoutez vos produits et paramétrez votre établissement.',
+      title: 'Configurez votre établissement',
+      description: 'Ajoutez vos produits, vos employés et vos paramètres.',
+      icon: Target,
+      color: 'from-purple-400 to-indigo-500',
     },
     {
       number: '3',
-      title: 'Gérez',
-      description: 'Commencez à gérer votre activité comme un pro dès aujourd\'hui.',
+      title: 'Commencez à gagner du temps',
+      description: 'Gérez votre activité comme un pro et gagnez 2h par jour.',
+      icon: Zap,
+      color: 'from-emerald-400 to-teal-500',
     },
   ];
 
@@ -110,32 +375,37 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
         'Support par email',
       ],
       recommended: false,
+      badge: null,
     },
     {
       name: 'Semestriel',
       price: '30 000',
       period: '6 mois',
       savings: '1 mois offert',
+      savingsValue: '6 000 FCFA',
       features: [
         'Tout du plan Mensuel',
-        '1 mois gratuit (économisez 6 000 FCFA)',
-        'Accès complet à toutes les fonctionnalités',
         'Support prioritaire',
+        'Export avancé des données',
+        'Rapports personnalisés',
       ],
       recommended: true,
+      badge: 'Plus populaire',
     },
     {
       name: 'Annuel',
       price: '48 000',
       period: 'an',
       savings: '4 mois offerts',
+      savingsValue: '24 000 FCFA',
       features: [
-        'Tout du plan Mensuel',
-        '4 mois gratuits (économisez 24 000 FCFA)',
-        'Meilleur rapport qualité-prix',
-        'Support VIP',
+        'Tout du plan Semestriel',
+        'Support VIP 24/7',
+        'Formation personnalisée',
+        'Accès prioritaire aux nouveautés',
       ],
       recommended: false,
+      badge: 'Meilleur rapport',
     },
   ];
 
@@ -143,13 +413,13 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
     {
       name: 'Adjoua Marie',
       business: 'Maquis La Joie, Yopougon',
-      text: 'Avant RAVITO Gestion, je passais 3 heures par jour à compter mes cahiers. Maintenant, tout est automatique. Je gagne 2 heures par jour !',
+      text: 'Avant RAVITO Gestion, je passais 3 heures par jour à compter mes cahiers. Maintenant, tout est automatique. Je gagne 2 heures par jour que je consacre à développer mon business !',
       rating: 5,
     },
     {
       name: 'Kouadio Yves',
       business: 'Bar Le Phenix, Cocody',
-      text: 'Fini les crédits oubliés ! Grâce à RAVITO, je récupère maintenant tout mon argent. Mon chiffre d\'affaires a augmenté de 15%.',
+      text: 'Fini les crédits oubliés ! Grâce à RAVITO, je récupère maintenant tout mon argent. Mon chiffre d\'affaires a augmenté de 15% en seulement 3 mois.',
       rating: 5,
     },
     {
@@ -162,402 +432,447 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
     {
       name: 'Bamba Fatou',
       business: 'Restaurant Chez Tantie, Marcory',
-      text: 'Simple, rapide et efficace. Même mes employés peuvent l\'utiliser sans formation. C\'est exactement ce dont j\'avais besoin.',
+      text: 'Simple, rapide et efficace. Même mes employés peuvent l\'utiliser sans formation. C\'est exactement ce dont j\'avais besoin pour moderniser mon restaurant.',
       rating: 5,
     },
   ];
 
   const faqs = [
     {
-      question: 'Comment fonctionne la période d\'essai ?',
-      answer: 'Vous bénéficiez de 30 jours gratuits dès votre inscription. Aucune carte bancaire requise. Vous pouvez tester toutes les fonctionnalités sans engagement.',
+      question: 'Comment fonctionne la période d\'essai de 30 jours ?',
+      answer:
+        'Vous bénéficiez de 30 jours gratuits dès votre inscription. Aucune carte bancaire n\'est requise. Vous pouvez tester TOUTES les fonctionnalités sans aucune limitation. À la fin de la période, vous choisissez si vous souhaitez continuer avec un abonnement payant.',
     },
     {
       question: 'Quels sont les modes de paiement acceptés ?',
-      answer: 'Nous acceptons les paiements en Espèces, Wave, Orange Money et MTN Money. Choisissez le mode qui vous convient le mieux.',
+      answer:
+        'Nous acceptons les paiements en Espèces, Wave, Orange Money et MTN Money. Choisissez le mode qui vous convient le mieur. Le paiement est simple et sécurisé.',
     },
     {
-      question: 'Mes données sont-elles sécurisées ?',
-      answer: 'Oui, absolument. Vos données sont chiffrées et sauvegardées automatiquement chaque jour. Vous pouvez également exporter vos données à tout moment.',
+      question: 'Mes données sont-elles vraiment sécurisées ?',
+      answer:
+        'Absolument ! Vos données sont chiffrées avec les meilleurs standards de sécurité et sauvegardées automatiquement chaque jour. Vous pouvez également exporter vos données à tout moment. Vos informations ne seront jamais partagées avec des tiers.',
     },
     {
       question: 'Puis-je annuler mon abonnement à tout moment ?',
-      answer: 'Oui, vous pouvez résilier votre abonnement quand vous voulez. Aucun frais d\'annulation. Vous conservez l\'accès jusqu\'à la fin de votre période payée.',
+      answer:
+        'Oui, vous pouvez résilier votre abonnement quand vous voulez, sans aucun frais d\'annulation. Vous conservez l\'accès à toutes vos fonctionnalités jusqu\'à la fin de votre période payée.',
     },
     {
-      question: 'Puis-je utiliser RAVITO Gestion sans connexion Internet ?',
-      answer: 'Oui ! RAVITO Gestion fonctionne en mode offline. Vos données se synchronisent automatiquement dès que vous retrouvez une connexion.',
+      question: 'RAVITO Gestion fonctionne-t-il sans connexion Internet ?',
+      answer:
+        'Oui ! RAVITO Gestion fonctionne en mode offline. Vos données se synchronisent automatiquement dès que vous retrouvez une connexion. Vous ne perdez jamais de vente, même sans internet.',
     },
     {
-      question: 'Qu\'est-ce que RAVITO Marketplace ?',
-      answer: `RAVITO Marketplace est notre nouvelle plateforme qui arrive le 14 mars 2026. Elle vous permettra de commander vos boissons directement auprès des dépôts 24h/24. Commandez maintenant votre abonnement Gestion pour être parmi les premiers à accéder au Marketplace !`,
-    },
-    {
-      question: 'Est-ce que je peux gérer plusieurs établissements ?',
-      answer: 'Oui, mais il vous faudra une inscription par établissement ou par point de vente.',
+      question: 'Qu\'est-ce que RAVITO Marketplace et quand arrive-t-il ?',
+      answer:
+        'RAVITO Marketplace est notre nouvelle plateforme qui arrive le 14 mars 2026. Elle vous permettra de commander vos boissons directement auprès des dépôts 24h/24. En vous abonnant maintenant à Gestion, vous aurez un accès prioritaire au Marketplace !',
     },
     {
       question: 'Je suis propriétaire mais c\'est mon gérant qui gère au quotidien. Comment ça marche ?',
-      answer: 'Parfait ! Vous créez votre compte en tant que propriétaire, puis vous invitez votre gérant dans votre équipe via "Mon Équipe". Vous définissez ses droits (ce qu\'il peut voir et modifier). Votre gérant utilise l\'app au quotidien, et vous avez accès à toutes les données en temps réel. Vous pouvez modifier ou retirer ses droits à tout moment.',
+      answer:
+        'Parfait ! Vous créez votre compte en tant que propriétaire, puis vous invitez votre gérant dans votre équipe via "Mon Équipe". Vous définissez ses droits (ce qu\'il peut voir et modifier). Votre gérant utilise l\'app au quotidien, et vous avez accès à toutes les données en temps réel depuis votre téléphone.',
+    },
+    {
+      question: 'Puis-je gérer plusieurs établissements avec un seul compte ?',
+      answer:
+        'Actuellement, chaque établissement nécessite une inscription séparée pour garantir une gestion optimale. Cependant, nous travaillons sur une fonctionnalité multi-établissements qui sera disponible prochainement.',
     },
   ];
 
+  const ownerBenefits = [
+    {
+      icon: Crown,
+      title: 'Vous êtes le pilote N°1',
+      description: 'Accès complet à toutes les données et tous les droits sur votre établissement.',
+      color: 'from-orange-400 to-amber-500',
+    },
+    {
+      icon: Lock,
+      title: 'Contrôle total des accès',
+      description: 'Donnez ou retirez des droits à votre gérant et vos employés en un clic.',
+      color: 'from-purple-400 to-indigo-500',
+    },
+    {
+      icon: Smartphone,
+      title: 'Pilotage à distance',
+      description: 'Consultez les ventes en temps réel depuis votre téléphone, où que vous soyez.',
+      color: 'from-blue-400 to-cyan-500',
+    },
+    {
+      icon: Eye,
+      title: 'Transparence totale',
+      description: 'Fini les rapports tronqués. Toutes les données sont horodatées et traçables.',
+      color: 'from-green-400 to-emerald-500',
+    },
+    {
+      icon: Cloud,
+      title: 'Données toujours disponibles',
+      description: 'Changez de téléphone sans perdre vos données. Sauvegarde automatique.',
+      color: 'from-pink-400 to-rose-500',
+    },
+    {
+      icon: Bell,
+      title: 'Alertes en temps réel',
+      description: 'Recevez des notifications sur l\'activité de votre établissement.',
+      color: 'from-violet-400 to-purple-500',
+    },
+  ];
+
+  const beforeAfter = {
+    before: [
+      '3 heures par jour pour faire le point',
+      'Crédits clients oubliés = argent perdu',
+      'Erreurs de calcul fréquentes',
+      'Stocks mal gérés = ruptures fréquentes',
+      'Pas de vision claire sur les dépenses',
+      'Difficile de prendre les bonnes décisions',
+      'Gérant qui cache des informations',
+      'Cahiers de points qui disparaissent',
+      'Impossible de contrôler à distance',
+    ],
+    after: [
+      'Tout automatisé : gagnez 2h par jour',
+      'Tous vos crédits suivis et récupérés',
+      'Zéro erreur : calculs automatiques précis',
+      'Alertes avant rupture de stock',
+      'Vue claire de toutes vos dépenses',
+      'Rapports détaillés pour mieux décider',
+      'Transparence totale, tout est tracé',
+      'Données sécurisées dans le cloud',
+      'Pilotage en temps réel depuis votre téléphone',
+    ],
+  };
+
+  const { ref: statsRef, isVisible: statsVisible } = useScrollReveal();
+  const { ref: benefitsRef, isVisible: benefitsVisible } = useScrollReveal();
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Header */}
       <LandingHeader showNavigation={true} onNavigate={onNavigate} />
 
-      {/* HERO SECTION */}
+      {/* HERO SECTION - Modern & Impactful */}
       <section
         id="hero"
-        className="pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-br from-orange-50 via-white to-amber-50 relative overflow-hidden"
+        ref={heroRef}
+        className="relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden"
       >
-        {/* Decorative shapes */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-orange-300 to-amber-300 rounded-full opacity-10 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-orange-400 to-yellow-400 rounded-full opacity-10 blur-3xl"></div>
+        {/* Animated Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-amber-50" />
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-br from-orange-300/20 to-amber-300/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-orange-400/20 to-yellow-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-purple-300/10 to-indigo-300/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+
+        {/* Floating Elements */}
+        <div className="absolute top-32 left-10 w-20 h-20 bg-orange-400/10 rounded-2xl rotate-12 animate-bounce" style={{ animationDuration: '3s' }} />
+        <div className="absolute top-48 right-20 w-16 h-16 bg-amber-400/10 rounded-full animate-bounce" style={{ animationDuration: '4s', animationDelay: '1s' }} />
+        <div className="absolute bottom-32 left-1/4 w-12 h-12 bg-purple-400/10 rounded-xl -rotate-12 animate-bounce" style={{ animationDuration: '5s', animationDelay: '2s' }} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium mb-4">
-              <Crown className="h-4 w-4 mr-2" />
-              Idéal pour les propriétaires qui délèguent
-            </div>
-            <div className="inline-block mb-6 px-4 py-2 bg-orange-100 rounded-full">
-              <span className="text-orange-600 font-semibold text-sm">✨ 30 jours d'essai gratuit</span>
-            </div>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Gérez votre maquis <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <div className="text-center lg:text-left">
+              {/* Badges */}
+              <div className="flex flex-wrap justify-center lg:justify-start gap-3 mb-6">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 rounded-full text-sm font-semibold animate-pulse">
+                  <Crown className="h-4 w-4" />
+                  Idéal pour les propriétaires
+                </div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-100 to-amber-100 text-orange-700 rounded-full text-sm font-semibold">
+                  <Sparkles className="h-4 w-4" />
+                  30 jours gratuits
+                </div>
+              </div>
+
+              {/* Main Headline */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+                Gérez votre{' '}
+                <span className="relative">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600">
+                    maquis
+                  </span>
+                  <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none">
+                    <path
+                      d="M2 8C50 2 150 2 198 8"
+                      stroke="url(#gradient)"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                    />
+                    <defs>
+                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#f97316" />
+                        <stop offset="100%" stopColor="#f59e0b" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </span>{' '}
                 comme un pro
-              </span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              La solution digitale qui simplifie la gestion de votre bar, maquis ou restaurant.
-              Plus de temps pour développer votre business, moins de temps sur les cahiers.
-            </p>
+              </h1>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-8 mb-8 max-w-2xl mx-auto">
-              <div className="bg-white rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-lg">
-                <div className="text-2xl sm:text-3xl font-bold text-orange-500 mb-1">2h</div>
-                <div className="text-xs sm:text-sm text-gray-600">gagnées/jour</div>
+              <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                La solution digitale qui simplifie la gestion de votre bar, maquis ou restaurant.
+                <span className="text-orange-600 font-semibold"> Gagnez 2h par jour</span> et
+                augmentez vos revenus.
+              </p>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10">
+                <button
+                  onClick={() => onNavigate('/register')}
+                  className="group px-8 py-4 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-orange-500/25 hover:shadow-2xl hover:shadow-orange-500/40 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2"
+                >
+                  Commencer gratuitement
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+                <button
+                  onClick={() => scrollToSection('pricing')}
+                  className="px-8 py-4 bg-white text-gray-700 border-2 border-gray-200 rounded-2xl font-bold text-lg hover:border-orange-300 hover:bg-orange-50 transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  Voir les tarifs
+                </button>
               </div>
-              <div className="bg-white rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-lg">
-                <div className="text-2xl sm:text-3xl font-bold text-orange-500 mb-1">0</div>
-                <div className="text-xs sm:text-sm text-gray-600">erreur de calcul</div>
-              </div>
-              <div className="bg-white rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-lg">
-                <div className="text-2xl sm:text-3xl font-bold text-orange-500 mb-1">100%</div>
-                <div className="text-xs sm:text-sm text-gray-600">sécurisé</div>
+
+              {/* Trust Indicators */}
+              <div className="flex flex-wrap justify-center lg:justify-start items-center gap-6 text-sm text-gray-500">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  Sans carte bancaire
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  Sans engagement
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  Support 24/7
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() => onNavigate('/register')}
-                className="px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl hover:from-orange-600 hover:to-amber-600 transition-all font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                Commencer gratuitement
-              </button>
-              <button
-                onClick={() => scrollToSection('pricing')}
-                className="px-8 py-4 border-2 border-orange-500 text-orange-500 rounded-xl hover:bg-orange-50 transition-colors font-semibold text-lg"
-              >
-                Voir les tarifs
-              </button>
+            {/* Right Content - Stats Cards */}
+            <div ref={statsRef} className="relative">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Main Stat Card */}
+                <div
+                  className={`col-span-2 bg-white rounded-3xl p-6 shadow-xl border border-orange-100 transition-all duration-700 ${
+                    statsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                  }`}
+                >
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-amber-500 rounded-xl flex items-center justify-center">
+                      <Clock className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold text-gray-900">
+                        <AnimatedCounter end={2} />h
+                      </div>
+                      <div className="text-gray-500">gagnées par jour</div>
+                    </div>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full w-3/4 bg-gradient-to-r from-orange-400 to-amber-500 rounded-full" />
+                  </div>
+                </div>
+
+                {/* Stat Card 2 */}
+                <div
+                  className={`bg-white rounded-2xl p-5 shadow-lg border border-gray-100 transition-all duration-700 delay-100 ${
+                    statsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                  }`}
+                >
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center mb-3">
+                    <TrendingUp className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900">+15%</div>
+                  <div className="text-sm text-gray-500">CA en moyenne</div>
+                </div>
+
+                {/* Stat Card 3 */}
+                <div
+                  className={`bg-white rounded-2xl p-5 shadow-lg border border-gray-100 transition-all duration-700 delay-200 ${
+                    statsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                  }`}
+                >
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-lg flex items-center justify-center mb-3">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900">500+</div>
+                  <div className="text-sm text-gray-500">utilisateurs</div>
+                </div>
+
+                {/* Stat Card 4 */}
+                <div
+                  className={`col-span-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-5 text-white transition-all duration-700 delay-300 ${
+                    statsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm text-purple-200 mb-1">RAVITO Marketplace</div>
+                      <div className="text-2xl font-bold">J-{daysUntilMarketplace}</div>
+                    </div>
+                    <Rocket className="w-10 h-10 text-white/80" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+          <ChevronDown className="w-8 h-8 text-gray-400" />
+        </div>
+      </section>
+
+      {/* SOCIAL PROOF BAR */}
+      <section className="py-8 bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-orange-400">500+</div>
+              <div className="text-sm text-gray-400">Établissements</div>
+            </div>
+            <div className="hidden md:block w-px h-12 bg-gray-700" />
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-orange-400">50K+</div>
+              <div className="text-sm text-gray-400">Ventes enregistrées</div>
+            </div>
+            <div className="hidden md:block w-px h-12 bg-gray-700" />
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-orange-400">4.9/5</div>
+              <div className="text-sm text-gray-400">Note moyenne</div>
+            </div>
+            <div className="hidden md:block w-px h-12 bg-gray-700" />
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-orange-400">24/7</div>
+              <div className="text-sm text-gray-400">Support client</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* MARKETPLACE ANNOUNCEMENT BANNER */}
-      <section className="py-6 sm:py-8 bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+      {/* BEFORE/AFTER SECTION */}
+      <section id="avant-apres" className="py-20 md:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3">
-              <Rocket className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0" />
-              <div>
-                <div className="font-bold text-base sm:text-lg">🚀 RAVITO Marketplace arrive bientôt !</div>
-                <div className="text-xs sm:text-sm text-purple-100">Commandez vos boissons 24h/24 directement depuis l'app</div>
-              </div>
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold mb-4">
+              <Target className="h-4 w-4" />
+              Les problèmes que nous résolvons
             </div>
-            <div className="flex items-center gap-4">
-              <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 sm:px-6 py-2 sm:py-3">
-                <div className="text-2xl sm:text-3xl font-bold">J-{daysUntilMarketplace}</div>
-                <div className="text-xs text-purple-100">14 mars 2026</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* AVANT/APRÈS SECTION */}
-      <section id="avant-apres" className="py-16 md:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Les problèmes que RAVITO résout
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
+              Avant vs Après RAVITO
             </h2>
-            <p className="text-xl text-gray-600">
-              Avant et après RAVITO Gestion
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Découvrez comment RAVITO transforme la gestion de votre établissement au quotidien
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* AVANT */}
-            <div className="bg-red-50 rounded-2xl p-8 border-2 border-red-200">
-              <h3 className="text-2xl font-bold text-red-600 mb-6 flex items-center gap-2">
-                ❌ Avant RAVITO
-              </h3>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3">
-                  <span className="text-red-500 text-xl">•</span>
-                  <span className="text-gray-700">3 heures par jour pour faire le point de la journée</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-500 text-xl">•</span>
-                  <span className="text-gray-700">Crédits clients oubliés = argent perdu</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-500 text-xl">•</span>
-                  <span className="text-gray-700">Erreurs de calcul fréquentes</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-500 text-xl">•</span>
-                  <span className="text-gray-700">Stocks mal gérés = ruptures fréquentes</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-500 text-xl">•</span>
-                  <span className="text-gray-700">Pas de vision claire sur les dépenses</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-500 text-xl">•</span>
-                  <span className="text-gray-700">Difficile de prendre les bonnes décisions</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-500 text-xl">•</span>
-                  <span className="text-gray-700">Gérant qui cache des informations</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-500 text-xl">•</span>
-                  <span className="text-gray-700">Cahiers de points qui disparaissent</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-red-500 text-xl">•</span>
-                  <span className="text-gray-700">Impossible de contrôler à distance</span>
-                </li>
+          <div ref={benefitsRef} className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* BEFORE */}
+            <div className="relative bg-gradient-to-br from-red-50 to-rose-50 rounded-3xl p-8 border-2 border-red-200">
+              <div className="absolute -top-4 left-8 px-4 py-2 bg-red-500 text-white rounded-full font-bold flex items-center gap-2">
+                <X className="w-4 h-4" />
+                Avant RAVITO
+              </div>
+              <ul className="space-y-4 mt-4">
+                {beforeAfter.before.map((item, index) => (
+                  <BenefitItem key={index} type="before" text={item} delay={index * 50} />
+                ))}
               </ul>
             </div>
 
-            {/* APRÈS */}
-            <div className="bg-green-50 rounded-2xl p-8 border-2 border-green-200">
-              <h3 className="text-2xl font-bold text-green-600 mb-6 flex items-center gap-2">
-                ✅ Avec RAVITO
-              </h3>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3">
-                  <Check className="text-green-500 w-6 h-6 flex-shrink-0" />
-                  <span className="text-gray-700">Tout automatisé : gagnez 2h par jour</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-green-500 w-6 h-6 flex-shrink-0" />
-                  <span className="text-gray-700">Tous vos crédits suivis et récupérés</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-green-500 w-6 h-6 flex-shrink-0" />
-                  <span className="text-gray-700">Zéro erreur : calculs automatiques précis</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-green-500 w-6 h-6 flex-shrink-0" />
-                  <span className="text-gray-700">Alertes avant rupture de stock</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-green-500 w-6 h-6 flex-shrink-0" />
-                  <span className="text-gray-700">Vue claire de toutes vos dépenses</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-green-500 w-6 h-6 flex-shrink-0" />
-                  <span className="text-gray-700">Rapports détaillés pour mieux décider</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-green-500 w-6 h-6 flex-shrink-0" />
-                  <span className="text-gray-700">Transparence totale, tout est tracé</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-green-500 w-6 h-6 flex-shrink-0" />
-                  <span className="text-gray-700">Données sécurisées dans le cloud</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="text-green-500 w-6 h-6 flex-shrink-0" />
-                  <span className="text-gray-700">Pilotage en temps réel depuis votre téléphone</span>
-                </li>
+            {/* AFTER */}
+            <div className="relative bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl p-8 border-2 border-green-200">
+              <div className="absolute -top-4 left-8 px-4 py-2 bg-green-500 text-white rounded-full font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Avec RAVITO
+              </div>
+              <ul className="space-y-4 mt-4">
+                {beforeAfter.after.map((item, index) => (
+                  <BenefitItem key={index} type="after" text={item} delay={index * 50} />
+                ))}
               </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section id="features" className="py-16 md:py-24 bg-gray-50">
+      {/* FEATURES SECTION */}
+      <section id="features" className="py-20 md:py-32 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold mb-4">
+              <Zap className="h-4 w-4" />
+              Fonctionnalités puissantes
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
               Tout ce dont vous avez besoin
             </h2>
-            <p className="text-xl text-gray-600">
-              Une solution complète pour gérer votre établissement
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Une solution complète et intuitive pour gérer votre établissement comme un pro
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
-              <div
+              <FeatureCard
                 key={index}
-                className="bg-white rounded-xl p-6 hover:shadow-xl transition-shadow border border-gray-100"
-              >
-                <div className="h-12 w-12 bg-gradient-to-br from-orange-400 to-amber-400 rounded-lg flex items-center justify-center mb-4">
-                  <feature.icon className="text-white" size={24} />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </div>
+                icon={feature.icon}
+                title={feature.title}
+                description={feature.description}
+                color={feature.color}
+                delay={index * 100}
+              />
             ))}
           </div>
         </div>
       </section>
 
-      {/* PILOTAGE PROPRIÉTAIRE */}
-      <section id="proprietaires" className="py-16 md:py-24 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full opacity-5 blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full opacity-5 blur-3xl"></div>
+      {/* OWNER SECTION */}
+      <section id="proprietaires" className="py-20 md:py-32 relative overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700" />
+        <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full opacity-5 blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full opacity-5 blur-3xl" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              👑 Propriétaires : Reprenez le contrôle total
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-semibold mb-4">
+              <Crown className="h-4 w-4" />
+              Pour les propriétaires
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+              Reprenez le contrôle total
             </h2>
-            <p className="text-xl md:text-2xl text-purple-100 max-w-3xl mx-auto">
-              Fini le manque de transparence et les rapports tronqués. Pilotez votre activité à distance, en temps réel.
+            <p className="text-xl text-purple-100 max-w-2xl mx-auto">
+              Fini le manque de transparence et les rapports tronqués. Pilotez votre activité à
+              distance, en temps réel.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-12">
-            {/* Point 1 */}
-            <div className="bg-white rounded-xl p-4 sm:p-6 text-gray-900">
-              <div className="h-12 w-12 bg-gradient-to-br from-orange-400 to-amber-400 rounded-lg flex items-center justify-center mb-4">
-                <Crown className="text-white" size={24} />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {ownerBenefits.map((benefit, index) => (
+              <div
+                key={index}
+                className="group bg-white rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+              >
+                <div
+                  className={`h-12 w-12 rounded-xl bg-gradient-to-br ${benefit.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                >
+                  <benefit.icon className="text-white" size={24} />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">{benefit.title}</h3>
+                <p className="text-gray-600 text-sm">{benefit.description}</p>
               </div>
-              <h3 className="text-xl font-bold mb-3">Vous êtes le pilote N°1</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Accès complet à toutes les données</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Tous les droits sur votre établissement</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Vision 360° de votre activité</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Point 2 */}
-            <div className="bg-white rounded-xl p-4 sm:p-6 text-gray-900">
-              <div className="h-12 w-12 bg-gradient-to-br from-purple-400 to-indigo-400 rounded-lg flex items-center justify-center mb-4">
-                <Shield className="text-white" size={24} />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Contrôle total des accès</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Donnez ou retirez des droits à votre gérant et vos employés</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Définissez qui peut voir ou modifier quoi</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Historique des actions de chaque utilisateur</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Point 3 */}
-            <div className="bg-white rounded-xl p-4 sm:p-6 text-gray-900">
-              <div className="h-12 w-12 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-lg flex items-center justify-center mb-4">
-                <Smartphone className="text-white" size={24} />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Pilotage à distance</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Consultez les ventes en temps réel depuis votre téléphone</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Recevez des alertes sur l'activité</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>RAVITO simplifie votre compte rendu quotidien d'activité</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Point 4 */}
-            <div className="bg-white rounded-xl p-4 sm:p-6 text-gray-900">
-              <div className="h-12 w-12 bg-gradient-to-br from-green-400 to-emerald-400 rounded-lg flex items-center justify-center mb-4">
-                <Eye className="text-white" size={24} />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Transparence totale</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Fini les rapports tronqués</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Fini les points qui disparaissent avec les cahiers en papier</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Toutes les données sont horodatées et traçables</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Point 5 */}
-            <div className="bg-white rounded-xl p-4 sm:p-6 text-gray-900">
-              <div className="h-12 w-12 bg-gradient-to-br from-pink-400 to-rose-400 rounded-lg flex items-center justify-center mb-4">
-                <Cloud className="text-white" size={24} />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Données toujours disponibles</h3>
-              <ul className="space-y-2 text-gray-600">
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Changez de téléphone sans perdre vos données</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Accessible sur tablette, ordinateur, téléphone</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>Sauvegarde automatique et sécurisée</span>
-                </li>
-              </ul>
-            </div>
+            ))}
           </div>
 
-          <div className="text-center">
+          <div className="text-center mt-12">
             <button
               onClick={() => onNavigate('/register')}
-              className="px-8 py-4 bg-white text-purple-600 rounded-xl hover:bg-gray-100 transition-all font-semibold text-lg shadow-lg inline-flex items-center gap-2"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-purple-600 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-all shadow-xl"
             >
               Essayer gratuitement pendant 30 jours
               <ArrowRight className="w-5 h-5" />
@@ -566,15 +881,19 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
         </div>
       </section>
 
-      {/* COMMENT ÇA MARCHE */}
-      <section id="comment-ca-marche" className="py-16 md:py-24 bg-white">
+      {/* HOW IT WORKS */}
+      <section id="comment-ca-marche" className="py-20 md:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-semibold mb-4">
+              <Play className="h-4 w-4" />
+              Simple et rapide
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
               Comment ça marche ?
             </h2>
-            <p className="text-xl text-gray-600">
-              3 étapes simples pour démarrer
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Trois étapes simples pour transformer votre gestion
             </p>
           </div>
 
@@ -582,80 +901,90 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
             {steps.map((step, index) => (
               <div key={index} className="relative">
                 <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-400 text-white rounded-full text-2xl font-bold mb-4">
+                  <div
+                    className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br ${step.color} text-white mb-6 shadow-lg`}
+                  >
+                    <step.icon size={32} />
+                  </div>
+                  <div className="inline-flex items-center justify-center w-8 h-8 bg-gray-900 text-white rounded-full text-sm font-bold mb-4">
                     {step.number}
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{step.title}</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
                   <p className="text-gray-600">{step.description}</p>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-8 left-1/2 w-full h-0.5 bg-gradient-to-r from-orange-300 to-amber-300"></div>
+                  <div className="hidden md:block absolute top-10 left-[60%] w-full">
+                    <ArrowRight className="w-8 h-8 text-gray-300" />
+                  </div>
                 )}
               </div>
             ))}
           </div>
-
-          <div className="text-center mt-12">
-            <button
-              onClick={() => onNavigate('/register')}
-              className="px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl hover:from-orange-600 hover:to-amber-600 transition-all font-semibold text-lg shadow-lg"
-            >
-              Commencer maintenant - C'est gratuit
-            </button>
-          </div>
         </div>
       </section>
 
-      {/* PRICING */}
-      <section id="pricing" className="py-16 md:py-24 bg-gradient-to-br from-gray-50 to-orange-50">
+      {/* PRICING SECTION */}
+      <section
+        id="pricing"
+        className="py-20 md:py-32 bg-gradient-to-br from-gray-50 via-orange-50/30 to-gray-50"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Des tarifs simples et transparents
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-700 rounded-full text-sm font-semibold mb-4">
+              <Wallet className="h-4 w-4" />
+              Tarifs transparents
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
+              Des tarifs adaptés à votre besoin
             </h2>
-            <p className="text-xl text-gray-600 mb-2">
-              30 jours d'essai gratuit - Sans carte bancaire
-            </p>
-            <p className="text-lg text-gray-500">
-              Paiement accepté : Espèces, Wave, Orange Money, MTN Money
+            <p className="text-xl text-gray-600 mb-2">30 jours d'essai gratuit</p>
+            <p className="text-gray-500">
+              Paiement : Espèces, Wave, Orange Money, MTN Money
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {pricingPlans.map((plan, index) => (
               <div
                 key={index}
-                className={`bg-white rounded-2xl p-6 sm:p-8 border-2 ${
+                className={`relative bg-white rounded-3xl p-8 transition-all duration-300 hover:shadow-2xl ${
                   plan.recommended
-                    ? 'border-orange-500 shadow-2xl sm:scale-105 relative'
-                    : 'border-gray-200 shadow-lg'
+                    ? 'border-2 border-orange-500 shadow-xl scale-105 z-10'
+                    : 'border border-gray-200 hover:border-orange-200'
                 }`}
               >
-                {plan.recommended && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                      ⭐ Recommandé
+                {plan.badge && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <span
+                      className={`px-4 py-1 rounded-full text-sm font-bold ${
+                        plan.recommended
+                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {plan.badge}
                     </span>
                   </div>
                 )}
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+
+                <div className="text-center mb-8">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                   {plan.savings && (
-                    <div className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold mb-3">
+                    <div className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold mb-4">
                       🎁 {plan.savings}
                     </div>
                   )}
-                  <div className="mb-2">
+                  <div className="flex items-baseline justify-center gap-1">
                     <span className="text-5xl font-bold text-gray-900">{plan.price}</span>
-                    <span className="text-xl text-gray-500 ml-2">FCFA</span>
+                    <span className="text-xl text-gray-500">FCFA</span>
                   </div>
-                  <div className="text-gray-600">par {plan.period}</div>
+                  <div className="text-gray-500">par {plan.period}</div>
                 </div>
 
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-4 mb-8">
                   {plan.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-start gap-2">
-                      <Check className="text-green-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                    <li key={featureIndex} className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                       <span className="text-gray-700 text-sm">{feature}</span>
                     </li>
                   ))}
@@ -663,9 +992,9 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
 
                 <button
                   onClick={() => onNavigate('/register')}
-                  className={`w-full py-3 rounded-xl font-semibold transition-all ${
+                  className={`w-full py-4 rounded-xl font-bold transition-all ${
                     plan.recommended
-                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 shadow-lg'
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 shadow-lg hover:shadow-xl'
                       : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                   }`}
                 >
@@ -677,71 +1006,68 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section id="temoignages" className="py-16 md:py-24 bg-white">
+      {/* TESTIMONIALS SECTION */}
+      <section id="temoignages" className="py-20 md:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-700 rounded-full text-sm font-semibold mb-4">
+              <Star className="h-4 w-4" />
               Ils nous font confiance
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
+              Ce que disent nos clients
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Des centaines de propriétaires et gérants satisfaits en Côte d'Ivoire
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-100"
-              >
-                <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-orange-400 text-orange-400" />
-                  ))}
-                </div>
-                <p className="text-gray-700 mb-4 italic">"{testimonial.text}"</p>
-                <div>
-                  <div className="font-bold text-gray-900">{testimonial.name}</div>
-                  <div className="text-sm text-gray-600">{testimonial.business}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <TestimonialCarousel testimonials={testimonials} />
         </div>
       </section>
 
-      {/* FAQ */}
-      <section id="faq" className="py-16 md:py-24 bg-gray-50">
+      {/* FAQ SECTION */}
+      <section id="faq" className="py-20 md:py-32 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold mb-4">
+              <HelpCircle className="h-4 w-4" />
               Questions fréquentes
+            </div>
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
+              Vous avez des questions ?
             </h2>
-            <p className="text-xl text-gray-600">
-              Tout ce que vous devez savoir sur RAVITO Gestion
-            </p>
+            <p className="text-xl text-gray-600">Tout ce que vous devez savoir sur RAVITO Gestion</p>
           </div>
 
           <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <div key={index} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div
+                key={index}
+                className={`bg-white rounded-2xl border transition-all duration-300 ${
+                  openFaqIndex === index
+                    ? 'border-orange-300 shadow-lg'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
                 <button
                   onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
-                  className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+                  className="w-full px-6 py-5 flex items-center justify-between text-left"
                 >
-                  <span className="font-semibold text-gray-900">{faq.question}</span>
+                  <span className="font-semibold text-gray-900 pr-4">{faq.question}</span>
                   <ChevronDown
-                    className={`w-5 h-5 text-gray-500 transition-transform ${
+                    className={`w-5 h-5 text-gray-500 flex-shrink-0 transition-transform duration-300 ${
                       openFaqIndex === index ? 'transform rotate-180' : ''
                     }`}
                   />
                 </button>
-                {openFaqIndex === index && (
-                  <div className="px-6 pb-4 text-gray-600">
-                    {faq.answer}
-                  </div>
-                )}
+                <div
+                  className={`overflow-hidden transition-all duration-300 ${
+                    openFaqIndex === index ? 'max-h-96' : 'max-h-0'
+                  }`}
+                >
+                  <div className="px-6 pb-5 text-gray-600 leading-relaxed">{faq.answer}</div>
+                </div>
               </div>
             ))}
           </div>
@@ -749,95 +1075,72 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
       </section>
 
       {/* MARKETPLACE PREVIEW */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full opacity-5 blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full opacity-5 blur-3xl"></div>
+      <section className="py-20 md:py-32 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700" />
+        <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full opacity-5 blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full opacity-5 blur-3xl" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 mb-6">
-              <Rocket className="w-6 h-6" />
-              <span className="font-bold">Prochainement</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-semibold mb-6">
+              <Rocket className="w-4 h-4" />
+              Prochainement
             </div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
-              RAVITO Marketplace
-            </h2>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-6">
-              <div className="text-5xl sm:text-6xl font-bold">J-{daysUntilMarketplace}</div>
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">RAVITO Marketplace</h2>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+              <div className="text-6xl md:text-7xl font-bold text-white">J-{daysUntilMarketplace}</div>
               <div className="text-center sm:text-left">
-                <div className="text-xl sm:text-2xl font-semibold">14 mars 2026</div>
+                <div className="text-2xl font-semibold text-white">14 mars 2026</div>
                 <div className="text-purple-200">Le grand lancement</div>
               </div>
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-12">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
-              <div className="flex items-start gap-4">
-                <div className="bg-white/20 rounded-lg p-3">
-                  <Clock className="w-6 h-6" />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {[
+              {
+                icon: Clock,
+                title: 'Commandes 24h/24',
+                description: 'Commandez vos boissons à n\'importe quelle heure',
+              },
+              {
+                icon: TrendingUp,
+                title: 'Meilleurs prix',
+                description: 'Comparez les offres de plusieurs dépôts',
+              },
+              {
+                icon: Zap,
+                title: 'Livraison rapide',
+                description: 'Recevez en moins de 2 heures',
+              },
+              {
+                icon: Smartphone,
+                title: 'Tout dans une app',
+                description: 'Gestion + commandes au même endroit',
+              },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-colors"
+              >
+                <div className="bg-white/20 rounded-xl p-3 w-fit mb-4">
+                  <item.icon className="w-6 h-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Commandes 24h/24</h3>
-                  <p className="text-purple-100">
-                    Commandez vos boissons à n'importe quelle heure, même la nuit. Fini les stocks vides !
-                  </p>
-                </div>
+                <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+                <p className="text-purple-100 text-sm">{item.description}</p>
               </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
-              <div className="flex items-start gap-4">
-                <div className="bg-white/20 rounded-lg p-3">
-                  <TrendingUp className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Meilleurs prix</h3>
-                  <p className="text-purple-100">
-                    Comparez les offres de plusieurs dépôts et choisissez la meilleure. Économisez sur chaque commande.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
-              <div className="flex items-start gap-4">
-                <div className="bg-white/20 rounded-lg p-3">
-                  <Zap className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Livraison rapide</h3>
-                  <p className="text-purple-100">
-                    Recevez vos commandes en moins de 2 heures. Suivi en temps réel de votre livraison.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/20">
-              <div className="flex items-start gap-4">
-                <div className="bg-white/20 rounded-lg p-3">
-                  <Smartphone className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Tout dans une app</h3>
-                  <p className="text-purple-100">
-                    Gérez votre activité ET commandez vos stocks depuis la même application. Simple et efficace.
-                  </p>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
 
-          <div className="text-center px-4">
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 sm:p-6 md:p-8 inline-block max-w-full">
-              <p className="text-base sm:text-xl mb-4">
-                🎁 <strong>Offre de lancement :</strong> Les premiers abonnés RAVITO Gestion auront un accès prioritaire au Marketplace !
+          <div className="text-center">
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-8 inline-block max-w-2xl">
+              <p className="text-xl text-white mb-6">
+                🎁 <strong>Offre de lancement :</strong> Les premiers abonnés RAVITO Gestion auront
+                un accès prioritaire au Marketplace !
               </p>
               <button
                 onClick={() => onNavigate('/register')}
-                className="px-8 py-4 bg-white text-purple-600 rounded-xl hover:bg-gray-100 transition-all font-semibold text-lg shadow-lg inline-flex items-center gap-2"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-purple-600 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-all shadow-xl"
               >
                 Créer mon compte maintenant
                 <ArrowRight className="w-5 h-5" />
@@ -848,24 +1151,42 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
       </section>
 
       {/* FINAL CTA */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-orange-500 to-amber-500 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+      <section className="py-20 md:py-32 bg-gradient-to-br from-orange-500 via-amber-500 to-orange-600 text-white relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full opacity-10 blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full opacity-10 blur-3xl" />
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <h2 className="text-4xl md:text-6xl font-bold mb-6">
             Prêt à digitaliser votre gestion ?
           </h2>
-          <p className="text-xl md:text-2xl mb-8 text-orange-50">
+          <p className="text-xl md:text-2xl mb-10 text-orange-50">
             Rejoignez des centaines de gérants qui ont déjà fait le choix de RAVITO Gestion
           </p>
-          <button
-            onClick={() => onNavigate('/register')}
-            className="px-8 py-4 bg-white text-orange-500 rounded-xl hover:bg-gray-100 transition-all font-semibold text-lg shadow-xl inline-flex items-center gap-2"
-          >
-            Démarrer mon essai gratuit maintenant
-            <ArrowRight className="w-5 h-5" />
-          </button>
-          <p className="text-sm text-orange-100 mt-4">
-            Sans carte bancaire • 30 jours gratuits • Sans engagement
-          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <button
+              onClick={() => onNavigate('/register')}
+              className="group px-8 py-4 bg-white text-orange-600 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-all shadow-xl inline-flex items-center justify-center gap-2"
+            >
+              Démarrer mon essai gratuit
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-orange-100">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5" />
+              Sans carte bancaire
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5" />
+              30 jours gratuits
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5" />
+              Sans engagement
+            </div>
+          </div>
         </div>
       </section>
 
@@ -874,3 +1195,38 @@ export const LandingPageGestion: React.FC<LandingPageGestionProps> = ({ onNaviga
     </div>
   );
 };
+
+// Missing import for HelpCircle
+const HelpCircle = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="10" />
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+    <line x1="12" y1="17" x2="12.01" y2="17" />
+  </svg>
+);
+
+// X icon component
+const X = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+export default LandingPageGestion;
